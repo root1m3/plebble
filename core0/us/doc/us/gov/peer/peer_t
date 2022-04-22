@@ -1,0 +1,36 @@
+PEER PEER
+
+---------------------------------------------
+e5e45904dce8bd4a04a8de00a847cee5f8f953e7
+constexpr static chrono::seconds auth_window{socket::peer_t::stall+5s};
+constexpr static uint64_t maxidle_ms{180000};
+
+---------------------------------------------
+2f83ad0cce9bf1af47ed6c7a63afe49458ce86c6
+pair<c::security_level_t,string> c::security_level() const {
+
+    if base class says something different than ok returns it.
+    if is ok for base class:
+
+    calls check_auth_not_granted
+    calls check_idle
+
+    if any of them fails return disconnect.
+    otherwise returns ok
+
+---------------------------------------------
+2f83ad0cce9bf1af47ed6c7a63afe49458ce86c6
+bool c::check_auth_not_granted() const {
+    
+    uses the variable client.since, containing the timestamp when the client was instantiated, to
+    check if is taking too long to gain authorized status.
+    
+
+---------------------------------------------
+2f83ad0cce9bf1af47ed6c7a63afe49458ce86c6
+bool c::check_idle() const {
+    uses the variable client.activity, containing the timestamp when the client either sent or received something,
+    to flag that it's been too long without having any interaction.
+
+
+

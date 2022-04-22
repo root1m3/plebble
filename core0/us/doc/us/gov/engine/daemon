@@ -1,0 +1,59 @@
+->--------------------------------------------------------------
+class us::gov::engine::daemon
+compoundname
+Class dcumentation...
+
+-<--------------------------------------------------------------
+
+->--------------------------------------------------------------
+bool c::process_evidence(const datagram&d) 
+
+deserializes the evidence and instantiates the associated memory object.
+Sends the evidence to the calendar  [->calendar.schedule]
+
+returns false on unsuccesful end. 
+-<--------------------------------------------------------------
+
+->--------------------------------------------------------------
+function us::gov::engine::daemon::run ()
+memberdef 
+definition argsstring
+
+ us::gov::engine::daemon::run
+
+The consensus cycle thread main loop
+
+
+      T0                                      T1        T2         T0
+cycle [*>>>>>>>>>>>>>>>>>>>>-------------------*---------*---------]
+                           |                   |         |         |
+                     now --+                   |         |         |
+                                               |         |         |
+                               cbc-20 secs ----+         |         |
+                                         cbc-10secs -----+         |
+                                       calendar.block_closure------+ (cbc)
+
+    static constexpr chrono::seconds limit_local_deltas{20};
+    static constexpr chrono::seconds limit_votes{10};
+
+
+
+---T0
+In order to run the next cycle satisfactorily the node must be ready for consensus, this means to be classified in the ledger as a recognized node and the ledger be synchronized or up to date.
+If the status is not ready for consensus local_deltas is set null, and the program would wait until T2.
+If local_deltas is null at this point, unlikely case, the program would wait till T2.
+local_deltas contains at this point the proposed changes to the ledger made up during the previous cycle.
+pools is a container where diffs are stored. Every local_deltas object has an attribute id identifying the cycle it corresponds to.
+With this id pools would locate the correct diff.
+local_deltas is then merged in the current diff being likely the first one to be merged so anew diff is created on the fly.
+The program then waits until the next deadline is met. During this time local_deltas are arriving from the net and merged into the same diff.
+---T1
+The diff is retrieved from pools. The last thing before hashing the diff is to fill the previous diff field so the diff-chain has a new link.
+mydiff is our proposed next block. A signed vote containing the hash of the diff is sent over to other nodes, then wait until the next deadline.
+---T2
+The most voted hash is selected and the ledger is updated 
+Wait until T0 is signaled from the evidence processor thread, responsible of building local_deltas as evicences are processed from the calendar.
+
+
+-<--------------------------------------------------------------
+

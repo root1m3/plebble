@@ -1,0 +1,123 @@
+#!/bin/bash
+#===-                           P L E B B L E
+#===-                         https://plebble.us
+#===-
+#===-              Copyright (C) 2017-2022 root1m3@plebble.us
+#===-
+#===-                      GNU GENERAL PUBLIC LICENSE
+#===-                       Version 3, 29 June 2007
+#===-
+#===-    This program is free software: you can redistribute it and/or modify
+#===-    it under the terms of the AGPLv3 License as published by the Free
+#===-    Software Foundation.
+#===-
+#===-    This program is distributed in the hope that it will be useful,
+#===-    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#===-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+#===-
+#===-    You should have received a copy of the General Public License
+#===-    along with this program, see LICENCE file.
+#===-    see https://www.gnu.org/licenses
+#===-
+#===----------------------------------------------------------------------------
+#===-
+echo "#####################"
+echo "## 30_make_android ##"
+echo "#####################"
+
+if [[ ! -f ./.cbs/config ]]; then
+    echo "KO 85851 Missing .cbs/config."
+    exit 1
+else
+    . ./.cbs/config
+fi
+
+flag=0
+while [ true ]; do
+    opt=$1
+    echo "read opt=$opt"
+    shift
+    if [ "_$opt" == "_--flaf" ]; then
+        echo " flag"
+        flag=0
+        continue
+    else
+        echo "end parsing flags"
+        break
+    fi
+done
+build_jobs=$opt
+
+if [ "_$build_jobs" == "_" ]; then
+    build_jobs="build_jobs"
+    echo -n "specify which one: "
+    find . -maxdepth 1 -type d -name "build_jobs*" | sed "s~^\./~~" | xargs
+    exit 1
+fi
+echo "using dir $build_jobs"
+
+function move_to_distr {
+    wc=`find android -type f | wc -l`
+    if [ $wc -gt 100 ]; then
+	    echo "KO 10029 too many files. something is wrong. `pwd`"
+	    exit 1
+    fi
+    mkdir -p distr
+    for file in `find android -type f -name "build_hashes"`; do  #assert execute only one loop
+        echo "source bin/30_make_android" >> distr/build_hashes
+        cat $file >> distr/build_hashes
+        rm $file
+    done
+    for file in `find android -type f -name "*.jar" `; do
+        us=`echo $file | tr '/' ' ' | awk '{ print $4 }'`
+        echo "$file -> distr/${us}/wallet-cli/sdk"
+        mkdir -p distr/${us}/wallet-cli/sdk/
+        mv $file distr/${us}/wallet-cli/sdk/
+    done
+
+    for file in `find android -type f -name "*.apk" `; do
+        us=`echo $file | tr '/' ' ' | awk '{ print $4 }'`
+        echo "$file -> distr/${us}/wallet-cli"
+        mkdir -p distr/${us}/wallet-cli
+        mv $file distr/${us}/wallet-cli/
+    done
+}
+
+function do_android {
+    rm -rf android
+    cp $build_jobs android -R
+    pushd android >/dev/null
+        echo "Building android app..."
+        time ./make.sh android
+        if [[ $? -ne 0 ]]; then
+            echo "trying again (2nd) in 5 secs..."
+            sleep 5
+            time ./make.sh android
+            if [[ $? -ne 0 ]]; then
+                echo "trying again (3rd) in 5 secs..."
+                sleep 5
+                time ./make.sh android
+                if [[ $? -ne 0 ]]; then
+                    echo "KO 69987 make failed."
+                    exit 1
+                fi
+            fi
+        fi
+    popd >/dev/null
+}
+
+do_android localhost
+
+echo "move to distr"
+move_to_distr
+
+echo "Ignored files:"
+find android -type f
+
+rm android -rf
+
+echo "Finished"
+find distr -type f
+
+exit 0
+

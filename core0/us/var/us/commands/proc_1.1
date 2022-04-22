@@ -1,0 +1,71 @@
+#!/bin/bash
+
+echo "STARTED"
+date
+
+hn=`hostname`
+echo $hn
+hostname -I
+pubkey=`us-gov -home /home/gov/.us id | awk '{ print $5 }'`
+echo $pubkey
+echo ""
+
+user=gov
+home=/home/$user
+echo "home=$home"
+
+v=`us-gov version | awk '{print $1}'`
+
+#cswv=`LD_LIBRARY_PATH=/home/gov/src/dtf/us/gov /home/gov/src/dtf/us/govx/us-gov -home /home/gov/.us version | awk '{print $2}'`
+#if [ "_$cswv" == "_72a8b09fc6347800b3cf933e42effa573b32f27a" ]; then
+#    echo "Ok"
+#    exit 0
+#fi
+
+
+src=$home/src
+echo "src=$src"
+if [ ! -d $src/dtf ]; then
+    echo "cloning us"
+    mkdir -p $src
+    chown $user.$user $src -R
+    pushd $src
+    echo "sleepig random seconds 0-60"
+    sleep $[ ( $RANDOM % 60 )  + 1 ]s
+    ssh -o "StrictHostKeyChecking no" -i /home/gov/.ssh/id_rsa_git devro@185.207.205.127 ls
+    git clone ssh://devro@185.207.205.127:/dtf
+    popd
+    chown $user.$user $src -R
+fi
+
+echo "building"
+pushd $src/dtf
+    echo "sleepig random seconds 0-60"
+    sleep $[ ( $RANDOM % 60 )  + 1 ]s
+git clean -fd
+git reset --hard
+git pull
+git checkout alpha-8
+git pull
+pushd us
+make clean
+
+make release
+
+if [ $? -eq 0 ]; then
+    echo "compiled"
+    LD_LIBRARY_PATH=/home/gov/src/dtf/us/gov /home/gov/src/dtf/us/govx/us-gov version
+else
+    echo "build failed"
+fi
+popd
+popd
+
+v=`us-gov version | awk '{print $1}'`
+echo "installed version is $v"
+
+date
+echo "FINISHED"
+
+exit 0
+

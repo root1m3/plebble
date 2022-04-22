@@ -1,0 +1,84 @@
+RPC_API
+
+
+-------------------------------------------------------------------------------
+f744b49a0ca96ab38130caef4b9811c94a50f397
+void c::send0(datagram* d) {
+
+    Encrypts and sends over an unencrypted datagram.
+
+    if (!is_active()) {
+        returns KO 5048 if any or both of send and recv threads (responsible of connecting to the remote host) is not active 
+
+    if (unlikely(svc==0)) {
+        Service number 0 is reserved for encrypted datagrams. If the source datagram is encrypted the function fails with KO 0548
+
+
+    if (svc>gov_id_challenge_response || svc<gov_id_request) {
+        The function will wait until auth is completed unless the datagram is involved in the authentication protocol. 
+            From api/apitool_generated__c++__protocol_gov_id:
+            gov_id_request = ((gov_id_base+0)<<2)+protocol_suffix; // svc 800
+            gov_id_peer_challenge = ((gov_id_base+1)<<2)+protocol_suffix; // svc 804
+            gov_id_challenge_response = ((gov_id_base+2)<<2)+protocol_suffix; // svc 808
+
+    
+    calls send0 at base class gov::auth::peer_t
+
+-------------------------------------------------------------------------------
+42c2c2671b94a2ceb7e44b257ad32b7f4662cc8d
+void c::run_recv() 
+
+Entry point for the receiving thread.
+creates the log file traffic-inbound in debug builds
+
+connects to peer if not connected.
+if connection fails it will retry frequently at a increasing time intervals, starting with 100ms and doubling each try until the connection succeed.
+
+calls client::recv6() to obtain a decrypted datagram from the wire.
+if ko is null calls process_work(datagram*) passing the obtained datagram.
+if ko is not null, disconnects and try to reconnect again.
+
+The function returns when stop() is invoked by another thread.
+
+
+
+
+-------------------------------------------------------------------------------
+42c2c2671b94a2ceb7e44b257ad32b7f4662cc8d
+    struct rendezvous_t final:unordered_map<uint16_t,datagram*> {
+
+
+    Uses datagram header field 'sequence' to store a unique number for which the source thread would be later identified. 
+    The well-behaved responding peer would echo the same sequence number in their response datagrams.
+    
+
+
+-------------------------------------------------------------------------------
+42c2c2671b94a2ceb7e44b257ad32b7f4662cc8d
+pair<ko,c::datagram*> c::rendezvous_t::sendrecv(rpc_api& endpoint, datagram*d) {
+
+    if (!endpoint.is_active()) {
+        if sendq is no active returns KO 3012.
+
+    d->encode_sequence(seq);
+        encodes in the datagram a new unique sequence number, which will be used to identify the answering datagram containing the same sequence number.
+
+    emplace(seq,nullptr);
+        stores a null pointer in the sequence lookup table. 
+
+    endpoint.send0(d);
+        uses the supplied endpoint to deliver the datagram.
+
+    cv.wait_for(lock, 10s, [&] {
+        thread waits in sleep until timeout expires or the expected datagram, with the same sequence number, has arrived.
+
+    auto i=find(seq);
+        If on wakeup nothing is found on the table would be interpreted as cancelled KO 3029.1 (some other thread must have deleted our entry)
+        if a null pointer is found then the error code returned is KO 3029.2
+        if a valid datagram is found in the entry pointed by the sequence number of the arrived datagram, is considered a successful response and is returned together with ko code 0.
+
+
+-------------------------------------------------------------------------------
+
+
+

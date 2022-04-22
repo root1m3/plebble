@@ -1,0 +1,10 @@
+swversion=`us-gov -home /home/gov/.us version`
+if [ -x /home/gov/src/dtf/us/govx/us-gov ]; then
+  cswv=`LD_LIBRARY_PATH=/home/gov/src/dtf/us/gov /home/gov/src/dtf/us/govx/us-gov -home /home/gov/.us version`
+  echo "Compiled version: $cswv"
+else
+  echo "No src tree"
+fi
+echo "Installed version: $swversion"
+exit 0
+

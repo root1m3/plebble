@@ -1,0 +1,5 @@
+echo "--BEG--"
+journalctl -t us-gov --since=today
+echo "--END--"
+exit 0
+

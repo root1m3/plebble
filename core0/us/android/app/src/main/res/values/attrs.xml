@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="toolbar_button">
+        <attr name="custom_src" format="string" />
+        <attr name="custom_text" format="string" />
+        <attr name="custom_id" format="string" />
+    </declare-styleable>
+    <declare-styleable name="logo_view">
+    </declare-styleable>
+</resources>

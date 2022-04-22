@@ -1,0 +1,73 @@
+#!/bin/bash
+#===-                           P L E B B L E
+#===-                         https://plebble.us
+#===-
+#===-              Copyright (C) 2017-2022 root1m3@plebble.us
+#===-
+#===-                      GNU GENERAL PUBLIC LICENSE
+#===-                       Version 3, 29 June 2007
+#===-
+#===-    This program is free software: you can redistribute it and/or modify
+#===-    it under the terms of the AGPLv3 License as published by the Free
+#===-    Software Foundation.
+#===-
+#===-    This program is distributed in the hope that it will be useful,
+#===-    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#===-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+#===-
+#===-    You should have received a copy of the General Public License
+#===-    along with this program, see LICENCE file.
+#===-    see https://www.gnu.org/licenses
+#===-
+#===----------------------------------------------------------------------------
+#===-
+
+US=$1
+nodes0=/tmp/nodes0
+if [[ ! -f $nodes0 ]]; then
+    echo "" > $nodes0
+    for h in `cat etc/nodes.distr0 | sed 's/72$/80/'`; do
+        wget -t 1 --quiet --connect-timeout=2 -O - $h > /dev/null
+        let r=$?
+        if [[ r -eq 0 ]]; then
+            echo "$h"| tee -a $nodes0
+        fi
+    done
+fi
+
+
+if [[ "_$US" == "_" ]]; then
+	echo "file $nodes0:"
+    echo -n "all nodes with http interface open: ";
+	cat $nodes0 | xargs
+	exit 0
+fi
+
+httpnodes="`cat $nodes0 | shuf | xargs` "
+echo "httpnodes=$httpnodes"
+while [[ true ]]; do
+    httpnode=`echo $httpnodes | tr ' ' '\n' | head -n1`
+    httpnodes=`echo "$httpnodes" | sed "s#$httpnode ##"`
+    echo "httpnode=$httpnode"
+    if [ "_$httpnode" == "_" ]; then
+        break
+    fi
+    wget -q "${httpnode}/blob/${US}/curhash" -o curhash
+    let r=$?
+    if [[ $r -ne 0 ]]; then
+        echo "${httpnode} hasn't ${US}"
+        continue;
+    fi
+    if [[ ! -f curhash ]]; then
+        echo "${httpnode} hasn't ${US}"
+        continue;
+    fi
+    curhash=`cat curhash`
+    rm curhash
+    echo "======================================${httpnode} has ${US}"
+    echo "$httpnode"
+done
+
+
+
+

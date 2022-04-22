@@ -1,0 +1,116 @@
+#!/bin/bash -e
+#===-                           P L E B B L E
+#===-                         https://plebble.us
+#===-
+#===-              Copyright (C) 2017-2022 root1m3@plebble.us
+#===-
+#===-                      GNU GENERAL PUBLIC LICENSE
+#===-                       Version 3, 29 June 2007
+#===-
+#===-    This program is free software: you can redistribute it and/or modify
+#===-    it under the terms of the AGPLv3 License as published by the Free
+#===-    Software Foundation.
+#===-
+#===-    This program is distributed in the hope that it will be useful,
+#===-    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#===-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+#===-
+#===-    You should have received a copy of the General Public License
+#===-    along with this program, see LICENCE file.
+#===-    see https://www.gnu.org/licenses
+#===-
+#===----------------------------------------------------------------------------
+#===-
+echo "#####################"
+echo "## 60_deploy_distr ##"
+echo "#####################"
+
+if [ -f ./.cbs/config ]; then
+	cat .cbs/config
+    . ./.cbs/config
+else
+	echo "KO 8585 Missing .cbs/config."
+	exit 1
+fi
+
+grootkey=`ush show_groot_key`
+ssh="ssh -i $grootkey"
+
+for vf in `find distr -name "core_*.tar.zst"`; do
+    hash=`echo $vf | sed "s/.*core_\(.*\).tar.zst/\1/"`
+    echo "vf=$vf"
+    distrdir=$(dirname $vf)
+    echo "distrdir=$distrdir"
+    echo "hash $hash"
+    break
+done
+
+if [ "_$hash" == "_" ]; then
+  for vf in `find distr -name "*wallet_android_*.apk"`; do
+    hash=`echo $vf | sed "s/.*wallet_android_\(.*\).apk/\1/"`
+    distrdir=$(dirname $(dirname $vf))
+    #coredir=$distrdir/core
+    echo "hash $hash"
+    break
+  done
+fi
+
+for vf in `find distr -maxdepth 1 -mindepth 1 -type d`; do
+    echo "============================================================$vf"
+    brand=$(basename $vf)
+    branddir=$brands/$brand
+
+    echo "brand $brand"
+    echo "distr at $distrdir"
+    echo "brand at $branddir"
+
+    if [ -f ./.cbs/config_$brand ]; then
+	    cat .cbs/config_$brand
+        . ./.cbs/config_$brand
+    else
+        echo "KO 70694 Missing .cbs/config_$brand file"
+        exit 1 
+    fi
+
+    if [[ "_$distr_node_pkh" == "_" ]]; then
+        echo "KO 70694 Missing distr_node_pkh var in .cbs/config_$brand"
+        exit 1 
+    fi
+
+    if [ ! -f $branddir/nodes ]; then
+        echo "missing node"
+        exit 1
+    fi
+    node=$distr_node_pkh
+    echo "node $node"
+    ush -pkh nick $node > /tmp/usho
+    ip=`cat /tmp/usho | grep "^reachable_addr" | awk '{ print $NF }'`
+    port=`cat /tmp/usho | grep "^reachable_ssh_port" | awk '{ print $NF }'`
+    if [ $port -eq 71 ]; then
+        echo "ip $ip"
+        echo "port"
+        read port
+        #port=16671
+    fi
+    rm /tmp/usho
+    echo "$ip:$port"
+    rsync -r -e "$ssh -p$port" --progress --delete -a distr/$brand $ip:/var/us/distr
+
+    if [ -d $branddir/html ]; then
+	$ssh -p$port $ip "mkdir -p /var/www/html/$brand"
+        rsync -r -e "$ssh -p$port" --progress --delete -a $branddir/html/* $ip:/var/www/html/$brand/
+    fi
+
+    d=`date +%F_%H:%M:%S`
+    cat distr/build_hashes | grep "^vhash $hash" | sort | uniq > /tmp/f
+    while read line; do
+        echo $d $brand $line >> build_hashes
+    done < /tmp/f
+    rm -f /tmp/f
+
+done
+
+echo "updated /var/us/distr"
+
+exit 0
+

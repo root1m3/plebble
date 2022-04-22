@@ -1,0 +1,47 @@
+#this file goes to .cbs/config
+
+#yes:local git is a devjob. blank: no
+devjob=yes
+
+#local git url
+gitrep=""
+
+#downstream branch
+branch="main"
+
+#brands. directory containing brand specs 
+brands="brands"
+
+#devjob publishing
+devjob_scp="scp "
+devjob_ssh_host="example.com"
+devjob_puburl_host="http://example.com"
+devjob_clone_prefix="dev@example.com:/home/dev"
+devjob_ssh="ssh "
+
+#network/distr signing keys
+keyroot=/home/user
+
+#devjob git signing keys
+#-----------------------
+## devjov - remote git
+dj_gpgh=/home/user/.gnupg
+dj_author="dj User Name <user@example.com>"
+dj_gpgkey="123456789ABCDEF0"
+
+## local git
+gpgh=/home/you/.gnupg
+author="Your Name <your.name@example.com>"
+gpgkey="123456789ABCDEF0123456789ABCDEF012345678"
+
+#build farm
+host_x86_64=192.168.0.21
+port_ssh_x86_64=22
+host_armv7l=192.168.0.22
+port_ssh_armv7l=22
+
+#distr packages
+distr_key=123456789ABCDEF0123456789ABCDEF012345678
+distr_gpg_home=/home/user/.gnupg
+distr_passphrase_file=
+

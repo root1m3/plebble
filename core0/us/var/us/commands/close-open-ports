@@ -1,0 +1,4 @@
+/etc/cron.hourly/us-ports close
+echo "---"
+/etc/cron.hourly/us-ports open
+

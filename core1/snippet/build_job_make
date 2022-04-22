@@ -1,0 +1,422 @@
+#!/bin/bash
+#===-                           P L E B B L E
+#===-                         https://plebble.us
+#===-
+#===-              Copyright (C) 2017-2022 root1m3@plebble.us
+#===-
+#===-                      GNU GENERAL PUBLIC LICENSE
+#===-                       Version 3, 29 June 2007
+#===-
+#===-    This program is free software: you can redistribute it and/or modify
+#===-    it under the terms of the AGPLv3 License as published by the Free
+#===-    Software Foundation.
+#===-
+#===-    This program is distributed in the hope that it will be useful,
+#===-    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#===-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+#===-
+#===-    You should have received a copy of the General Public License
+#===-    along with this program, see LICENCE file.
+#===-    see https://www.gnu.org/licenses
+#===-
+#===----------------------------------------------------------------------------
+#===-
+#core1/snippet/build_job_make -> build_jobs/make.sh
+cmd=$1
+shift
+
+let jobs=`cat /proc/cpuinfo | grep "^processor" | wc -l`
+arch=`uname -m`
+echo "cpus=$jobs"
+
+if [[ $jobs -gt 1 ]]; then
+    let jobs=`echo "$jobs-1" | bc`
+fi
+echo "jobs0=$jobs"
+
+echo "DISTCC_HOSTS=$DISTCC_HOSTS"
+if [[ ! -z "${CXX}" ]]; then
+    if [[ ${CXX} = *"distcc g++" ]]; then
+        let nc=`echo "${DISTCC_HOSTS}" | wc -w`
+        echo "nc=$nc"
+        if [[ $nc -gt 0 ]]; then
+            let jobs=`echo "$jobs * $nc" | bc`
+        fi
+    fi
+else
+    CXX="g++"
+fi
+echo "CXX=$CXX"
+
+echo "total concurrent jobs = $jobs"
+
+
+if [[ "_$cmd" == "_deps" ]]; then
+    echo "building deps"
+    dest=deps
+    rm $dest -rf
+    mkdir -p $dest/$arch
+    prefix=`realpath $dest/$arch`
+    branch=`cat build_hashes | grep "^vhash " | sort | uniq | awk '{print $6}'`
+    echo "ec-secp256k1"
+    pushd ec_src > /dev/null
+        # ------------------------secp256k1
+        pushd secp256k1 > /dev/null
+            ./autogen.sh 2>&1
+            #./configure --prefix ec --enable-experimental --enable-module-ecdh --disable-dependency-tracking --enable-benchmark=no  --enable-coverage=no --enable-tests=no --enable-openssl-tests=no --enable-exhaustive-tests=no
+            #U.S. Patent No. 7,110,538 has expired. --enable-endomorphism=yes for sig verification 25% faster
+            ./configure --prefix $prefix --enable-experimental --enable-module-ecdh --disable-dependency-tracking --enable-benchmark=no  --enable-coverage=no --enable-tests=no --enable-exhaustive-tests=no 2>&1
+            make -j$jobs CXX="$CXX" 2>&1
+            r=$?
+            if [[ $r -ne 0 ]]; then
+                >&2 echo "KO 76033 make error"
+                exit 1
+            fi
+            #./tests && (exit 1)
+            make install
+            if [[ $r -ne 0 ]]; then
+                >&2 echo "KO 76034 make install error"
+                exit 1
+            fi
+            echo "installed secp at $prefix"
+        popd > /dev/null
+        rm -r secp256k1
+    popd > /dev/null
+    rm -r ec_src
+
+    if [[ -d fcgi_src ]]; then
+        echo "fcgi"
+        pushd fcgi_src > /dev/null
+            # ------------------------fastCGI RESTful interface
+            pushd fastcgi++
+                mkdir build
+                pushd build
+                    cmake -DCMAKE_BUILD_TYPE=RELEASE -DCMAKE_INSTALL_PREFIX:PATH=$prefix ..
+                    r=$?
+                    if [[ $r -ne 0 ]]; then
+                        >&2 echo "KO 76021 make error"
+                        exit 1
+                    fi
+                popd
+                #find -type f -name  "*" -exec sed -i "s/\-Werror//g" {} \;
+                #find -type f -name  "*" -exec sed -i "s/\-Wno\-error//g" {} \;
+                pushd build
+                    make -j$jobs
+                    r=$?
+                    if [[ $r -ne 0 ]]; then
+                        >&2 echo "KO 76022 make error"
+                        exit 1
+                    fi
+                    make install
+                    r=$?
+                    if [[ $r -ne 0 ]]; then
+                        >&2 echo "KO 76023 make error"
+                        exit 1
+                    fi
+                    echo "installed fcgi at $prefix"
+                popd > /dev/null
+            popd > /dev/null
+        popd > /dev/null
+        rm -r fcgi_src
+    else
+        echo "fcgi not included"
+    fi
+    rm -r $branch
+    rm -f make.sh
+    mv build_hashes build_hashes_$arch
+    echo "done deps. build_hashes_$arch"
+    exit 0
+fi
+
+if [ "_$cmd" == "_core" ]; then
+    opt=$1
+
+    for c0dir in `find . -type d -name "core0"`; do
+        branddir=$(dirname $c0dir)
+        brand=$(basename $branddir)
+        hash=$(basename $(dirname $branddir))
+        branch=$(basename $(dirname $(dirname $branddir)))
+        cat << EOF
+Building core:
+    branddir=$branddir
+    brand=$brand
+    hash=$hash
+    branch=$branch
+    arch=$arch
+    jobs=$jobs
+EOF
+        pushd "$branddir" >/dev/null
+            pushd core0/us >/dev/null
+                strset="en-uk"
+                . res/strings/$strset
+                if [[ -f res/strings/${strset}.ovr ]]; then
+                    . res/strings/${strset}.ovr
+                fi
+                make -j$jobs CXX="$CXX" distr
+                if [[ $? -ne 0 ]]; then
+                    echo "Errors occurred."
+                    exit 1
+                fi
+                cp distr/bin/apply_blob ../../
+                cp distr/bin/install_blob ../../
+                mkdir -p ${arch}-dev
+                mv distr/include ${arch}-dev/
+                mv distr/lib ${arch}-dev/
+                mv distr $arch
+                if [ "_$arch" == "_armv7l" ]; then #Raspberry Pi Zero. Raspi 3 is backwards compatible.
+                    ln -s armv7l armv6l
+                    ln -s armv7l-dev armv6l-dev
+                    tar -czf armv7l.tgz armv7l armv6l
+                    tar -czf armv7l-dev.tgz armv7l-dev armv6l-dev
+                    ln -s armv7l.tgz armv6l.tgz
+                    ln -s armv7l-dev.tgz armv6l-dev.tgz
+                else
+                    tar -czf $arch.tgz $arch
+                    tar -czf ${arch}-dev.tgz ${arch}-dev
+                fi
+            popd > /dev/null
+            echo "Files here. WP 12223:"
+            find .
+            rm -f $arch.tgz
+            rm -f ${arch}-dev.tgz
+            mv core0/us/$arch.tgz .
+            mv core0/us/${arch}-dev.tgz .
+            if [ "_$arch" == "_armv7l" ]; then
+                rm -f armv6l.tgz
+                rm -f armv6l-dev.tgz
+                mv core0/us/armv6l.tgz .
+                mv core0/us/armv6l-dev.tgz .
+            fi
+            rm -rf core0
+            rm -rf core1
+            echo -n "Produced files at "
+            pwd
+            ls $arch.tgz ${arch}-dev.tgz apply_blob install_blob
+            if [ "_$arch" == "_armv7l" ]; then
+                ls armv6l.tgz armv6l-dev.tgz
+            fi
+        popd >/dev/null
+    done
+    echo "files here:"
+    find .
+    rm -rf ec_src
+    rm -rf fcgi_src
+    rm -f make.sh
+    mv build_hashes build_hashes_$arch
+    exit 0
+fi
+
+if [ "_$cmd" == "_r2r" ]; then
+    distr=$1
+    shift
+    cat << EOF
+r2r
+===
+distr=$distr
+arch=$arch
+
+EOF
+    for r2rdir in `find . -maxdepth 4 -mindepth 4 -type d -name "core1"`; do
+        branddir=$(dirname $r2rdir)
+        brand=$(basename $branddir)
+        hash=$(basename $(dirname $branddir))
+        branch=$(basename $(dirname $(dirname $branddir)))
+        corelibspkg=`find $distr/$brand -name "core_${branch}_${hash}.tar.zst"`
+        if [[ $? -ne 0 ]]; then
+            echo "cannot find file core_${branch}_${hash}.tar.zst in $distr"
+            exit 1
+        fi
+        f0=`realpath $corelibspkg`
+        echo "f0 $f0"
+        pushd "$branddir" >/dev/null
+            pushd core0/us >/dev/null
+                echo "loading environment"
+                strset="en-uk"
+                . res/strings/$strset
+                if [ -f res/strings/${strset}.ovr ]; then
+                    echo "found override string set"
+                    . res/strings/${strset}.ovr
+                fi
+            popd >/dev/null
+            mkdir -p tmp
+	        pushd tmp >/dev/null
+                tar -I zstd -xf $f0
+		        pushd core >/dev/null
+		            make PREFIX="usr/local" install-dev
+                    if [[ $? -ne 0 ]]; then
+                        echo "cannot install in usr"
+                        exit 1
+                    fi
+		        popd >/dev/null
+            popd >/dev/null
+            mv tmp/core/usr .
+            rm tmp -r
+            pwd=`pwd`
+            #echo "Installing ec"
+            #pushd $distr/ec > /dev/null
+            #    ./install_deps $pwd
+            #popd > /dev/null
+    	    dstarchpwd=$pwd/$arch
+    	    echo "dstarchpwd=$dstarchpwd"
+            incc0="-I`realpath usr/local/include`"
+            libc0="-L`realpath usr/local/lib`"
+            c1="`realpath core1`"
+            pushd core1/us/trader > /dev/null
+                echo "making distr for arch $arch brand $brand"
+                dbgtag=""
+                if [ $str29 -eq 1 ]; then
+                    dbgtag="_dbg"
+                fi
+                make -j$jobs CXX="${CXX}" INCC0="$incc0" LIBC0="$libc0" CORE1="$c1"
+                if [[ $? -ne 0 ]]; then
+                    echo "make failed"
+                    exit 1
+                fi
+                logstag=""
+                if [ $str33 -eq 1 ]; then
+                    logstag="_logs"
+                fi
+                pwd
+                for f in `find . -maxdepth 1 -type f -name "*.so"`; do
+                    echo $f
+                    file=`echo $(basename $f)`
+                    dir=`echo $(dirname $f)`
+                    echo "dir $dir file $file"
+                    pushd $dir >/dev/null
+                        prot=`echo $file | sed "s#lib\(.*\).so#\1#"`
+                        echo "prot=$prot"
+                        mkdir -p ${dstarchpwd}/r2r
+                        tar -I zstd -cf ${dstarchpwd}/r2r/lib${prot}${dbgtag}${logstag}_${branch}_${hash}.tzst $file
+                    popd >/dev/null
+                done
+                if [ "_$arch" == "_armv7l" ]; then
+                    ln -s armv7l armv6l    #Raspberry Pi Zero. Raspi 3 is backwards compatible.
+                fi
+            popd >/dev/null
+            rm -rf core0
+            rm -rf core1
+            rm -rf usr
+            echo "Produced files"
+            find -type f -name "*.tzst"
+        popd >/dev/null
+    done
+    mv build_hashes build_hashes_$arch
+    rm -rf ec_src
+    rm -rf fcgi_src
+    rm -f make.sh
+    exit 0
+fi
+
+if [ "_$cmd" == "_android" ]; then
+    if [ ! -d ~/android_sdk ]; then
+        mkdir ~/android_sdk
+        for c0dir in `find . -type d -name "core0"`; do
+            cp $c0dir/us/android/licenses ~/android_sdk/ -R
+            break
+        done
+        pushd ~/android_sdk >/dev/null
+            sdktools=sdk-tools-linux-4333796.zip
+            wget https://dl.google.com/android/repository/$sdktools
+            unzip $sdktools
+            rm $sdktools
+            tools/bin/sdkmanager "platform-tools"
+            tools/bin/sdkmanager "build-tools;28.0.3"
+            tools/bin/sdkmanager "platforms;android-28"
+        popd >/dev/null
+    fi
+    if [ -d ~/us_sdk_deps/libs_android ]; then  #remove in future, when all devjobs out there are updated
+	    echo "removing deprecated dir ~/us_sdk_deps"
+	    rm -rf ~/us_sdk_deps
+    fi
+    if [ ! -d ~/us_sdk_deps ]; then
+        mkdir ~/us_sdk_deps
+        pushd ~/us_sdk_deps >/dev/null
+            mkdir libs_spongy
+            pushd libs_spongy >/dev/null
+                wget http://search.maven.org/remotecontent?filepath=com/madgag/spongycastle/core/1.58.0.0/core-1.58.0.0.jar -O core-1.58.0.0.jar
+                wget http://search.maven.org/remotecontent?filepath=com/madgag/spongycastle/prov/1.58.0.0/prov-1.58.0.0.jar -O prov-1.58.0.0.jar
+                wget http://search.maven.org/remotecontent?filepath=com/madgag/spongycastle/pkix/1.54.0.0/pkix-1.54.0.0.jar -O pkix-1.54.0.0.jar
+                wget http://search.maven.org/remotecontent?filepath=com/madgag/spongycastle/pg/1.54.0.0/pg-1.54.0.0.jar -O pg-1.54.0.0.jar
+    	    popd >/dev/null
+            mkdir libs_bouncy
+            pushd libs_bouncy >/dev/null
+                wget https://www.bouncycastle.org/download/bcprov-jdk15on-164.jar -O bcprov-jdk15on-164.jar
+                wget https://www.bouncycastle.org/download/bcpkix-jdk15on-164.jar -O bcpkix-jdk15on-164.jar
+                wget https://www.bouncycastle.org/download/bcpg-jdk15on-164.jar -O bcpg-jdk15on-164.jar
+                wget https://www.bouncycastle.org/download/bctls-jdk15on-164.jar -O bctls-jdk15on-164.jar
+                wget https://www.bouncycastle.org/download/bcmail-jdk15on-164.jar -O bcmail-jdk15on-164.jar
+            popd >/dev/null
+        popd >/dev/null
+    fi
+    for c0dir in `find . -type d -name "core0"`; do
+        pushd "$c0dir/us/sdk/wallet/java" >/dev/null
+            rm -rf libs_spongy
+            rm -rf libs_bouncy
+            ln -s ~/us_sdk_deps/libs_spongy
+            ln -s ~/us_sdk_deps/libs_bouncy
+        popd >/dev/null
+    done
+    for c0dir in `find . -type d -name "core0"`; do
+        branddir=$(dirname $c0dir)
+        brand=$(basename $branddir)
+        hash=$(basename $(dirname $branddir)) #package hash
+        branch=$(basename $(dirname $(dirname $branddir)))
+        cat << EOF
+Building Android app:
+    branddir=$branddir
+    brand=$brand
+    hash=$hash
+    branch=$branch
+    jobs=$jobs
+EOF
+        pushd "$branddir" > /dev/null
+            pushd core0/us > /dev/null
+                echo "SDK"
+                pushd sdk/wallet/java >/dev/null
+                    make -j$jobs
+                popd >/dev/null
+                strset="en-uk"
+                . res/strings/$strset
+                if [[ -f res/strings/${strset}.ovr ]]; then
+                    echo "found override string set"
+                    . res/strings/${strset}.ovr
+                fi
+                pushd android >/dev/null
+                    ln -s ~/android_sdk
+                    ./make.sh release
+                    if [[ $? -ne 0 ]]; then
+                        echo "Build failed. Trying again..."
+                        sleep 2
+                        ./make.sh release
+                        if [[ $? -ne 0 ]]; then
+		            sleep 2
+                            echo "KO 10996 Build failed."
+                            exit 1
+                        fi
+                    fi
+                    rm android_sdk
+                popd >/dev/null
+                . vcs_git_env
+                cp sdk/wallet/java/$brand-sdk_bc.jar ../../${brand}-sdk_java_bc_${branch}_${hash}.jar
+                cp sdk/wallet/java/$brand-sdk_sc.jar ../../${brand}-sdk_java_sc_${branch}_${hash}.jar
+                if [[ -f android/app/build/outputs/apk/release/output-release-unsigned.apk ]]; then
+                    mv android/app/build/outputs/apk/release/output-release-unsigned.apk ../../$brand-wallet_android_${branch}_${hash}-unsigned.apk
+                fi
+                if [[ -f android/app/build/outputs/apk/debug/output-debug-unsigned.apk ]]; then
+                    mv android/app/build/outputs/apk/debug/output-debug-unsigned.apk ../../$brand-wallet_android_dbg_${branch}_${hash}-unsigned.apk
+                fi
+            popd >/dev/null
+            rm core0 -rf
+            rm core1 -rf
+            rm -f makefile_distr
+        popd >/dev/null
+    done
+    rm -f make.sh
+    rm -rf ec_src
+    rm -rf fcgi_src
+    exit 0
+fi
+
+echo "KO 5201 $cmd" > &2
+exit 1
+

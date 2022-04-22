@@ -1,0 +1,144 @@
+#!/bin/bash
+#===-                           P L E B B L E
+#===-                         https://plebble.us
+#===-
+#===-              Copyright (C) 2017-2022 root1m3@plebble.us
+#===-
+#===-                      GNU GENERAL PUBLIC LICENSE
+#===-                       Version 3, 29 June 2007
+#===-
+#===-    This program is free software: you can redistribute it and/or modify
+#===-    it under the terms of the AGPLv3 License as published by the Free
+#===-    Software Foundation.
+#===-
+#===-    This program is distributed in the hope that it will be useful,
+#===-    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#===-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+#===-
+#===-    You should have received a copy of the General Public License
+#===-    along with this program, see LICENCE file.
+#===-    see https://www.gnu.org/licenses
+#===-
+#===----------------------------------------------------------------------------
+#===-
+echo "#####################"
+echo "## 80_deploy_blobs ##"
+echo "#####################"
+
+let n=0
+let x=0
+function step2 {
+    ush update_dfs_index
+    let ln=0
+    let t=10
+    while [ true ]; do
+        sleep $t
+        echo "Checking for ans"
+        ush ans > /tmp/xx55910 2>&1
+        let n=`cat /tmp/xx55910 | grep "waiting for" | wc -l`
+        echo "$n answers"
+        if [[ $n -ne 0 ]]; then
+            if [[ $n -eq $ln ]]; then
+                break
+            fi
+            ln=$n
+            let t=1
+        fi
+    done
+    cat /tmp/xx55910 | grep "waiting for"
+    cat /tmp/xx55910 | grep "waiting for" | wc -l
+    let x=`cat /tmp/xx55910 | grep "waiting for 0 files" | wc -l`
+    rm -f /tmp/xx55910
+    #exit 0
+}
+
+#ssh gov@pi2 bin/up_blobs 
+
+function repeat_step2 {
+    while [ true ]; do
+        step2
+        echo "expecting $n 0-files. found $x"
+        if [[ $x -eq $n ]]; then
+            break
+        fi
+    done
+}
+
+repeat_step2
+exit 0
+
+
+if [ ! -d blobs ]; then
+   echo "KO 2291 blobs dir doesn't exists"
+   exit 1
+fi
+
+if [[ -f ./.cbs/config ]]; then
+    . ./.cbs/config
+else
+    echo "KO 85851 Missing .cbs/config."
+    exit 1
+fi
+
+grootkey=`ush show_groot_key`
+ssh="ssh -i ${grootkey}"
+scp="scp -i ${grootkey}"
+
+rm -f /tmp/msg1091
+
+set -x
+
+for blob in `find blobs -type f -name "*.tzst"`; do
+    echo "-------------------------------------------------"
+    echo "blob: $blob"
+    bname=$(basename $blob)
+	brand=`echo "$bname" | tr '_' ' ' | awk '{ print $1 }'`
+	branch=`echo "$bname" | tr '_' ' ' | awk '{ print $2 }'`
+	hash=`echo "$bname" | tr '_' ' ' | awk '{ print $3 }'`
+	flags=`echo "$bname" | tr '_' ' ' | awk '{ print $4 }'`
+
+#	brand=`echo $blob | sed "s#blobs/\(.*\)_\(.*\)_\(.*\)\.tzst#\1#"`
+#	branch=`echo $blob | sed "s#blobs/\(.*\)_\(.*\)_\(.*\)\.tzst#\2#"`
+#	hash=`echo $blob | sed "s#blobs/\(.*\)_\(.*\)_\(.*\)\.tzst#\3#"`
+    echo ""
+ 	echo "brand $brand branch $branch hash $hash flags $flags"
+    if [ -f ./.cbs/config_$brand ]; then
+        . ./.cbs/config_$brand
+    else
+        echo "KO 70694 Missing .cbs/config_$brand file"
+        exit 1
+    fi
+    node=$distr_node_pkh
+    echo "node $node"
+    ush -pkh nick $node > /tmp/usho
+    r=$?
+    cat /tmp/usho
+    if [[ $r -ne 0 ]]; then 
+        exit 1
+    fi
+    ip=`cat /tmp/usho | grep "^reachable_addr" | awk '{ print $NF }'`
+    port=`cat /tmp/usho | grep "^reachable_ssh_port" | awk '{ print $NF }'`
+    rm /tmp/usho
+    $ssh -p$port $ip "mkdir -p /var/$brand/blob; mkdir -p /var/$brand/blob_prev; touch /var/$brand/blob/mvbug.tzst; mv /var/$brand/blob/*.tzst /var/$brand/blob_prev/; rm /var/$brand/blob_prev/mvbug.tzst"
+    if [[ $? -ne 0 ]]; then
+        exit 1
+    fi
+    $scp -P$port $blob $ip:/var/$brand/blob/
+    if [[ $? -ne 0 ]]; then
+        exit 1
+    fi
+    #echo "xecuting ush -pkh ssh $distr_node_pkh su - gov -c \"us-upload_blob $brand $str40\""
+    #ush -pkh ssh $distr_node_pkh su - gov -c "us-upload_blob $brand $str40"
+
+    echo "$node:/var/$brand/blob; ($ssh -p $port $ip) exec su gov; bin/up_blobs" >> /tmp/msg1091
+done
+
+set +x
+
+echo "Blobs have been delivered to BDPs:"
+echo "Next steps:"
+cat /tmp/msg1091
+rm -f /tmp/msg1091
+
+exit 0
+

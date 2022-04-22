@@ -1,0 +1,68 @@
+#!/bin/bash -e
+
+#deps
+#apt-get install coreutils quilt parted qemu-user-static debootstrap zerofree zip dosfstools libarchive-tools libcap2-bin grep rsync xz-utils file git curl bc qemu-utils kpartx
+
+if [ -d pi-gen ]; then
+    echo "already cloned"
+    exit 1
+fi
+
+PATH=/usr/local/sbin:/usr/sbin:/sbin:$PATH
+
+brand="##str3##"
+brandos=`echo $brand | sed "s/\.//"`os
+hostname="##str5##"
+rm .pc -rf
+
+git clone https://github.com/RPi-Distro/pi-gen
+pushd pi-gen
+#git checkout 330ce73491d2aa5d0ab5d9843fead3dc3025c458   #used for stretch
+#git checkout 175dfb027ffabd4b8d5080097af0e51ed9a4a56c    #buster
+#git checkout 5780006ecd6cfd10677f245b99555a1c6b8ac699
+#git checkout 08fc0b9a8237c5a9926a0e9d660156a1e838d33a
+git checkout 0b4874f75ae0a7907b334358403c87fd5750fe54
+echo "Applying patch"
+git apply ../patch
+if [ $? -ne 0 ]; then
+	echo "KO 5504"
+	exit 1
+fi
+#rm .git -r
+popd
+echo "Ok so far"
+#exit
+
+cp OS.png pi-gen/export-noobs/00-release/files/
+
+pushd pi-gen
+ touch ./stage3/SKIP ./stage4/SKIP ./stage5/SKIP
+ touch ./stage4/SKIP_IMAGES ./stage5/SKIP_IMAGES
+ rm -f stage3/EXPORT_IMAGE
+ rm -f stage3/EXPORT_NOOBS
+ rm -f stage4/EXPORT_IMAGE
+ rm -f stage4/EXPORT_NOOBS
+ rm -f stage5/EXPORT_IMAGE
+ rm -f stage5/EXPORT_NOOBS
+
+
+cat << EOF > config
+IMG_NAME="${brandos}"
+TARGET_HOSTNAME="$hostname"
+FIRST_USER_NAME=##str11##
+EOF
+
+ cp ../10-us stage2/ -R
+
+ chmod +x stage2/10-us/01-run.sh
+ mkdir -p stage2/10-us/files
+
+ cp ../../bin/${brand}_setup_debian stage2/10-us/files/setup_debian
+
+ ./build.sh
+popd
+
+find pi-gen -name "*img"
+
+file=`find pi-gen -name "*img" | grep -v stage`
+echo "$file"

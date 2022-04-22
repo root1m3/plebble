@@ -1,0 +1,139 @@
+//===-                           P L E B B L E
+//===-                         https://plebble.us
+//===-
+//===-              Copyright (C) 2017-2022 root1m3@plebble.us
+//===-
+//===-                      GNU GENERAL PUBLIC LICENSE
+//===-                       Version 3, 29 June 2007
+//===-
+//===-    This program is free software: you can redistribute it and/or modify
+//===-    it under the terms of the AGPLv3 License as published by the Free
+//===-    Software Foundation.
+//===-
+//===-    This program is distributed in the hope that it will be useful,
+//===-    but WITHOUT ANY WARRANTY; without even the implied warranty of
+//===-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+//===-
+//===-    You should have received a copy of the General Public License
+//===-    along with this program, see LICENCE file.
+//===-    see https://www.gnu.org/licenses
+//===-
+//===----------------------------------------------------------------------------
+//===-
+#pragma once
+#include <string>
+#include "ko.h"
+//---- LOGS component patching panel
+#define CFG_LOGS__GOV_CONCUR 1
+#define CFG_LOGS__GOV_CRYPTO 1
+#define CFG_LOGS__GOV_IO 1
+#define CFG_LOGS__GOV_SOCKET 1
+#define CFG_LOGS__GOV_ID 1
+#define CFG_LOGS__GOV_AUTH 1
+#define CFG_LOGS__GOV_PEER 1
+#define CFG_LOGS__GOV_RELAY 1
+#define CFG_LOGS__GOV_DFS 1
+#define CFG_LOGS__GOV_ENGINE 1
+#define CFG_LOGS__GOV_ENGINE_AUTH 1
+#define CFG_LOGS__GOV_ENGINE_CASH 1
+#define CFG_LOGS__GOV_ENGINE_SYS 1
+#define CFG_LOGS__GOV_ENGINE_TRADERS 1
+#define CFG_LOGS__WALLET_ENGINE 1
+#define CFG_LOGS__WALLET_WALLET 1
+#define CFG_LOGS__WALLET_TRADER 1
+#define CFG_LOGS__WALLET_TRADER_BOOTSTRAP 1
+//------------------
+
+//-----Network topology------------------------------------
+//#define PRIVATE_PERMISSIONED_MESH
+//#define PUBLIC_PERMISSIONLESS_MESH
+//#define PUBLIC_PERMISSIONED_RING
+#define ##str9##
+#define LOGDIR "/var/log/##str3##"
+//---------------------------------------------------------
+
+#define CFG_TEST ##str62##
+#define CFG_COPYRIGHT_LINE "##str59##"
+#define CFG_COPYRIGHT_LINE2 "##str63##"
+#define CFG_COPYRIGHT_LINE3 "##str64##"
+#define CFG_LICENSE_FILE "/var/##str3##/LICENSE"
+#define AUTOMATIC_UPDATES_PUBKEY "##str10##"
+#define NODEMASTER_PUBKEY "##str35##"
+#define AUTOMATIC_UPDATES_ACCOUNT "##str39##"
+#define GOVUSER "##str11##"
+#define BRANDID "##str40##"
+#define PLATFORM "##str3##"
+#define DATADIR ".##str3##"
+#define LAYOFF_DAYS ##str36##
+#define UGAS "##str37##"
+#define LGAS "##str38##"
+#define CFG_COUNTERS ##str41##
+#define CFG_CONNECTION_LOG ##str42##
+
+#define CFG_CHANNEL ##str6##
+#define CFG_MAX_NODES_PER_IP ##str55##
+#define CFG_MAX_SUBSIDY ##str30##
+#define CFG_MAX_SIZE_DATAGRAM ##str31##
+#define CFG_LOGS ##str33##
+#define CFG_PORT ##str18##
+#define CFG_PPORT ##str20##
+#define CFG_WALLET_PORT ##str19##
+#define CFG_WALLET_PPORT ##str34##
+#define CFG_MAX_NODES ##str46##
+#define CFG_HMI_READY_TIMEOUT_SECS ##str49##
+#define CFG_MUTATION_PERIOD_SECS ##str50##
+#define CFG_AUTH_TIMEOUT_SECS ##str51##
+#define CFG_SENDQ_WMH ##str52##
+#define CFG_SENDQ_SCHUNK ##str53##
+#define CFG_DGRAM_ROUNDTRIP_TIMEOUT_SECS ##str54##
+#define CFG_REPORT_REASON ##str44##
+#define CFG_FCGI ##str45##
+#define CFG_BLOB_VERSION ##str60##
+#define CFG_ANDROID_BLOB_ID "##str56##"
+
+#ifdef PUBLIC_PERMISSIONLESS_MESH
+    #define CFG_PUBLIC_NETWORK
+    #define CFG_PERMISSIONLESS_NETWORK
+    #define CFG_TOPOLOGY_MESH
+#endif
+
+#ifdef PRIVATE_PERMISSIONED_MESH
+    #define CFG_PRIVATE_NETWORK
+    #define CFG_PERMISSIONED_NETWORK
+    #define CFG_TOPOLOGY_MESH
+#endif
+
+#ifdef PUBLIC_PERMISSIONED_RING
+    #define CFG_PUBLIC_NETWORK
+    #define CFG_PERMISSIONED_NETWORK
+    #define CFG_TOPOLOGY_RING
+#endif
+
+
+#ifdef CFG_PUBLIC_NETWORK
+#ifdef CFG_PRIVATE_NETWORK
+#error conflicting network type
+#endif
+#endif
+
+#ifdef CFG_PERMISSIONED_NETWORK
+#ifdef CFG_PERMISSIONLESS_NETWORK
+#error conflicting authority type
+#endif
+#endif
+
+#ifdef CFG_TOPOLOGY_RING
+#ifdef CFG_TOPOLOGY_MESH
+#error conflicting topologies
+#endif
+#endif
+
+// unless a release build, disable 'final' keyword so tests can be compiled.
+#if CFG_TEST == 0
+    #define final_ final
+#else
+    #define final_
+#endif
+
+#define HAVE_CFG
+

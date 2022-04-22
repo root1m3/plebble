@@ -1,0 +1,93 @@
+----------------------------------------------
+##str4##
+----------------------------------------------
+                  HOWTOFAQ
+                 alpha-29.16
+----------------------------------------------
+
+CHANNELS
+    0 - Mainnet
+    1 - Local testnet
+    2 - Public testnet
+    <1000 reserved
+    >=1000 Organizations networks
+
+BUILD, DEBUG & INSTALL
+
+    bin/configure --help
+    make
+    make install
+
+CONTROL DAEMONS - systemd
+    systemctl ##str3##-gov start|restart|stop
+    systemctl ##str3##-wallet start|restart|stop
+
+LISTENING PORTS
+    ssh maintenance on port ##str17##
+    ##str3##-gov listens on port ##str18##
+    ##str3##-wallet listens on port ##str19##
+    http dashboard on port ##str16##
+
+WHERE IS THE NODE PRIVATE KEY?
+    /home/##str11##/.##str3##/##str11##/k
+
+RUN AN INTROSPECTIVE SHELL INTO GOV PROCESS
+    requires node private-key
+
+    invoke as user ##str11##
+    a) from the node
+        1 execute 
+          ##str12## 
+    b) from remote computer
+        1 make sure private key is at ~/.##str3##/##str11##/k        
+        2 execute 
+          ##str12## -host <ipaddress>
+
+BUILD THE JAVA SDK
+    cd sdk/wallet/java
+    make
+
+BUILD & INSTALL ANDROID APP
+    - note: USE JDK-8 - 9 and 10 wont work with android sdk
+    apt install openjdk-8-jdk or oracle
+
+    cd cash/android
+    JAVA_HOME=<your jdk8> ./make
+    example:
+    $> JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64 ./make
+
+    find . -name "*.apk" 
+    
+SEE THE LEDGER
+    ##str12## -cmd app 30 db
+
+SEE THE NODES
+    ##str12## -cmd app 20 db
+
+SEE THE BLOCKCHAIN STATE
+    blocks directory: /home/##str11##/.##str3##/##str11##/blocks/
+    current ledger dump: ##str12## -cmd n
+    
+CHECK YOUR BALANCE
+    ##str13## balance
+
+PAIR YOUR MOBILE
+    ##str13## list_devices
+    ##str13## pair <dev>
+
+Find the complete list of functions 
+    ##str12## -h
+    ##str13## -h
+
+DEVELOPER
+=========
+
+Reinstall official version 
+    echo "" > /var/##str3##/installed_blob 
+    install_blob 
+    
+
+--
+
+Copyright (C) ##str59##
+

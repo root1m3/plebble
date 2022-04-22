@@ -1,0 +1,24 @@
+#!/bin/bash
+
+branch=`git branch | grep "*" | awk '{print $2}'`
+echo "branch: $branch"
+echo "merge $branch into main and push"
+echo "All ok?"
+read a
+
+set -e
+echo "checkout main"
+git checkout main
+echo "pull"
+git pull
+echo "merg $branche"
+git merge $branch
+echo "push"
+git push
+echo "checkout $branch"
+git checkout $branch
+
+echo "done"
+echo -n "on branch "
+git branch | grep "*" | awk '{print $2}'
+

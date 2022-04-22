@@ -1,0 +1,122 @@
+#!/bin/bash
+#===-                           P L E B B L E
+#===-                         https://plebble.us
+#===-
+#===-              Copyright (C) 2017-2022 root1m3@plebble.us
+#===-
+#===-                      GNU GENERAL PUBLIC LICENSE
+#===-                       Version 3, 29 June 2007
+#===-
+#===-    This program is free software: you can redistribute it and/or modify
+#===-    it under the terms of the AGPLv3 License as published by the Free
+#===-    Software Foundation.
+#===-
+#===-    This program is distributed in the hope that it will be useful,
+#===-    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#===-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+#===-
+#===-    You should have received a copy of the General Public License
+#===-    along with this program, see LICENCE file.
+#===-    see https://www.gnu.org/licenses
+#===-
+#===----------------------------------------------------------------------------
+#===-
+
+function help {
+    echo "--core0 <core0-dir>"
+}
+
+core0="../../../core0"
+
+while [ true ]; do
+    opt=$1
+    shift
+    if [[ "_$opt" == "_--core0" ]]; then
+        core0=$1
+        shift
+        continue
+    elif [[ "_$opt" == "_" ]]; then
+        break
+    else
+        help
+        echo "Invalid command"
+        exit 1
+    fi
+done
+
+if [[ "_$str3" == "_" ]]; then
+    set -a; . $core0/us/res/strings/en-uk; . $core0/us/res/strings/en-uk.ovr; set +a
+    if [[ $? -ne 0 ]]; then
+        echo "KO 87665 Missing static params. is core0 configured?"
+        exit 1
+    fi
+fi
+
+echo "brand $str3"
+dbg=$str29
+logs=$str33
+counters=$str41
+connlog=$str42
+brand=$str3
+test=$str62
+
+function patch {
+    ifile="${1}.in"
+    ofile=$1
+    if [ "_$2" != "_" ]; then
+        #echo "$1 -> $2"
+        ofile=$2
+    fi
+    cp $ifile $ofile
+    strs=`cat $ifile  | grep -o "##str[0-9]*##" | sed "s/#//g"`
+    for s in $strs; do
+        #echo -n "$s = ${!s}; "
+        echo -n "."
+        sed -i "s%##$s##%${!s}%g" $ofile
+    done
+}
+
+function patchin {
+    x=`echo -n $(dirname $1)`
+    patch "$x/$(basename $1 .in)"
+}
+
+function reroot {
+    if [ "_$1" != "_$2" ]; then
+        cp $1 $2 -R
+    fi
+}
+
+echo -n "configuring files"
+
+for f in `find . -name "makefile.in"`; do
+     patchin $f
+done
+
+echo ""
+
+#if [ $logs -eq 0 ]; then
+#     if [ ! -d ../.git ]; then
+#         echo "stripping instrumentation code...";
+#         bin/strip .
+#         if [ $? -ne 0 ]; then
+#                echo "KO 66975 Strip failed"
+#                exit 1
+#         fi
+#         instr="0"
+#     else
+#         echo "WARNING 30393 Instrumentation code related has not been stripped. reason: files are in use by git."
+#     fi
+#fi
+
+echo "CONF:"
+echo " brand: $brand"
+echo " strset: $strset"
+echo " with-logs $logs"
+echo " debug $dbg"
+echo " counters $counters"
+echo " connlog $connlog"
+echo " tests $test"
+
+exit 0
+

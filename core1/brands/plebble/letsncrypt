@@ -1,0 +1,11 @@
+  501  apt install snapd
+  502  snap install core
+  503  snap refresh core
+  504  apt-get remove certbot
+  505  snap install --classic certbot
+  506  ln -s /snap/bin/certbot /usr/bin/certbot
+  507  certbot --nginx
+  508  nano /etc/nginx/sites-enabled/plebble.conf #server_name plebble.io
+  509  systemctl restart nginx
+  510  certbot --reinstall -d plebble.io
+

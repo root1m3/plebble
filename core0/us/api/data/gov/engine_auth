@@ -1,0 +1,15 @@
+nodes
+-
+sync
+v{hu4u2} seeds
+-
+-
+
+lookup_node
+h addr
+sync
+u4 net_addr u2 port
+-
+-
+
+

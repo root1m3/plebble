@@ -1,0 +1,21 @@
+bgtask
+
+--------------------------------------------------
+4740386b852c94464216293c46e3895de3474e16
+
+Background task
+
+Specialized classes provide run() and onwakeup() callbacks.
+
+Provides daemonization control functions.
+    start()
+    stop()
+    join()
+
+And status functions:
+    bool isup() const;
+    bool isdown() const;
+    bool is_ready() const;
+    ko wait_ready(int secs) const;
+
+

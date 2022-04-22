@@ -1,0 +1,3 @@
+#!/bin/sh
+##str3##-ports $@  >/var/log/##str3##/##str3##-ports.last.log 2>&1
+exit $?

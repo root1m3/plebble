@@ -1,0 +1,158 @@
+trader
+=======
+background task.
+
+
+-----------------------------------------------------------------------
+5b0e564d066b1708db4f98dac5adde480c1b3e65
+--outer documentation
+/*example at datagram*/
+--/outer documentation
+
+
+-----------------------------------------------------------------------
+5b0e564d066b1708db4f98dac5adde480c1b3e65
+c::trader(traders_t& tdrs, const endpoint_t& remote_ep, protocol* p0, wallet_local_api& w, wallet_daemon& demon): p(0), w(&w), demon(&demon), initiator(true), remote_ip(0), remote_endpoint(remote_ep), parent(tdrs), chat(this), t(bind(&c::run,this),bind(&c::onwakeup,this)) {
+
+
+Constructor taking 5 arguments.
+Used by the initiator of a trade.
+    sets the trade creation time.
+    creates a brand new unique id.
+    calls init().
+
+
+-----------------------------------------------------------------------
+5b0e564d066b1708db4f98dac5adde480c1b3e65
+c::trader(traders_t& tdrs, const endpoint_t& remote_ep, const hash_t& trade_id, socket::client& cli, protocol* p0, const hash_t& peer_personality, const protocols_t& avp, wallet_local_api& w, wallet_daemon&demon): id(trade_id), p(0), w(&w), demon(&demon) , initiator(false), cli(&cli), remote_ip(cli.address), remote_endpoint(remote_ep), parent(tdrs), chat(this), peer_personality(peer_personality), peer_protocols(avp), t(bind(&c::run,this),bind(&c::onwakeup,this)) {
+
+Constructor taking 7 arguments.
+Used by the follower.
+
+    sets the trade creation time.
+    calls init().
+    calls send_personality();
+    if the initiator has sent their "wanted protocols", the follower corresponds by calling traders::send_published_protocols();
+    "wanted protocols" is a list of supported protocol names bot the follower and the initiator share in order to agree on one.
+
+-----------------------------------------------------------------------
+5b0e564d066b1708db4f98dac5adde480c1b3e65
+void c::init(protocol* p0) {
+
+    Common trader initialization tasks common for both the initiator and the follower.
+    
+    calls init_log();
+    Sets the personality based on the private_key file found at w->traders->home + "/k". Calls load_personality(w->traders->home + "/k");
+    starts the network housekeeping task  (see run()).
+    calls set_protocol(p0);    
+    request to stay online
+      calls set_state(state_req_online); 
+
+    on exit a connection to the remote node is on going (see run()) . 
+    
+
+-----------------------------------------------------------------------
+5b0e564d066b1708db4f98dac5adde480c1b3e65
+void c::init_log() {
+
+    Initializes the log file corresponding to the instance.
+
+    makes sure the directory traders->home/log exists in the file system.
+    log diles filenames contain:
+    "/trade_" << ts_creation << "_" << remote_endpoint.filestr() << '_' << id;
+
+    ts_creation         time of creation of the instance
+    remote_endpoint     string representing the remote endpoint
+    id                  trade id of the instance
+
+
+-----------------------------------------------------------------------
+5b0e564d066b1708db4f98dac5adde480c1b3e65
+void c::run() {
+
+    Networking housekeeping thread spawned on start()
+    
+    Start log file under logdir directory named 
+    os << "trade_" << trade_id
+
+    writes to olog, the trade log file
+
+    networking state machine:
+    The program enters into an infinite loop handling the transitions among the states:
+        state_offline,
+        state_req_online,
+        state_connect_failed,
+        state_connected,
+        state_online,
+        state_req_offline,
+    These states are defined in enum state_t
+
+    steps:
+   
+    Determines our current state, and create copies named prev and new
+    If state is state_offline, goes straight to wait() then continue.
+
+    Transitions:
+    state_req_online -> state_connect_failed
+    state_req_online -> state_connected
+        (req_online-request to go online)
+        the following procedure is executed:
+            If any client networking object exists (follower)
+                static_cast<peer_t*>(cli)->tder=this;
+                set newstate=state_connected;
+                we tell him we are his trader. (This will help routing incoming mesages to the trader skipping lookups).
+            if no client networking object exists (initiator)
+                if the variable remote_ip is 0
+                    call to update_ip()
+                if remote_ip is 0 again set 
+                    newstate=state_connect_failed;
+                    wait and continue;
+                calls demon->grid_connect
+                if succeed 
+                    set newstate=state_connected;
+                    we tell him we are his trader.
+
+                If fails a last try is made again:
+                          call to update_ip()          
+                            
+
+    state_connected -> state_online 
+    state_connected -> state_offline 
+    state_connected -> state_offline 
+        If I am the follower transit directly to state_online
+        steps if otherwise am the initiator
+        
+        transmit a message with the following information:
+            my local endpoint, so they can reach me back in case of disconnection.
+            trade id
+            if there is a protocol instantiated
+                send protocol handshake data. calls p->handshake_data(msg)
+            if there is no protocol instantiated
+                send "wanted protocols" message. A list of names prefixed by the code "P "
+            my personality
+            
+    state_online -> state_online
+        Flushes the queue of commands waiting to be sent over. Calls exec_();
+
+
+    state_req_offline -> state_offline
+        req_offline - Request to be offline 
+        disconnects with reason "req_offline"
+        
+
+-----------------------------------------------------------------------
+5b0e564d066b1708db4f98dac5adde480c1b3e65
+void c::wait() {
+
+    freezes the networking state machine until set_state_() is called by another thread.
+
+
+    
+    
+
+
+
+
+
+
+

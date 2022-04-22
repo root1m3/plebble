@@ -1,0 +1,114 @@
+#!/bin/bash
+#===-                           P L E B B L E
+#===-                         https://plebble.us
+#===-
+#===-              Copyright (C) 2017-2022 root1m3@plebble.us
+#===-
+#===-                      GNU GENERAL PUBLIC LICENSE
+#===-                       Version 3, 29 June 2007
+#===-
+#===-    This program is free software: you can redistribute it and/or modify
+#===-    it under the terms of the AGPLv3 License as published by the Free
+#===-    Software Foundation.
+#===-
+#===-    This program is distributed in the hope that it will be useful,
+#===-    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#===-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+#===-
+#===-    You should have received a copy of the General Public License
+#===-    along with this program, see LICENCE file.
+#===-    see https://www.gnu.org/licenses
+#===-
+#===----------------------------------------------------------------------------
+#===-
+
+datadir=/home/##str11##/.##str3##
+
+. $datadir/config
+
+#requires sourcing environment varibales
+#us-ports [close]
+#programs the router forwarding ports
+set -o pipefail
+
+arg=$1
+shift
+
+if [ "_${UPNPGOV}" == "_" ]; then
+    echo "Requires environment variables"
+    exit 1
+fi
+
+lan=""
+function solvelan {
+    if [[ "_$lan" != "_" ]]; then
+        return
+    fi
+    while [ true ]; do
+        as=`/usr/bin/upnpc -s | grep "Local LAN\|ExternalIPAddress" | sort | awk '{ print $NF }'`
+        PS=${PIPESTATUS[0]}
+        test $PS -eq 0
+        if [ $? -ne 0 ]; then
+            exit 0  #no upnp here
+        fi
+        wan=`echo $as | awk '{print $1}'`
+        lan=`echo $as | awk '{print $2}'`
+
+        if [ "_$lan" != "_" ]; then
+        if [ "_$wan" != "_" ]; then
+            break
+        fi
+        fi
+        sleep 1
+        echo "retrying"
+    done
+}
+
+function mapport {
+  port=$1
+  pport=$2
+  solvelan
+  if [ $pport -ne 0 ]; then
+    /usr/bin/upnpc -a $lan $port $pport TCP
+  fi
+}
+
+function unmapport {
+  pport=$1
+  if [ $pport -ne 0 ]; then
+    /usr/bin/upnpc -d $pport TCP
+  fi
+}
+
+if [ "_$arg" == "_map" ]; then
+    port=$1
+    pport=$2
+    mapport ${port} ${pport}
+    exit 0
+fi
+
+if [ "_$arg" == "_unmap" ]; then
+    pport=$1
+    unmapport ${pport}
+    exit 0
+fi
+
+
+if [ "_$arg" == "_close" ]; then
+    unmapport ${UPNPGOV}
+    unmapport ${UPNPWALLET}
+    unmapport ${UPNPHTTP}
+    unmapport ${UPNPBIND}
+    unmapport ${UPNPGROOT}
+    exit 0
+fi
+
+if [ "_$UPNP" == "_on" ]; then
+    mapport ${PORT} ${UPNPGOV}
+    mapport ${WALLET_PORT} ${UPNPWALLET}
+    mapport ${HTTP_PORT} ${UPNPHTTP}
+    mapport ${BIND_PORT} ${UPNPBIND}
+    mapport ${GROOT_PORT} ${UPNPGROOT}
+fi
+
+exit 0

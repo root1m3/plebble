@@ -1,0 +1,227 @@
+#!/bin/bash -e
+#===-                           P L E B B L E
+#===-                         https://plebble.us
+#===-
+#===-              Copyright (C) 2017-2022 root1m3@plebble.us
+#===-
+#===-                      GNU GENERAL PUBLIC LICENSE
+#===-                       Version 3, 29 June 2007
+#===-
+#===-    This program is free software: you can redistribute it and/or modify
+#===-    it under the terms of the AGPLv3 License as published by the Free
+#===-    Software Foundation.
+#===-
+#===-    This program is distributed in the hope that it will be useful,
+#===-    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#===-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+#===-
+#===-    You should have received a copy of the General Public License
+#===-    along with this program, see LICENCE file.
+#===-    see https://www.gnu.org/licenses
+#===-
+#===----------------------------------------------------------------------------
+#===-
+
+if [[ $EUID -ne 0 ]]; then
+   echo "This script must be run as root"
+   exit 1
+fi
+
+aptu=1
+while [ true ]; do
+  opt=$1
+  shift
+  if [ "_$opt" == "_--noaptu" ]; then
+    aptu=0
+    continue
+  else
+    break
+  fi
+done
+
+b="##str3##"
+echo "Setting up $b"
+
+nodeps=0
+if [ "_$1" == "_-nodeps" ]; then
+    echo "Not building deps"
+    nodeps=1
+    shift
+fi
+
+user=##str11##
+
+export CHANNEL=##str6##
+export USRHOME=/home/$user
+if [ $CHANNEL -eq 0 ]; then
+    export USHOME=$USRHOME/.$b
+else
+    export USHOME=$USRHOME/.$b/$CHANNEL
+fi
+export USGOVHOME=$USHOME/gov
+ROOTFS_DIR=
+
+
+
+echo "CHANNEL=$CHANNEL"
+echo "USRHOME=$USRHOME"
+echo "USHOME=$USHOME"
+echo "USGOVHOME=$USGOVHOME"
+
+apt update
+apt -y install libc-dev make g++ spawn-fcgi nginx libcrypto++-dev automake libtool psmisc pipexec libjsoncpp-dev libunwind-dev libtool automake bc coreutils unzip cmake git quilt links nmap ack-grep tree miniupnpc libmicrohttpd-dev sudo tor ntp curl librsvg2-bin libb64-dev pkg-config libncurses-dev rsync zstd
+
+echo "#users"
+if ! id -u $user >/dev/null 2>&1; then
+    adduser --disabled-password --gecos "" $user
+else
+    echo "user $user already created"
+fi
+
+if [ ! -f /var/${user}_changepass ]; then
+    echo "Regenerating $user password"
+    gov_passwd=$(< /dev/urandom tr -dc A-Za-z0-9 | head -c${1:-39})
+    echo "$user:${gov_passwd}" | chpasswd
+    echo ${gov_passwd} > /var/${user}_changepass
+    chown $user.$user /var/${user}_changepass
+    chmod 400 /var/${user}_changepass
+fi
+
+mkdir -p $USRHOME/.ssh
+
+zstar="tar -I zstd "
+
+###############################download deps
+function mk_deps {
+rm -rf deps
+mkdir deps
+pushd deps > /dev/null
+    #libsecp256k1
+    git clone -q https://github.com/bitcoin-core/secp256k1
+    pushd secp256k1 > /dev/null
+        #git checkout 1e6f1f5ad5e7f1e3ef79313ec02023902bf8175c
+        #git checkout -q 96cd94e385f64c1936abf0d1e303d12d0f5da980  #since sep19
+        git checkout -q d8a246324650c3df8d54d133a8ac3c1b857a7a4e   #feb22
+        rm .git -r
+    popd > /dev/null
+popd > /dev/null
+
+pushd deps > /dev/null
+    set +e
+    # ------------------------secp256k1
+    pushd secp256k1 > /dev/null
+        ./autogen.sh
+        ./configure --enable-experimental --enable-module-ecdh --disable-dependency-tracking --enable-benchmark=no  --enable-coverage=no --enable-tests=no --enable-openssl-tests=no --enable-exhaustive-tests=no
+        make
+        #./tests && (exit 1)
+        make install && (exit 1)
+    popd > /dev/null
+    rm -r secp256k1
+popd > /dev/null
+rm -r deps
+
+}
+
+if [ $nodeps -eq 0 ]; then
+    mk_deps
+fi
+
+
+######################################################proc_1.1
+function update {
+    US=$1
+    url=$2
+    CHANNEL=$3
+    net=$US
+    export USHOME0=$USRHOME/.${US}
+    if [ $CHANNEL -ne 0 ]; then
+        export USHOME=$USHOME0/$CHANNEL
+    else
+        export USHOME=$USHOME0
+    fi
+    b=$net
+    distr=$USRHOME/distr
+    echo "distr=$distr"
+    export USGOVHOME=$USHOME/gov
+    if [[ $url == *".onion"* ]]; then
+        wget="torsocks wget"
+    else
+        wget="wget"
+    fi
+    $wget --tries=1 "$url/version" -O /tmp/version
+    if [ $? -ne 0 ]; then
+        echo "KO 3739 - Could not fetch $url/version"
+        return 1
+    fi
+    hash=`cat /tmp/version`
+    rm -f /tmp/version
+    echo "hash=$hash"
+    rhash=""
+    if [ -f /var/${US}/installed_version ]; then
+        rhash=`cat /var/${US}/installed_version`
+    fi
+    if [ "_$hash" == "_$rhash" ]; then
+        echo " updated to $hash"
+        return 0
+    fi
+    mkdir -p $distr/$b
+    pushd $distr/$b
+        echo "syncing upstream..."
+        $wget --tries=1 "$url/core_$hash.tar.zst"
+        if [ $? -ne 0 ]; then
+            echo "KO 3779 - Could not fetch $url/core_$hash.tar.zst"
+            return 1
+        fi
+        #ssh -n -o "StrictHostKeyChecking no" -i ${USRHOME}/.ssh/id_rsa_git othernode@$ip ls
+        #rsync -r -e "ssh -p$port -i ${USRHOME}/.ssh/id_rsa_git" --delete -a othernode@$ip:~/distr/$b/core/ ./
+        rm core -rf
+        $zstar -xf core_$hash.tar.zst
+        rm core_$hash.tar.zst
+    popd
+    chown ${GOVUSER}.${GOVUSER} $distr -R
+    pushd $distr/$b/core
+        make install-system-base
+        make install-nginx
+        make install
+    popd
+    . ${USRHOME}/.${US}/config
+    gov="${US}-gov -c ${CHANNEL} -p ${PORT} -home ${USHOME0}"
+    v=`$gov version | awk '{print $1}'`
+    echo $hash > /var/${US}/installed_version
+    echo "installed version is $v"
+    echo "restarting daemons"
+    systemctl restart ${US}-wallet
+    systemctl restart ${US}-gov
+    return 0
+}
+
+echo "STARTED"
+date
+
+#bin/gen_http_nodes | xargs
+httpnodes="79.108.98.2:16680 80.30.62.30:16680 148.3.49.12:16680 46.65.150.179:16680 178.33.115.214:16680 81.9.221.193:16680 188.127.177.20:16680 87.216.115.34:16680 82.159.33.114:16880 83.95.185.33:16680 185.224.197.47:16680 81.33.86.82:16680 82.159.33.114:16680 92.176.216.187:16680 81.147.158.86:16680 46.65.150.179:17080"
+
+
+echo "##str6## ##str3## ##str15##" > /var/us_networks
+if [ "_##str24##" != "_" ]; then
+    echo "##str26## ##str24## ##str25##" >> /var/us_networks
+fi
+
+cat /var/us_networks | sort -r > /tmp/us_networks
+
+while read -r line; do
+    ch=`echo $line | awk '{print $1}'`
+    US=`echo $line | awk '{print $2}'`
+    url=`echo $line | awk '{print $3}'`
+    if [ "_$url" != "_" ]; then
+        update $US $url $ch
+    fi
+done < /tmp/us_networks
+
+rm -f /tmp/us_networks
+
+set +e
+run-parts /etc/cron.daily
+
+exit 0
+

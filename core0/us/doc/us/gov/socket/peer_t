@@ -1,0 +1,52 @@
+SOCKET PEER
+
+client specialization.
+
+Stalled datagram: a datagram that was being already filled with information from the wire has taken too long since the last update. 
+
+-----------------------------------------------------------------
+ac988191e6a64a93360551db2b4152f76200770f
+constexpr static chrono::seconds stall{5s};
+    Stall duration: if, after beginning the reception, no new data arrives in 5 secs the datagram is stalled. 
+
+
+-----------------------------------------------------------------
+af7b9b3d1d8f55d2f469b90ef853e19b3be1798f
+pair<c::security_level_t,string> c::security_level() const {
+    if base class says anything distint from ok returns it.
+    if is ok for the base class,
+    
+        if stalled_datagram() returns security_level_disconnect
+    
+        if (dur>3s) {
+            did we do an alive_test more than 3 seconds ago?
+
+            if (activity_recv<last_test_alive) {
+                have we received anything since the test? 
+                returns disconnect if nothing has been received since the test_alive was done plus 3 seconds.
+
+    returns ok otherwise
+
+-----------------------------------------------------------------
+3649c9d1933149e668bada4ad5fc38534fdbbd0a-update
+bool c::stalled_datagram() const {
+
+
+    decides if the datagram in progress for this client is stalled or not.
+    based on the variable activity_recv, timestamp that updates each time the datagram grows while receiving data from the wire. 
+    
+
+
+
+-----------------------------------------------------------------
+bool c::process_work(datagram* d) {
+
+
+
+
+
+
+
+
+
+

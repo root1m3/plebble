@@ -1,0 +1,100 @@
+#!/bin/bash
+#===-                           P L E B B L E
+#===-                         https://plebble.us
+#===-
+#===-              Copyright (C) 2017-2022 root1m3@plebble.us
+#===-
+#===-                      GNU GENERAL PUBLIC LICENSE
+#===-                       Version 3, 29 June 2007
+#===-
+#===-    This program is free software: you can redistribute it and/or modify
+#===-    it under the terms of the AGPLv3 License as published by the Free
+#===-    Software Foundation.
+#===-
+#===-    This program is distributed in the hope that it will be useful,
+#===-    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#===-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+#===-
+#===-    You should have received a copy of the General Public License
+#===-    along with this program, see LICENCE file.
+#===-    see https://www.gnu.org/licenses
+#===-
+#===----------------------------------------------------------------------------
+#===-
+
+US="##str3##"
+
+. /home/gov/.${US}/config
+
+gov="${US}-gov"
+wallet="${US}-wallet"
+
+address="##str39##"  #Software updates account.
+
+function procblob {
+    brand=$1
+    blobid=$2
+
+    echo "========================================================"
+    echo "              $brand"
+    echo "========================================================"
+
+    upstream_hash=`$gov cmd list_files $address $blobid`
+    if [ $? -ne 0 ]; then
+        echo "KO 8556"
+        exit
+    fi
+    echo "address $address"
+    echo "brand $brand"
+    echo "blobid $blobid"
+    echo "upstream_hash $upstream_hash"
+
+    local_blob=`ls -1 /var/$brand/blob/*.tzst`
+    if [[ "_$local_blob" == "_" ]]; then
+        echo "KO 68574 "
+        exit 1
+    fi
+    echo "local_blob $local_blob"
+    set -x
+    local_hash=`$wallet digest $local_blob`
+    set +x
+    echo "local_hash $local_hash"
+
+    if [ "_$upstream_hash" == "_$local_hash" ]; then
+        echo "==OK=============>Blob $upstream_hash is already in the matrix."
+        if [ ! -f /home/gov/.${US}/gov/fsroot/$local_hash ]; then
+            echo "/home/gov/.${US}/gov/fsroot/$local_hash doesnt exist. Send againg tx."
+        else
+            return;
+        fi
+    fi
+    if [ "_$upstream_hash" != "_" ]; then
+        if [ "_$upstream_hash" == "_$local_hash" ]; then
+            echo "==!!=============>Local file is missing"
+        else
+            echo "==!!=============>Upstream has old version $upstream_hash. Replacing it with $local_hash"
+            sleep 2
+            set -x
+            $wallet rm $address -f $upstream_hash $blobid || exit 1
+            set +x
+        fi
+    else
+        echo "Not upstream"
+    fi
+
+    echo "uploading blob"
+    sleep 2
+    set -x
+    $wallet store $address -f $local_blob $blobid || exit 1
+    set +x
+    if [ ! -f /home/gov/.${US}/gov/fsroot/$local_hash ]; then
+        echo "KO 94483 /home/gov/.${US}/fsroot/$local_hash doesnt exist"
+        exit 1
+    fi
+}
+
+brand=$1
+componentid=$2
+
+procblob $brand $componentid
+

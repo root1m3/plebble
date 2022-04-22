@@ -1,0 +1,47 @@
+#!/bin/bash
+
+arch=`uname -m`
+
+function update {
+    US=$1
+    addr=$2
+    key=$3
+    ch=$4
+    echo "====================================="
+    echo "UPDATE R2R $US address $addr key $key"
+    echo "====================================="
+
+    ushome="/home/$GOVUSER/.${US}"
+    if [ "_$ch" != "_0" ]; then
+        ushome="$whome/$ch"
+    fi
+
+    if [ ! -d $arch ]; then
+        echo "KO 59952 cannot find files for arch $arch"
+        return
+    fi
+    echo "updating dir ${ushome}/wallet/trader/lib"
+    for lib in `find ${ushome}/wallet/trader/lib -type f -name "*.so" | sed "s#.*/\(.*\)\.so#\1#"`; do
+	pushd $arch/r2r >/dev/null
+	    zst=`find . -name "${lib}*.tzst"`
+	    echo "  $zst"
+	    tar -I zstd -xf $zst
+	    mv ${lib}.so ${ushome}/wallet/trader/lib/
+	popd > /dev/null
+    done
+}
+
+if [ ! -f /var/us_nets ]; then
+    echo "KO 59953 cannot find file /var/us_nets"
+    exit 1
+    return
+fi
+
+while read -r line; do
+    US=`echo $line | awk '{print $2}'`
+    addr=`echo $line | awk '{print $3}'`
+    key=`echo $line | awk '{print $4}'`
+    ch=`echo $line | awk '{print $1}'`
+    update $US $addr $key $ch
+done < /var/us_nets
+

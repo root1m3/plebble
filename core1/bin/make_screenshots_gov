@@ -1,0 +1,76 @@
+#!/bin/bash -e
+#===-                           P L E B B L E
+#===-                         https://plebble.us
+#===-
+#===-              Copyright (C) 2017-2022 root1m3@plebble.us
+#===-
+#===-                      GNU GENERAL PUBLIC LICENSE
+#===-                       Version 3, 29 June 2007
+#===-
+#===-    This program is free software: you can redistribute it and/or modify
+#===-    it under the terms of the AGPLv3 License as published by the Free
+#===-    Software Foundation.
+#===-
+#===-    This program is distributed in the hope that it will be useful,
+#===-    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#===-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+#===-
+#===-    You should have received a copy of the General Public License
+#===-    along with this program, see LICENCE file.
+#===-    see https://www.gnu.org/licenses
+#===-
+#===----------------------------------------------------------------------------
+#===-
+if [[ `whoami` != "gov" ]]; then
+    echo "KO 69584 Execute as user gov. wallet must have keys for blob address $address."
+    exit 1
+fi
+
+shopt -s expand_aliases
+. ~/.bash_aliases
+
+home=`gov print_home`
+. $home/config
+
+o="screenshots_gov"
+sep="======================================================"
+echo -n "" > $o
+
+function fun {
+echo "description: $1" >> $o
+args="$2"
+echo "command: gov $args" >> $o
+echo "output:" >> $o
+$gov $args >> $o
+echo "" >> $o
+echo $sep >> $o
+echo "" >> $o
+}
+
+fun "help screen" "-h"
+fun "performances" "-perf"
+fun "help screen shell" "sysop h"
+fun "active edges" "sysop s"
+fun "syncd info" "sysop y"
+fun "current block chain" "sysop n"
+fun "consensus votes" "sysop v"
+fun "consensus cycle" "sysop c"
+fun "network perf data" "sysop ns2"
+fun "watch info" "sysop watch"
+fun "gov process uptime" "sysop uptime"
+fun "list public algorithms" "sysop apps"
+fun "nodes as seed list" "sysop seeds"
+fun "consensus info" "sysop consensus"
+fun "app 1 (sys) help" "sysop app 1 h"
+fun "app 20 (auth) help" "sysop app 20 db"
+fun "node list" "sysop app 20 db"
+fun "unique ip addresses" "sysop app 20 ip4"
+fun "mempool" "sysop app 20 m"
+fun "lookup node IP4" "sysop app 20 lookup_node 9crydDy2UNT4godsvQuHDqXrZM9"
+fun "app 30 (cash) help" "sysop app 30 h"
+fun "The Ledger (the matrix)" "sysop app 30 db"
+fun "app 30 (cash) mempool" "sysop app 30 m"
+fun "Wallets" "sysop app 40 db"
+
+exit 0
+

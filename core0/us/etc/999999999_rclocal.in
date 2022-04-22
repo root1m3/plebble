@@ -1,0 +1,19 @@
+#!/bin/sh
+
+GOVUSER="##str11##"
+
+echo "##################################"
+echo "######### Login Info #############"
+echo "##################################"
+if [ -f /var/${GOVUSER}_changepass ]; then
+    pwd=`cat /var/${GOVUSER}_changepass`
+    echo "Please, use the following one-time password, you'll be prompted to reset it on your first login."
+    echo "USER: $GOVUSER"
+    echo "PASSWORD: $pwd"
+else
+    echo "USER: $GOVUSER"
+    echo "PASSWORD: [password set by you]"
+fi
+echo "##################################"
+
+exit 0

@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="##str28##">
+
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+<!--    <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" /> -->
+    <uses-permission android:name="android.permission.NFC" />
+    <uses-permission android:name="android.permission.VIBRATE" />
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.WRITE_INTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.READ_INTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
+    <uses-feature android:name="android.hardware.camera" />
+    <uses-feature android:name="android.hardware.camera.autofocus" />
+<!--
+    <uses-feature
+        android:name="android.hardware.nfc.hce"
+        android:required="true" />
+-->
+    <application
+        android:name=".app"
+        android:usesCleartextTraffic="true"
+        android:allowBackup="false"
+        android:fullBackupOnly="false"
+        android:icon="@raw/icoapp"
+        android:label="##str32##"
+        android:supportsRtl="true"
+        android:theme="@style/AppTheme.Launcher"
+        android:requestLegacyExternalStorage="true"
+        >
+        <service
+            android:name="org.acra.sender.SenderService"
+            android:exported="false"
+            android:process=":acra" />
+        <activity
+            android:name=".splash"            
+            android:label="@string/app_name"
+            android:theme="@style/AppTheme.Launcher">
+            <intent-filter>
+		<action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        
+        </activity>
+
+	<activity android:name=".LocaleApp"/>
+
+        <activity
+            android:name=".main_activity"
+            android:label="@string/app_name"
+			android:configChanges="orientation"
+            android:launchMode="singleTask"
+            android:hardwareAccelerated="true"			
+            android:theme="@style/AppTheme.NoActionBar">
+            <intent-filter>                
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <intent-filter>
+<!--
+                <action android:name="android.nfc.action.NDEF_DISCOVERED" />
+-->
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="application/##str28##" />
+            </intent-filter>
+        </activity>
+        <activity android:name=".protocol_choose"></activity>
+        <activity android:name=".trader"                  
+				  android:windowSoftInputMode="adjustPan"
+				  android:theme="@style/AppTheme.NoActionBar"
+				  android:parentActivityName=".main_activity"
+                  >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".trades" />
+        </activity>
+       <activity android:name=".endpoint" />
+       <activity
+            android:name=".files"
+            android:label="@string/title_activity_files"
+            android:theme="@style/AppTheme.NoActionBar" />
+        <activity
+            android:name=".selitems"
+            android:label="@string/title_activity_selitems"
+			android:windowSoftInputMode="adjustPan"            
+            android:theme="@style/AppTheme.NoActionBar">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="##str28##.trader" />
+        </activity>
+        <activity
+            android:name=".sel_catalogue"
+            android:label="@string/title_activity_selitems"
+			android:windowSoftInputMode="adjustPan"            
+            android:theme="@style/AppTheme.NoActionBar">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="##str28##.trader" />
+        </activity>
+        <activity
+            android:name=".doc_viewer"
+            android:label="@string/title_activity_tx"
+			android:windowSoftInputMode="adjustPan"            
+            android:theme="@style/AppTheme.NoActionBar">
+        </activity>
+        <activity
+            android:name=".tradelog"
+            android:label="@string/title_activity_tradelog"            
+            android:theme="@style/AppTheme.NoActionBar">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="##str28##.shop" />
+        </activity>
+        <activity android:name=".shop" />
+        <activity
+            android:name=".position"
+            android:label="@string/title_activity_position"
+            android:theme="@style/AppTheme.NoActionBar" />
+        <activity
+            android:name=".trades"
+            android:label="@string/title_activity_trades"            
+            android:theme="@style/AppTheme.NoActionBar">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="##str28##.main_activity" />
+        </activity>
+        <activity
+            android:name=".nodes"
+            android:label="@string/title_activity_nodes"            
+            android:theme="@style/AppTheme.NoActionBar">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="##str28##.main_activity" />
+        </activity>
+        <activity
+            android:name=".chat"
+            android:label="@string/title_activity_chat"
+			android:windowSoftInputMode="adjustPan"            
+            android:theme="@style/AppTheme.NoActionBar">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="##str28##.main_activity" />
+        </activity>
+        <activity android:name=".scan" />
+<!--
+        <service
+            android:name=".card_emulator"
+            android:exported="true"
+            android:permission="android.permission.BIND_NFC_SERVICE">
+            <intent-filter>
+                <action android:name="android.nfc.cardemulation.action.HOST_APDU_SERVICE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.nfc.cardemulation.host_apdu_service"
+                android:resource="@xml/apduservice" />
+        </service>
+-->
+        <activity
+            android:name=".node_pairing"
+            android:label="@string/title_activity_node_pairing"
+            android:theme="@style/AppTheme.NoActionBar" />
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.provider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/provider_paths"/>
+        </provider>
+    </application>
+</manifest>
+

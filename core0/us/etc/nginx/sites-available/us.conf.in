@@ -1,0 +1,30 @@
+#--##str3##: AUTOUPDATE 1
+server {
+    listen ##str16##;
+
+	root /var/www/##str3##_html;
+    #index index.php;
+    autoindex on;
+	server_name ##str3##.##str68##;
+
+	location / {
+	}
+
+    location /downloads {
+       autoindex on;
+    }
+
+    #add threadpool for user ##user## to fpm daemon:
+    #php/7.4/fpm/pool.d/##user##_wrest
+    #location ~ \.php$ {
+    #    include snippets/fastcgi-php.conf;
+    #    fastcgi_pass unix:/var/run/php/php7.4-fpm-##user##_wrest.sock;
+    #}
+
+    #listen ##str16## ssl; # managed by Certbot
+    #ssl_certificate /etc/letsencrypt/live/bruhati.##str3##.##str68##/fullchain.pem; # managed by Certbot
+    #ssl_certificate_key /etc/letsencrypt/live/bruhati.katlasnet.katlastechnology.io/privkey.pem; # managed by Certbot
+    #include /etc/letsencrypt/options-ssl-nginx.conf; # managed by Certbot
+    #ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem; # managed by Certbot
+
+}

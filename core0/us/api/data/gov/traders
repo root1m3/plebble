@@ -1,0 +1,21 @@
+wallets
+-
+sync
+v{h} wallets
+-
+-
+
+lookup_wallet
+h pkh
+sync
+u4 net_addr u2 port
+-
+-
+
+random_wallet
+-
+sync
+h addr u4 net_addr u2 port
+-
+-
+

@@ -1,0 +1,137 @@
+#!/bin/bash
+#===-                           P L E B B L E
+#===-                         https://plebble.us
+#===-
+#===-              Copyright (C) 2017-2022 root1m3@plebble.us
+#===-
+#===-                      GNU GENERAL PUBLIC LICENSE
+#===-                       Version 3, 29 June 2007
+#===-
+#===-    This program is free software: you can redistribute it and/or modify
+#===-    it under the terms of the AGPLv3 License as published by the Free
+#===-    Software Foundation.
+#===-
+#===-    This program is distributed in the hope that it will be useful,
+#===-    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#===-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+#===-
+#===-    You should have received a copy of the General Public License
+#===-    along with this program, see LICENCE file.
+#===-    see https://www.gnu.org/licenses
+#===-
+#===----------------------------------------------------------------------------
+#===-
+
+release=0
+debug=1
+logs=1
+inst=0
+
+confflags=""
+
+while [ true ]; do
+  opt=$1
+  echo "read opt=$opt"
+  shift
+  if [ "_$opt" == "_--release" ]; then
+    echo "+release flag"
+    confflags="$confflags $opt"
+    debug=0
+    release=1
+    continue
+  elif [ "_$opt" == "_--debug" ]; then
+    echo "+debug flag"
+    confflags="$confflags $opt"
+    debug=1
+    release=0
+    continue
+  elif [ "_$opt" == "_--with-logs" ]; then
+    echo "+logs flag"
+    confflags="$confflags $opt"
+    logs=1
+    continue
+  elif [ "_$opt" == "_--without-logs" ]; then
+    echo "-logs flag"
+    confflags="$confflags $opt"
+    logs=0
+    continue
+  elif [ "_$opt" == "_--install" ]; then
+    echo "+install flag"
+    inst=1
+    continue
+  else
+    echo "end parsing flags"
+    break
+  fi
+done
+branddir=$opt
+branch=$1
+shift
+
+function help {
+    echo "$0 [flags] <branddir> <branch>"
+    echo "flags: --release|--debug|--with-logs|--without-logs|--install"
+}
+
+
+if [ "_$branddir" == "_" ]; then
+    echo "KO 6950 branddir $branddir"
+    help
+    exit 1
+fi
+if [ "_$branch" == "_" ]; then
+    echo "KO 5409 branch"
+    help
+    exit 1
+fi
+
+echo "--------------------------------------"
+echo "branddir $branddir"
+echo "branch $branch"
+echo "Flags:"
+echo "  release $release"
+echo "  debug $debug"
+echo "  logs $logs"
+echo "  install $inst"
+echo "  configure $confflags"
+echo "--------------------------------------"
+echo "yes?"
+read x
+
+echo "-----`pwd`"
+dir=`bin/apply_brand $branddir $branch | tail -n1`
+
+error=`echo $dir | cut -c1-2`
+
+if [ "_$error" == "_KO" ]; then
+    echo $dir
+    exit 1
+fi
+
+echo "generated $dir"
+echo "flags: $@"
+pushd $dir
+  pushd us
+    if [ $logs -eq 0 ]; then
+        bin/strip .
+    fi
+    bin/configure $confflags
+    pushd sdk/wallet/java
+      echo "Building wallet-java SDK (4 Android)"
+      ./make.sh -android
+    popd
+    pushd android
+      echo "Building Android apk"
+      make
+      echo "Signing and installing apk"
+    par=""
+    if [ $inst -eq 1 ]; then
+        par="--install"
+    fi
+        bin/sign_apk $par
+    popd
+  popd
+popd
+
+
+echo "Output: $dir"

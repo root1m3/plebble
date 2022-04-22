@@ -1,0 +1,24 @@
+RELAY DAEMON
+
+
+bool c::process_work(socket::peer_t *c, datagram*d) 
+
+input: datagram coming from peer
+output: processed (true); not processed (false)
+
+Brief:
+Captures evidence datagrams.
+If lower layers processed it done.
+If the datagram is a harvester handle it.
+
+As as soon as we know the datagram is an evidence we handle it here.
+
+If the evidence progresses satisfactorily [-> process_evidence() pure virtual] is declared valid and propagated.
+
+Specializations must provide implementation on how to process evidences.
+
+
+
+
+Specializations of process_evidence at:
+engine/daemon.cpp 

@@ -1,0 +1,115 @@
+#!/bin/bash
+#===-                           P L E B B L E
+#===-                         https://plebble.us
+#===-
+#===-              Copyright (C) 2017-2022 root1m3@plebble.us
+#===-
+#===-                      GNU GENERAL PUBLIC LICENSE
+#===-                       Version 3, 29 June 2007
+#===-
+#===-    This program is free software: you can redistribute it and/or modify
+#===-    it under the terms of the AGPLv3 License as published by the Free
+#===-    Software Foundation.
+#===-
+#===-    This program is distributed in the hope that it will be useful,
+#===-    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#===-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+#===-
+#===-    You should have received a copy of the General Public License
+#===-    along with this program, see LICENCE file.
+#===-    see https://www.gnu.org/licenses
+#===-
+#===----------------------------------------------------------------------------
+#===-
+echo "###################"
+echo "## 70_make_blobs ##"
+echo "###################"
+
+numh=`cat distr/build_hashes | grep "^vhash " | awk '{print $2}' | sort | uniq | wc -l`
+if [ $numh -ne 1 ]; then
+    echo "KO 6753 multiple hashes"
+    exit 1
+fi
+
+rm -rf blobs
+mkdir blobs
+
+hash=`cat distr/build_hashes | grep "^vhash " | awk '{print $2}' | sort | uniq`
+
+flagscode=""
+cat distr/build_hashes | grep "^vhash $hash" | grep "dbg-1" > /dev/null
+if [[ $? -eq 0 ]]; then
+    flagscode="${flagscode}D"
+fi
+cat distr/build_hashes | grep "^vhash $hash" | grep "logs-1" > /dev/null
+if [[ $? -eq 0 ]]; then
+    flagscode="${flagscode}L"
+fi
+cat distr/build_hashes | grep "^vhash $hash" | grep "counters-1" > /dev/null
+if [[ $? -eq 0 ]]; then
+    flagscode="${flagscode}C"
+fi
+cat distr/build_hashes | grep "^vhash $hash" | grep "connlog-1" > /dev/null
+if [[ $? -eq 0 ]]; then
+    flagscode="${flagscode}l"
+fi
+cat distr/build_hashes | grep "^vhash $hash" | grep "fcgi-1" > /dev/null
+if [[ $? -eq 0 ]]; then
+    flagscode="${flagscode}I"
+fi
+
+if [[ "_$flagscode" != "_" ]]; then
+    flagscode="_${flagscode}"
+fi
+
+for branddir in `find distr -maxdepth 1 -mindepth 1 -type d`; do
+    echo ""
+    echo "branddir=$branddir"
+    brand=$(basename $branddir)
+    echo "brand=$brand"
+    echo "hash=$hash"
+    echo "find $branddir -name \"core_*_$hash.tar.zst\""
+    branch=`find $branddir -name "core_*_$hash.tar.zst" | sed "s#.*core_\(.*\)_${hash}.tar.zst#\1#"`
+    if [ -f distr/$brand/bin/apply_blob ]; then
+        echo "brand $brand branch $branch hash $hash branddir $branddir"
+        pushd distr > /dev/null
+            blobdir="${brand}_${branch}_${hash}${flagscode}"
+            echo "blobdir=$blobdir"
+            rm -rf $blobdir
+            mkdir -p $blobdir
+            cp $brand/* $blobdir/ -R
+            cp deps $blobdir/ -R
+            echo "Excluding OS Image"
+            rm -rf $blobdir/raspberry_pi
+            cp $blobdir/bin/install_blob /tmp/${brand}_install_blob
+            pushd $blobdir/wallet-cli > /dev/null
+                apk=`find . -type f -name "*.apk"`
+                echo "apk=$apk"
+                if [[ "_$apk" != "_" ]]; then
+                    apkhash=`us-wallet digest $apk`
+                    ln -s "$apk" blob.apk
+                    echo "$apkhash" > blobhash 
+                    echo "apkhash=$apkhash"
+                fi
+            popd > /dev/null 
+            echo "writing blobmake.sh"
+            pwd
+            ls ../snippet/blob_make.sh
+            echo "cp ../snippet/blob_make.sh $blobdir/make.sh"
+            cp ../snippet/blob_make.sh $blobdir/make.sh
+            chmod +x make.sh           
+            tar -I zstd -cf $blobdir.tzst $blobdir
+            mv $blobdir.tzst ../blobs/
+            mv /tmp/${brand}_install_blob ../blobs/
+            rm -rf $blobdir
+	    popd > /dev/null
+    else
+        echo "skipped distr/$brand"
+    fi
+done
+
+echo ""
+echo "blobs:"
+find blobs -type f
+exit 0
+

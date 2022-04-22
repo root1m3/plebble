@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorPrimary">#55586b</color>
+    <color name="colorPrimaryDark">#003000</color>
+    <color name="colorAccent">#CEC1C5</color>
+    <color name="colorPrimaryLight">#CCCCCC</color>
+    <color name="colorCustomBG">#2f313d</color>
+    <color name="colorCardInitiatorBG">#c9cad1</color>
+    <color name="colorCardFollowerBG">#e6e7ed</color>
+    <color name="colorCustomFG">#323336</color>
+    <color name="titleBarBG">#2f313d</color>
+    <color name="titleBarFG">#FFFFFF</color>
+    <color name="colorBackgroundButtonStart">#2f313d</color>
+    <color name="colorBackgroundButtonEnd">#55586b</color>
+    <color name="colorBackgroundButtonDisabled">#bfbfbf</color>
+    <color name="toolBarButtonBG">#3e4142</color>
+</resources>
+

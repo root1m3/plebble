@@ -1,0 +1,5 @@
+#!/bin/sh
+#apt install -y mono-complete
+apt install -y mono-devel
+
+

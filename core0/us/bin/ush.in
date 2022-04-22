@@ -1,0 +1,392 @@
+#!/bin/bash
+#===-                           P L E B B L E
+#===-                         https://plebble.us
+#===-
+#===-              Copyright (C) 2017-2022 root1m3@plebble.us
+#===-
+#===-                      GNU GENERAL PUBLIC LICENSE
+#===-                       Version 3, 29 June 2007
+#===-
+#===-    This program is free software: you can redistribute it and/or modify
+#===-    it under the terms of the AGPLv3 License as published by the Free
+#===-    Software Foundation.
+#===-
+#===-    This program is distributed in the hope that it will be useful,
+#===-    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#===-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+#===-
+#===-    You should have received a copy of the General Public License
+#===-    along with this program, see LICENCE file.
+#===-    see https://www.gnu.org/licenses
+#===-
+#===----------------------------------------------------------------------------
+#===-
+
+me=$0
+us="##str3##"
+govuser="##str11##"
+
+grep="grep -a"
+
+if [[ ! -f /var/$us/ush_config ]]; then
+    echo "KO 87036 /var/$us/ush_config must exist with envvar keyroot"
+fi
+. /var/$us/ush_config
+
+namefile="$keyroot/myseednet"
+
+. $keyroot/mynode
+
+grootkey=$keyroot/id_rsa_groot
+
+mynode=$mynode_ip
+mynodeport=$mynode_sshport
+
+lannodes="$keyroot/lan_nodes"
+
+rchan="0"
+rgov="$us-gov -home /home/$govuser/.$us -c ${rchan}"
+rwallet="$us-wallet -home /home/$govuser/.$us -c ${rchan}"
+
+if [ "_$mynode" == "_" ]; then
+    echo "error"
+    exit 1
+fi
+if [ "_$mynodeport" == "_" ]; then
+    echo "error2"
+    exit 1
+fi
+
+usetor=no
+usepkh=no
+
+if [ "_$1" == "_-tor" ]; then
+    usetor=yes
+    mynode=$mynode_tor
+    shift
+fi
+
+if [ "_$1" == "_-pkh" ]; then
+    usepkh=yes
+    shift
+fi
+
+
+cmd=$1
+shift
+
+nick=""
+pkh=""
+ip=""
+govport=""
+sshport=""
+tor=""
+
+function resolve_ip {
+    #echo "ssh -p$mynodeport  -i $grootkey  $mynode_ip \"$rgov cmd app 20 lookup_node $pkh\""
+    ipport=`ssh -p$mynodeport -i $grootkey  $mynode_ip "$rgov cmd app 20 lookup_node $pkh" | tr ':' ' '`
+    if [[ $ipport == KO* ]]; then
+        echo $ipport
+        exit 1
+    fi
+    ip=`echo $ipport | awk '{print $1}'`
+    govport=`echo $ipport | awk '{print $2}'`
+    sshport=`cat $keyroot/sshports | $grep "^$pkh" | awk '{print $2}'`
+    if [ "_$sshport" == "_" ]; then
+        sshport="${govport:0:3}71"
+    fi
+    if [ "_$ip" == "_-" ]; then
+        ip="?"
+        govport="16672"
+    fi
+}
+
+reachableaddr=""
+reachableport=""
+
+function resolv {
+    n=$1
+    if [ "_$usepkh" == "_yes" ]; then
+    pkh=$1
+        nick=`cat $namefile  | $grep "^$pkh " | awk '{print $2}'`
+        if [ "_$nick" == "_" ]; then
+        echo "info: $pkh is anonymous to me."
+    fi
+    else
+        nick=$1
+        echo "cat $namefile  | $grep \" $nick \" | awk '{print \$1}'"
+        pkh=`cat $namefile  | $grep " $nick " | awk '{print $1}'`
+        if [ "_$pkh" == "_" ]; then
+            echo -n "KO 22019 cannot resolve pkh for $1. Suggestions: "
+            cat $namefile  | $grep "$nick" | awk '{print $2}' | xargs
+            echo ""
+            exit 1
+        fi
+    fi
+    tor=`cat $namefile  | $grep "^$pkh " | awk '{print $3}'`
+    resolve_ip
+    if [ "_$usetor" == "_yes" ]; then
+        reachableaddr=$tor
+        reachableport=16671
+    else
+        lanip=`cat $lannodes | $grep $n | awk '{print $1}'`
+        if [ "_$lanip" != "_" ]; then
+            reachableaddr=`cat /etc/hosts | $grep $lanip | awk  '{ print $1 }'`
+            reachableport=`cat $lannodes | $grep $n | awk '{print $2}'`
+            if  [ "_$reachableport" == "_" ]; then
+                reachableport="not set in $lannodes"
+            fi
+        else
+            reachableaddr=$ip
+            reachableport=$sshport
+        fi
+    fi
+    ssh="ssh -p$reachableport -i $grootkey"
+    scp="scp -P$reachableport -i $grootkey"
+    if [ "_$usetor" == "_yes" ]; then
+        ssh="torsocks ssh -p$reachableport -i $grootkey"
+        scp="torsocks scp -P$reachableport -i $grootkey"
+    fi
+}
+
+if [ "_$cmd" == "_nick" ]; then
+    resolv $1
+    echo "ip4 $ip:$govport"
+    echo "ssh port $sshport"
+    echo "addr used by ush: $reachableaddr"
+    echo ""
+    echo "nick $nick"
+    echo "pkh $pkh"
+    echo "tor $tor"
+    echo "wan_ip4 $ip"
+    echo "wan_gov_port $govport"
+    echo "wan_ssh_port $sshport"
+    echo "wan_ssh_port_tor 16671"
+    echo "reachable_addr $reachableaddr"
+    echo "reachable_ssh_port: $reachableport"
+    exit 0
+fi
+
+if [ "_$cmd" == "_db" ]; then
+    cat $namefile
+    exit 0
+fi
+
+if [ "_$cmd" == "_ssh" ]; then
+    resolv $1
+    shift
+    $ssh $reachableaddr $@
+    exit 0
+fi
+
+if [ "_$cmd" == "_scp" ]; then
+    file=$1
+    resolv $2
+    destpath=$3
+    echo "$scp $file $reachableaddr:$destpath"
+    $scp $file $reachableaddr:$destpath
+    exit 0
+fi
+
+if [ "_$cmd" == "_nmap" ]; then
+    resolve_ip $1
+    nmap -p16670-16680 $ip
+    exit 0
+fi
+
+if [ "_$cmd" == "_gridnmap" ]; then
+    for i in `$me seeds| $grep -v '^$'`; do echo -n "$i "; nmap -p16672 $i | $grep open >/dev/null; if [ $? -eq 0 ]; then echo "O"; else echo "C"; fi; done
+    exit 0
+fi
+
+if [ "_$cmd" == "_nicks" ]; then
+    cat $namefile | awk '{print $2"\t"$1}'
+    exit 0
+fi
+
+if [ "_$cmd" == "_nodes" ]; then
+    ssh -p$mynodeport -i $grootkey $mynode "$rgov cmd app 20 db"
+    exit 0
+fi
+
+if [ "_$cmd" == "_show_groot_key" ]; then
+    echo $grootkey
+    exit 0
+fi
+
+if [ "_$cmd" == "_lsblocks" ]; then
+    ssh -p$mynodeport -i $grootkey $mynode "ls -lart /home/gov/.us/gov/blocks"
+    exit 0
+fi
+
+if [ "_$cmd" == "_ip4" ]; then
+    ssh -p$mynodeport -i $grootkey $mynode "$rgov cmd app 20 ip4"
+    exit 0
+fi
+
+if [ "_$cmd" == "_seeds" ]; then
+    ssh -p$mynodeport -i $grootkey $mynode "$rgov cmd app 20 seeds"
+    exit 0
+fi
+
+if [ "_$cmd" == "_accounts" ]; then
+    ssh -p$mynodeport -i $grootkey $mynode "$rgov cmd app 30 db"
+    exit 0
+fi
+
+if [ "_$cmd" == "_data" ]; then
+    acc=$1
+    shift
+    ssh -p$mynodeport -i $grootkey $mynode "$rgov cmd data $acc"
+    exit 0
+fi
+
+if [ "_$cmd" == "_y" ]; then
+    ssh -p$mynodeport -i $grootkey $mynode "$rgov cmd c v y n"
+    exit 0
+fi
+
+tgtfile=/tmp/govsh_target_pkh
+
+if [ "_$cmd" == "_target" ]; then
+    cmd=$1
+    shift
+    if [ "_$cmd" == "_rm" ]; then
+        cmd=$1
+        shift
+        if [ "_$cmd" == "_all" ]; then
+            truncate -s 0 $tgtfile
+            echo "set target: all nodes"
+            exit 0
+        fi
+        v=$cmd
+        shift
+        while [ "_$pkh" != "_" ]; do
+            resolv $v
+            if [ "_$pkh" == "_" ]; then
+                echo "error"
+                exit 1
+            fi
+            cp $tgtfile /tmp/tgtfile1122112
+            cat /tmp/tgtfile1122112 | sed "s/$pkh//g" > ${tgtfile}
+            rm /tmp/tgtfile1122112
+            echo "deleted target $pkh"
+            pkh=$1
+            shift
+        done
+    fi
+    if [ "_$cmd" == "_add" ]; then
+        pkh=$1
+        shift
+        while [ "_$pkh" != "_" ]; do
+            echo $tgtfile
+            echo -n "$pkh " >> $tgtfile
+            echo "added target $pkh"
+            pkh=$1
+            shift
+        done
+        exit 0
+    fi
+fi
+
+if [ "_$cmd" == "_cmd" ]; then
+    echo "govshell $@" > /tmp/command
+    dtf_priv_key=`cat $keyroot/groot | $grep "^#14" | awk '{print $2}'`
+    rm -f /tmp/command_result
+    scp -P$mynodeport /tmp/command $mynode:/tmp/
+    ssh -p$mynodeport -i $grootkey $mynode "us-wallet patch_os /tmp/command $dtf_priv_key > /tmp/command_result; cat /tmp/command_result"
+    exit 0
+fi
+
+cmddir=/var/us/commands/broadcast
+
+if [ "_$cmd" == "_ans" ]; then
+    rm -f /tmp/ans
+    cmd=`cat /tmp/cmd`
+    job=`cat /tmp/command_result | $grep "^job" | awk '{print $2}'`
+    scp -P$mynodeport -i $grootkey $mynode:/tmp/groot_log_$job /tmp/ans >/dev/null
+    num=`cat /tmp/ans | $grep === | wc -l`
+    cat /tmp/ans
+    echo "$num answered"
+    exit 0
+fi
+
+docmd="f"
+if [ "_$cmd" == "_tip" ]; then
+    hash=$1
+    shift
+    echo "tip hash $hash"
+    if [ "_#hash" != "_" ]; then
+        docmd="t"
+    else
+        echo "Error"
+        exit 1
+    fi
+fi
+
+if [ -f $cmddir/$cmd ]; then
+    docmd="t"
+fi
+
+if [ "_$docmd" == "_t" ]; then
+    echo $cmd > /tmp/cmd
+    dtf_priv_key=`cat $keyroot/groot | $grep "^#14" | awk '{print $2}'`
+    cat $cmddir/$cmd
+    echo "send?"
+    read r
+    rm -f /tmp/command_result
+    scp -P$mynodeport -i $grootkey $cmddir/$cmd $mynode:/tmp/command
+    ssh -p$mynodeport -i $grootkey $mynode "us-wallet -c 0 -home /home/gov/.us patch_os /tmp/command $dtf_priv_key" > /tmp/command_result
+    cat /tmp/command_result
+    exit 0
+fi
+
+echo "##str3##. ush. sysop shell."
+echo "Usage:"
+echo "  ush <flags> <command> "
+echo "flags"
+echo "  -tor  set tor mode"
+echo "  -pkh  use pkh instead of nick"
+echo "local functions:"
+echo "  nicks           Lists contacts"
+echo "  nick <nick>     Info on name"
+echo "  -pkh ssh <pkh>  ssh into node"
+echo "  ssh <nick>  ssh into node"
+echo "  -pkh nmap <pkh> check range 16670-16680"
+echo "  nmap <nick> check range 16670-16680"
+echo "functions in $mynode:"
+echo "  nodes           list all nodes - [app 20 db]"
+echo "  accounts        list all accounts - [app 30 db]"
+echo "  ip4             list unique ips - [app 30 ip4]"
+echo "  lsblocks        list content of blocks directory"
+echo "  seeds           create content for nodes.{manual|distr|auto} files"
+echo "  y               print sync, cycle, votes info - [y c v]"
+echo "  data <account>  Print data stored in the specified box."
+echo "govshell functions targeting all nodes:"
+echo "  cmd  <govshell commands>      "
+echo "  blockchain      "
+echo "  tip <tip>      "
+echo "scripts targeting the collective of nodes, a list of them, or a single one:"
+echo -n "  target: "
+wc=`cat $tgtfile 2>/dev/null| wc -w 2>/dev/null`
+if [ "_$wc" == "_0" ]; then
+  echo "all nodes"
+else
+  echo "The following nodes:"
+  echo "-------------------"
+  cat $tgtfile
+  echo ""
+  echo "-/-----------------"
+fi
+echo "  target add <pkh|nick>"
+echo "  target rm <pkh|nick>"
+echo "  target rm all"
+echo
+echo "  available commands at $cmddir"
+find $cmddir -maxdepth 1 -type f | sed "s#$cmddir/##g" | sort | xargs
+echo "--"
+echo "  ans"
+echo ""
+echo "Copyright (C) ##str59##"
+exit 1
+

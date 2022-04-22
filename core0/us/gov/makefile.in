@@ -1,0 +1,70 @@
+#===-                           P L E B B L E
+#===-                         https://plebble.us
+#===-
+#===-              Copyright (C) 2017-2022 root1m3@plebble.us
+#===-
+#===-                      GNU GENERAL PUBLIC LICENSE
+#===-                       Version 3, 29 June 2007
+#===-
+#===-    This program is free software: you can redistribute it and/or modify
+#===-    it under the terms of the AGPLv3 License as published by the Free
+#===-    Software Foundation.
+#===-
+#===-    This program is distributed in the hope that it will be useful,
+#===-    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#===-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+#===-
+#===-    You should have received a copy of the General Public License
+#===-    along with this program, see LICENCE file.
+#===-    see https://www.gnu.org/licenses
+#===-
+#===----------------------------------------------------------------------------
+#===-
+CXXFLAGS=-O0 -g -std=c++20 -DDEBUG -Wno-psabi
+CXX:=g++
+CPPS:=$(wildcard *.cpp)
+OBJS:=$(CPPS:.cpp=.o)
+SUBOBJS:=cli/cli.o io/io.o crypto/crypto.o socket/socket.o peer/peer.o relay/relay.o dfs/dfs.o engine/engine.o id/id.o auth/auth.o cash/cash.o sys/sys.o traders/traders.o log/log.o
+HS:=$(wildcard *.h)
+INC:=-I../..
+EC:=$(shell pkg-config --libs libsecp256k1)
+LIBCRYPTO:=$(shell pkg-config --libs libcrypto++)
+LIBS:=${EC} ${LIBCRYPTO} -lb64
+ARCH:=$(shell uname -m)
+
+ifeq ($(ARCH),armv7l)
+    LIBS+=-latomic
+endif
+
+RPATH:=-Wl,-z,defs
+
+LIBUSGOV:=lib##str3##gov
+
+all: ${LIBUSGOV}.so
+
+${LIBUSGOV}.so: ${OBJS} subojs
+	$(CXX) -fPIC -shared ${CXXFLAGS} ${RPATH} ${SUBOBJS} ${OBJS} ${LIBS} -lstdc++fs -pthread -o ${LIBUSGOV}.so
+
+%.o: %.cpp
+	$(CXX) -fPIC -c ${CXXFLAGS} ${INC} $^ -o $@
+
+subojs:
+	@for a in $$(ls); do \
+	if [ -d $$a ]; then \
+	echo "==============directory $$a"; \
+	$(MAKE) -C $$a; \
+	fi; \
+	done;
+
+clean:
+	@for a in $$(ls); do \
+	if [ -d $$a ]; then \
+	    $(MAKE) -C $$a clean; \
+	fi; \
+	done;
+	rm -f vcs_git
+	rm -f *.o
+	rm -f ${LIBUSGOV}.so
+
+.PHONY: all subojs clean
+

@@ -1,0 +1,566 @@
+#!/bin/bash
+#===-                           P L E B B L E
+#===-                         https://plebble.us
+#===-
+#===-              Copyright (C) 2017-2022 root1m3@plebble.us
+#===-
+#===-                      GNU GENERAL PUBLIC LICENSE
+#===-                       Version 3, 29 June 2007
+#===-
+#===-    This program is free software: you can redistribute it and/or modify
+#===-    it under the terms of the AGPLv3 License as published by the Free
+#===-    Software Foundation.
+#===-
+#===-    This program is distributed in the hope that it will be useful,
+#===-    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#===-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+#===-
+#===-    You should have received a copy of the General Public License
+#===-    along with this program, see LICENCE file.
+#===-    see https://www.gnu.org/licenses
+#===-
+#===----------------------------------------------------------------------------
+#===-
+# deps: sponge -> apt install moreutils
+echo "########################"
+echo "## 10_make_build_jobs ##"
+echo "########################"
+
+
+if [[ -f ./.cbs/config ]]; then
+    . ./.cbs/config
+else
+	echo "KO 8585 Missing .cbs/config."
+	exit 1
+fi
+
+abrands=`find $brands -maxdepth 1 -mindepth 1 -type d | sed "s~$brands/~~" | xargs`
+
+function help {
+	echo "$0 [--test] [--release|--debug] [--with[out]-logs] [--with[out]-counters ] [--with[out]-connlog ] [--with[out]-fcgi ] [-o <dir>] [--branch <branch>] [--ignore-cache] <brand|all>"
+	echo "existing brands: $abrands"
+	echo "--release implies --without-logs --without-counters --without-connlog"
+	echo "--debug implies --with-logs --with-counters --with-connlog"
+    echo "--test. build for tunning tests"
+	echo "Positional options. They override the setting left by previously appearing options."
+}
+
+devjob=""
+
+echo "10_make_build_jobs $@"
+echo "initial release config"
+release=1
+debug=0
+logs=0
+counters=0
+connlog=0
+bjdir="build_jobs"
+test=0
+ignore_cache=0
+fcgi=0
+
+while [ true ]; do
+    opt=$1
+    echo "read opt=$opt"
+    shift
+    if [ "_$opt" == "_--release" ]; then
+        echo "release flag"
+        debug=0
+        release=1
+        logs=0
+        counters=0
+        connlog=0
+        continue
+    elif [ "_$opt" == "_--debug" ]; then
+        echo "debug flag"
+        debug=1
+        release=0
+        logs=1
+        counters=1
+        connlog=1
+    continue
+        elif [ "_$opt" == "_--with-logs" ]; then
+        echo "logs flag"
+        logs=1
+    continue
+        elif [ "_$opt" == "_--without-logs" ]; then
+        echo "-logs flag"
+        logs=0
+    continue
+        elif [ "_$opt" == "_--with-counters" ]; then
+        echo "counters flag"
+        counters=1
+        continue
+    elif [ "_$opt" == "_--without-counters" ]; then
+        echo "-counters flag"
+        counters=0
+        continue
+    elif [ "_$opt" == "_--with-connlog" ]; then
+        echo "connlog flag"
+        connlog=1
+        continue
+    elif [ "_$opt" == "_--without-connlog" ]; then
+        echo "-connlog flag"
+        connlog=0
+        continue
+    elif [ "_$opt" == "_--with-fcgi" ]; then
+        echo "fcgi flag"
+        fcgi=1
+        continue
+    elif [ "_$opt" == "_--without-fcgi" ]; then
+        echo "-fcgi flag"
+        fcgi=0
+        continue
+    elif [ "_$opt" == "_--branch" ]; then
+        echo "-branch flag"
+        branch=$1
+        shift
+        continue
+    elif [ "_$opt" == "_--ignore-cache" ]; then
+        echo " [ignore cache]"
+        ignore_cache=1
+        continue
+    elif [ "_$opt" == "_--test" ]; then
+        echo "--test flag"
+        test=1
+        continue
+    elif [ "_$opt" == "_--help" ]; then
+        help
+        exit 0
+    elif [ "_$opt" == "_-o" ]; then
+        bjdir=$1
+        shift
+        echo "output flag -o=$bjdir"
+        continue
+    elif [[ _$opt == _-* ]]; then
+        echo "KO 60594 Invalid flag $opt"
+        help
+        exit 1
+    else
+        echo "end parsing flags"
+        break
+    fi
+done
+conf=$opt
+if [ "_$conf" == "_" ]; then
+    echo "KO 69862 brand expected."
+    help
+    exit 1
+fi
+
+if [[ "_$branch" == "_" ]]; then
+    echo "KO 38723 Invalid branch"
+    help
+    exit 1
+fi
+
+echo "--------------------------------------"
+echo "Input:"
+echo "  branch=$branch"
+echo "  brand=$conf"
+echo ""
+echo "Flags:"
+echo "  release=$release"
+echo "  debug=$debug"
+echo "  logs=$logs"
+echo "  counters=$counters"
+echo "  connlog=$connlog"
+echo "  fcgi(REST)=$fcgi"
+echo "  test=$test"
+echo ""
+echo "Output:"
+echo "  bjdir=$bjdir"
+echo "--------------------------------------"
+echo "yes?"
+read x
+
+hash=""
+
+function patch {
+    ifile="${1}.in"
+    ofile=$1
+    if [ "_$2" != "_" ]; then
+        echo "$1 -> $2"
+        ofile=$2
+    fi
+    cp $ifile $ofile
+    strs=`cat $ifile  | grep -o "##str[0-9]*##" | sed "s/#//g"`
+    for s in $strs; do
+        echo "$s = ${!s}"
+        sed -i "s%##$s##%${!s}%g" $ofile
+    done
+}
+
+function reroot {
+    if [ "_$1" != "_$2" ]; then
+        cp $1 $2 -R
+    fi
+}
+
+function patch_of {
+    brand=$1
+    strset="en-uk"
+    if [ ! -f $brand/core0/us/res/strings/$strset ]; then
+        echo "KO 50942 Unknown set ${strset}."
+        exit 1
+    fi
+
+    . $brand/core0/us/res/strings/$strset
+    . $brand/core0/us/res/strings/${strset}.ovr
+    cp core1/snippet/makefile_distr $brand/
+    #cp core1/snippet/install_r2r $brand/
+    #chmod +x $brand/install_r2r
+    echo "$brand/makefile_distr"
+}
+
+function make_build_job {
+    brand=$1
+    dryrun=$2
+    echo "make_build_job $brand $dryrun"
+    if [ "_$dryrun" != "_" ]; then
+    	echo "brand $brand"
+    	return
+    fi
+    set +e
+    donebrand=`cat /tmp/done_brands | grep $brand`
+    set -e
+    if [ "_$donebrand" == "_$brand" ]; then
+        echo "brand $brand already done"
+        return;
+    fi
+    if [[ ! -d  $brands/$brand ]]; then
+        echo "KO 76095 brand spec not found at $brands/$brand"
+        exit 1
+    fi
+    rm -rf rep
+    echo "cloning: git clone -b $branch --single-branch $gitrep rep"
+    git clone -b $branch --single-branch $gitrep rep
+    if [[ $? -ne 0 ]]; then
+        echo "KO 68594 Aborted."
+        exit 1
+    fi
+    pushd rep > /dev/null
+        rephash=`git rev-parse HEAD`
+        echo "Licensing core0"
+        echo "rephash $rephash"
+        pushd core0/us > /dev/null
+            bin/patch_src -a $brands/$brand/source_code_header || exit 1
+        popd > /dev/null
+        echo "licensing core1"
+        pushd core1 > /dev/null
+            bin/patch_src -a $brands/$brand/source_code_header || exit 1
+        popd > /dev/null
+        pushd core0/us > /dev/null
+            bin/apply_brand $brands/$brand $branch
+        popd > /dev/null
+        mkdir -p $brand
+        mv core0/us/brand_$brand $brand/core0
+        patch_of $brand
+        echo "configuring"
+        pushd "$brand" > /dev/null
+            pushd core0/us > /dev/null
+                fgs=""
+                testw=""
+                if [[ $test -eq 1 ]]; then
+                    testw="test"
+                fi
+                if [ $debug -eq 1 ]; then
+                    fgs="$fgs --${testw}debug"
+                else
+                    fgs="$fgs --${testw}release"
+                fi
+                if [ $counters -eq 1 ]; then
+                    fgs="$fgs --with-counters"
+                else
+                    fgs="$fgs --without-counters"
+                fi
+                if [ $fcgi -eq 1 ]; then
+                    fgs="$fgs --with-fcgi"
+                else
+                    fgs="$fgs --without-fcgi"
+                fi
+                if [ $logs -eq 1 ]; then
+                    fgs="--with-logs"
+                else
+                    fgs="--without-logs"
+                fi
+        	    echo "brand $brand"
+                echo "configuring core0. flags: $fgs"
+    	        echo "bin/configure --release $fgs"
+                bin/configure --release $fgs
+                if [ $? -ne 0 ]; then
+                    echo "KO 20021 Configure failed."
+                    exit 1
+                fi
+                find . -type f -name "*.in" -delete
+                rm bin/configure
+                bin/override_env res/strings/en-uk res/strings/en-uk.ovr > /tmp/enuk
+                mv /tmp/enuk res/strings/en-uk
+                echo "static conf:"
+                cat res/strings/en-uk
+            popd > /dev/null
+        popd > /dev/null
+
+        strset="en-uk"
+        if [ ! -f $brand/core0/us/res/strings/$strset ]; then
+            echo "KO 60459 unknown set ${strset}."
+            exit 1
+        fi
+        set -a
+        . $brand/core0/us/res/strings/$strset
+        set +a
+        cp core1 $brand/ -R
+        pushd "$brand/core1/us/trader" > /dev/null
+            echo "configuring r2r"
+            fgs=""
+            echo "bin/configure $fgs"
+            bin/configure $fgs
+            find . -name "*.in" -delete
+            rm bin/configure
+            #echo "adding headers to r2r sources "
+            #bin/patch_src -a ../core0/us/doc/header || exit 1 
+        popd > /dev/null
+        mv $brand ..
+        echo $brand >> /tmp/done_brands
+    popd > /dev/null
+    rm rep -rf
+}
+
+function make_brands {
+    dryrun=$1
+    if [ "_$conf" == "_all" ]; then
+        for b in $abrands; do
+            make_build_job $b $dryrun
+        done
+    else
+        make_build_job $conf $dryrun
+    fi
+}
+
+function make_brands0 {
+    rm -f /tmp/done_brands
+    touch /tmp/done_brands
+    make_brands
+    rm -f /tmp/done_brands
+}
+
+cache_file="deps_fcgi-$fcgi.tgz"
+
+let deps_in_cache=0
+if [[ -f .cache/$cache_file ]]; then
+    let deps_in_cache=1
+fi        
+
+#secp256k1_hash="1e6f1f5ad5e7f1e3ef79313ec02023902bf8175c"
+#secp256k1_hash="96cd94e385f64c1936abf0d1e303d12d0f5da980"   #since sep19
+secp256k1_git="https://github.com/bitcoin-core/secp256k1"
+secp256k1_hash="5dcc6f8dbdb1850570919fc9942d22f728dbc0af"    #feb22
+
+function ec_sources {
+    if [[ $ignore_cache -eq 1 ]]; then
+        echo "Ignoring cache"
+        return
+    fi
+    if [[ $deps_in_cache -eq 1 ]]; then
+        echo "No need to build ec: binaries in cache."
+        return
+    fi        
+    #libsecp256k1
+    echo "git clone -q ${secp256k1_git}"
+    git clone -q ${secp256k1_git}
+    pushd secp256k1 > /dev/null
+        git checkout -q $secp256k1_hash
+        rm .git -r
+    popd > /dev/null
+}
+
+fcgi_git="https://github.com/eddic/fastcgipp.git"
+#fcgi_hash="1d3165a2a28d4189ce3d69f59b006dcef3317d95" until mar-2022
+fcgi_hash="3e538d59b6b4811acb970d32560984edd7a88874" 
+
+function fcgi_sources {
+    if [[ $ignore_cache -eq 1 ]]; then
+        echo "Ignoring cache"
+        return
+    fi
+    if [[ $deps_in_cache -eq 1 ]]; then
+        echo "No need to build fcgi: binaries in cache."
+        return
+    fi        
+    #fcgi
+    echo "git clone -q ${fcgi_git} fastcgi++"
+    git clone -q ${fcgi_git} fastcgi++
+    pushd fastcgi++
+        git checkout -q $fcgi_hash
+        rm .git -r
+    popd
+}
+
+function make_build_jobs {
+    branch=$1
+    bjdir=$2
+    if [ -f .revs ]; then
+        src="DJ$devjob_id"
+    else
+        src="R"
+    fi
+    mkdir -p $bjdir/ec_src
+    pushd "$bjdir"/ec_src > /dev/null
+        ec_sources
+    popd  > /dev/null
+
+    if [[ $fcgi -eq 1 ]]; then
+        mkdir -p $bjdir/fcgi_src
+        pushd "$bjdir"/fcgi_src > /dev/null
+            fcgi_sources
+        popd  > /dev/null
+    fi
+    mkdir -p $bjdir/$branch
+    pushd "$bjdir" > /dev/null
+        pushd "$branch" > /dev/null
+            hash="in_progress"
+            mkdir -p $hash
+            pushd "$hash" >/dev/null
+                make_brands0
+                echo "rephash=$rephash"
+            popd > /dev/null
+            echo "computing hash"
+            pushd "${hash}/${brand}" > /dev/null
+                find . -type f -exec sha256sum {} \;  > ../brand_sha256sum
+                mv ../brand_sha256sum .
+            popd > /dev/null
+            pushd "${hash}" > /dev/null
+                find . -type f -name "brand_sha256sum" -exec sha256sum {} \; > ../sha256sum
+                mv ../sha256sum .
+            popd > /dev/null
+            echo "secp256k1 $secp256k1_hash" >> ${hash}/sha256sum
+            newhash=`cat ${hash}/sha256sum | sha256sum | awk '{ print $1 }' | cut -c1-8`
+            echo "packaging_hash=${newhash}"
+            mv ${hash} ${newhash}
+            hash=${newhash}
+            pushd "${hash}" > /dev/null
+                for b in `find . -maxdepth 1 -mindepth 1 -type d`; do
+                    brand=`echo $b | tr '/' ' ' | awk '{ print $2 }'`
+                    echo "updating $brand version in $b/core0"
+                    pushd "${b}/core0/us" > /dev/null
+                        sed -i "s/hashname = \".*\"/hashname = \"${hash}\"/" vcs_git_cpp
+                        sed -i "s/version_name = \".*\"/version_name = \"${brand}-${branch}_${hash}\"/" vcs_git_cpp
+
+                        sed -i "s/hashname = \".*\"/hashname = \"${hash}\"/" vcs_git_java
+                        sed -i "s/version_name = \".*\"/version_name = \"${brand}-${branch}_${hash}\"/" vcs_git_java
+
+                        sed -i "s/hashname=\".*\"/hashname=\"${hash}\"/" vcs_git_env
+                        sed -i "s/version_name=\".*\"/version_name=\"${brand}-${branch}_${hash}\"/" vcs_git_env
+
+                        sed -i "s/versionName \".*\"/versionName \"${brand}-${branch}_${hash}\"/" android/app/build.gradle
+                        sed -i "s/hashname = \".*\"/hashname = \"${hash}\"/" sdk/wallet/java/us/vcs.java
+                        sed -i "s/version_name = \".*\"/version_name = \"${brand}-${branch}_${hash}\"/" sdk/wallet/java/us/vcs.java
+                        echo "vcs_git_cpp:"
+                        cat vcs_git_cpp
+                    popd > /dev/null
+                done
+            popd > /dev/null
+
+            if [[ "_$hash" == "_" ]]; then
+                echo "KO 58798.1"
+                exit 1
+            fi
+            if [[ "_$src" == "_" ]]; then
+                echo "KO 58798.2"
+                exit 1
+            fi
+            if [[ "_$rephash" == "_" ]]; then
+                echo "KO 58798.3"
+                exit 1 
+            fi
+            if [[ "_$branch" == "_" ]]; then
+                echo "KO 58798.4"
+                exit 1 
+            fi
+            if [[ "_$debug" == "_" ]]; then
+                echo "KO 58798.5"
+                exit 1 
+            fi
+            if [[ "_$logs" == "_" ]]; then
+                echo "KO 58798.6"
+                exit 1 
+            fi
+            if [[ "_$counters" == "_" ]]; then
+                echo "KO 58798.7"
+                exit 1 
+            fi
+            if [[ "_$connlog" == "_" ]]; then
+                echo "KO 58798.8"
+                exit 1 
+            fi
+            if [[ "_$fcgi" == "_" ]]; then
+                echo "KO 58798.9"
+                exit 1 
+            fi
+            echo "vhash ${hash} <- ${src} ${rephash} ${branch} dbg-${debug} logs-${logs} counters-${counters} connlog-${connlog} fcgi-${fcgi}" >> ../build_hashes
+            
+        popd >/dev/null
+        
+    popd >/dev/null
+}
+
+distr="distr"
+echo "distr: $distr"
+
+function move_to_distr {
+    for x in `find ${bjdir} -maxdepth 4 -mindepth 4 -name makefile_distr`; do
+        srcdir=$(dirname $x)
+        brand=`echo $(basename $(dirname $x))`
+        echo "brand $brand"
+        dist_src=0
+        if [[ -f ./.cbs/config_${brand} ]]; then
+            . ./.cbs/config_${brand}
+        else
+            echo "KO 78869 Missing file ./.cbs/config_${brand}"
+            exit 1
+        fi
+        dstdir=$distr/$brand/src
+        mkdir -p ${dstdir}
+        mkdir -p ${dstdir}/core0
+        mkdir -p ${dstdir}/core1
+        echo "Static config"
+        cp ${srcdir}/core0/us/res/strings/en-uk ${dstdir}/core0/config
+        if [[ $dist_src -eq 1 ]]; then
+            echo "Copying core0 sources for brand $brand"
+            cp ${srcdir}/core0 ${dstdir}/ -R
+        else
+            echo "Omiting core0 sources for brand $brand"
+        fi
+        echo "Copying core1 sources for brand $brand"
+        cp ${srcdir}/core1/us ${dstdir}/core1/ -R
+        cp ${srcdir}/core1/makefile ${dstdir}/core1/
+    done
+}
+
+make_brands dryrun
+
+if [ "_$conf" == "_" ]; then
+    echo "yes?"
+    read ans
+fi
+
+echo "new bjdir $bjdir"
+rm -rf $bjdir
+mkdir -p $bjdir
+
+make_build_jobs $branch $bjdir
+
+cp snippet/build_job_make $bjdir/make.sh
+chmod +x $bjdir/make.sh
+
+echo "`find $bjdir -type f | wc -l` files in $bjdir"
+
+rm -f $bjdir.tzst
+tar -I zstd -cf $bjdir.tzst $bjdir
+
+move_to_distr
+
+echo "$bjdir.tzst"
+
+exit 0
+

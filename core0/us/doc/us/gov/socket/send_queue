@@ -1,0 +1,176 @@
+SEND_QUEUE
+
+    Sends datagrams based on their priority.
+    Datagrams are sent in chunks of the underlying TCP size ~1Kib
+
+
+
+    Base classes:
+        priority_queue< pair<datagram*,client*> * >
+        bgtask
+
+
+    all datagrams sharing the same destination socket are sent in serial, one after another.
+    using the helper container ongoing_t: unordered_map<client*,qi*>
+
+
+--------------------------------------------------
+1d1731272fc7b0371baaea24564a323a5780b01a
+    static constexpr size_t wmh{1000};
+
+    Watermark High, maximum size of unsent datagrams.
+    Reached this containment level some datagrams might not be delivered, but destroyed to reduce the size. See function send.
+
+--------------------------------------------------
+1d1731272fc7b0371baaea24564a323a5780b01a
+    static constexpr size_t schunk{1500}; 
+
+
+--------------------------------------------------
+1d1731272fc7b0371baaea24564a323a5780b01a
+bool priority_service::operator () (qi*& lhs, qi*& rhs) const {
+    used for ordering the priority_queue of datagrams
+
+    Higher Priority  = Lower datagram::service
+
+
+
+--------------------------------------------------
+1d1731272fc7b0371baaea24564a323a5780b01a
+qi::qi(datagram* d, client*c) {
+
+    priority item constructor.
+
+    progress control: resets the datagram variable 'dend'  to 0 
+    lock client: increments the client variable sendref, indicating the client is busy and should not be destroyed by other subsystems.
+
+    client in unlocked in the priority item destructor.
+    
+--------------------------------------------------
+1d1731272fc7b0371baaea24564a323a5780b01a
+void c::send(datagram* d, client* cli, uint16_t pri) {
+
+    to be called by the business logic whenever they want to deliver the given datagram to the given client with a given priority. 
+
+    Since the datagram field service is only used in reception, for sending is a free field. The actual service number goes encoded in the payload bits.
+    The datagram::service variable is then used by this subsystem to store the priority.
+
+    It also uses the datagram field dend, used in reception to indicate completion. In sending we'll use it to control progress.
+    It is reseted to 0
+    
+    the client is marked, incrementing its atomic counter sendref, indicating to the garbage collector the object should not be destroyed before sending over pending datagrams.
+
+    If the size of the queue is already over a watermarkhigh constant (wmh) 
+        destroys the top datagram.
+        //TODO: destroy one datagram with the lowest priority
+    
+
+    Finally it emplaces a new qi item in the priority queue.
+
+
+
+--------------------------------------------------
+1d1731272fc7b0371baaea24564a323a5780b01a
+void c::run() {
+
+    Starts the thread. Log file starts with "traffic-outbound-"
+
+    It takes the next item from the priority queue using the funtion next(), obtaining 
+    a recipient client and the datagram to be delivered.
+
+    if client variable sendref is negative, meaning the client requires to cancel any further transmission, 
+    sets the progress to 100% reseting the varible dend to the size of the datagram. Then it takes another item from the priority queue.
+    (the function next() will realize the datagram is completed and give diligence to it.
+
+    Calculates how many bytes to send.
+    If remaining bytes are more than 2*schunk then it only sends schunk bytes (so they fit in one ethernet datagram), otherwise it sends all the remaining bytes to complete the transmission.
+    
+    calls posix sockets api
+        n=::send()
+
+    On success (n>=0)
+        increments datagram variable dend to indicate the progress made.
+        if the datagram is completed ( curd == size ) it ensures the aux container 'ongoing' is not having it anymore.
+        if the datagram is not completed ( curd < size ) it ensures the aux container 'ongoing' has it referenced.
+        
+    On error: (n<0)  [ref /usr/include/asm-generic/errno.h]
+        errno is EAGAIN or EINPROGRESS
+        The underlying logic asks as to retry later
+        priority item is marked to be skipped in the next round (so we make some time while servicing another datagram).        
+        
+        errno is EBADF or EPIPE
+        the client is disconnected, the datagram marked as completed.
+
+
+
+--------------------------------------------------
+1d1731272fc7b0371baaea24564a323a5780b01a -- updated!
+    qi* c::next() {
+
+
+    Picks the next priority item to process from the priority queue.
+    returns nullptr if there is not any queued item.
+
+    If the item taken is completed ( curd == size ) ensures the aux container 'ongoing' is not containing it anymore.
+        removes it from the queue.
+        destroys it, decreasing the client variable sendref (thus freeing it for being destroyed by the gc, if it was the case) .
+        Repeats this function.
+        END
+        
+    The item taken is not completed ( curd < size ).
+    If the client has got another unfinished datagram in progress, the current item is replaced by the ongoing datagram. (see replace)
+    Rationale: In order to deliver a new datagram the ongoing/unfinished one if any must be completed first. Clients read one datagram after another in sequence, without multiplexing capabilities. TCP enforces the right arrival ordering of the sent chunks.
+
+    The current item/datagram is, at this point, not neccesarily the one with higher priority, but it services the client waiting for the most urgent datagram.
+
+    If the current item is marked skip it is a retry. (because there was some problem delivering (see EAGAIN)).
+        The skip mark is removed.
+        
+    then the originating datagram, the one given by top(), is removed from the heap and kept while another recursive call to this function next_() returns with a next-in-priority item.
+
+    
+
+--------------------------------------------------
+1d1731272fc7b0371baaea24564a323a5780b01a  --updated!
+    qi* c::replace(qi* x) {
+
+        returns a job that preemps the given one.
+
+        The datagram x that shall be delivered to the client, but if the client has already another ongoing transmission it must be finished before starting a new one.
+        The ongoing item becomes of higher priority and this function shall return it.  
+        If no other higher priority item is found the returned value is the same item given as input.
+     
+
+--------------------------------------------------
+1d1731272fc7b0371baaea24564a323a5780b01a
+    qi* c::ongoing_t::reset(qi* x) {
+
+
+       removes the entry in ongoing for the given item        
+       used when client* is having problems to deliver and retries have been postponed (see skip). 
+        
+       returns the same item if the client has an ongoing datagram, otherwise it returns nullptr.       
+
+
+
+
+
+
+
+
+
+    
+
+    
+
+
+
+
+
+
+
+
+
+
+    
+    

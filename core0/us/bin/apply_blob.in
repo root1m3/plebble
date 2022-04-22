@@ -1,0 +1,285 @@
+#!/bin/bash
+#===-                           P L E B B L E
+#===-                         https://plebble.us
+#===-
+#===-              Copyright (C) 2017-2022 root1m3@plebble.us
+#===-
+#===-                      GNU GENERAL PUBLIC LICENSE
+#===-                       Version 3, 29 June 2007
+#===-
+#===-    This program is free software: you can redistribute it and/or modify
+#===-    it under the terms of the AGPLv3 License as published by the Free
+#===-    Software Foundation.
+#===-
+#===-    This program is distributed in the hope that it will be useful,
+#===-    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#===-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+#===-
+#===-    You should have received a copy of the General Public License
+#===-    along with this program, see LICENCE file.
+#===-    see https://www.gnu.org/licenses
+#===-
+#===----------------------------------------------------------------------------
+#===-
+#If executed as root it also patches the operating system.
+
+prog=$0
+
+GOVUSER="##str11##"
+ANDROID_BRANDID="##str56##"
+
+export USRHOME=/home/$GOVUSER
+
+function help {
+    echo "./$prog [--full-install] [--only-install-deps] [<jaildir>]"
+    echo "default jaildir=\"\""
+}
+
+full_install=1  #a29.18
+echo "This release requires a full install"
+let onlyinstalldeps=0
+
+while [ true ]; do
+    opt=$1
+    shift
+    if [ "_$opt" == "_--full-install" ]; then
+        full_install=1
+        continue
+    elif [ "_$opt" == "_--only-install-deps" ]; then
+        let onlyinstalldeps=1
+        continue
+    elif [[ _$opt == _--* ]]; then
+        echo "KO 86755 Invalid option $opt"
+        exit 1
+    else
+        break
+    fi
+done
+
+JAILDIR=$opt
+
+if [[ "_$JAILDIR" != "_" ]]; then
+    JAILDIR=`realpath $JAILDIR`
+    echo "Installing in jail directory $JAILDIR"
+fi
+
+if [[ $EUID -ne 0 ]]; then
+    if [[ "_$JAILDIR" == "_" ]]; then
+       echo "This script must be run as root"
+       exit 1
+    fi
+fi
+
+tar="tar -I zstd"
+defaultr2r="bid2ask-bid"
+
+pkg=`pwd | sed "s~.*/\(.*\)~\1~"`
+blob_brand=`echo $pkg | sed -n "s#^\([^_]*\)_\([^_]*\)_\([^_]*\).*#\1#p"`
+blob_branch=`echo $pkg | sed -n "s#^\([^_]*\)_\([^_]*\)_\([^_]*\).*#\2#p"`
+blob_hash=`echo $pkg | sed -n "s#^\([^_]*\)_\([^_]*\)_\([^_]*\).*#\3#p"`
+cat << EOF
+    blob_brand $blob_brand
+    blob_branch $blob_branch
+    blob_hash $blob_hash
+    channel $ch
+EOF
+US=$blob_brand
+
+function init_jail {
+    echo "init_jail"
+}
+
+function touch_defaults {
+    dst=$1
+    US=$2
+    for l in `echo $defaultr2r`; do
+        touch ${JAILDIR}$dst/lib${US}trader-${l}.so
+    done
+}
+
+function symlink_libdir {
+    US=$1
+    libdir=$2
+    dst=$3
+    echo "updating symlinks in $libdir"
+    mkdir -p $libdir
+    pushd $libdir > /dev/null
+        for l in `echo $defaultr2r`; do
+            if [ ! -f lib${US}trader-${l}.so ]; then
+                echo "    NEW -> ${JAILDIR}$dst/lib${US}trader-${l}.so"
+                ln -s ${JAILDIR}$dst/lib${US}trader-${l}.so
+            else
+                echo "    IGN-OK -> ${JAILDIR}$dst/lib${US}trader-${l}.so"
+            fi
+            echo -n "delete old symlinks: "
+            find . -maxdepth 1 -type f -name "lib${US}wallet-*" | xargs
+            rm lib${US}wallet-* -f
+        done
+    popd > /dev/null
+}
+
+if [[ "_$blob_brand" != "_##str3##" ]]; then
+    echo "KO 10923 Execute from inside package as bin/install"
+    exit 1
+fi
+
+let install_deps=1
+let install_r2r=1
+let install_guest_wallets_libs=1
+let install_android_apk=1
+let install_core=1
+
+if [[ $onlyinstalldeps -eq 1 ]]; then
+    let install_deps=1
+    let install_r2r=0
+    let install_guest_wallets_libs=0
+    let install_android_apk=0
+    let install_core=0
+fi
+
+function do_upgrade {
+    US=$blob_brand
+    ch=`cat $JAILDIR/var/us_nets | grep " $blob_brand " | awk '{print $1}'`
+    r=$?
+    if [[ $r -ne 0 ]]; then
+        echo "KO 97752 brand $blob_brand is not installed. Run ./$prog --full-install $JAILDIR  "
+        exit 1
+    fi
+    if [ "_$ch" == "_" ]; then
+        echo "KO 97749 brand $blob_brand is not installed."
+        exit 1
+    fi
+    ushome="/home/$GOVUSER/.${US}"
+    if [ "_$ch" != "_0" ]; then
+        ushome="$ushome/$ch"
+    fi
+    whome="$ushome/wallet"
+    thome="$whome/trader"
+    r2rdst="$thome/lib"
+    mkdir -p $r2rdst
+
+    #-------------------deps (ec)
+    if [[ $install_deps -eq 1 ]]; then
+        echo "Installing deps (libsecp256k1, fastcgi++)"
+        pushd deps > /dev/null
+            ./install_deps ${JAILDIR}
+        popd > /dev/null
+    fi
+
+    #-------------------R2R
+    if [[ $install_r2r -eq 1 ]]; then
+        echo "Installing R2R"
+        if [ -d lib ]; then
+            pushd lib > /dev/null
+                arch=`uname -m`
+                if [[ -d $arch/r2r ]]; then
+                    pushd $arch/r2r  > /dev/null
+                        #upgrade name wallet->trader
+                        if [[ -d ${JAILDIR}$r2rdst ]]; then
+                            for f in `find ${JAILDIR}$r2rdst -name "*.so"`; do
+                                n=${f##*/}
+                                n2=`echo $n | sed "s/lib${US}wallet/lib${US}trader/"`
+                                if [[ "_$n2" != "_$n" ]]; then
+                                    mv ${JAILDIR}$r2rdst/$n ${JAILDIR}$r2rdst/$n2
+                                    echo "updated lib name ${JAILDIR}$r2rdst/$n -> ${JAILDIR}$r2rdst/$n2"
+                                fi
+                                echo "${JAILDIR}$r2rdst   --  $n  -- $arch"
+                            done
+                        fi
+                        touch_defaults $r2rdst $US
+                        for f in `find . -name "*.tzst"`; do
+                            $tar -xf $f
+                        done
+                        #update only existing r2r libraries
+                        if [[ -d ${JAILDIR}$r2rdst ]]; then
+                            for f in `find ${JAILDIR}$r2rdst -name "*.so"`; do
+                                n=${f##*/}
+                                echo "${JAILDIR}$r2rdst   --  $n"
+                                if [ -f $n ]; then
+                                    cp $n ${JAILDIR}$r2rdst
+                                    echo "Installed $n"
+                                else
+                                    echo "Could not find $n in blob. Not updating this r2r lib."
+                                fi
+                            done
+                        fi
+                    popd > /dev/null
+                fi
+            popd > /dev/null
+        fi
+    fi
+    #-------------------Guest wallets
+    if [[ $install_guest_wallets_libs -eq 1 ]]; then
+        echo "Updating libs in guest wallets"
+        if [[ -d ${JAILDIR}$whome ]]; then
+            pushd ${JAILDIR}$whome > /dev/null
+                if [ -d guest ]; then
+                    for glibdir in `find guest -maxdepth 3 -type d -name "lib"`; do
+                        symlink_libdir ${US} $glibdir $r2rdst
+                    done
+                fi
+            popd > /dev/null
+        fi
+    fi
+    #-------------------Android APK
+    if [[ $install_android_apk -eq 1 ]]; then
+        echo "Installing android app"
+        component="android"
+        if [ -d wallet-cli ]; then
+            compdir=${JAILDIR}/home/${GOVUSER}/downloads/${component}
+            apkdownload=${compdir}/${ANDROID_BRANDID}
+            mkdir -p $apkdownload
+            rm -f $apkdownload/*.apk
+            rm -f $apkdownload/blobhash
+            echo "files:"
+            apksrc=`find wallet-cli -type f -name "${US}-wallet_android*.apk"`
+            cp $apksrc $apkdownload/
+            pushd $apkdownload > /dev/null
+                ln -s $(basename $apksrc) blob.apk
+            popd > /dev/null
+
+            cp wallet-cli/blobhash $apkdownload/
+            echo $(basename $apksrc) > $apkdownload/blob_name
+            echo "apk copied to $apkdownload/"
+            find $apkdownload
+        fi
+    fi
+    #-------------------CORE
+    if [[ $install_core -eq 1 ]]; then
+        echo "Installing core0"
+        $tar -xf core_${blob_branch}_${blob_hash}.tar.zst
+        pushd core > /dev/null
+            make JAILDIR="${JAILDIR}" install
+        popd > /dev/null
+    fi
+    #-----------------------
+}
+
+function do_install {
+    corepkg=`find . -type f -name "core*.zst"`
+    $tar -xf $corepkg
+    pushd core > /dev/null
+        make JAILDIR="${JAILDIR}" install-system-base
+    popd > /dev/null
+    rm -rf core
+}
+
+if [[ "_${JAILDIR}" != "_" ]]; then
+    init_jail
+fi
+
+if [[ $full_install -eq 0 ]]; then
+    if [[ ! -f $JAILDIR/etc/systemd/system/${US}-gov.service ]]; then
+        echo "essential files are missing. Doing full install."
+        full_install=1
+    fi
+fi
+
+if [[ $full_install -eq 1 ]]; then
+    do_install
+fi
+
+do_upgrade
+
+exit 0
+

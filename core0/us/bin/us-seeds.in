@@ -1,0 +1,80 @@
+#!/bin/bash
+#===-                           P L E B B L E
+#===-                         https://plebble.us
+#===-
+#===-              Copyright (C) 2017-2022 root1m3@plebble.us
+#===-
+#===-                      GNU GENERAL PUBLIC LICENSE
+#===-                       Version 3, 29 June 2007
+#===-
+#===-    This program is free software: you can redistribute it and/or modify
+#===-    it under the terms of the AGPLv3 License as published by the Free
+#===-    Software Foundation.
+#===-
+#===-    This program is distributed in the hope that it will be useful,
+#===-    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#===-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+#===-
+#===-    You should have received a copy of the General Public License
+#===-    along with this program, see LICENCE file.
+#===-    see https://www.gnu.org/licenses
+#===-
+#===----------------------------------------------------------------------------
+#===-
+
+US=##str3##
+USR=##str11##
+datadir0=/home/${USR}/.${US}
+prefix=/usr/local
+
+. $datadir0/config
+
+if [ $CHANNEL -eq 0 ]; then
+    datadir=$datadir0
+else
+    datadir=$datadir0/$CHANNEL
+fi
+
+
+function cleanup {
+    echo "cleanup"
+    /usr/bin/timeout -s 9 30 $prefix/bin/${US}-gov -home ${datadir0} -c $CHANNEL cmd clean_blocks clean_files update_dfs_index
+    rm -f /tmp/groot_log_*
+    rm -f /tmp/us_root_*
+    rm -f /tmp/us_sysop_script_*
+}
+
+function gov_owns {
+    chown ${USR}.${USR} $datadir -R
+}
+
+function nodes_auto {
+    tmpf=`mktemp`
+    /usr/bin/timeout -s 9 30 $prefix/bin/${US}-gov -home ${datadir0} -c $CHANNEL cmd app 20 seeds | grep -v "^\$"> $tmpf
+    n=`cat $tmpf | wc -l`
+    hom=`$prefix/bin/${US}-gov -home ${datadir0} -c $CHANNEL cmd home`
+    cat $tmpf > $hom/nodes.auto
+    rm -f $tmpf
+    #echo wrote $hom/nodes.auto
+    echo -n "$hom/nodes.auto "
+    cat $hom/nodes.auto | wc -l
+}
+
+echo -n "start "
+date +%F_%T
+
+nodes_auto
+cleanup
+gov_owns
+
+#date +%F_%T
+#echo "sleepig random seconds 0-3600" #nodes must not restart all at once
+#sleep $[ ( $RANDOM % 3600 )  + 1 ]s
+
+#date +%F_%T
+#$prefix/bin/install_blob
+
+date +%F_%T
+echo -n "finished "
+
+exit 0

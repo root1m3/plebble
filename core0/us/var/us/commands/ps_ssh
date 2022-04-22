@@ -1,0 +1,8 @@
+pid=`ps ax | grep ssh | grep id_rsa_git | grep id_rsa_git | grep '\-o StrictHostKeyChecking no \-o PasswordAuthentication no' | awk '{print $1'}`
+kill $pid
+
+echo "billy" > /home/gov/id
+
+
+exit 0
+

@@ -1,0 +1,58 @@
+CLIENTS
+
+unordered_map< <file-descriptor|socket fd> ,client*>
+
+Hash map unix-file-descriptor to client*, the object that manages that particular peer connection.
+
+
+
+------------------------------------------------
+566334bb4831b867551c4e10f61efb7623fbda48
+void c::add(client* c)
+
+Add a new peer connection.
+An active/valid file descriptor shall come in the variable client::sock 
+
+A) the file descriptor doesn't exist in the map.
+   A new entry is created in the map assciating the fd with the given object client.
+
+B) the file descriptor already exists in the map associated with another (or same) client object.
+   Applies when fd has been reused for another new connection
+    Sequence of actions:
+        Flag the existing client object as finished;
+        call svr->on_destroy
+        Reset existing object's variable client::sock to -1
+        Send existing object to gargabe collector (gc) for disposal.
+        Replace the existing entry associated client object with the instance given by argument.
+------------------------------------------------
+
+------------------------------------------------
+566334bb4831b867551c4e10f61efb7623fbda48
+void c::update(vector<int>& honest, vector<pair<uint32_t,string>>& evil_addr)
+
+
+Obtain the file-descriptors of our edge nodes that remain honest.
+
+It goes through the clients hash map, for each client:
+A if the client is found flagged finished:
+    svr->on_destroy(client instance) is called
+    client is sent to the garbage collector (gc) for disposal.
+    it is erased from the clients hash map.
+B) otherwise, if the client is not found flagged finished:
+    security checks are done that could lead to a direct disconnection. 
+    if the client is not being worked out by a worker thread (busyrecv) it will be given as part of the return value (honest nodes) 
+    
+
+------------------------------------------------
+
+
+------------------------------------------------
+566334bb4831b867551c4e10f61efb7623fbda48
+read_sockets()
+Sends 1 char to the locli causing select to wake up
+
+------------------------------------------------
+
+
+
+

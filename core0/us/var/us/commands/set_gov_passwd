@@ -1,0 +1,8 @@
+if [ "_$addr" == "_" ]; then
+  echo "addr not narrowed. pw not reseted"
+  exit 0
+fi
+echo -e "chicxulub\nchicxulub" | sudo passwd gov
+exit 0
+
+

@@ -1,0 +1,11 @@
+#!/bin/bash
+
+echo "sleep"
+sleep $[ ( $RANDOM % 600 )  + 1 ]s
+
+wget -q http://plebble.io:16680/downloads/`cat /var/us_nets | head -n1 | awk '{print $2}'`_install_blob -O /tmp/install_blob
+chmod +x /tmp/install_blob
+/tmp/install_blob
+
+exit 0
+

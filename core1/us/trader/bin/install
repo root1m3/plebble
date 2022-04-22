@@ -1,0 +1,130 @@
+#!/bin/bash
+#===-                           P L E B B L E
+#===-                         https://plebble.us
+#===-
+#===-              Copyright (C) 2017-2022 root1m3@plebble.us
+#===-
+#===-                      GNU GENERAL PUBLIC LICENSE
+#===-                       Version 3, 29 June 2007
+#===-
+#===-    This program is free software: you can redistribute it and/or modify
+#===-    it under the terms of the AGPLv3 License as published by the Free
+#===-    Software Foundation.
+#===-
+#===-    This program is distributed in the hope that it will be useful,
+#===-    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#===-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+#===-
+#===-    You should have received a copy of the General Public License
+#===-    along with this program, see LICENCE file.
+#===-    see https://www.gnu.org/licenses
+#===-
+#===----------------------------------------------------------------------------
+#===-
+
+GOVUSER="gov"
+
+wai=`whoami`
+if [ "_$wai" != "_gov" ]; then
+    echo "from user gov please"
+    exit 1
+fi
+
+#olddefaultr2r="bid2ask-bid pat2slt-pat pat2phy-pat pat2ai-pat"
+defaultr2r="bid2ask-bid"
+
+function touch_defaults {
+    dst=$1
+    US=$2
+    for l in `echo $defaultr2r`; do
+        touch $dst/lib${US}trader-${l}.so
+    done
+}
+
+function symlink_libdir {
+    US=$1
+    libdir=$1
+    dst=$2
+    echo "updating symlinks in $libdir"
+    pushd $libdir > /dev/null
+        for l in `echo $defaultr2r`; do
+            if [ ! -f lib${US}trader-${l}.so ]; then
+                echo "    NEW -> $dst/lib${US}trader-${l}.so"
+                ln -s $dst/lib${US}trader-${l}.so
+            else
+                echo "    IGN-OK -> $dst/lib${US}trader-${l}.so"
+            fi
+            echo -n "delete old symlinks: "
+            ls lib${US}wallet-* -1 | xargs
+            rm lib${US}wallet-* -f
+        done
+    popd > /dev/null
+}
+
+function update {
+    US=$1
+    addr=$2
+    key=$3
+    ch=$4
+    echo "=============="
+    echo "UPDATE $US"
+    echo "=============="
+
+    ushome="/home/$GOVUSER/.${US}"
+    if [ "_$ch" != "_0" ]; then
+        ushome="$ushome/$ch"
+    fi
+    whome="$ushome/wallet"
+    thome="$whome/trader"
+    r2rdst="$thome/lib"
+    arch=`uname -m`
+
+    #upgrade name wallet->trader
+    for f in `find $r2rdst -name "*.so"`; do
+        n=${f##*/}
+        n2=`echo $n | sed "s/lib${US}wallet/lib${US}trader/"`
+        if [[ "_$n2" != "_$n" ]]; then
+            mv $r2rdst/$n $r2rdst/$n2
+            echo "updated lib name $r2rdst/$n -> $r2rdst/$n2"
+        fi
+        echo "$r2rdst   --  $n  -- $arch"
+    done
+
+    touch_defaults $r2rdst $US
+    for f in `find . -name "*.tzst"`; do
+        tar -I zstd -xf $f
+    done
+    #update only existing r2r libraries
+    for f in `find $r2rdst -name "*.so"`; do
+        n=${f##*/}
+        echo "$r2rdst   --  $n  -- $arch"
+        if [ -f $n ]; then
+            cp $n $r2rdst
+            echo "Installed $n"
+        else
+            echo "Could not find $n "
+        fi
+    done
+
+    echo "update guest wallets libdir. $whome"
+    pushd "$whome" > /dev/null
+        if [[ -d guest ]]; then
+            for glibdir in `find guest -maxdepth 3 -type d -name "lib"`; do
+                symlink_libdir $US $glibdir $r2rdst
+            done
+        fi
+    popd > /dev/null
+}
+
+cat /var/us_nets | sort -r > /tmp/685us_nets   #channel 0 shall be the last one (controls the execution of this program)
+
+while read -r line; do
+    US=`echo $line | awk '{print $2}'`
+    addr=`echo $line | awk '{print $3}'`
+    key=`echo $line | awk '{print $4}'`
+    ch=`echo $line | awk '{print $1}'`
+    update $US $addr $key $ch
+done < /tmp/685us_nets
+
+rm -f /tmp/685us_nets
+

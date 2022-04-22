@@ -1,0 +1,239 @@
+#!/bin/bash
+#===-                           P L E B B L E
+#===-                         https://plebble.us
+#===-
+#===-              Copyright (C) 2017-2022 root1m3@plebble.us
+#===-
+#===-                      GNU GENERAL PUBLIC LICENSE
+#===-                       Version 3, 29 June 2007
+#===-
+#===-    This program is free software: you can redistribute it and/or modify
+#===-    it under the terms of the AGPLv3 License as published by the Free
+#===-    Software Foundation.
+#===-
+#===-    This program is distributed in the hope that it will be useful,
+#===-    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#===-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+#===-
+#===-    You should have received a copy of the General Public License
+#===-    along with this program, see LICENCE file.
+#===-    see https://www.gnu.org/licenses
+#===-
+#===----------------------------------------------------------------------------
+#===-
+echo "#################################"
+echo "## 50_tokenized_files_and_sign ##"
+echo "#################################"
+
+if [[ -f ./.cbs/config ]]; then
+    . ./.cbs/config
+else
+	echo "KO 8585 Missing .cbs/config."
+	exit 1
+fi
+
+strset="en-uk"
+hash=""
+
+let inst=0
+while [ true ]; do
+    opt=$1
+    echo "read opt=$opt"
+    shift
+    if [ "_$opt" == "_--install" ]; then
+        echo "install flag"
+        let inst=0
+        continue
+    else
+        echo "end parsing flags"
+        break
+    fi
+done
+
+build_jobs=$opt
+if [ "_$build_jobs" == "_" ]; then
+    build_jobs="build_jobs"
+    echo -n "specify which one: "
+    find . -maxdepth 1 -type d -name "build_jobs*" | sed "s~^\./~~" | xargs
+    exit 1
+fi
+echo "using dir $build_jobs"
+
+jarsigner="jarsigner"
+keytool="keytool"
+if [ "_$JAVA_HOME" != "_" ]; then
+    jarsigner=$JAVA_HOME/bin/jarsigner
+    keytool=$JAVA_HOME/bin/keytool
+fi
+
+if [ "_$1" != "_" ]; then
+    strset=$1
+fi
+
+distr="distr"
+mkdir -p $distr
+
+function mk_sloccount {
+    ghash=$1
+    branch=$2
+    echo "mk_sloccount gitrep $gitrep ghash $ghash branch $branch"
+    mkdir tmpsloc
+    pushd tmpsloc > /dev/null
+        git clone -b $branch --single-branch $gitrep rep
+        pushd rep > /dev/null
+            echo "checkout $ghash"
+            git checkout -q $ghash
+            sloccount . > ../../sloccount.txt
+        popd > /dev/null
+    popd > /dev/null
+    rm -rf tmpsloc
+}
+
+function patch {
+    ifile="${1}.in"
+    ofile=$1
+    cp $ifile $ofile
+    strs=`cat $ifile  | grep -o "##str[^#]*##" | sed "s/#//g"`
+    for s in $strs; do
+        echo "$s = ${!s}"
+        sed -i "s~##$s##~${!s}~g" $ofile
+    done
+}
+
+function mk_checksums {
+    branddir=$1
+    pushd $branddir > /dev/null
+        rm -f sha256sums.txt
+        rm -f sha256sums.txt.gpg
+        rm -f gpg_pubkey.txt
+        file=../sha256sums.txt
+        echo -n "" > $file
+        for f in `find . -type f`; do
+            echo "checksum $f"
+            sha256sum $f >> $file
+        done
+        mv $file .
+        $gpg --batch --yes --passphrase-file $gpg_passphrase_file --default-key $gpgkey --sign sha256sums.txt
+        $gpg --armor --export $gpgkey > gpg_pubkey.txt
+    popd > /dev/null
+}
+
+gpgkey=$distr_key
+gpg_passphrase_file=$distr_passphrase_file
+gpg="gpg --homedir $distr_gpg_home"
+pass=`cat $gpg_passphrase_file`
+
+function sign_apks {
+    echo "signing APKs"
+    ks=$1
+    for file in `find $distr -name "*-unsigned.apk"`; do
+	echo "found unsigned apk: $file"
+        newfile=`echo $file | sed "s/-unsigned//"`
+        $jarsigner -verbose -keystore $ks $file distr <<< "$pass"
+        if [ $? -ne 0 ]; then
+            echo "signer failed" >2
+            exit 1
+        fi
+        mv $file $newfile
+        echo "signature $newfile"
+        echo "$file -> $newfile"
+        $keytool -list -printcert -jarfile $newfile
+    done
+}
+
+sign_apks $keyroot/keystore.jks
+
+hash=""
+branch=""
+
+nh=`cat $distr/build_hashes | grep "^vhash " | awk '{print $2}' | sort | uniq | wc -l`
+if [ $nh -ne 1 ]; then
+    echo "KO 59862 Found multiple hashes in $distr/build_hashes"
+    exit 1
+fi
+
+vhash=`cat $distr/build_hashes | grep "^vhash " | awk '{print $2}' | sort | uniq`
+branch=`cat $distr/build_hashes | grep "^vhash " | sort | uniq | awk '{print $6}'`
+
+if [ "_$vhash" == "_" ]; then
+    echo "KO 7950 cannot find hash" >&2
+    exit 1
+fi
+if [ "_$branch" == "_" ]; then
+    echo "KO 7951 cannot find branch" >&2
+    exit 1
+fi
+
+echo "branch: $branch"
+echo "vhash: $vhash"
+
+githash=`cat $distr/build_hashes | grep "^vhash $vhash" | sort | uniq | head -n1 | awk '{ print $5 }'`
+echo "githash: $githash"
+mk_sloccount $githash $branch
+
+
+v="${branch}_${vhash}"
+echo "looking for core_${v}.tar.zst"
+
+cat $distr/build_hashes
+
+for branddir in `find $distr -maxdepth 1 -mindepth 1 -type d`; do
+    brand=$(basename $branddir)
+#for brand in `cat $distr/build_hashes | grep "^vhash " | awk '{ print $6 }' | sort | uniq`; do
+    if [ -f $distr/$brand/bin/apply_blob ]; then
+        echo "brand $brand"
+        if [ ! -d $distr/$brand ]; then
+            continue;
+        fi
+        branddir=$brands/$brand
+        strfile=$branddir/$strset
+        if [ ! -f $strfile ]; then
+            echo "KO 33029 unknown set $strset for $brand"
+	        exit 1
+        fi
+        . $strfile
+        if [ "_$str3" != "_$brand" ]; then
+            echo "KO 4032 - str3 in file $strfile must be $brand"
+            exit 1
+        fi
+        echo "title: $str1"
+        if [ -d $distr/$brand/raspberry_pi ]; then
+            pushd $distr/$brand/raspberry_pi/ > /dev/null
+                for i in `ls -1 *.zip`; do
+                    str_os_raspi=$i #$brand-os_raspi_$hash.zip
+                    break
+                done
+            popd > /dev/null
+            echo "Image $str_os_raspi"
+            str_os_raspi_size=`ls -la $distr/$brand/raspberry_pi/$str_os_raspi | awk '{ print $5 }'`
+            echo "str_os_raspi_size $str_os_raspi_size"
+            str_os_raspi_sha256sum=`sha256sum $distr/$brand/raspberry_pi/$str_os_raspi | awk '{ print $1 }'`
+        else
+            str_os_raspi_size="0"
+            str_os_raspi_sha256sum="0"
+        fi
+        patch doc/node_setup_instructions_linux
+        patch doc/node_setup_instructions_windows
+        find doc
+        mv doc/node_setup_instructions_linux $distr/$brand/node_setup_instructions_linux.txt
+        mv doc/node_setup_instructions_windows $distr/$brand/node_setup_instructions_windows.txt
+        cp sloccount.txt $distr/$brand/
+        cp $distr/build_hashes $distr/$brand/
+        cat doc/release_notes | grep "RELEASE NOTES" -A1000000 >  $distr/$brand/release_notes
+        if [ -d $branddir/html ]; then
+	        pushd $branddir
+		        tar -I zstd -cf html.tar.zst html
+	        popd
+	        mv $branddir/html.tar.zst $distr/$brand/
+        fi
+        if [ -d $branddir/misc ]; then
+            find $branddir/misc -type f -exec cp {} $distr/$brand/ \;
+        fi
+        mk_checksums $distr/$brand
+    fi
+done
+rm -f sloccount.txt
+echo "Finished $distr"
+find $distr -type f
+exit 0
+

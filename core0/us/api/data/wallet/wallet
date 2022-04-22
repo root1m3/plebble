@@ -1,0 +1,405 @@
+balance
+u2 detail
+sync
+s data
+cmd=balance&detailed=&lt;2|0&gt;
+-
+
+list
+u2 detail
+sync
+s data
+cmd=list&show_priv_keys=&lt;1|0&gt;
+-
+
+recv_address
+-
+sync
+h addr
+cmd=recv_address
+-
+
+new_address
+-
+sync
+h addr
+cmd=new_address
+-
+
+add_address
+k priv
+sync
+h addr
+cmd=add_address&privkey=b58
+-
+
+transfer
+h addr  i8 amount  h coin  u1 relay
+sync
+v blob_ev
+cmd=transfer&recipient=addressb58&amount=&token=
+-
+--api_stream-write_fn_sfx _evidence
+
+transfer_from
+h src_addr  h rcpt_addr  i8 amount  h coin  u1 relay
+sync
+v blob_ev
+cmd=transfer_from&source=address&recipient=addressb58&amount=&token=
+-
+--api_stream-write_fn_sfx _evidence
+
+tx_charge_pay
+h addr  i8 samount  h scoin  i8 ramount  h rcoin
+sync
+v blob_ev
+-
+-
+--api_stream-write_fn_sfx _evidence
+
+invoice_verify
+v blob_ev  i8 oamount  h ocoin  i8 iamount  h icoin
+sync
+s err
+-
+-
+
+payment_verify
+v blob_ev  i8 oamount  h ocoin  i8 iamount  h icoin
+sync
+s err
+-
+-
+
+tx_pay
+v blob_ev u1 relay
+sync
+v blob_ev2
+-
+-
+--api_stream-write_fn_sfx _evidence
+
+tx_new
+-
+sync
+v blob_ev
+cmd=tx_new
+-
+--api_stream-write_fn_sfx _evidence
+
+tx_add_section
+v blob_ev  h coin
+sync
+v blob_ev
+-
+-
+--api_stream-write_fn_sfx _evidence
+
+tx_add_input
+v blob_ev  u2 section  h addr  i8 amount
+sync
+v blob_ev
+-
+-
+--api_stream-write_fn_sfx _evidence
+
+tx_add_output
+v blob_ev  u2 section  h addr  i8 amount
+sync
+v blob_ev
+-
+-
+--api_stream-write_fn_sfx _evidence
+
+tx_sign
+v blob_ev v blob_sigcode
+sync
+v blob_ev
+-
+-
+--api_stream-write_fn_sfx _evidence
+
+tx_send
+v blob_ev
+sync
+s info
+-
+-
+
+tx_decode
+v blob_ev
+sync
+s tx_pretty
+-
+-
+
+tx_check
+v blob_ev
+sync
+s data
+-
+-
+
+set_supply
+h addr  i8 amount  u1 relay
+sync
+v blob_ev
+-
+-
+--api_stream-write_fn_sfx _evidence
+
+store_kv
+h addr  s key  s value  u1 relay
+sync
+v blob_ev
+cmd=store_kv&recipient=addressb58&key=&value=
+-
+--api_stream-write_fn_sfx _evidence
+
+rm_kv
+h addr  s key  u1 relay
+sync
+v blob_ev
+cmd=rm_kv&recipient=addressb58&key=
+custom_impl
+--api_stream-write_fn_sfx _evidence
+
+store_file
+h addr  s path  v content  u1 relay
+sync
+v blob_ev  s path  h digest
+-
+custom_impl
+
+rm_file
+h addr  s path  h digest  u1 relay
+sync
+v blob_ev
+cmd=rm_file&recipient=addressb58&filehash=
+custom_impl
+--api_stream-write_fn_sfx _evidence
+
+search
+h addr  s pattern
+sync
+s result
+-
+custom_impl
+
+file
+h digest
+sync
+1 content
+-
+custom_impl
+
+exec
+s cmd
+async
+-
+-
+
+get_subhome
+-
+sync
+s subhome
+-
+-
+
+nodes_allow
+h addr  k priv  u1 relay
+sync
+v blob_ev
+-
+-
+--api_stream-write_fn_sfx _evidence
+
+nodes_deny
+h addr  k priv  u1 relay
+sync
+v blob_ev
+-
+-
+--api_stream-write_fn_sfx _evidence
+
+net_info
+-
+sync
+h wallet_address  s subhome  v{hu4u2} seeds
+cmd=node_pkh
+-
+
+compilance_report
+s jurisdiction  s date_from  s date_to
+sync
+s data
+-
+-
+
+priv_key
+k priv
+sync
+p pub  h addr
+-
+-
+
+pub_key
+p pub
+sync
+p pub  h addr
+-
+-
+
+gen_keys
+-
+sync
+k priv  p pub  h addr
+-
+-
+
+sign
+1 msg  k priv
+sync
+p pub  sig_t sig
+-
+-
+
+verify
+1 msg  p pub  sig_t sig
+sync
+u1 result
+-
+-
+
+encrypt
+1 msg  k src_priv  p rcpt_pub
+sync
+1 msg_scrambled
+-
+-
+
+decrypt
+1 msg_scrambled  p src_pub  k rcpt_priv
+sync
+1 msg
+-
+-
+
+patch_os
+s script  k groot_key  u1 relay
+sync
+v blob_ev  h job
+-
+-
+
+track
+u8 ts
+async
+-
+-
+
+track_pay
+v blob_tx
+sync
+v blob_tx s progress
+-
+-
+
+track_relay
+v blob_tx
+sync
+s progress
+-
+-
+
+list_protocols
+-
+sync
+s data
+-
+-
+
+trade
+h parent_trade  s datasubdir  v qr
+sync
+h tid
+-
+-
+
+list_trades
+-
+sync
+s data
+-
+-
+
+kill_trade
+h tid
+sync
+s data
+-
+-
+
+exec_trade
+h tid  s cmd
+async
+-
+-
+
+qr
+-
+sync
+bookmarks_t bookmarks
+-
+custom_impl
+--api_stream-write_fn_sfx _qr
+
+bookmark_add
+s name bookmark_t bookmark
+sync
+s ans
+-
+-
+
+bookmark_delete
+s key
+sync
+s ans
+-
+-
+
+bookmark_list
+-
+sync
+bookmarks_t bookmarks
+-
+-
+
+timeseries_list
+-
+sync
+s ans
+-
+-
+
+timeseries_show
+h addr  u8 ts
+sync
+s ans
+-
+-
+
+timeseries_new
+h addr u1 monotonic
+sync
+s ans
+-
+-
+
+timeseries_add
+h addr  1 payload
+sync
+s ans
+-
+-
+

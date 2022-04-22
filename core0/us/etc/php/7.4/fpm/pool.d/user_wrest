@@ -1,0 +1,4 @@
+[##user##_wrest]
+
+user = ##user##
+group = ##user##

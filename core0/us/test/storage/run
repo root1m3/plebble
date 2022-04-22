@@ -1,0 +1,92 @@
+#!/bin/bash
+. /home/gov/.us/config
+
+wallet="/usr/local/bin/us-wallet -c $CHANNEL"
+cwallet="/usr/local/bin/us-wallet -c $CHANNEL"
+gov="/usr/local/bin/us-gov -c $CHANNEL"
+ans=`$wallet ping`
+
+expected="walletd said: us-gov daemon... is OK, it said: pong"
+if [ "_$ans" != "_$expected" ]; then
+	echo "fail 10"
+	echo "expected: '$expected'"
+	echo "got:      '$ans'"
+	exit 1
+fi
+
+address=$1
+shift
+
+if [ "_$address" == "_" ]; then
+
+address=`$cwallet address new`
+echo "New address $address"
+
+echo "fund account"
+$cwallet transfer $address 10000
+
+echo -n "waiting for confirmation"
+while [ true ]; do
+	$gov -cmd app 30 db | grep $address
+	if [ $? -eq 0 ]; then
+		break
+		fi
+	sleep 1
+	echo -n "."
+done
+echo
+
+fi
+
+balance=`$gov  -cmd app 30 db | grep $address | awk '{print $5}'`
+echo "balance $balance"
+
+ans=`$gov data $address`
+expected="empty"
+if [ "_$ans" != "_$expected" ]; then
+	echo "fail 20"
+	echo "expected: '$expected'"
+	echo "got:      '$ans'"
+	exit 1
+fi
+
+
+val1=`echo -n "MX8772634 heavy cia1" | base64`
+val2=`echo -n "MX879362 heavy cia2" | base64`
+val3=`echo -n "MX0119274 light cia2" | base64`
+
+echo "creating big bin file1"
+echo "big bin file1" > /tmp/big_bin_file1; dd if=/dev/urandom oflag=append conv=notrunc count=4000 bs=4k >> /tmp/big_bin_file1
+echo "creating big bin file2"
+echo "big bin file2" > /tmp/big_bin_file2; dd if=/dev/urandom oflag=append conv=notrunc count=19 bs=1M >> /tmp/big_bin_file2
+echo "creating big bin file3"
+echo "big bin file3" > /tmp/big_bin_file3; dd if=/dev/urandom oflag=append conv=notrunc count=19 bs=1M >> /tmp/big_bin_file3
+
+echo "hashing file1"
+hash1=`$cwallet -local digest /tmp/big_bin_file1`
+echo "/tmp/big_bin_file1 $hash1"
+
+echo "hashing file2"
+hash2=`$cwallet -local digest /tmp/big_bin_file2`
+echo "/tmp/big_bin_file2 $hash2"
+
+echo "hashing file3"
+hash3=`$cwallet -local digest /tmp/big_bin_file3`
+echo "/tmp/big_bin_file3 $hash3"
+
+echo "store file1"
+$wallet store $address -f /tmp/big_bin_file1
+
+echo -n "waiting for confirmation"
+while [ true ]; do
+	$gov data $address
+	if [ $? -eq 11 ]; then
+		break
+		fi
+	sleep 1
+	echo -n "."
+done
+echo
+
+echo "OK"
+exit 0

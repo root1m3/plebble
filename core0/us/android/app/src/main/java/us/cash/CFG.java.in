@@ -1,0 +1,56 @@
+//===-                           P L E B B L E
+//===-                         https://plebble.us
+//===-
+//===-              Copyright (C) 2017-2022 root1m3@plebble.us
+//===-
+//===-                      GNU GENERAL PUBLIC LICENSE
+//===-                       Version 3, 29 June 2007
+//===-
+//===-    This program is free software: you can redistribute it and/or modify
+//===-    it under the terms of the AGPLv3 License as published by the Free
+//===-    Software Foundation.
+//===-
+//===-    This program is distributed in the hope that it will be useful,
+//===-    but WITHOUT ANY WARRANTY; without even the implied warranty of
+//===-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+//===-
+//===-    You should have received a copy of the General Public License
+//===-    along with this program, see LICENCE file.
+//===-    see https://www.gnu.org/licenses
+//===-
+//===----------------------------------------------------------------------------
+//===-
+package us.cash;
+import static us.gov.socket.types.*;                                                           // *
+import static us.stdint.*;                                                                     // *
+import us.ko;                                                                                  // ko
+import static us.ko.ok;                                                                        // ok
+import us.vcs;                                                                                 // vcs
+
+public final class CFG {
+    public static final int mode = ##str43##;
+    public static final port_t walletd_port = new port_t(##str19##);
+    public static final String apkfilename = vcs.brand + "-wallet_android_" + vcs.branch + "_" + vcs.hashname + ".apk";
+    public static final String blob_id = "##str56##"; //Branded android app blob_id
+    public static final String debug_sk = "##str47##";
+    public static final String acra_connection_string = "##str48##";
+    public static final String app_name = "##str32##";
+
+    public static boolean sdk_logs = false;                                             //--strip
+
+    public static class logs {                                                          //--strip
+        static boolean b = true;                                                        //--strip
+        public static boolean android = b;                                              //--strip
+
+        public static void set(boolean b) {                                             //--strip
+            android = b;                                                                //--strip
+        }                                                                               //--strip
+    }                                                                                   //--strip
+
+    public static void log_android(final String line) {                                 //--strip
+        if (logs.android)                                                               //--strip
+        System.out.println("android: " + line);                                         //--strip
+    }                                                                                   //--strip
+
+}
+

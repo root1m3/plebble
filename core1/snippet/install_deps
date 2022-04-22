@@ -1,0 +1,60 @@
+#!/bin/bash
+#===-                           P L E B B L E
+#===-                         https://plebble.us
+#===-
+#===-              Copyright (C) 2017-2022 root1m3@plebble.us
+#===-
+#===-                      GNU GENERAL PUBLIC LICENSE
+#===-                       Version 3, 29 June 2007
+#===-
+#===-    This program is free software: you can redistribute it and/or modify
+#===-    it under the terms of the AGPLv3 License as published by the Free
+#===-    Software Foundation.
+#===-
+#===-    This program is distributed in the hope that it will be useful,
+#===-    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#===-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+#===-
+#===-    You should have received a copy of the General Public License
+#===-    along with this program, see LICENCE file.
+#===-    see https://www.gnu.org/licenses
+#===-
+#===----------------------------------------------------------------------------
+#===-
+
+jail=$1
+arch=`uname -m`
+prefix=/usr/local
+dest=$jail$prefix
+
+#if [[ "_$jail" == "_" ]]; then
+    #if [[ -f $dest/lib/libfastcgipp.so.3.1 ]]; then 
+    #    diff $arch/lib/libfastcgipp.so.3.1 $dest/lib/libfastcgipp.so.3.1 2>&1 > /dev/null
+    #    if [[ $? -eq 0 ]]; then
+    #        echo "fastcgipp already installed, based on the file $dest/lib/libfastcgipp.so.3.1"
+    #        exit 0
+    #    fi
+    #fi
+
+    #diff $arch/lib/libsecp256k1.so.0.0.0 $dest/lib/libsecp256k1.so.0.0.0
+    #if [[ $? -eq 0 ]]; then
+    #    echo "secp256k1 already installed, based on the file $dest/lib/libsecp256k1.so.0.0.0"
+    #    exit 0
+    #fi
+#fi
+
+rm -f /tmp/include.tgz
+tar -czf /tmp/include.tgz include
+pushd $arch > /dev/null
+    rm -f /tmp/lib.tgz
+    tar -czf /tmp/lib.tgz lib
+popd > /dev/null
+
+pushd $dest  > /dev/null
+    tar -xzf /tmp/include.tgz
+    tar -xzf /tmp/lib.tgz
+    sed -i "s~^prefix=.*~prefix=$dest~" lib/pkgconfig/libsecp256k1.pc
+popd > /dev/null
+echo "successfully installed deps"
+exit 0
+

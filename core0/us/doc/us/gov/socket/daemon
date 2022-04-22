@@ -1,0 +1,23 @@
+DAEMON
+
+679b5c239f4ed3bdb74c9a62932ce04632a0482b
+void process_work(peer_t *c);
+    Continue receiving the current datagram for client c. Disconnects the client on KO.
+
+    retrieves curd (current datagram) from c (client).
+
+    calls recv4x on client c
+
+    returned value is a ko code and a datagram.
+    if ko is not null then disconnects the client.
+    if ko is null
+       if the datagram is completed
+            it is decrypted.
+            calls process_work(c,d);
+            if not processed successfully disconnects.
+       if the datagram is not complete
+            stores the dgram in curd variable of object client (c)
+
+    calls client::worker_ended_recv() (ref. prepare_worker_recv called before at void thpool::process(peer_t*))
+    wakes up select thread to be renewed.
+

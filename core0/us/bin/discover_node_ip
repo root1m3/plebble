@@ -1,0 +1,29 @@
+#!/bin/sh
+#===-                           P L E B B L E
+#===-                         https://plebble.us
+#===-
+#===-              Copyright (C) 2017-2022 root1m3@plebble.us
+#===-
+#===-                      GNU GENERAL PUBLIC LICENSE
+#===-                       Version 3, 29 June 2007
+#===-
+#===-    This program is free software: you can redistribute it and/or modify
+#===-    it under the terms of the AGPLv3 License as published by the Free
+#===-    Software Foundation.
+#===-
+#===-    This program is distributed in the hope that it will be useful,
+#===-    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#===-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+#===-
+#===-    You should have received a copy of the General Public License
+#===-    along with this program, see LICENCE file.
+#===-    see https://www.gnu.org/licenses
+#===-
+#===----------------------------------------------------------------------------
+#===-
+echo "Node at"
+echo -n "lan "
+RTI=`route | grep default | awk '{ print $NF }'`; NET=`ifconfig | grep $RTI -A8 | grep "inet " | grep "netmask 255.255.255.0" | awk '{ print $2 }' | sed "s#\([1-9]*\)\.\([1-9]*\)\.\([0-9]*\)\.\(.*\)#\1.\2.\3.*#g"`; nmap -sP $NET | grep Raspberry -B2 | grep "Nmap scan report for" | awk '{print $5}'
+echo -n "wan "
+wget http://adsl4ever.com/ip -q -O - | grep -a "Tu IP p" -A1 | tail -n1 | sed "s#.*<h1>\(.*\) <span>.*#\1#g"
+

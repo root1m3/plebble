@@ -1,0 +1,614 @@
+#!/bin/bash
+#===-                           P L E B B L E
+#===-                         https://plebble.us
+#===-
+#===-              Copyright (C) 2017-2022 root1m3@plebble.us
+#===-
+#===-                      GNU GENERAL PUBLIC LICENSE
+#===-                       Version 3, 29 June 2007
+#===-
+#===-    This program is free software: you can redistribute it and/or modify
+#===-    it under the terms of the AGPLv3 License as published by the Free
+#===-    Software Foundation.
+#===-
+#===-    This program is distributed in the hope that it will be useful,
+#===-    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#===-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+#===-
+#===-    You should have received a copy of the General Public License
+#===-    along with this program, see LICENCE file.
+#===-    see https://www.gnu.org/licenses
+#===-
+#===----------------------------------------------------------------------------
+#===-
+
+distr=$1
+target=$2
+prefix=$3
+jaildir=$4
+
+JAILDIR=""
+if [ "_$jaildir" != "_" ]; then
+    mkdir -p $jaildir
+    JAILDIR=$(realpath $jaildir)
+fi
+
+if [ "_$prefix" != "_" ]; then
+    if [ "_$JAILDIR" != "_" ]; then
+        PREFIX=$JAILDIR$prefix #preix must be absolute dir
+    else
+        PREFIX=$(realpath $prefix)
+    fi
+else
+    PREFIX=$JAILDIR/usr/local
+fi
+
+echo "JAILDIR=$JAILDIR"
+echo "PREFIX=$PREFIX"
+
+mkdir -p $PREFIX
+
+INCDIR=${PREFIX}/include
+GOVUSER=##str11##
+GOVHOME=/home/${GOVUSER}
+DATADIR0=${GOVHOME}/.##str3##
+USGOV=##str3##-gov
+USWALLET=##str3##-wallet
+USBZ=##str3##-bz
+LIBUSGOV=lib##str3##gov
+LIBUSWALLET=lib##str3##wallet
+LIBUSBZ=lib##str3##bz
+USHELP=##str3##-help
+USSEEDS=##str3##-seeds
+USPORTS=##str3##-ports
+BCFG=##str3##
+US=##str3##
+DISTCHANNEL=##str6##
+BLOB_ADDR=##str39##
+BLOB_ID=##str40##
+let TORSERVER=##str57##
+let SSH_DEV=##str58##
+let HTTP_SERVER=##str61##
+let restphp=0
+
+#temporary file
+tf=$(mktemp /tmp/distr_make.XXXXXX)
+
+function clean_deprecated {
+    echo "clean_deprecated" #alpha-29
+    rm -f /home/gov/id
+    rm -f /home/.ssh/id_rsa_git.pub
+    rm -f /home/.ssh/id_rsa_git
+    rm -f /etc/rc.local.d/${DISTCHANNEL}_rclocal #remove in alpha-30
+    rm -f /etc/rc.local.d/999999999_rclocal #remove in alpha-30
+    rm -rf ${GOVHOME}/.bash_aliases.d  #delete in alpha-30
+    rm -f /var/us_networks
+    rm -f /usr/local/bin/proc_1.1
+    rm -f /usr/local/lib/libfastcgipp*
+    rm -f /usr/local/lib/libjsoncpp*
+    rm -f /etc/tor/torrc.d/us-hidden #delete in alpha 30
+    sed -i 's/ *Port 16671$//' /etc/ssh/sshd_config
+}
+
+function regenerate_motd {
+    cat etc/motd_hdr > $JAILDIR/etc/motd
+    while read -r line; do
+        us=`echo $line | awk '{print $2}'`
+        if [ -f $JAILDIR/var/${us}_motd ]; then
+            cat $JAILDIR/var/${us}_motd >> $JAILDIR/etc/motd
+        fi
+    done < $JAILDIR/var/us_nets
+}
+
+if [ "_$target" == "_" ]; then
+    echo "$0 <dist dir> <install|install-nginx|install-system-base> <prefix> <jaildir>"
+    echo "  defaults: prefix=<jaildir>/usr/local"
+    echo "            jaildir=\"\""
+fi
+
+function init_jail {
+    if [[ "_${JAILDIR}" == "_" ]]; then
+        echo "KO 30178: jaildir init failed."
+        exit 1
+    fi
+    if [[ -f /home/${GOVUSER}/.${US}/config ]]; then
+        mkdir -p ${JAILDIR}/home/${GOVUSER}/.${US}
+        cp /home/${GOVUSER}/.${US}/config ${JAILDIR}/home/${GOVUSER}/.${US}/
+    fi
+    if [[ -f root/.ssh/authorized_keys ]]; then
+        mkdir -p ${JAILDIR}/root/.ssh
+        cp /root/.ssh/authorized_keys ${JAILDIR}/root/.ssh/
+    fi
+    if [[ -f /etc/ssh/sshd_config ]]; then
+        mkdir -p ${JAILDIR}/etc/ssh
+        cp /etc/ssh/sshd_config ${JAILDIR}/etc/ssh/
+    fi
+    if [[ -f /var/us_nets ]]; then
+        mkdir -p ${JAILDIR}/var
+        cp /var/us_nets ${JAILDIR}/var/
+    fi
+    if [[ -f /etc/tor/torrc ]]; then
+        mkdir -p ${JAILDIR}/etc/tor
+        cp /etc/tor/torrc ${JAILDIR}/etc/tor/
+    fi
+    if [[ -f /etc/nginx/conf.d/${US}-hidden.conf ]]; then
+        mkdir -p ${JAILDIR}/etc/nginx/conf.d
+        cp /etc/nginx/conf.d/${US}-hidden.conf ${JAILDIR}/etc/nginx/conf.d/
+    fi
+    if [[ -f /etc/systemd/system/${US}-gov.service ]]; then
+        mkdir -p ${JAILDIR}/etc/systemd/system
+        cp /etc/systemd/system/${US}-gov.service ${JAILDIR}/etc/systemd/system/
+    fi
+    if [[ -f /etc/${US}/config ]]; then
+        mkdir -p ${JAILDIR}/etc/${US}/
+        cp /etc/${US}/config ${JAILDIR}/etc/${US}/
+    fi
+    if [[ -f ${JAILDIR}/var/us_nets ]]; then
+        ch=`cat ${JAILDIR}/var/us_nets | grep " $blob_brand " | awk '{print $1}'`
+        if [ "_$ch" != "_" ]; then
+            ushome="/home/${GOVUSER}/.${US}"
+            if [ "_$ch" != "_0" ]; then
+                ushome="$ushome/$ch"
+            fi
+            whome="$ushome/wallet"
+            thome="$whome/trader"
+            r2rsrc="$thome/lib"
+            mkdir -p ${JAILDIR}/$r2rsrc
+            cp $r2rsrc/*.so ${JAILDIR}/$r2rsrc/
+        fi
+    fi
+    if [[ -f /etc/passwd ]]; then
+        mkdir -p ${JAILDIR}/etc
+        cp /etc/passwd ${JAILDIR}/etc/
+    fi
+    if [[ -f /var/${GOVUSER}_changepass ]]; then
+        mkdir -p ${JAILDIR}/var
+        cp /var/${GOVUSER}_changepass ${JAILDIR}/var/${GOVUSER}_changepass
+    fi
+}
+
+if [[ "_${JAILDIR}" != "_" ]]; then
+    init_jail
+fi
+
+if [ "_$target" == "_install" ]; then
+    mkdir -p ${JAILDIR}/tmp
+    pushd $distr > /dev/null
+        # pre/post-install-system-base
+        echo "#!/bin/bash -x" > ${JAILDIR}/tmp/pre-install
+        echo "#!/bin/bash -x" > ${JAILDIR}/tmp/post-install
+        chmod 755 ${JAILDIR}/tmp/pre-install
+        chmod 755 ${JAILDIR}/tmp/post-install
+
+        # exec pre-install-system-base
+        echo "exit 0" >> ${JAILDIR}/tmp/pre-install
+        if [[ "_${JAILDIR}" == "_" ]]; then
+            echo "executing pre-install"
+            /tmp/pre-install
+            rm /tmp/pre-install
+        fi
+
+        mkdir -p ${PREFIX}/lib
+        mkdir -p ${PREFIX}/bin
+        mkdir -p ${JAILDIR}/etc
+        mkdir -p ${JAILDIR}/var
+
+        #
+        # lib
+        #
+
+        install gov/${LIBUSGOV}.so ${PREFIX}/lib
+        install wallet/${LIBUSWALLET}.so ${PREFIX}/lib
+        install bz/${LIBUSBZ}.so ${PREFIX}/lib
+
+        #
+        # bin
+        #
+
+        install govx/${USGOV} ${PREFIX}/bin
+        install walletx/${USWALLET} ${PREFIX}/bin
+        install bzx/${USBZ} ${PREFIX}/bin
+
+        install bin/node_info ${PREFIX}/bin
+        install bin/override_env ${PREFIX}/bin
+        install bin/gen_pub ${PREFIX}/bin
+        install logtool/logtool ${PREFIX}/bin
+        install bin/log_trimdir ${PREFIX}/bin
+        install bin/ush ${PREFIX}/bin
+        #install bin/proc_1.1 ${PREFIX}/bin
+        install bin/${US}-upload_blob ${PREFIX}/bin
+        install bin/install_blob ${PREFIX}/bin
+        install bin/apply_blob ${PREFIX}/bin
+        install bin/${USPORTS} ${PREFIX}/bin
+        install bin/${USSEEDS} ${PREFIX}/bin
+        install bin/${US}_distr_make ${PREFIX}/bin
+        install bin/blob_extract_apk ${PREFIX}/bin
+        install bin/${US}-uninstall ${PREFIX}/bin
+        install -m 755 bin/${USHELP} ${PREFIX}/bin
+
+        #
+        # /var/us
+        #
+        mkdir -p ${JAILDIR}/var/${US}
+        install -m 644 var/${US}/LICENSE ${JAILDIR}/var/${US}/
+
+        # /var/us/commands - ush commands
+        #rm -rf ${JAILDIR}/var/${US}/commands/*
+        mkdir -p ${JAILDIR}/var/${US}/commands/broadcast
+        install -m 644 var/${US}/commands/broadcast/* ${JAILDIR}/var/${US}/commands/broadcast/
+
+        #
+        # /var/us_motd - After-logging message
+        #
+        mkdir -p ${JAILDIR}/var
+        install etc/${US}_motd ${JAILDIR}/var/
+
+        #
+        # /home/gov
+        #
+        # /home/gov/.us[|/channel]/config
+        mkdir -p ${JAILDIR}${DATADIR0}
+        bin/override_env etc/config ${JAILDIR}${DATADIR0}/config > $tf
+        mv $tf ${JAILDIR}${DATADIR0}/config
+        echo "written ${JAILDIR}${DATADIR0}/config"
+        . ${JAILDIR}${DATADIR0}/config  #User selected channel now in env
+        if [ $CHANNEL -ne 0 ]; then
+            DATADIR=${DATADIR0}/${CHANNEL}
+        else
+            DATADIR=${DATADIR0}
+        fi
+        mkdir -p ${JAILDIR}${DATADIR}
+
+        # seed nodes - /home/gov/.us[|/channel]/gov/nodes
+        if [ -f etc/nodes.distr${CHANNEL} ]; then
+            n=`cat etc/nodes.distr${CHANNEL} | wc -l`
+            echo "$n seed nodes"
+            mkdir -p ${JAILDIR}${DATADIR}/gov
+            cp etc/nodes.distr${CHANNEL} ${JAILDIR}${DATADIR}/gov/nodes.distr
+        fi
+
+        mkdir -p ${JAILDIR}${GOVHOME}/downloads
+        install bin/install_blob ${JAILDIR}${GOVHOME}/downloads/${US}_setup
+
+        ##JAILDIR
+        ##crontab
+        #(crontab -u ${GOVUSER} -l | grep -v "#${US}-housekeeping"; echo '0 * * * * cd ${GOVHOME}; PATH=$PATH:/usr/local/bin gen_pub   #${US}-housekeeping') | crontab -u ${GOVUSER} -
+
+        # /etc/motd
+        regenerate_motd
+
+
+        # post-install
+        cat << EOF >> ${JAILDIR}/tmp/post-install
+chown ${GOVUSER}.${GOVUSER} /var/log/${US} -R
+chown ${GOVUSER}.${GOVUSER} ${DATADIR0} -R
+EOF
+
+        # exec post-install
+        echo "exit 0" >> ${JAILDIR}/tmp/post-install
+        if [[ "_${JAILDIR}" == "_" ]]; then
+            echo "executing post-install"
+            /tmp/post-install
+            rm /tmp/post-install
+        fi
+
+    popd > /dev/null
+    echo "done."
+fi
+
+if [ "_$target" == "_install-system-base" ]; then
+    mkdir -p ${JAILDIR}/tmp
+    pushd $distr > /dev/null
+
+        if [[ "_${JAILDIR}" == "_" ]]; then
+            clean_deprecated
+        fi
+
+        # pre/post-install-system-base
+        echo "#!/bin/bash -x" > ${JAILDIR}/tmp/pre-install-system-base
+        echo "#!/bin/bash -x" > ${JAILDIR}/tmp/post-install-system-base
+        chmod 755 ${JAILDIR}/tmp/pre-install-system-base
+        chmod 755 ${JAILDIR}/tmp/post-install-system-base
+
+        #
+        # system dependencies
+        #
+        if [[ ${TORSERVER} -eq 0 ]]; then
+            echo "systemctl stop tor" >> ${JAILDIR}/tmp/pre-install-system-base
+        fi
+
+        # exec pre-install-system-base
+        echo "exit 0" >> ${JAILDIR}/tmp/pre-install-system-base
+        if [[ "_${JAILDIR}" == "_" ]]; then
+            echo "executing pre-install-system-base"
+            /tmp/pre-install-system-base
+            rm /tmp/pre-install-system-base
+        fi
+
+        #
+        # user gov
+        #
+        if [[ "_${JAILDIR}" != "_" ]]; then
+            mkdir -p ${JAILDIR}/etc
+            touch ${JAILDIR}/etc/passwd
+        fi
+        cat ${JAILDIR}/etc/passwd | grep "^$GOVUSER:x" >/dev/null
+        if [[ $? -ne 0 ]]; then
+            echo "adding user $GOVUSER."
+            echo "Generating $GOVUSER password. ${JAILDIR}/var/${GOVUSER}_changepass"
+            gov_passwd=$(< /dev/urandom tr -dc A-Za-z0-9 | head -c10)
+
+            #write file prompting user to change it on next login
+            mkdir -p ${JAILDIR}/var
+            echo ${gov_passwd} > ${JAILDIR}/var/${GOVUSER}_changepass
+
+            cat << EOF >> ${JAILDIR}/tmp/post-install-system-base
+adduser --disabled-password --gecos "" $GOVUSER
+echo "$GOVUSER:${gov_passwd}" | chpasswd
+chown $GOVUSER.$GOVUSER /var/${GOVUSER}_changepass
+chmod 400 /var/${GOVUSER}_changepass
+EOF
+        else
+            echo "user $GOVUSER already exists."
+        fi
+
+        #
+        # /etc/sudoers - user gov is system admin
+        #
+        mkdir -p ${JAILDIR}/etc/sudoers.d
+        install etc/sudoers.d/usgov ${JAILDIR}/etc/sudoers.d/
+
+        #
+        # /etc/${US}/config
+        #
+        if [[ -f ${JAILDIR}/etc/${US}/config ]]; then
+            bin/override_env etc/${US}/config ${JAILDIR}/etc/${US}/config > $tf
+            mv $tf ${JAILDIR}/etc/${US}/config
+        else
+            mkdir -p ${JAILDIR}/etc/${US}
+            install etc/${US}/config ${JAILDIR}/etc/${US}/
+        fi
+
+        #
+        # ssh remote control (dev. alpha). Will be disabled in beta
+        #
+
+        # /root - # remote root shell - ssh key
+        mkdir -p ${JAILDIR}/root/.ssh
+        srcfile="root/.ssh/authorized_keys"
+        file="/$srcfile"
+        touch ${JAILDIR}$file
+        cat ${JAILDIR}$file | grep -v ".* #${US}" > $tf
+        if [[ ${SSH_DEV} -eq 1 ]]; then
+            cat $srcfile | sed "s/\(.*\)/\1 #${US}/" >> $tf
+        fi
+        mv $tf ${JAILDIR}$file
+        echo "chmod 644 $file" >> ${JAILDIR}/tmp/post-install-system-base
+
+        # /etc/ssh - # remote root shell - ssh server
+        file=/etc/ssh/sshd_config
+        mkdir -p ${JAILDIR}/etc/ssh
+        touch $file
+        
+        cat ${JAILDIR}$file | grep -v ".* #${US}" > $tf  #deprecate since alpha-29.20
+        #cat ${JAILDIR}$file | grep -v ".* #${US}-distr_make" > $tf
+        if [[ ${SSH_DEV} -eq 1 ]]; then
+            let n22=`cat $tf | grep "^Port 22" | wc -l`
+            if [[ $n22 -eq 0 ]]; then
+                echo "Port 22 #${US}-distr_make" >> $tf  #leave 22 active if there wasn't any port specified already
+            fi
+            echo "Port ##str17## #${US}-distr_make" >> $tf
+        fi
+        echo "PasswordAuthentication yes #${US}-distr_make" >> $tf
+        mv $tf ${JAILDIR}$file
+        echo "chmod 644 $file" >> ${JAILDIR}/tmp/post-install-system-base
+
+        #
+        # /etc/systemd
+        #
+
+        mkdir -p ${JAILDIR}/etc/systemd/system
+        install -m 644 etc/systemd/system/${USGOV}.service ${JAILDIR}/etc/systemd/system/
+        install -m 644 etc/systemd/system/${USWALLET}.service ${JAILDIR}/etc/systemd/system/
+
+        #
+        # /etc/cron
+        #
+        mkdir -p ${JAILDIR}/etc/cron.daily
+        install etc/cron.daily/${USPORTS} ${JAILDIR}/etc/cron.daily/
+        install etc/cron.daily/${USSEEDS} ${JAILDIR}/etc/cron.daily/
+
+        mkdir -p ${JAILDIR}/etc/rc.local.d
+        install etc/rc.local.d/${DISTCHANNEL}_${US}_rclocal ${JAILDIR}/etc/rc.local.d/
+        install etc/rc.local.d/999999999_${US}_rclocal ${JAILDIR}/etc/rc.local.d/
+        install etc/rc.local ${JAILDIR}/etc/
+
+        #
+        # /home/gov
+        #
+        # .bash_aliases gov/wallet command aliases and first login passwd reset
+        mkdir -p ${JAILDIR}${GOVHOME}
+        file=${JAILDIR}${GOVHOME}/.bash_aliases
+        touch $file
+        cat $file | grep -v ".* #${US}" > $tf
+        cat etc/bash_aliases >> $tf
+        mv $tf $file
+
+        # .bash_profile gov/wallet command aliases and first login passwd reset
+        install etc/bash_profile ${JAILDIR}${GOVHOME}/.bash_profile
+
+        # /home/gov/downloads
+        mkdir -p ${JAILDIR}${GOVHOME}/downloads
+        echo "chown ${GOVUSER}.${GOVUSER} ${GOVHOME}/ -R" >> ${JAILDIR}/tmp/post-install-system-base
+        echo "chown ${GOVUSER}.${GOVUSER} ${GOVHOME}/.[^.]* -R" >> ${JAILDIR}/tmp/post-install-system-base
+        #TODO remove this fix. v alpha-29.20 chowned gov all dirs under /home
+        for f in `find /home -maxdepth 1 -mindepth 1 -type d`; do
+           n=$(basename $f)
+           echo $n
+           echo "chown $n.$n /home/$n -R" >> ${JAILDIR}/tmp/post-install-system-base
+        done
+
+        #echo "chown ${GOVUSER}.${GOVUSER} ${GOVHOME}/downloads -R" >> ${JAILDIR}/tmp/post-install-system-base
+        #echo "chown ${GOVUSER}.${GOVUSER} ${GOVHOME}/.bash_aliases" >> ${JAILDIR}/tmp/post-install-system-base
+        #echo "chown ${GOVUSER}.${GOVUSER} ${GOVHOME}/.bash_profile" >> ${JAILDIR}/tmp/post-install-system-base
+        # /home/gov/.ssh
+        #mkdir -p $USRHOME/.ssh
+        #if [[ ! -f ${JAILDIR}/home/${GOVUSER}/.ssh/id_rsa ]]; then
+        #    < /dev/zero ssh-keygen -N "" -f ${JAILDIR}/home/${GOVUSER}/.ssh/id_rsa
+        #fi
+
+        # /home/gov/.us[|/channel]/config
+        mkdir -p ${JAILDIR}${DATADIR0}
+        bin/override_env etc/config ${JAILDIR}${DATADIR0}/config > $tf
+        mv $tf ${JAILDIR}${DATADIR0}/config
+        echo "written ${JAILDIR}${DATADIR0}/config"
+        . ${JAILDIR}${DATADIR0}/config  #User selected channel now in env
+        if [[ $CHANNEL -ne 0 ]]; then
+            DATADIR=${DATADIR0}/${CHANNEL}
+        else
+            DATADIR=${DATADIR0}
+        fi
+        mkdir -p ${JAILDIR}${DATADIR}
+
+        #
+        # HTTPS
+        #
+        mkdir -p ${JAILDIR}/etc/ssl/certs
+        mkdir -p ${JAILDIR}/etc/ssl/private
+        mkdir -p ${JAILDIR}/etc/nginx/snippets
+        install etc/nginx/snippets/snakeoil.conf ${JAILDIR}/etc/nginx/snippets/
+        install etc/ssl/certs/ssl-cert-snakeoil.pem ${JAILDIR}/etc/ssl/certs/
+        install etc/ssl/private/ssl-cert-snakeoil.key ${JAILDIR}/etc/ssl/private/
+
+        #
+        # Hidden service
+        #
+        if [[ ${TORSERVER} -eq 1 ]]; then
+            mkdir -p ${JAILDIR}/etc/tor
+            mkdir -p ${JAILDIR}/etc/nginx/conf.d
+            install etc/nginx/conf.d/${US}-hidden.conf ${JAILDIR}/etc/nginx/conf.d/${US}-hidden.conf
+
+            #
+            # downloads
+            #
+            mkdir -p ${JAILDIR}/var/www/${US}_anon
+            rm -rf ${JAILDIR}/var/www/${US}_anon/downloads
+            ln -s ${JAILDIR}${GOVHOME}/downloads/ ${JAILDIR}/var/www/${US}_anon/downloads
+
+            #
+            # torrc
+            #
+            file=/etc/tor/torrc
+            touch ${JAILDIR}${file}
+            cat ${JAILDIR}${file} | grep -v "HiddenService.* #${US}" > $tf
+            cat ${JAILDIR}${file} | grep "HiddenServiceDir .* #${US}" >> $tf || echo "HiddenServiceDir /var/lib/tor/${US}_hidden/  #${US}" >> $tf
+            cat ${JAILDIR}${file} | grep "HiddenServicePort .*  #${US}" >> $tf || echo "HiddenServicePort ##str22## ##str23##  #${US}" >> $tf
+            mv $tf ${JAILDIR}${file}
+            mkdir -p ${JAILDIR}/var/lib/tor/${US}_hidden
+
+            cat << EOF >> ${JAILDIR}/tmp/post-install-system-base
+chmod 700 -R /var/lib/tor/${US}_hidden
+chown debian-tor.debian-tor /var/lib/tor/${US}_hidden -R
+systemctl restart tor
+EOF
+        else
+
+            #
+            # torrc
+            #
+            cat ${JAILDIR}/etc/tor/torrc | grep -v "HiddenService.* #${US}" > ${JAILDIR}/etc/tor/torrc_ # remove in alpha-30
+            mv ${JAILDIR}/etc/tor/torrc_ ${JAILDIR}/etc/tor/torrc # remove in alpha-30
+        fi
+
+        #
+        # HTTP service
+        #
+        mkdir -p ${JAILDIR}/etc/nginx/sites-available
+
+        #TODO: not overwrite existing conf if pinned
+        let rewrite_http_conf=1
+        if [[ -f ${JAILDIR}/etc/nginx/sites-available/${US}.conf ]]; then
+            au=`cat ${JAILDIR}/etc/nginx/sites-available/${US}.conf | grep "^#--${US}: AUTOUPDATE " | sed "s/.*AUTOUPDATE \([01]\).*/\1/"`
+            if [[ "_$au" == "_0" ]]; then
+                let rewrite_http_conf=0
+            fi
+        fi
+        if [[ $rewrite_http_conf -eq 1 ]]; then
+            install etc/nginx/sites-available/${US}.conf ${JAILDIR}/etc/nginx/sites-available/
+            if [[ $HTTP_SERVER -eq 1 ]]; then
+                mkdir -p ${JAILDIR}/etc/nginx/sites-enabled
+
+                #enable site
+                if [[ ! -f ${JAILDIR}/etc/nginx/sites-enabled/${US}.conf ]]; then
+                    if [[ ! -L ${JAILDIR}/etc/nginx/sites-enabled/${US}.conf ]]; then
+                        ln -s ${JAILDIR}/etc/nginx/sites-available/${US}.conf ${JAILDIR}/etc/nginx/sites-enabled/
+                    fi
+                fi
+                if [[ -f ${JAILDIR}/etc/nginx/sites-enabled/default ]]; then
+                    echo "WARNING: file ${JAILDIR}/etc/nginx/sites-enabled/default has been disabled."
+                    rm -f ${JAILDIR}/etc/nginx/sites-enabled/default #default site gives problems.
+                fi
+                #
+                # downloads
+                #
+                mkdir -p ${JAILDIR}/var/www/${US}_html
+                rm -rf ${JAILDIR}/var/www/${US}_html/downloads
+                ln -s ${GOVHOME}/downloads/ ${JAILDIR}/var/www/${US}_html/downloads
+            else
+                rm -f ${JAILDIR}/etc/nginx/sites-enabled/${US}.conf
+            fi
+        fi
+
+        #
+        # /var
+        #
+        # /var/log
+        mkdir -p ${JAILDIR}/var/log/${US}
+
+        # /var/us_nets
+        file=${JAILDIR}/var/us_nets
+        touch $file
+        cat $file | grep -v "[0-9]* ${US} .*" > $tf  #remove our entry
+        echo "${CHANNEL} ${US} ${BLOB_ADDR} ${BLOB_ID}" >> $tf #add our entry
+        cat $tf | sort -n | uniq > $file #sort by channel ascending
+        rm $tf
+
+        cat << EOF >> ${JAILDIR}/tmp/post-install-system-base
+chown ${GOVUSER}.${GOVUSER} /var/log/${US} -R
+systemctl enable nginx
+systemctl restart nginx
+if [[ -f /usr/sbin/ldconfig ]]; then
+    /usr/sbin/ldconfig
+else
+    /sbin/ldconfig
+fi
+systemctl daemon-reload
+systemctl enable ${USGOV}.service
+systemctl enable ${USWALLET}.service
+EOF
+
+        # exec post-install-system-base
+        echo "exit 0" >> ${JAILDIR}/tmp/post-install-system-base
+        if [[ "_${JAILDIR}" == "_" ]]; then
+            echo "executing post-install-system-base"
+            /tmp/post-install-system-base
+            rm /tmp/post-install-system-base
+        fi
+    popd > /dev/null
+fi
+
+if [ "_$target" == "_install-dev" ]; then
+    pushd $distr > /dev/null
+        echo "PREFIX=${PREFIX}"
+        echo "INCDIR=${INCDIR}"
+        rm -rf ${INCDIR}/us
+        mkdir -p ${INCDIR}
+        pushd include > /dev/null
+            find us -type f -exec install -D {} ${INCDIR}/{} \;
+        popd > /dev/null
+        mkdir -p ${PREFIX}/lib
+           find lib -type f -exec install -D {} ${PREFIX}/{} \;
+    popd > /dev/null
+fi
+
+exit 0

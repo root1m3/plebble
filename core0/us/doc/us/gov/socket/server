@@ -1,0 +1,31 @@
+SERVER
+
+
+------------------------------------------------------
+af7b9b3d1d8f55d2f469b90ef853e19b3be1798f
+void c::detach(client*c) 
+
+c must be well formed client, not null.
+Flags the client as finished. (ending up in the garbage collector (gc) after next wakeup from select).
+
+the socket is still opened until the server process the variable client::finished in server::update
+
+It doesn't shutdown the sending channel.
+
+::shutdown(c->sock,SHUT_RD);
+    The recv channel of the socket is shutdown, but the sendq outbound channel remains open to be able to report
+
+
+It never resets the variable sock to -1, because the value is needed to find by index in clients table i.e. map socket-descriptor to client instance.
+
+It finally calls wakeup() to update the clients hash table.
+
+
+complete detachment doesn't occur immediately. For this reason detach is neither destroying the object nor altering it (e.g. by reseting the variable parent), since there could be worker threads operating on it. 
+ 
+
+
+------------------------------------------------------
+
+
+

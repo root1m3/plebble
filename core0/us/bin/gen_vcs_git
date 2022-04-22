@@ -1,0 +1,134 @@
+#!/bin/bash
+#===-                           P L E B B L E
+#===-                         https://plebble.us
+#===-
+#===-              Copyright (C) 2017-2022 root1m3@plebble.us
+#===-
+#===-                      GNU GENERAL PUBLIC LICENSE
+#===-                       Version 3, 29 June 2007
+#===-
+#===-    This program is free software: you can redistribute it and/or modify
+#===-    it under the terms of the AGPLv3 License as published by the Free
+#===-    Software Foundation.
+#===-
+#===-    This program is distributed in the hope that it will be useful,
+#===-    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#===-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+#===-
+#===-    You should have received a copy of the General Public License
+#===-    along with this program, see LICENCE file.
+#===-    see https://www.gnu.org/licenses
+#===-
+#===----------------------------------------------------------------------------
+#===-
+#execute as bin/gen_vcs_git
+override_hashname=""
+modfiles=$1
+if [ "_$modfiles" != "_" ]; then
+    echo "Modified files:"
+    if [ -f $modfiles ]; then
+        cat $modfiles
+    else
+        echo "KO 65834 file not found."
+        exit 1
+    fi
+fi
+. res/strings/en-uk
+if [ -f res/strings/en-uk.ovr ]; then
+    echo "overriding env"
+    . res/strings/en-uk.ovr
+fi
+gitdir=""
+devjobtag=""
+if [ -f ../../.revs ]; then
+    . ../../.revs
+    devjob=`echo "$devjob_id" | grep "devjob_" | sed "s/devjob_\(.*\)/\1/"`
+    devjobtag="dj`echo $upstream_hash | cut -c1-8`_"
+fi
+gitdir="../../.git"
+
+locally_modified=""
+if [ -d $gitdir ]; then
+    echo "git environment"
+    branch=`git branch | grep '*' | awk '{print $NF}'`
+    revhash=`git log | head -n1 | awk '{print $2}'`
+    let nl=`git diff --name-only | grep -v us/sdk/wallet/java/us/vcs.java | wc -l`
+    echo -n "Local modifications: "
+    if [[ $nl -gt 0 ]]; then
+        echo "Yes."
+        locally_modified="+"
+    else
+        echo "No."
+    fi
+else
+    if [ -f vcs_git_env ]; then
+        echo "Not in git environment. Found existing vcs_git files."
+        exit 0
+    else
+        echo "KO 60908 Not in a git environment. vcs_git_env not found. Abort."
+        exit 1
+    fi
+fi
+echo "generating vcs_git files $locally_modified"
+bdate=`date +%Y-%m-%d_%H-%M-%S`
+vcode=`date +%y%m%d%H`
+if [ -f res/strings/en-uk.ovr ]; then
+    cfghash=`sha256sum res/strings/en-uk.ovr $modfiles | sha256sum | awk '{print $1}'`
+else
+    if [ "_$modfiles" == "_" ]; then
+        cfghash="0"
+    else
+        cfghash=`sha256sum $modfiles | awk '{print $1}'`
+    fi
+fi
+codehashname=`echo $revhash |  cut -c1-6`$locally_modified
+cfghashname=`echo $cfghash |  cut -c1-6`
+hashname="$codehashname.$cfghashname"
+if [[ "_$override_hashname" != "_" ]]; then
+    hashname=$override_hashname
+fi
+#------------------------bash
+cat << EOF > vcs_git_env
+core0_devjob="$devjob"
+core0_devjobtag="$devjobtag"
+core0_brand="$str3"
+core0_branch="$branch"
+core0_codehash="$revhash$locally_modified"
+core0_cfghash="$cfghash"
+core0_hashname0="$hashname"
+core0_hashname="$hashname"
+core0_version_name="${str3}-${devjobtag}${branch}_$hashname"
+core0_build_date="$bdate"
+core0_version_code="$vcode"
+EOF
+echo "generated file vcs_git_env"
+cat vcs_git_env
+. vcs_git_env
+#------------------------java
+cat << EOF > vcs_git_java
+public static final String devjob = "$core0_devjob";
+public static final String devjobtag = "$core0_devjobtag";
+public static final String brand = "$core0_brand";
+public static final String branch = "$core0_branch";
+public static final String codehash = "$core0_codehash";
+public static final String cfghash = "$core0_cfghash";
+public static final String hashname = "$core0_hashname";
+public static final String version_name = "$core0_version_name";
+public static final String build_date = "$core0_build_date";
+EOF
+echo "generated file vcs_git_java"
+#------------------------c++
+cat << EOF > vcs_git_cpp
+std::string us::vcs::devjob = "$core0_devjob";
+std::string us::vcs::devjobtag = "$core0_devjobtag";
+std::string us::vcs::brand = "$core0_brand";
+std::string us::vcs::branch = "$core0_branch";
+std::string us::vcs::codehash = "$core0_codehash";
+std::string us::vcs::cfghash = "$core0_cfghash";
+std::string us::vcs::hashname = "$core0_hashname";
+std::string us::vcs::version_name = "$core0_version_name";
+std::string us::vcs::build_date = "$core0_build_date";
+EOF
+echo "generated file vcs_git_cpp"
+exit 0
+

@@ -1,0 +1,205 @@
+#!/bin/bash
+#===-                           P L E B B L E
+#===-                         https://plebble.us
+#===-
+#===-              Copyright (C) 2017-2022 root1m3@plebble.us
+#===-
+#===-                      GNU GENERAL PUBLIC LICENSE
+#===-                       Version 3, 29 June 2007
+#===-
+#===-    This program is free software: you can redistribute it and/or modify
+#===-    it under the terms of the AGPLv3 License as published by the Free
+#===-    Software Foundation.
+#===-
+#===-    This program is distributed in the hope that it will be useful,
+#===-    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#===-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+#===-
+#===-    You should have received a copy of the General Public License
+#===-    along with this program, see LICENCE file.
+#===-    see https://www.gnu.org/licenses
+#===-
+#===----------------------------------------------------------------------------
+#===-
+
+US="##str3##"
+
+. /home/gov/.${US}/config
+
+usgov="${US}-gov -c ${CHANNEL} -p ${PORT}"
+
+ch=${CHANNEL}
+ip=`hostname -I | awk '{print $1}'`
+gw=`route  -n | grep "^0.0.0.0" | awk '{print $2}' | head -n1`
+nodeid=`$usgov id | awk '{print $NF}'`
+homedir=`$usgov print_home`
+wanep=`$usgov lookup_node $nodeid`
+ports_slot=${PSLOT}
+ssh_port="${ports_slot}71"
+
+if [ $ch -eq 0 ]; then
+  chs="PUBLIC SYSTEM"
+else
+    if [ $ch -gt 1000 ]; then
+        chs="ORGANIZATION"
+    else
+        if [ $ch -eq 1 ]; then
+            chs="PUBLIC SYSTEM (devnet)"
+        else
+            chs="RESERVED"
+        fi
+    fi
+fi
+
+more <<EOF
+----------------------------------------------
+##str4##
+----------------------------------------------
+Channel: $ch $chs
+This node address: $nodeid
+Your local IP address is: $ip
+Your gateway(router) local address is: $gw
+Your public protocol endpoint: $wanep
+SSH Port: $ssh_port
+
+-------------
+Hints, tricks
+-------------
+
+CHANGING YOUR PASSWORD
+----------------------
+sudo passwd gov
+(notice that the screen doen't give you feedback while typing your password twice, it is normal behaviour.)
+
+
+BACKUP YOUR PRIVATE KEYS
+------------------------
+Use another computer.
+Windows:
+ use the program winscp (https://winscp.net) to transfer the private keys file $homedir/wallet/keys.
+ address: $ip
+ port: $ssh_port
+ user: gov
+
+linux/mac:
+  scp gov@$ip:$homedir/wallet/keys .
+
+Store a copy of the file in a dedicated pendrive and keep it safe and secret.
+If you share your private keys your coins and ##str38## could be spent by others.
+If you lose your private keys you've lost your coins and ##str38##.
+If your equipment is damaged or stolen:
+ 1- you would start a new node as soon as possible.
+ 2- import your old private keys from your backup.
+ 3- transfer your coins and ##str38## to new accounts.
+
+
+INSTALL THE ANDROID APP
+-----------------------
+Requisites: Android, Orfox app (install from appstore)
+Navigate to the following location using Orfox: http://otheravu4v6pitvw.onion/
+Then click on the us-cash app link and install the app.
+Configure the app tapping on the small black icon at the bottom of the screen.
+
+
+STACKING UP TO ##str55## NODES BEHIND THE SAME ROUTER
+---------------------------------------------
+  manual port mapping
+  Setup manually a port mapping range in the router:
+  (browse in your PC http://$gw to access the router control panel)
+  WAN 16770-16780  ->  $ip 16670-16680
+  The network will accept up to 6 nodes behind the same ip4 address,
+  further nodes will not be recognized.
+  Port assignments:
+    Node # - Port range
+    -------------------
+    Node 1 - 166[70-80] (meaning 16670-16680)
+    Node 2 - 167[70-80]
+    Node 3 - 168[70-80]
+    Node 4 - 169[70-80]
+    Node 5 - 170[70-80]
+    Node 6 - 171[70-80]
+
+  current value:
+  . /home/gov/.${US}/config
+  echo $PSLOT
+
+KNOW YOUR BALANCE
+-----------------
+  wallet balance      (total ##str38## and coins)
+  wallet balance 1    (breakdown)
+
+
+AUTHORIZED DEVICES
+------------------
+  Such are external programs with rights to use your wallet, included the capability of spending your coins or tokens.
+  e.g. us-cash android app.
+
+  Tomanage devices you would use the fillowing wallet functions:
+   wallet device_id
+   wallet list_devices
+   wallet pair
+   wallet unpair
+  See "wallet help" for detailed help.
+
+THE DATABASE or ACCOUNTS STATE
+------------------------------
+  gov accouts
+  gov sysop app 30 db
+
+
+The public network of nodes
+---------------------------
+  gov nodes
+  gov sysop app 20 db
+  gov sysop app 20 ip4
+
+The private network of traders
+------------------------------
+  gov wallets
+  gov sysop app 40 db
+
+
+SEE YOUR CURRENT NEIGHBOURS
+---------------------------
+  gov sysop s
+  gov sysop gw
+
+
+list of addresses in wallet
+---------------------------
+  wallet list <detail=0>
+  wallet list 1
+  wallet list 2
+
+GENERATE A NEW ADDRESS
+----------------------
+  wallet address new
+
+EXAMPLE - TRANSFER 1000 ##str37## to my donation address
+----------------------------------------------
+  wallet transfer 2Voz3M4UDaERVpyAnfMzmbNL262h 1000 ##str38##
+
+EXAMPLE - TRANSFER from a specified address 1000 ##str37## to my donation address
+----------------------------------------------
+  wallet transfer_from 2gj6RKNHFgBzVd8ymwrsetyChEGK 2Voz3M4UDaERVpyAnfMzmbNL262h 1000 ##str38##
+
+
+CREATE A NEW COIN
+-----------------
+  wallet address new
+  <your-coin>
+  wallet transfer <your-coin> <amount> ##str38##
+  (check your balance until the transaction settles)
+  wallet tx set_supply <your-coin> <initial amount>
+  (check your balance until the transaction settles)
+
+
+EXAMPLE TRANSFER 1 your-coin to my donation address
+---------------------------------------------------
+  wallet transfer 2Voz3M4UDaERVpyAnfMzmbNL262h 1 <your-coin>
+
+
+--
+Copyright (C) ##str59##
+
+EOF

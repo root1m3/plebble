@@ -1,0 +1,61 @@
+#===-                           P L E B B L E
+#===-                         https://plebble.us
+#===-
+#===-              Copyright (C) 2017-2022 root1m3@plebble.us
+#===-
+#===-                      GNU GENERAL PUBLIC LICENSE
+#===-                       Version 3, 29 June 2007
+#===-
+#===-    This program is free software: you can redistribute it and/or modify
+#===-    it under the terms of the AGPLv3 License as published by the Free
+#===-    Software Foundation.
+#===-
+#===-    This program is distributed in the hope that it will be useful,
+#===-    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#===-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+#===-
+#===-    You should have received a copy of the General Public License
+#===-    along with this program, see LICENCE file.
+#===-    see https://www.gnu.org/licenses
+#===-
+#===----------------------------------------------------------------------------
+#===-
+CPPS:=$(wildcard *.cpp)
+OBJS:=$(patsubst %.cpp, %.o, ${CPPS})
+HS:=$(wildcard *.h)
+FCGILIBS:=-lfastcgipp
+CXXFLAGS=-g -O0 -std=c++20 -DDEBUG
+CXX:=g++
+EC:=$(shell pkg-config --libs libsecp256k1)
+INC:=-I../..
+USGOV:=##str3##gov
+LIBUSGOV:=lib##str3##gov
+USWALLET:=##str3##wallet
+LIBUSWALLET:=lib##str3##wallet
+USTEST:=##str3##test
+LIBUSTEST:=lib##str3##test
+LIBS:=-L../test -l${USTEST} -L../wallet -l${USWALLET} -L../gov -l${USGOV}
+ARCH:=$(shell uname -m)
+
+ifeq ($(ARCH),armv7l)
+    LIBS+=-latomic
+endif
+
+RPATH:=-Wl,-rpath,../test -Wl,-rpath,../wallet -Wl,-rpath,../gov
+
+USTESTX:=##str3##-test
+
+all: ${USTESTX}
+
+${USTESTX}: ${OBJS}
+	$(CXX) ${CXXFLAGS} ${RPATH} ${OBJS} ${LIBS} -lstdc++fs -pthread -o ${USTESTX}
+
+%.o: %.cpp
+	$(CXX) -fPIC -c ${CXXFLAGS} ${INC} $^ -o $@
+
+clean:
+	rm -f ${USTESTX}
+	rm -f *.o
+
+.PHONY: all clean
+

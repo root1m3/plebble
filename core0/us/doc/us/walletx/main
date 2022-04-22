@@ -1,0 +1,31 @@
+MAIN
+
+----------------------------------------------------------------------
+555d8ba7d0e922525e94436878b8a5c2fc2de1f0
+bool run_local(string command, shell_args& args, const params& p) {
+
+    Assuming params::get_home_wallet() is ~/.us/wallet
+    params::offline is true --> run as isolated process  
+        instantiates daemon_local_api, gaining capabilities of wallet-daemon
+        home directory is ~/.us/wallet
+        wallet_api obtained calling get_wallet_api(subhome:""); (empty subhome means root wallet as opposite as guest wallet)
+
+    params::offline is false --> run as rpc client (!p.offline)
+        instantiates daemon_rpc_api, connecting to a remote wallet-daemon
+        home directory is ~/.us/wallet/rpc_client
+        wallet_api obtained is for the wallet the remote peer running the daemon selected to give to us, normally it depends on our private key found at ~/.us/wallet/rpc_client/k
+
+
+    both seen as daemon_api* from now.
+    
+    the given command is parsed and executed against daemon_api
+    output is sent to cout
+    
+
+
+
+
+
+
+----------------------------------------------------------------------
+

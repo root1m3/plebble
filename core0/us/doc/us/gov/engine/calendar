@@ -1,0 +1,34 @@
+->--------------------------------------------------------------
+Class calendar
+
+A calendar is a set of evidences ordered by execution time.
+Evidences are processed sequentially at 1sec/1sec rate (calendar speed).
+
+last_processed: uint64_t - time of the last processed evidence.
+               initialized with the time in nanoseconds since 1972 or so elapsed (now) when instance is created.
+
+relay_interval: last_processed is kept relay_interval seconds behinf the real time. Takes into account the delay caused by propagation innefficiency.
+
+-<--------------------------------------------------------------
+
+
+->--------------------------------------------------------------
+bool c::schedule(evidence* e) 
+
+returns true: caller loses ownership and should not deallocate evidence
+       false: caller retains ownership and should deallocate evidence
+
+fails if    
+ * evidence execution time is less or equal to last_processed time (arrived late);
+  
+System assumption. There is only one valid evidence for each nanosecond, the one with lower hash.
+
+-<--------------------------------------------------------------
+
+->--------------------------------------------------------------
+void c::wait() const {
+
+
+
+-<--------------------------------------------------------------
+

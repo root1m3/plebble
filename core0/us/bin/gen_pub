@@ -1,0 +1,143 @@
+#!/bin/bash
+#===-                           P L E B B L E
+#===-                         https://plebble.us
+#===-
+#===-              Copyright (C) 2017-2022 root1m3@plebble.us
+#===-
+#===-                      GNU GENERAL PUBLIC LICENSE
+#===-                       Version 3, 29 June 2007
+#===-
+#===-    This program is free software: you can redistribute it and/or modify
+#===-    it under the terms of the AGPLv3 License as published by the Free
+#===-    Software Foundation.
+#===-
+#===-    This program is distributed in the hope that it will be useful,
+#===-    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#===-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+#===-
+#===-    You should have received a copy of the General Public License
+#===-    along with this program, see LICENCE file.
+#===-    see https://www.gnu.org/licenses
+#===-
+#===----------------------------------------------------------------------------
+#===-
+
+function symlink {
+  src=$1
+  dst=$2
+  if [ "_$dst" == "_" ]; then
+     f=$(basename $src)
+     rm -f $f
+  else
+      rm -f $dst
+  fi
+  ln -s $src $dst
+}
+
+o=""
+sep="======================================================"
+function fun {
+    ts=`date +"%Y-%m-%d_%H-%M-%S"`
+    o="pub/$3.txt"
+    echo "generation timestamp $ts" > $o
+    echo "description: $1" >> $o
+    args="$2"
+    echo "command: gov $args" >> $o
+    echo "output:" >> $o
+    $gov $args | sed -z 's/^\s*//; s/\s*$//' | nl >> $o
+    echo "" >> $o
+    echo $sep >> $o
+    echo "" >> $o
+}
+
+function update {
+    us=$1
+    addr=$2
+    key=$3
+    ch=$4
+
+    . .$us/config
+
+    pub="pub"
+    if [ $ch -ne 0 ]; then
+        pub=$pub/$ch
+    fi
+
+    if [ $CHANNEL -ne $ch ]; then
+        echo "KO 59995 config problem. channel do not match."
+        return
+    fi
+
+    mkdir -p $pub
+    pushd $pub  > /dev/null
+
+        srcdir="/var/us/distr/$us"
+
+        symlink $srcdir/release_notes release_notes.txt
+        symlink $srcdir/sloccount.txt
+
+        rm -f $us-wallet_android*
+        srcfile=`find /var/www/${us}_html/downloads/android -type f | grep "$us-wallet_android_"`
+
+        symlink $srcfile latest
+
+        mkdir -p install_instructions
+        pushd install_instructions  > /dev/null
+                symlink $srcdir/node_setup_instructions_linux.txt
+                symlink $srcdir/node_setup_instructions_windows.txt
+        popd  > /dev/null
+    popd  > /dev/null
+
+
+    gov="$us-gov -c ${CHANNEL} -p ${PORT}"
+    wallet="$us-wallet -c ${CHANNEL} -bp ${PORT} -wp ${WALLET_PORT}"
+
+    fun "Nodes" "sysop app 20 db" "nodes"
+    fun "Accounts" "sysop app 30 db 2" "accounts"
+    fun "Trader endpoints" "sysop app 40 db" "wallets"
+    fun "Status" "sysop watch" "status"
+    fun "Voters" "sysop v" "votes"
+
+    $gov version > $pub/version.txt
+}
+
+if [ ! -f /var/us_nets ]; then
+    echo "KO 59253 cannot find file /var/us_nets"
+    exit 1
+    return
+fi
+
+while read -r line; do
+    US=`echo $line | awk '{print $2}'`
+    addr=`echo $line | awk '{print $3}'`
+    key=`echo $line | awk '{print $4}'`
+    ch=`echo $line | awk '{print $1}'`
+    update $US $addr $key $ch
+done < /var/us_nets
+
+exit 0
+
+fun "help screen" "-h"
+fun "performances" "-perf"
+fun "help screen shell" "-cmd h"
+fun "active edges" "-cmd s"
+fun "syncd info" "-cmd y"
+fun "current block chain" "-cmd n"
+fun "consensus votes" "-cmd v"
+fun "consensus cycle" "-cmd c"
+fun "network perf data" "-cmd ns2"
+fun "watch info" "-cmd watch"
+fun "gov process uptime" "-cmd uptime"
+fun "list public algorithms" "-cmd apps"
+fun "nodes as seed list" "-cmd seeds"
+fun "consensus info" "-cmd consensus"
+fun "app 1 (sys) help" "-cmd app 1 h"
+fun "app 20 (auth) help" "-cmd app 20 db"
+fun "node list" "-cmd app 20 db"
+fun "unique ip addresses" "-cmd app 20 ip4"
+fun "mempool" "-cmd app 20 m"
+fun "lookup node IP4" "-cmd app 20 lookup_node 9crydDy2UNT4godsvQuHDqXrZM9"
+fun "app 30 (cash) help" "-cmd app 30 h"
+fun "The Ledger (the matrix)" "-cmd app 30 db"
+fun "app 30 (cash) mempool" "-cmd app 30 m"
+

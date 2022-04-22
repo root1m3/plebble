@@ -1,0 +1,65 @@
+#!/bin/bash
+#===-                           P L E B B L E
+#===-                         https://plebble.us
+#===-
+#===-              Copyright (C) 2017-2022 root1m3@plebble.us
+#===-
+#===-                      GNU GENERAL PUBLIC LICENSE
+#===-                       Version 3, 29 June 2007
+#===-
+#===-    This program is free software: you can redistribute it and/or modify
+#===-    it under the terms of the AGPLv3 License as published by the Free
+#===-    Software Foundation.
+#===-
+#===-    This program is distributed in the hope that it will be useful,
+#===-    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#===-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+#===-
+#===-    You should have received a copy of the General Public License
+#===-    along with this program, see LICENCE file.
+#===-    see https://www.gnu.org/licenses
+#===-
+#===----------------------------------------------------------------------------
+#===-
+
+sf=$1
+of=$2
+
+if [ "_$sf" == "_" ]; then
+    echo "Outputs template env base file with values found in override_file"
+    echo "base_file override_file"
+    exit 1
+fi
+
+. $sf
+if [ -f $of ]; then
+    . $of
+fi
+
+while read -r line; do
+    trimline=`echo "$line" | sed "s~\s*\(.*\)\s*~ \1~"` #1 space + trimmed content
+    comment=`echo "$trimline" | sed "s~.*\s#\(.*\)~\1~"` #everything after ' #'
+    if [[ "_$comment" == "_$trimline" ]]; then #line w/o comment
+        comment=""
+        cont=`echo "$trimline" | sed "s~^\s*\(.*\)\s*~\1~"` #trimmed content
+    else
+        cont=`echo "$trimline" | sed "s~^\s*\(.*\)\s*#.*~\1~"` #trimmed content
+    fi
+    var=`echo "$cont" | sed "s/^\(.*\)=.*/\1/"`
+    if [ "_$var" != "_" ]; then
+        val=${!var}
+        if grep -q "=\"" <<< "$cont" ; then
+            echo -n "$var=\"$val\""
+        else
+            echo -n "$var=$val"
+        fi
+        if [ "_$comment" != "_" ]; then
+            echo -n "         #$comment"
+        fi
+        echo ""
+    else
+        echo $line
+    fi
+done < $sf
+exit 0
+

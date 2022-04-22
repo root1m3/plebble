@@ -1,0 +1,37 @@
+#!/bin/bash
+. /home/gov/.us/config
+
+wallet="/usr/local/bin/us-wallet -c $CHANNEL -bp ${PORT} -wp ${WALLET_PORT} "
+cwallet="/usr/local/bin/us-wallet -c $CHANNEL"
+gov="/usr/local/bin/us-gov -c $CHANNEL"
+ans=`$wallet ping`
+
+echo "wallet command: $wallet"
+
+expected="walletd said: us-gov daemon... is OK, it said: pong"
+if [ "_$ans" != "_$expected" ]; then
+        echo "fail 10"
+        echo "expected: '$expected'"
+        echo "got:      '$ans'"
+        exit 1
+fi
+
+
+#addr="2PZx5WBDZjU4zVbbqKpMNBSMDYiC"
+#coin="29VxdWgN4mTHmZUjHXyHaDpNbYV1"
+addr="25NeAt84fWvYcUas1vUfcTqZXRfh"
+coin="3W1khAsEKZ1cUZya6pKFP6zTeFak"
+
+let n=0;
+echo $addr
+while [ true ]; do
+$wallet transfer $addr 1 $coin
+if [ $? -ne 0 ]; then
+  echo "failed wallet"
+  break
+fi
+let n=n+1
+echo "transfered 1 to $addr; total $n"
+done
+
+

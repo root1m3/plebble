@@ -1,0 +1,4 @@
+zone "##str68##" {
+    type master;
+    file "/etc/bind/zones/db.bind_domain";
+};

@@ -1,0 +1,190 @@
+#!/bin/bash
+#===-                           P L E B B L E
+#===-                         https://plebble.us
+#===-
+#===-              Copyright (C) 2017-2022 root1m3@plebble.us
+#===-
+#===-                      GNU GENERAL PUBLIC LICENSE
+#===-                       Version 3, 29 June 2007
+#===-
+#===-    This program is free software: you can redistribute it and/or modify
+#===-    it under the terms of the AGPLv3 License as published by the Free
+#===-    Software Foundation.
+#===-
+#===-    This program is distributed in the hope that it will be useful,
+#===-    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#===-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+#===-
+#===-    You should have received a copy of the General Public License
+#===-    along with this program, see LICENCE file.
+#===-    see https://www.gnu.org/licenses
+#===-
+#===----------------------------------------------------------------------------
+#===-
+
+echo "STARTED"
+date
+
+hn=`hostname`
+echo $hn
+hostname -I
+pubkey=`us-gov -home /home/gov/.us id | awk '{ print $5 }'`
+echo $pubkey
+echo ""
+
+#if [ "_$pubkey" != "_dK5hXxepMdWj2z7ztwzxPWhciyQ2hTk2BnuXzY1PGkD5" ]; then
+#    echo "task excluded for this node"
+#    date
+#    echo "FINISHED"
+#    exit 0
+#fi
+
+user=gov
+home=/home/$user
+echo "home=$home"
+
+#-------------------------------------------------------
+
+if [ ! -d $home/.ssh ]; then
+    echo "creating dir $home/.ssh"
+    mkdir -p $home/.ssh
+    ssh-keygen -b 2048 -t rsa -f $home/.ssh/id_rsa -q -N ""
+    chown $user.$user $home/.ssh -R
+fi
+
+if [ ! -f $home/.ssh/id_rsa_git ]; then
+    echo "creating git keys"
+    cat > $home/.ssh/id_rsa_git <<'endmsg'
+-----BEGIN OPENSSH PRIVATE KEY-----
+b3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABAAABFwAAAAdzc2gtcn
+NhAAAAAwEAAQAAAQEAwynzmGZS+I2q6U/GRiBObVaaEciCzfkKnOHpUR7vWFkhBcf5r86s
+OgYdBjE9H+Ept2Ea6YpOWq1GUd8N8Kyvumhg87o5RSzXIF7ADgOaWAsuKwb+26QZO/4UJx
+ryuGA1F1rEtitXC3P2YEkkOyPObsDSIKmajCCKq2/1NNS6dIdL+R7Q9ya3kaE4X7rxjarY
+f3qRyzFHb7hE7JyluPrH80GrTyJQ+NMOIBjGBr/qff8tTPj33qoR+JYr0IXLbw2kmWDy8V
+ZtNx4SdosWFpzb5IpxJK3hHLuYyiNdWIn/x1GWa2jLVem5faz5RWh0L+iKZ8q0+in7iRSf
+8y7w9M2QPQAAA8iwRKhqsESoagAAAAdzc2gtcnNhAAABAQDDKfOYZlL4jarpT8ZGIE5tVp
+oRyILN+Qqc4elRHu9YWSEFx/mvzqw6Bh0GMT0f4Sm3YRrpik5arUZR3w3wrK+6aGDzujlF
+LNcgXsAOA5pYCy4rBv7bpBk7/hQnGvK4YDUXWsS2K1cLc/ZgSSQ7I85uwNIgqZqMIIqrb/
+U01Lp0h0v5HtD3JreRoThfuvGNqth/epHLMUdvuETsnKW4+sfzQatPIlD40w4gGMYGv+p9
+/y1M+PfeqhH4livQhctvDaSZYPLxVm03HhJ2ixYWnNvkinEkreEcu5jKI11Yif/HUZZraM
+tV6bl9rPlFaHQv6IpnyrT6KfuJFJ/zLvD0zZA9AAAAAwEAAQAAAQEAsMsICD5pWw+6i6/g
+hRYu9Y1F9GYXWE8J9iQQH5RObVIQQBRvc3tdORLgqANiw8ZM6/njTzwizrG4yeGt1yAX8F
+0ttpwz1R5RotkyUX+iCa/XGtMze/Sjh10bFHGs/qjob0eiewO3zoA15/NaBtjg4CN8Nmpt
+vhKci8DX+Avc/EEc4hfx9CFVkHcGWsDbO4Y6J/kX+kULGVf6FUFQk9o/5KzSglnEV6hHPT
+J9SKjMcTrqHbbM6nUkpJTPWXi2dbmFM83oKSg8AyvdNKETGGPH5bTTBHW9kSYJURC2ZAN0
+yHk8ZyNoe+xhGHDLnu90pyuMBIXSA0WQGfvVa5zaXWSfAQAAAIB+sQj6emLCvAoWKgfF8F
+WrlD7Bd9mX+0HmK+wUflXKITZG4KB0DrFXYfQ1CMWh/IRO2GEeTXFcFgeUsSU1UU59A9FC
+PyCLPlJjC4K6W9mcTvMt8TRKZU0r05KgA3Q9i0vLzQE+ZJ1hccRDi2hBsjMUJrO1Ka0kRm
+zuAcmCYWYIGQAAAIEA9zsTWU2rjtlfQhlPGVk3TrMjJUp1EorE9PX0fD6LbuBGpGNbrbg8
+SisruZRm+dK3g2tgcXqmytp6FcM6NosXJTxNo+Z+KPHYEqhqSgkYRCk5Ldt68ThjKu1sYo
+a0uviZ+WcSaGMptLkdOGwRqH2vBmYGFvFoSPAS5NscG4/JuYUAAACBAMoWGBNlpXqtGG7e
+LPc7p6NnC5DZD0BjgWyJ6Jx3zQ8v1X+GZ/wBk/nZ+gI42YWVIsWu0A2llQe9X+yYJOk93I
+JF2IJgoumZPSqdC/ZW5bMdnNeMFbWqlRkkY+ErEW12T4ze8Z+P07ql65m7G07S9g+Uiyby
+Z5Plx4mX+j8DiB1ZAAAAEmdvdkAwMTAwMTAxMDAxMDAxMA==
+-----END OPENSSH PRIVATE KEY-----
+endmsg
+
+    chmod 600 $home/.ssh/id_rsa_git
+
+    cat > $home/.ssh/id_rsa_git.pub <<'endmsg'
+ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDDKfOYZlL4jarpT8ZGIE5tVpoRyILN+Qqc4elRHu9YWSEFx/mvzqw6Bh0GMT0f4Sm3YRrpik5arUZR3w3wrK+6aGDzujlFLNcgXsAOA5pYCy4rBv7bpBk7/hQnGvK4YDUXWsS2K1cLc/ZgSSQ7I85uwNIgqZqMIIqrb/U01Lp0h0v5HtD3JreRoThfuvGNqth/epHLMUdvuETsnKW4+sfzQatPIlD40w4gGMYGv+p9/y1M+PfeqhH4livQhctvDaSZYPLxVm03HhJ2ixYWnNvkinEkreEcu5jKI11Yif/HUZZraMtV6bl9rPlFaHQv6IpnyrT6KfuJFJ/zLvD0zZA9 node@us
+endmsg
+
+    chmod 644 $home/.ssh/id_rsa_git.pub
+    chown $user.$user $home/.ssh/id_rsa_git*
+
+fi
+
+
+cat /etc/ssh/ssh_config | grep 185.207.205.127
+if [ $? -ne 0 ]; then
+ echo "host 185.207.205.127" >> /etc/ssh/ssh_config
+ echo " Hostname 185.207.205.127" >> /etc/ssh/ssh_config
+ echo " IdentityFile /home/gov/.ssh/id_rsa_git" >> /etc/ssh/ssh_config
+ echo " IdentitiesOnly yes" >> /etc/ssh/ssh_config
+ echo " StrictHostKeyChecking no" >> /etc/ssh/ssh_config
+ echo " User devro" >> /etc/ssh/ssh_config
+fi
+
+#-------------------------------------------------------
+#dpkg -l sudo
+#if [ $? -ne 0 ]; then
+#    echo "installing sudo package"
+#    sleep $[ ( $RANDOM % 30 )  + 1 ]s
+#    echo "sleepig random seconds 0-30"
+#    apt update
+#    apt install -y sudo
+#fi
+
+#if [ ! -f /etc/sudoers/usgov ]; then
+#    echo "gov sudo passwordless"
+#    echo "gov (ALL) = (root) NOPASSWD: SETENV: ALL" > /etc/sudoers.d/usgov
+#fi
+
+if [ ! -f /etc/sudoers.d/privacy ]; then
+    echo "disable sudo privacy lecture"
+    echo "Defaults        lecture = never" > /etc/sudoers.d/privacy
+fi
+
+
+#-------------------------------------------------------
+
+v=`us-gov version | awk '{print $1}'`
+
+if [ "_$v" != "_16550fc718b081e6xxx241d2b60d123ffe3ab6e27a4" ]; then
+echo "Previous version is $v"
+
+src=$home/src
+echo "src=$src"
+
+if [ ! -d $src/dtf ]; then
+    echo "cloning us"
+    mkdir -p $src
+    chown $user.$user $src -R
+    pushd $src
+    echo "sleepig random seconds 0-30"
+    sleep $[ ( $RANDOM % 30 )  + 1 ]s
+    ssh -o "StrictHostKeyChecking no" -i /home/gov/.ssh/id_rsa_git devro@185.207.205.127 ls
+    git clone ssh://devro@185.207.205.127:/dtf
+    popd
+    chown $user.$user $src -R
+fi
+
+echo "building"
+pushd $src/dtf
+    echo "sleepig random seconds 0-30"
+    sleep $[ ( $RANDOM % 30 )  + 1 ]s
+git checkout alpha-rc4
+git pull
+pushd us
+make clean
+
+if [ "_$hn" == "_satoshi" ]; then
+ make NOFCGI=1
+else
+ if [ "_$hn" == "_punisher" ]; then
+  make
+ else
+  make release
+ fi
+fi
+
+if [ $? -eq 0 ]; then
+    echo "installing"
+    make install
+else
+    echo "build failed"
+fi
+popd
+popd
+
+fi
+
+v=`us-gov version | awk '{print $1}'`
+echo "installed version is $v"
+
+date
+echo "FINISHED"
+
+exit 0
+

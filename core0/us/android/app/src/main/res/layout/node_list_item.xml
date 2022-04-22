@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8"?>
+<GridLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content"
+    android:columnCount="3"
+    android:rowCount="3"
+    android:layout_gravity="top|left"
+    android:orientation="horizontal"
+    android:background="@color/cardview_light_background"
+    >
+
+    <RelativeLayout
+        android:id="@+id/badge_layout1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_row="1"
+        android:layout_column="0" 
+        android:gravity="center_vertical">
+
+        <RelativeLayout
+            android:id="@+id/relative_layout"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            >
+
+            <ImageView
+                android:id="@+id/img"
+                android:layout_width="58dp"
+                android:layout_height="58dp"
+                android:padding="5dp"
+                android:layout_rowSpan="2"
+                android:src="@drawable/ic_node_busy"
+                android:gravity="center_vertical" />
+
+        </RelativeLayout>
+
+        <TextView
+            android:id="@+id/badge_balloon"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignRight="@id/relative_layout"
+            android:background="@drawable/item_count"
+            android:text="0"
+            android:textColor="#FFF"
+            android:textSize="10sp"
+            android:visibility="invisible"
+            android:textStyle="bold" />
+    </RelativeLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_row="1"
+        android:layout_column="1"
+        >
+
+        <TextView
+            android:id="@+id/subject"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Subject"
+            android:textSize="18dp"
+            android:textStyle="bold"
+            />
+
+        <TextView
+            android:id="@+id/the_item"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text=""
+            android:textSize="20dp"
+            android:textStyle="bold"
+            />
+
+        <TextView
+            android:id="@+id/the_item2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="#808080"
+            android:text=""
+            android:textSize="16dp"
+            />
+
+        <TextView
+            android:id="@+id/the_item3"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="#808080"
+            android:text=""
+            android:textSize="14dp"
+            android:typeface="serif"
+            android:visibility="gone"
+            />
+    </LinearLayout>
+
+</GridLayout>

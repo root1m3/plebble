@@ -1,0 +1,4 @@
+HiddenServiceDir /var/lib/tor/##str3##_hidden/
+HiddenServicePort ##str22## ##str23##
+
+

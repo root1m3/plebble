@@ -1,0 +1,56 @@
+CONFIGURE SOURCES
+=================
+
+ bin/configure
+
+BUILD
+=====
+
+ C++:  core programs (us-gov, us-wallet): ........ make
+ java: SDK for console apps: ..................... cd sdk/wallet/java; make bouncy
+       SDK for android apps: ..................... cd sdk/wallet/java; make spongy
+       wallet java console client (us-walletj): .. cd walletj; make
+       us.cash (SDK+android app): ................ make android
+
+TOOLS
+=====
+
+bin:
+    devops/node/maintenance programs.
+
+api: 
+    Master tables for API spec. Code generator.
+
+C++
+===
+
+antier: api
+    Anonimization overlay. Datagram transport. C++
+
+gov: api antier
+    Public protocol daemon. 
+
+govx: gov
+    RPC console interface for public network. us-gov
+
+wallet: api antier 
+    wallet server
+
+walletx: wallet
+    console wallet RPC-client.
+
+test: api wallet gov
+    Unit tests. E2E tests.
+
+JAVA
+====
+
+antierj: api
+    Anonimization overlay. Datagram transport. Java
+
+sdk/wallet/java: antierj spongycastle bouncycastle
+    wallet RPC-client development library for building wallet apps. 
+
+android: sdk android_sdk
+    GUI wallet RPC-client. Android app.
+

@@ -1,0 +1,16 @@
+#!/bin/sh -e
+echo "starting bootstrap in 5 sec"
+sleep 5
+echo "##str1## -- bootstrap - It will take some minutes to complete, please be patient"
+ts=`date +%y%m%d_%H%M%S`
+/usr/local/bin/setup_debian 2>&1 | tee /root/bootstraplog_$ts
+if [ $? -ne 0 ]; then
+    echo "Please report error to ##str2##."
+    sleep infinity
+fi
+echo "Rebooting in 30 sec"
+sleep 30
+reboot
+exit 0
+
+

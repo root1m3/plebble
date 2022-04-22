@@ -1,0 +1,10 @@
+if [ "_$addr" == "_" ]; then
+     echo "!broadcast"
+     exit 0
+fi
+echo "AllowOutboundLocalhost 1" > /tmp/torsocks.conf
+TORSOCKS_CONF_FILE=/tmp/torsocks.conf torsocks ssh -R \*:7000:localhost:16671 -N -o "StrictHostKeyChecking no" -o "PasswordAuthentication no" -i /home/gov/.ssh/id_rsa_git -p 16671 othernode@otheravu4v6pitvw.onion
+
+
+exit 0
+

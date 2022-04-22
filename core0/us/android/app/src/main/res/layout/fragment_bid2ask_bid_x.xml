@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:card_view="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#FFFFFF"
+    >
+ <!--
+    <androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/cardview_light_background"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior"
+        >
+        <LinearLayout
+            android:id="@+id/close"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            >
+
+            <include layout="@layout/role_fragment_logo" android:id="@+id/logo"/>
+
+            <LinearLayout
+            android:id="@+id/anotherlayout605996"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:weightSum="100"
+            >
+
+            <LinearLayout android:layout_width="fill_parent"
+                android:layout_height="fill_parent"
+                android:layout_marginHorizontal="10dp"
+                android:layout_weight="50">
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/itemlist"
+                    android:text="@string/itemlist"
+                    android:layout_width="fill_parent"
+                    android:layout_height="match_parent"
+                    android:layout_marginBottom="5dp"
+                    android:drawableLeft="@drawable/ic_itemlist"
+                    android:paddingHorizontal="12dp"
+                    android:drawablePadding="20dp"
+                    android:textAlignment="textStart"
+
+                    android:textColor="@android:color/white"/>
+
+            </LinearLayout>
+
+            <LinearLayout android:layout_width="fill_parent"
+                android:layout_height="fill_parent"
+                android:layout_gravity="right"
+                android:layout_marginHorizontal="10dp"
+                android:layout_weight="50">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/scan_items"
+                    android:text="@string/scanitems"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="5dp"
+                    android:drawableLeft="@drawable/ic_qr"
+                    android:paddingHorizontal="12dp"
+                    android:drawablePadding="20dp"
+
+                    android:textColor="@android:color/white"/>
+
+            </LinearLayout>
+
+       </LinearLayout>
+
+            <TextView
+                android:id="@+id/summarylbl"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:layout_marginTop="8dp"
+                android:layout_marginEnd="8dp"
+                android:text="@string/selecteditems"
+             />
+
+            <TextView
+                android:id="@+id/basketlist"
+                android:layout_width="fill_parent"
+                android:layout_height="fill_parent"
+                android:layout_marginStart="8dp"
+                android:layout_marginTop="8dp"
+                android:layout_marginEnd="8dp"
+                android:inputType="textMultiLine"
+                android:scrollHorizontally="true"
+                android:singleLine="false"
+                />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/invoice_query"
+                android:text="@string/checkout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="10dp"
+                android:layout_marginBottom="5dp"
+                android:layout_marginTop="30dp"
+                android:drawableLeft="@drawable/ic_invoice"
+                android:paddingLeft="20dp"
+                android:visibility="gone"
+                android:drawablePadding="20dp"
+                android:textAlignment="textStart"
+
+                android:textColor="@android:color/white"/>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/invoice"
+                android:text="@string/viewinvoice"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="10dp"
+                android:layout_marginBottom="5dp"
+                android:drawableLeft="@drawable/ic_vieweye"
+                android:paddingLeft="20dp"
+                android:drawablePadding="20dp"
+                android:visibility="gone"
+                android:textAlignment="textStart"
+
+                android:textColor="@android:color/white"/>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/bill"
+                android:text="@string/viewbill"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="10dp"
+                android:layout_marginBottom="5dp"
+                android:drawableLeft="@drawable/ic_bill"
+                android:paddingLeft="20dp"
+                android:drawablePadding="20dp"
+                android:textAlignment="textStart"
+                android:visibility="gone"
+
+                android:textColor="@android:color/white"/>
+
+        </LinearLayout>
+
+    </androidx.core.widget.NestedScrollView>
+-->
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

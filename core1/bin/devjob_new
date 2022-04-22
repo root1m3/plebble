@@ -1,0 +1,239 @@
+#!/bin/bash
+#===-                           P L E B B L E
+#===-                         https://plebble.us
+#===-
+#===-              Copyright (C) 2017-2022 root1m3@plebble.us
+#===-
+#===-                      GNU GENERAL PUBLIC LICENSE
+#===-                       Version 3, 29 June 2007
+#===-
+#===-    This program is free software: you can redistribute it and/or modify
+#===-    it under the terms of the AGPLv3 License as published by the Free
+#===-    Software Foundation.
+#===-
+#===-    This program is distributed in the hope that it will be useful,
+#===-    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#===-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+#===-
+#===-    You should have received a copy of the General Public License
+#===-    along with this program, see LICENCE file.
+#===-    see https://www.gnu.org/licenses
+#===-
+#===----------------------------------------------------------------------------
+#===-
+
+if [[ ! -f ./.cbs/config ]]; then
+    echo "Not implemented yet. generate+import devjob from/to another devjob"
+    exit 1
+else
+    . ./.cbs/config
+fi
+
+function help {
+    echo "$0 [--upload] [--brand <brand>] [--workdir <name>] [--branch <branch>]"
+    echo -n "Available brands: "
+    ls -1 $brands | xargs
+}
+
+let upload=0
+brand=""
+workdir=""
+upstream_branch="main"
+
+while [ true ]; do
+    opt=$1
+    shift
+    if [ "_$opt" == "_--upload" ]; then
+        let upload=1
+        continue
+    elif [ "_$opt" == "_--brand" ]; then
+        brand=$1
+        shift
+        continue
+    elif [ "_$opt" == "_--branch" ]; then
+        branch=$1
+        shift
+        continue
+    elif [ "_$opt" == "_--workdir" ]; then
+        workdir=$1
+        shift
+        continue
+    elif [[ _$opt == _-* ]]; then
+        echo "KO 60594 Invalid flag $opt"
+        help
+        exit 1
+    else
+        echo "end parsing flags"
+        break
+    fi
+done
+
+if [[ "_$brand" == "_" ]]; then
+    echo "KO 38723 Invalid brand"
+    help
+    exit 1
+fi
+if [[ ! -d $brands/$brand ]]; then
+    echo "KO 38723 Invalid brand"
+    help
+    exit 1
+fi
+
+echo "branch $branch"
+
+if [[ -f ./.cbs/config_$brand ]]; then
+    echo "loading config for brand $brand"
+    . ./.cbs/config_$brand
+fi
+
+if [[ "_$branch" == "_" ]]; then
+    echo "KO 38223 Invalid branch"
+    help
+    exit 1
+fi
+
+GNUPGHOME=$dj_gpgh gpg -K --keyid-format SHORT | grep $dj_gpgkey > /dev/null
+if [[ $? -ne 0 ]]; then
+    echo "KO 34023 Key $dj_gpgkey not found in $dj_gpgh"
+    exit 1
+fi
+
+GNUPGHOME=$gpgh gpg -K --keyid-format SHORT | grep $gpgkey > /dev/null
+if [[ $? -ne 0 ]]; then
+    echo "KO 34024 Key $gpgkey not found in $gpgh"
+    exit 1
+fi
+
+hash=`date +%c%N | sha256sum | awk '{print $1}' | cut -c1-8`
+djid="devjob_${hash}"
+if [[ "_$workdir" == "_" ]]; then
+    workdir=$djid
+fi
+
+if [[ -d $workdir ]]; then
+    echo "KO 76092 directory $workdir already exists."
+    exit 1
+fi
+
+gitdir="${workdir}.git"
+
+if [[ -d $gitdir ]]; then
+    echo "KO 76092 directory $gitdir already exists."
+    exit 1
+fi
+
+if [[ "_${gitrep}" == "_" ]]; then
+    echo "gitrep is not set."
+    exit 1
+fi
+
+if [[ ! -d $brands/$brand/devjob_skel ]]; then
+    echo "$brands/$brand/devjob_skel doesnt exist."
+    exit 1
+fi
+
+echo "workdir $workdir"
+echo "gitdir $gitdir"
+echo "upload $upload"
+echo "dj_author $dj_author"
+echo "yes?"
+read a
+
+git init --bare $gitdir
+git clone $gitdir
+
+#workdir, branch, gitrep
+
+pushd $workdir > /dev/null
+    echo "git clone -b $branch --single-branch ${gitrep}"
+    git clone -b $branch --single-branch ${gitrep} downstream
+    pushd downstream > /dev/null
+        downstream_hash=`git log | grep "^commit" | head -n1 | awk '{ print $2 }'`
+    popd > /dev/null
+    rm -rf downstream/.git
+#echo "XXXXXXXXXXXXX"
+#exit 1
+    cat << EOF > .revs
+upstream_hash=
+upstream_branch=${upstream_branch}
+downstream_hash=${downstream_hash}
+downstream_branch=${branch}
+devjob_id=${djid}
+EOF
+    pushd downstream > /dev/null
+        echo "Licensing core0"
+        pushd core0/us > /dev/null
+            bin/patch_src -a ../../core2/brands/$brand/source_code_header
+            if [[ $? -ne 0 ]]; then
+                echo "KO 79680 patch_src failed"
+                exit 1
+            fi
+        popd > /dev/null
+        echo "licensing core1"
+        pushd core1 > /dev/null
+            bin/patch_src -a ../core2/brands/$brand/source_code_header
+            if [[ $? -ne 0 ]]; then
+                echo "KO 79681 patch_src failed"
+                exit 1
+            fi
+        popd > /dev/null
+    popd > /dev/null
+    mv downstream/core0 .
+    mv downstream/core1 .
+
+    mkdir core1/brands
+    mv downstream/core2/brands/$brand core1/brands/
+    mv downstream/bin/* bin/
+    rm downstream -rf
+    cp core1/brands/$brand/devjob_skel/* ./ -R
+    cp core1/brands/$brand/LICENSE ./
+
+    #git add bin/*
+    git add README.md
+    git add LICENSE
+    git add core0
+    git add core1
+    git add bin
+    #git add .gitignore
+    git add .revs
+    #gpg id must have no passphrase!
+    echo "GNUPGHOME=$dj_gpgh git commit -q -m \"L ${downstream_hash}\" --author=\"$dj_author\" -S$dj_gpgkey"
+    GNUPGHOME=$dj_gpgh git commit -q -m "ds ${downstream_hash}" --author="$dj_author" -S$dj_gpgkey
+    if [[ $? -ne 0 ]]; then
+        echo "KO 87096 Error signing commit"
+        exit 1
+    fi
+    upstream_hash=`git log | grep "^commit" | head -n1 | awk '{ print $2 }'`
+    cat << EOF > .revs
+upstream_hash=${upstream_hash}
+upstream_branch=${upstream_branch}
+downstream_hash=${downstream_hash}
+downstream_branch=${branch}
+devjob_id=${djid}
+EOF
+    git add .revs
+    echo "GNUPGHOME=$dj_gpgh git commit -q -m \"revs\" --author=\"$dj_author\" -S$dj_gpgkey"
+    GNUPGHOME=$dj_gpgh git commit -q -m "revs" --author="$dj_author" -S$dj_gpgkey
+    if [[ $? -ne 0 ]]; then
+        echo "KO 87097 Error signing commit"
+        exit 1
+    fi
+    git push
+popd > /dev/null
+
+if [[ $upload -eq 1 ]]; then
+    tar -I zstd -cf ${gitdir}.zst $gitdir
+    rm -rf $gitdir
+    rm -rf $workdir
+
+    ${devjob_scp} ${gitdir}.zst ${devjob_ssh_host}:/home/dev/
+    ${devjob_ssh} ${devjob_ssh_host} "pushd /var/www/html/jobs; ln -s /home/dev/${gitdir}.zst; popd; pushd /home/dev; tar -I zstd -xf ${gitdir}.zst; chown dev.dev ${gitdir} -R; popd"
+
+    echo "wget ${devjob_puburl_host}/jobs/${gitdir}.zst"
+    echo "git clone ${devjob_clone_prefix}/${gitdir}"
+else
+    echo ${gitdir}
+fi
+
+exit 0
+

@@ -1,0 +1,322 @@
+#!/bin/bash
+#===-                           P L E B B L E
+#===-                         https://plebble.us
+#===-
+#===-              Copyright (C) 2017-2022 root1m3@plebble.us
+#===-
+#===-                      GNU GENERAL PUBLIC LICENSE
+#===-                       Version 3, 29 June 2007
+#===-
+#===-    This program is free software: you can redistribute it and/or modify
+#===-    it under the terms of the AGPLv3 License as published by the Free
+#===-    Software Foundation.
+#===-
+#===-    This program is distributed in the hope that it will be useful,
+#===-    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#===-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+#===-
+#===-    You should have received a copy of the General Public License
+#===-    along with this program, see LICENCE file.
+#===-    see https://www.gnu.org/licenses
+#===-
+#===----------------------------------------------------------------------------
+#===-
+echo "##################"
+echo "## 20_make_core ##"
+echo "##################"
+
+if [[ -f ./.cbs/config ]]; then
+    . ./.cbs/config
+else
+    echo "KO 85850 Missing .cbs/config."
+    exit 1
+fi
+
+function help {
+    echo " --local-build    "
+}
+
+grootkey=`ush show_groot_key`
+ssh="ssh -i $grootkey "
+hash=""
+branch=""
+local_build=0
+
+while [ true ]; do
+  opt=$1
+  echo "read opt=$opt"
+  shift
+  if [ "_$opt" == "_--local-build" ]; then
+    echo " [local build]"
+    local_build=1
+    continue
+  else
+    echo "end parsing flags"
+    break
+  fi
+done
+
+build_jobs=$opt
+if [ "_$build_jobs" == "_" ]; then
+    help
+    echo -n "specify which one: "
+    find . -maxdepth 1 -type d -name "build_jobs*" | sed "s~^\./~~" | xargs
+    exit 1
+fi
+echo "using dir $build_jobs"
+
+function do_arch {
+    host=$1
+    sshport=$2
+    echo "do_arch $host:$sshport"
+    arch=`$ssh -p$sshport $host "uname -m"`
+    echo "do_arch $host $arch"
+    echo "uploading $build_jobs"
+    rsync -r -e "$ssh -p$sshport" --progress --delete -a ${build_jobs}.tzst $host:/root/
+    if [[ ! -d distr/deps ]]; then
+        echo "need to build deps first."
+        exit 1
+    fi
+    rm -f deps.tzst
+    tar -I zstd -cf distr_deps.tzst distr/deps
+    echo "sending deps to $host:/root/"
+    $ssh -p$sshport $host "rm -rf /root/distr"
+    rsync -r -e "$ssh -p$sshport" --progress --delete -a distr_deps.tzst $host:/root/
+    echo "building $arch"
+    cat << EOF > /tmp/make.sh
+#!/bin/bash
+#------------------------------remote
+pushd /root >/dev/null;
+    rm -rf distr
+    tar -I zstd -xf distr_deps.tzst
+    pushd distr/deps >/dev/null
+        ./install_deps
+        if [ $? -ne 0 ]; then
+            echo "Errors occurred installing deps."
+            exit 1
+        fi
+    popd >/dev/null
+    rm -rf ${build_jobs}
+    tar -I zstd -xf $build_jobs.tzst
+    pushd $build_jobs >/dev/null
+       ./make.sh core
+    popd >/dev/null
+    rm -rf core
+    mv $build_jobs core
+    tar -I zstd -cf core.tzst core
+    echo "===DONE==="
+popd > /dev/null
+exit 0
+#------------------------------remote
+EOF
+    chmod +x /tmp/make.sh
+    rsync -r -e "$ssh -p$sshport" --progress --delete -a /tmp/make.sh $host:/root/
+    $ssh -p$sshport $host ". .bash_profile; rm -f foo.*; touch foo.out; touch foo.err; nohup ./make.sh > foo.out 2> foo.err < /dev/null &"
+}
+
+function wait_done {
+    archs=$1
+    for arch in $archs; do
+        vhost=host_$arch
+        vport=port_ssh_$arch
+        host=${!vhost}
+        port=${!vport}
+        do_arch ${host} ${port}
+    done
+    prog="?"
+    progtot="?"
+    perc="?"
+    progdbfile=progress_20_db
+    if [[ -f $progdbfile ]]; then
+        prog="0"
+        progtot=`cat $progdbfile | wc -l`
+        perc="0"
+    fi
+    while [ true ]; do
+        echo "archs left: $archs"
+        if [ "_$archs" == "_" ]; then
+            break
+        fi
+        for arch in $archs; do
+            vhost=host_$arch
+            vport=port_ssh_$arch
+            host=${!vhost}
+            port=${!vport}
+            #echo "querying $arch host $host"
+            s=`$ssh -p$port $host "cat foo.err | grep -v \"^distcc\" | head -n1"`
+            if [ "_$s" != "_" ]; then
+                $ssh -p$port $host "killall make; killall make.sh; killall cc1plus"
+                echo "Complete cerr file: $ssh -p$port $host \"cat foo.err\""
+                echo "1st Error: $s"
+                exit 1
+                break
+            fi
+            s=`$ssh -p$port $host "tail -n1 foo.out"`
+            if [[ -f $progdbfile ]]; then
+                obj=`echo $s | awk '{print $NF}'`
+                nprog=`cat $progdbfile | grep "^[ ]*${prog}.*" -A100000 | grep $obj | awk '{print $1}' | head -n1`
+                if [[ $? -eq 0 ]]; then
+                    if [[ "_$nprog" != "_" ]]; then
+                        prog=$nprog
+                        perc=`echo "${prog} * 100/${progtot}" | bc`
+                    fi
+                fi 
+            fi
+            echo "$arch @$host [$prog/$progtot $perc%]: $s"
+            if [[ $s = ===DONE===* ]]; then
+                arch=`$ssh -p$port $host "uname -m"`
+                archs=`echo "$archs" | sed "s#$arch ##"`
+                echo "fetching $arch binaries"
+                rsync -r -e "$ssh  -p$port" --progress  -a $host:/root/core.tzst ./
+                tar -I zstd -xf core.tzst
+                rsync -r -e "$ssh  -p$port" --progress  -a $host:/root/foo.out ./foo20
+                cat foo20 | grep '.o$' | awk '{print $NF}' | uniq | nl > $progdbfile
+                rm -f foo20
+                break
+            fi
+            sleep 15
+        done
+    done
+    echo "all jobs finished"
+}
+
+function do_arch_localhost {
+    arch=`uname -m`
+    cp $build_jobs/* core/ -R
+    pushd core > /dev/null
+        echo "Compiling core..."
+        ./make.sh core
+        if [[ $? -ne 0 ]]; then
+            echo "Errors from $host $arch"
+            exit 1
+        fi
+    popd > /dev/null
+    #mv core/build_hashes core/build_hashes_$arch
+}
+
+function move_to_distr {
+    mkdir -p $distr
+    c1hash=""
+
+    for file in `find core -type f -name "build_hashes_*"`; do
+        arch=`echo $file | sed "s/.*build_hashes_\(.*\)/\1/"`
+        echo "source bin/20_make_core arch $arch" >> $distr/build_hashes
+        cat $file >> $distr/build_hashes
+        rm $file
+    done
+
+    #num architectures
+    num=`find core -name "*-dev.tgz" | tr '/' ' ' | awk '{print $NF}' | sort | uniq | wc -l`
+    if [ $local_build -eq 0 ]; then
+        if [ $num -ne 3 ]; then
+            echo "KO 85529 Expected 3 archs dev" >&2
+            find core -name "*.tgz" 1>&2
+            echo "num=$num expected=3" 1>&2
+            exit 1
+        fi
+    else
+        if [ $num -ne 1 ]; then
+            echo "KO 85539 Expected 1 dev archs" >&2
+            find core -name "*.tgz" 1>&2
+            echo "num=$num expected=1" 1>&2
+            exit 1
+        fi
+    fi
+
+    for file in `find core -name "*-dev.tgz"`; do
+        c1hash=`echo $file | tr '/' ' ' | awk '{ print $(NF-2) }'`
+        break
+    done
+    echo "c1hash=$c1hash"
+
+    for file in `find core -name "*.tgz"`; do
+        us=`echo $file | tr '/' ' ' | awk '{ print $(NF-1) }'`
+        mkdir -p $distr/${us}/core
+        mv $file $distr/${us}/core/
+        echo "$file -> $distr/${us}/core/"
+    done
+
+    for file in `find core -type f -name "makefile_distr"`; do
+        us=`echo $file | tr '/' ' ' | awk '{ print $(NF-1) }'`
+        mkdir -p $distr/${us}/core
+        mv $file $distr/${us}/core/makefile
+        echo "$file -> $distr/${us}/core/makefile"
+    done
+
+    #for file in `find core -type f -name "*_setup_debian"`; do
+    #    us=`echo $file | tr '/' ' ' | awk '{ print $(NF-2) }'`
+    #    mkdir -p $distr/${us}/bootstrap
+    #    mv $file $distr/${us}/bootstrap/
+    #    rmdir $(dirname $file)
+    #    echo "$file -> $distr/${us}/bootstrap/${us}_setup_debian"
+    #done
+
+    for file in `find core -type f -name "brand_sha256sum"`; do
+        us=`echo $file | tr '/' ' ' | awk '{ print $(NF-1) }'`
+        hash=`echo $file | tr '/' ' ' | awk '{ print $(NF-2) }'`
+        branch=`echo $file | tr '/' ' ' | awk '{ print $(NF-3) }'`
+    	dst="$distr/${us}/core_${branch}_${hash}_src_sha256sums"
+        mv $file $dst
+        rmdir $(dirname $file)
+        echo "$file -> $dst"
+    done
+
+    for file in `find core -type f -name "apply_blob"`; do
+        us=`echo $file | tr '/' ' ' | awk '{ print $(NF-1) }'`
+        mkdir -p $distr/${us}/bin
+        mv $file $distr/${us}/bin/
+        echo "$file -> $distr/${us}/bin/"
+    done
+
+    for file in `find core -type f -name "install_blob"`; do
+        us=`echo $file | tr '/' ' ' | awk '{ print $(NF-1) }'`
+        mkdir -p $distr/${us}/bin
+        cp $file $distr/${us}/bin/
+        echo "$file -> $distr/${us}/bin/"
+    done
+
+    for coredir in `find $distr -type d -name "core"`; do
+        dir=$(dirname $coredir)
+        pushd "$dir"
+            v="${branch}_$c1hash"
+            tar -I zstd -cf core_${v}.tar.zst core
+            rm core -rf
+            echo $v > version
+        popd
+    done
+}
+
+pushd $build_jobs > /dev/null
+for f in `find . -type d -name "core0"`; do
+    branch=`echo $f | tr '/' ' ' | awk '{print $2}'`
+    break
+done
+popd > /dev/null
+
+distr="distr"
+echo "branch: $branch"
+echo "distr: $distr"
+echo "local-build: $local_build"
+
+rm core -rf
+mkdir -p core
+
+if [[ $local_build -eq 1 ]]; then
+    host_x86_64="localhost"
+    port_ssh_x86_64="16671"
+    wait_done "x86_64 "
+else
+    wait_done "x86_64 armv7l "
+fi
+
+move_to_distr
+
+echo "Ignored files:"
+find core -type f
+
+rm core -rf
+
+echo "Finished"
+find $distr -type f
+
+exit 0

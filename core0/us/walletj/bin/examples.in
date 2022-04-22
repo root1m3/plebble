@@ -1,0 +1,5 @@
+#!/bin/sh
+US=##str3##
+java -ea -cp .:sdk/${US}-sdk_bc.jar:${US}-walletj.jar:sdk/libs_bouncy/* us.examples $@
+exit $?
+

@@ -1,0 +1,434 @@
+#!/bin/bash
+#===-                           P L E B B L E
+#===-                         https://plebble.us
+#===-
+#===-              Copyright (C) 2017-2022 root1m3@plebble.us
+#===-
+#===-                      GNU GENERAL PUBLIC LICENSE
+#===-                       Version 3, 29 June 2007
+#===-
+#===-    This program is free software: you can redistribute it and/or modify
+#===-    it under the terms of the AGPLv3 License as published by the Free
+#===-    Software Foundation.
+#===-
+#===-    This program is distributed in the hope that it will be useful,
+#===-    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#===-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+#===-
+#===-    You should have received a copy of the General Public License
+#===-    along with this program, see LICENCE file.
+#===-    see https://www.gnu.org/licenses
+#===-
+#===----------------------------------------------------------------------------
+#===-
+echo "#############################"
+echo "## Continuous Build Script ##"
+echo "#############################"
+
+if [ ! -f ./.cbs/config ]; then
+    echo "KO 15502 missing .cbs/config"
+    exit 1
+fi
+. ./.cbs/config
+
+function help {
+    echo "$0 [-b] [--local-build] [--flags <flags10>] [--brand <brand|all] <cmd>"
+    echo " make_blobs"
+    echo " clear_ccache"
+    echo ""
+    echo " dbg_core <brand> <host> <port>    (with counters)"
+    echo " dbg_core_r2r"
+    echo " dbg_r2r"
+    echo ""
+    echo " dbglog_core <brand> <host> <port>  (with counters)"
+    echo " dbglog_core_r2r"
+    echo " dbglog_r2r"
+    echo ""
+    echo " rel_core [<brand> <host> <port>|(nothing->poc nodes)]     (without counters)"
+    echo " rel_core_r2r"
+    echo " rel_r2r"
+    echo ""
+    echo " rellog_core <brand> <host> <port>    (with counters)"
+    echo " rellog_core_r2r"
+    echo " rellog_r2r"
+    echo ""
+    echo " android <brand> <branch>"
+    echo "*stop <job>"
+    exit 0
+}
+
+let bg=0
+let local_build=0
+brand=all
+flags10=""
+while [ true ]; do
+    opt=$1
+    shift
+    if [ "_$opt" == "_-b" ]; then
+        echo "background flag"
+        bg=1
+        continue
+    elif [ "_$opt" == "_--local-build" ]; then
+        echo "local build"
+        let local_build=1
+        continue
+    elif [ "_$opt" == "_--brand" ]; then
+        brand=$1
+        echo "brand $brand"
+        shift
+        continue
+    elif [ "_$opt" == "_--flags" ]; then
+        flags10=$1
+        shift
+        continue
+    else
+        echo "end parsing flags"
+        cmd=$opt
+        break
+    fi
+done
+
+function mk_blobs {
+    if [ -d distr ]; then
+        echo "dir distr exists."
+        exit 1
+    fi
+    if [[ "_$flags10" == "_" ]]; then
+        flags10="--release --without-logs --without-counters"
+    fi
+    flags10="$flags10 --branch $branch -o build_jobs_distr"
+    flags15=""
+    flags20=""
+    flags35=""
+    if [[ $local_build -eq 1 ]]; then
+        echo "Creating single-arch blobs on this local machine. arch=`uname -m`"
+        flags15="${flags15} --local-build"
+        flags20="${flags20} --local-build"
+        flags35="${flags35} --local-build"
+    fi
+    echo "brand=$brand"
+    echo "branch=$branch"
+    echo "flags=$flags"
+    echo "flags_compile_job=$flags_compile_job"
+    echo "Make sure you have your signing password ready."
+    echo "Sure? yes or CTRL-C"
+    read ryes
+    date
+    sep="-------------------------------------------------------------------------------"
+    echo $sep
+    echo "bin/10_make_build_jobs ${flags10} $brand"
+    bin/10_make_build_jobs ${flags10} $brand
+    [[ $? -ne 0 ]] && exit 1
+    echo $sep
+    echo "bin/15_make_deps ${flags15} build_jobs_distr"
+    bin/15_make_deps ${flags15} build_jobs_distr
+    [[ $? -ne 0 ]] && exit 1
+    echo $sep
+    echo "bin/20_make_core ${flags20} build_jobs_distr"
+    bin/20_make_core ${flags20} build_jobs_distr
+    [[ $? -ne 0 ]] && exit 1
+    echo $sep
+    echo "bin/30_make_android build_jobs_distr"
+    bin/30_make_android build_jobs_distr
+    [[ $? -ne 0 ]] && exit 1
+    echo $sep
+    echo "bin/35_make_r2r_protocols ${flags35} build_jobs_distr"
+    bin/35_make_r2r_protocols ${flags35} build_jobs_distr
+    [[ $? -ne 0 ]] && exit 1
+    echo $sep
+    echo "bin/40_make_raspi_image"
+    bin/40_make_raspi_image
+    [[ $? -ne 0 ]] && exit 1
+    echo $sep
+    echo "bin/50_tokenized_files_and_sign build_jobs_distr"
+    bin/50_tokenized_files_and_sign build_jobs_distr
+    [[ $? -ne 0 ]] && exit 1
+    echo $sep
+    echo "bin/70_make_blobs build_jobs_distr"
+    bin/70_make_blobs build_jobs_distr
+    [[ $? -ne 0 ]] && exit 1
+    echo $sep
+    echo "distr:"
+    find distr -type f
+    echo "blobs:"
+    find blobs -type f
+    date
+    echo "Blobs are ready at directory blobs/"
+    echo "deploy to distribution nodes (Brand Distribution End) ?"
+    echo "CTRL-C to end here. Otherwise upload blobs to BDEs"
+    read a
+    bin/80_deploy_blobs build_jobs_distr
+}
+
+function bgssh {
+	logfile=$1
+    id_rsa_groot_file=$keyroot/id_rsa_groot
+    ssh="ssh -i ${id_rsa_groot_file}"
+    scp="scp -i ${id_rsa_groot_file}"
+	if [ $bg -eq 1 ]; then
+		echo "Running in background. log file: $logfile"
+		$ssh $@ >$logfile 2>&1 &
+	else
+		echo "Running in sequence"
+		$ssh $@
+	fi
+}
+
+function c3po19 {
+    prog="c3po19"
+    echo $prog
+    host=$1
+    port=$2
+    user=$3
+    brand=$4
+    echo "host: $host"
+    echo "port: $port"
+    echo "user: $user"
+    echo "brand: $brand"
+    echo -n "remote seq: "
+    $scp -P$port build_jobs_$prog.tzst $user@$host:/root
+    bgssh "buildlog_${host}" -p$port $user@$host 'set -e; cd /root; rm build_jobs_'$prog' -rf; tar -I zstd -xf build_jobs_'$prog'.tzst; cd build_jobs_'$prog'; ./make.sh r2r; cd $(dirname `find . -name install_r2r`); ./install_r2r; cd /root; rm /var/log/'$brand'/* -rf; systemctl restart '$brand'-wallet'
+    echo "/$prog"
+}
+
+function c3po20 {
+    prog="c3po20"
+    echo $prog
+    host=$1
+    port=$2
+    user=$3
+    brand=$4
+    echo "host: $host"
+    echo "port: $port"
+    echo "user: $user"
+    echo "brand: $brand"
+    echo -n "remote seq: "
+    $scp -P$port build_jobs_$prog.tzst $user@$host:/root
+    bgssh "buildlog_${host}" -p$port $user@$host 'set -e; rm build_jobs_'$prog' -rf; tar -I zstd -xf build_jobs_'$prog'.tzst; cd build_jobs_'$prog'; ./make.sh core; pwd; cd $(dirname `find . -name makefile_distr`); pwd ; make -f makefile_distr install; echo "installed"; cd /root; rm build_jobs_'$prog' -r; tar -I zstd -xf build_jobs_'$prog'.tzst; cd build_jobs_'$prog'; ./make.sh r2r; cd $(dirname `find . -name install_r2r`); ./install_r2r; cd /root; rm /var/log/'$brand'/* -rf; systemctl restart '$brand'-gov; systemctl restart '$brand'-wallet'
+    echo "/$prog"
+}
+
+function c3po30 {
+    prog="c3po30"
+    echo $prog
+    host=$1
+    port=$2
+    user=$3
+    brand=$4
+    echo "host: $host"
+    echo "port: $port"
+    echo "user: $user"
+    echo "brand: $brand"
+    echo -n "remote seq: "
+    $scp -P$port build_jobs_$prog.tzst $user@$host:/root
+    bgssh "buildlog_${host}" -p$port $user@$host 'set -e; rm build_jobs_'$prog' -rf; tar -I zstd -xf build_jobs_'$prog'.tzst; cd build_jobs_'$prog'; ./make.sh core; pwd; cd $(dirname `find . -name makefile_distr`); pwd ; make -f makefile_distr install; cd /root; rm /var/log/'$brand'/* -rf; systemctl restart '$brand'-gov; systemctl restart '$brand'-wallet; echo "remote process ended"'
+    echo "/$prog"
+}
+
+function do_prog {
+    prog=$1
+    user=$2
+    flags=$3
+    brand=$4
+    host=$5
+    port=$6
+    echo "do_prog prog=$prog user=$user brand=$brand flags=$flags host=$host port=$port"
+    echo "ok?"
+    read x
+    if [ "_$host" == "_" ]; then
+        echo "KO 50499"
+        exit 1
+    fi
+    echo "bin/10_make_build_jobs $flags -o build_jobs_$prog $branch $brand"
+    bin/10_make_build_jobs $flags -o build_jobs_$prog $branch $brand
+    $prog $host $port $user $brand
+    echo "waiting for jobs"
+    jobs -p
+    wait $(jobs -p)
+}
+
+user="root"
+echo "branch: $branch"
+echo "build in background: $bg"
+echo "cmd $cmd"
+
+if [ "_$cmd" == "_" ]; then
+    help
+    exit 0
+fi
+
+if [ "_$cmd" == "_status" ]; then
+    id=$1
+    exit 0
+fi
+
+if [ "_$cmd" == "_make_blobs" ]; then
+    mk_blobs
+    exit 0
+fi
+
+function clear_ccache_arch {
+    host=$1
+    sshport=$2
+    grootkey=`ush show_groot_key`
+    ssh="ssh -i $grootkey "
+    echo "clear_ccache_arch $host:$sshport"
+    $ssh -p$sshport $host "ccache -C"
+}
+
+if [ "_$cmd" == "_clear_ccache" ]; then
+    set -x
+    ccache -C
+    archs="x86_64 armv7l "
+    for arch in $archs; do
+        vhost=host_$arch
+        vport=port_ssh_$arch
+        host=${!vhost}
+        port=${!vport}
+        clear_ccache_arch ${host} ${port}
+    done
+
+    exit 0
+fi
+
+
+if [ "_$cmd" == "_android" ]; then
+    if [ -d distr ]; then
+	    echo "dir distr exists"
+	    exit 1
+    fi
+    brand=$1
+    branch=$2
+    set -e
+    bin/10_make_build_jobs $flags -o build_jobs_android --branch $branch $brand
+    echo "-------------------------------------------------------------------------------"
+    bin/30_make_android build_jobs_android
+    set +e
+    echo "Invoking bin/50_tokenized_files_and_sign build_jobs_distr"
+    bin/50_tokenized_files_and_sign build_jobs_android
+    apk=`find distr -type f -name "*.apk"`
+    echo "$apk"
+    echo "install?"
+    read x
+    echo "adb install $apk"
+    adb install $apk
+    exit 0
+fi
+
+if [ "_$cmd" == "_rel_core" ]; then
+    brand=$1
+    host=$2
+    port=$3
+    prog=c3po30
+    do_prog $prog $user "--release --without-counters --without-logs " $brand $host $port
+    exit 0
+fi
+
+if [ "_$cmd" == "_rel_core_r2r" ]; then
+    brand=$1
+    host=$2
+    port=$3
+    prog=c3po20
+    do_prog $prog $user "--release --without-counters --without-logs " $brand $host $port
+    exit 0
+fi
+
+if [ "_$cmd" == "_rel_r2r" ]; then
+    brand=$1
+    host=$2
+    port=$3
+    prog=c3po19
+    do_prog $prog $user "--release --without-counters --without-logs " $brand $host $port
+    exit 0
+fi
+
+if [ "_$cmd" == "_rellog_core" ]; then
+    brand=$1
+    host=$2
+    port=$3
+    prog=c3po30
+    do_prog $prog $user "--release --with-logs --with-counters " $brand $host $port
+    exit 0
+fi
+
+if [ "_$cmd" == "_rellog_core_r2r" ]; then
+    brand=$1
+    host=$2
+    port=$3
+    prog=c3po20
+    do_prog $prog $user "--release --with-logs --with-counters " $brand $host $port
+    exit 0
+fi
+
+if [ "_$cmd" == "_rellog_r2r" ]; then
+    brand=$1
+    host=$2
+    port=$3
+    prog=c3po19
+    do_prog $prog $user "--release --with-logs --with-counters " $brand $host $port
+    exit 0
+fi
+
+if [ "_$cmd" == "_dbglog_core" ]; then
+    brand=$1
+    host=$2
+    port=$3
+    prog=c3po30
+    do_prog $prog $user "--debug --with-logs --with-counters " $brand $host $port
+    exit 0
+fi
+
+if [ "_$cmd" == "_dbglog_core_r2r" ]; then
+    brand=$1
+    host=$2
+    port=$3
+    prog=c3po20
+    do_prog $prog $user "--debug --with-logs --with-counters " $brand $host $port
+    exit 0
+fi
+
+if [ "_$cmd" == "_dbglog_r2r" ]; then
+    brand=$1
+    host=$2
+    port=$3
+    prog=c3po19
+    do_prog $prog $user "--debug --with-logs --with-counters " $brand $host $port
+    exit 0
+fi
+
+if [ "_$cmd" == "_dbg_core" ]; then
+    brand=$1
+    host=$2
+    port=$3
+    prog=c3po30
+    do_prog $prog $user "--debug --without-logs --with-counters " $brand $host $port
+    exit 0
+fi
+
+if [ "_$cmd" == "_dbg_core_r2r" ]; then
+    brand=$1
+    host=$2
+    port=$3
+    prog=c3po20
+    do_prog $prog $user "--debug --without-logs --with-counters " $brand $host $port
+    exit 0
+fi
+
+if [ "_$cmd" == "_dbg_r2r" ]; then
+    brand=$1
+    host=$2
+    port=$3
+    prog=c3po19
+    do_prog $prog $user "--debug --without-logs --with-counters " $brand $host $port
+    exit 0
+fi
+
+if [ "_$cmd" == "_stop" ]; then
+    id=$1
+    exit 0
+fi
+
+help
+
+exit 1
+

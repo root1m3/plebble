@@ -1,0 +1,382 @@
+TEST NETWORKING
+
+Under Test (UT): us::gov::net_daemon
+
+
+entry point function 
+::test_peerd()
+
+
+--------------------------------------------------------------------
+3649c9d1933149e668bada4ad5fc38534fdbbd0a
+void send_bytes(size_t howmany, uint32_t decl_sz, uint16_t channel, uint16_t svc, bool slowly=false) {
+
+Sends datagrams of size <howmany>. Those datagrams contain noise. However they have some of their header fields right to be able to conduct penetration tests more exhaustively.
+  Those fields are:
+  * size: datagrams are encoded with the value given by argument decl_sz. (Different values of decl_sz not matching the real size are tested)
+  * channel: datagrams are encoded with the value of channel given.
+
+  vectors of memory are sent using straight socket api calls without using more refined pieces belonging to the software under test itself.  
+  
+  if slowly option is set, the block of size homany bytes will be transmitted byte by byte at a limited rate of 1 byte per second.
+
+  After sending the payload, 
+  the function determines what action (countermeasure) the backend shall perform using the following heuristic applied to the datagram sent:
+  
+  disconnect auth-window: 
+    *If howmany==0 no data is sent after connecting, the expected error is the mechamism for which the backend
+     should terminate every connection that hasn't progressed to authorized stage for any reason, having had reasonable time for doing it.
+    
+    *If argument slowly is true (bytes are sent at 1 byte per second pace).
+        if howmany<datagram::h and howmany is greater us::gov::peer::peer_t::auth_window.count();
+        if howmany>datagram::h and howmany-datagram:h is greater us::gov::peer::peer_t::auth_window.count();
+            the header is sent at once. Because it doesn't consume time its length is substracted.
+
+
+         casually, datagram::h (10 bytes) has the same value of us::gov::peer::peer_t::auth_window (10 seconds)
+    Enforcing algorithm at:
+        us::gov::peer::peer_t::check_auth_not_granted()
+  disconnect stall:
+    *At least 1 byte is sent. The total amount of bytes sent always smaller than datagram::h (incomplete datagram headers, or 0 < howmany < datagram::h);
+     The backend will terminate every connection that is unable to complete the reception of a valid datagram.
+
+    *Sending block of bytes of size datagram::h (10 bytes), with any garbage on all fields but channel.
+     header goes with the right channel number, the channel the backend is operating on.
+     header goes with decl_sz field that is higher than the real size of bytes sent. (to cause stall)
+     The backend is expected to keep waiting (for more info to arrive which won't arrive) until the conection is declared stalled.
+     
+    *Sending a datagram where the decl_sz is greater than howmany.
+  
+  disconnect channel:
+    *Sending block of bytes of size datagram::h (10 bytes), with any garbage on all fields but channel.
+     sending headers with a channel number (0) that is different to the channel the backend is operating on (123).
+     The backend shall raise KO_0001, that can be captured by test_suite if CFG_REPORT_REASON==1
+
+  service:
+    *The backend accepted the datagram reaching the depth of servicing.
+     If the encoded service of the datagram sent is gov_socket_failure the backend will raise KO_4093 (unknown service number).
+     Any other encoded service must be further and separately tested.
+    
+  disconnect too_big:
+    *Sending header with decl_sz encoded with a number greater than datagram::maxsize (20M).
+
+  disconnect too_small:
+    *Sending header with decl_sz encoded with a number of bytes lower than datagram::h (10).
+ 
+
+
+--------------------------------------------------------------------
+ad4451bfd884bc0ced917cd7a26b87ea0752f9d6
+    struct networking: us::gov::net_daemon, us::test::test_platform {
+
+
+--------------------------------------------------------------------
+ad4451bfd884bc0ced917cd7a26b87ea0752f9d6
+ networking::self_test():
+
+    Send datagrams of different sizes to a different channel.
+
+    Send datagrams of different sizes to channel 123, from 1 byte length to datagramm::max_size+1, testing sizes below and above the datagram header size.
+        tests are repeated for fidderent representative values of declared_size, encoded in the datagram. 
+
+    calls various connection tests.
+    calls fuzzy_datagram
+
+--------------------------------------------------------------------
+3649c9d1933149e668bada4ad5fc38534fdbbd0a
+test_fuzzy()
+
+    networking peerd(networking::govport,cout);
+        instantiates a networking object ( specialization of us::gov::net_daemon instrumented with test battery) , which is an specialization of UT.
+  
+  
+    System configured to operate on channel 123
+
+    calls self_test():
+
+    stops and destroys instrumented daemon.                                
+
+
+--------------------------------------------------------------------
+
+
+--------------------------------------------------------------------
+e4cfa85afd0e522efe917d0f5fff9b718236ac35
+    fuzzy_datagram();
+
+    calls send_bytes multiple times:
+
+    In order to conduct fuzzy tests, random/tweaked streams of bits shall be directed to the server in order to break it.
+
+
+    Boundary/special datagram sizes taken into account:
+        
+        infrasizes (sizes smaller than a header size)
+            1
+            datagram::h-1
+        sizes (bigger or equal one header size)
+            datagram::h
+            datagram::h+1
+            datagram::maxsize-1
+            datagram::maxsize
+            datagram::maxsize+1
+
+
+    hacker actions: covering of all possible forms of attacking vectors.
+
+     sending nothing after connecting
+        send_bytes. howmany 0 decl_sz 0 channel 123 svc 0
+        received reason: "auth not granted in the allocated time."; expected: "auth not granted in the allocated time." --> OK
+
+     sending bytes smaller than the header 
+        send_bytes. howmany 1 decl_sz 0 channel 0 svc 0
+        received reason: "stalled datagram"; expected: "stalled datagram" --> OK
+
+        send_bytes. howmany 9 decl_sz 0 channel 0 svc 0
+        received reason: "stalled datagram"; expected: "stalled datagram" --> OK
+     sending headers to a different channel (0)
+        send_bytes. howmany 10 decl_sz 10 channel 0 svc 0
+        received reason: "KO 0001 channel mismatch."; expected: "KO 0001 channel mismatch." --> OK
+
+        send_bytes. howmany 10 decl_sz 11 channel 0 svc 0
+        received reason: "KO 0001 channel mismatch."; expected: "KO 0001 channel mismatch." --> OK
+
+        send_bytes. howmany 10 decl_sz 19999999 channel 0 svc 0
+        received reason: "KO 0001 channel mismatch."; expected: "KO 0001 channel mismatch." --> OK
+
+        send_bytes. howmany 10 decl_sz 20000000 channel 0 svc 0
+        received reason: "KO 0001 channel mismatch."; expected: "KO 0001 channel mismatch." --> OK
+
+        send_bytes. howmany 10 decl_sz 20000001 channel 0 svc 0
+        received reason: "KO 0001 channel mismatch."; expected: "KO 0001 channel mismatch." --> OK
+
+     sending headers to the right channel (123)
+        send_bytes. howmany 10 decl_sz 11 channel 123 svc 0
+        received reason: "stalled datagram"; expected: "stalled datagram" --> OK
+
+        send_bytes. howmany 10 decl_sz 19999999 channel 123 svc 0
+        received reason: "stalled datagram"; expected: "stalled datagram" --> OK
+
+        send_bytes. howmany 10 decl_sz 20000000 channel 123 svc 0
+        received reason: "stalled datagram"; expected: "stalled datagram" --> OK
+
+        send_bytes. howmany 10 decl_sz 20000001 channel 123 svc 0
+        received reason: "KO 0002 too big."; expected: "KO 0002 too big." --> OK
+
+     sending decrypted datagrams (svc!=0) to the right channel (123)
+        send_bytes. howmany 10 decl_sz 10 channel 123 svc 412
+        received reason: "KO 4093 wrong service."; expected: "KO 4093 wrong service." --> OK
+
+        send_bytes. howmany 10 decl_sz 11 channel 123 svc 412
+        received reason: "stalled datagram"; expected: "stalled datagram" --> OK
+
+        send_bytes. howmany 10 decl_sz 19999999 channel 123 svc 412
+        received reason: "stalled datagram"; expected: "stalled datagram" --> OK
+
+        send_bytes. howmany 10 decl_sz 20000000 channel 123 svc 412
+        received reason: "stalled datagram"; expected: "stalled datagram" --> OK
+
+        send_bytes. howmany 10 decl_sz 20000001 channel 123 svc 412
+        received reason: "KO 0002 too big."; expected: "KO 0002 too big." --> OK
+
+        send_bytes. howmany 11 decl_sz 10 channel 123 svc 412
+        received reason: "KO 4093 wrong service."; expected: "KO 4093 wrong service." --> OK
+
+        send_bytes. howmany 11 decl_sz 11 channel 123 svc 412
+        received reason: "KO 4093 wrong service."; expected: "KO 4093 wrong service." --> OK
+
+        send_bytes. howmany 11 decl_sz 19999999 channel 123 svc 412
+        received reason: "stalled datagram"; expected: "stalled datagram" --> OK
+
+        send_bytes. howmany 11 decl_sz 20000000 channel 123 svc 412
+        received reason: "stalled datagram"; expected: "stalled datagram" --> OK
+
+        send_bytes. howmany 11 decl_sz 20000001 channel 123 svc 412
+        received reason: "KO 0002 too big."; expected: "KO 0002 too big." --> OK
+
+        send_bytes. howmany 19999999 decl_sz 10 channel 123 svc 412
+        received reason: "KO 4093 wrong service."; expected: "KO 4093 wrong service." --> OK
+
+        send_bytes. howmany 19999999 decl_sz 11 channel 123 svc 412
+        received reason: "KO 4093 wrong service."; expected: "KO 4093 wrong service." --> OK
+
+        send_bytes. howmany 19999999 decl_sz 19999999 channel 123 svc 412
+        received reason: "KO 4093 wrong service."; expected: "KO 4093 wrong service." --> OK
+
+        send_bytes. howmany 19999999 decl_sz 20000000 channel 123 svc 412
+        received reason: "stalled datagram"; expected: "stalled datagram" --> OK
+
+        send_bytes. howmany 19999999 decl_sz 20000001 channel 123 svc 412
+        received reason: "KO 0002 too big."; expected: "KO 0002 too big." --> OK
+
+        send_bytes. howmany 20000000 decl_sz 10 channel 123 svc 412
+        received reason: "KO 4093 wrong service."; expected: "KO 4093 wrong service." --> OK
+
+        send_bytes. howmany 20000000 decl_sz 11 channel 123 svc 412
+        received reason: "KO 4093 wrong service."; expected: "KO 4093 wrong service." --> OK
+
+        send_bytes. howmany 20000000 decl_sz 19999999 channel 123 svc 412
+        received reason: "KO 4093 wrong service."; expected: "KO 4093 wrong service." --> OK
+
+        send_bytes. howmany 20000000 decl_sz 20000000 channel 123 svc 412
+        received reason: "KO 4093 wrong service."; expected: "KO 4093 wrong service." --> OK
+
+        send_bytes. howmany 20000000 decl_sz 20000001 channel 123 svc 412
+        received reason: "KO 0002 too big."; expected: "KO 0002 too big." --> OK
+
+        send_bytes. howmany 20000001 decl_sz 10 channel 123 svc 412
+        received reason: "KO 4093 wrong service."; expected: "KO 4093 wrong service." --> OK
+
+        send_bytes. howmany 20000001 decl_sz 11 channel 123 svc 412
+        received reason: "KO 4093 wrong service."; expected: "KO 4093 wrong service." --> OK
+
+        send_bytes. howmany 20000001 decl_sz 19999999 channel 123 svc 412
+        received reason: "KO 4093 wrong service."; expected: "KO 4093 wrong service." --> OK
+
+        send_bytes. howmany 20000001 decl_sz 20000000 channel 123 svc 412
+        received reason: "KO 4093 wrong service."; expected: "KO 4093 wrong service." --> OK
+
+        send_bytes. howmany 20000001 decl_sz 20000001 channel 123 svc 412
+        received reason: "KO 0002 too big."; expected: "KO 0002 too big." --> OK
+
+     slowly sending header
+        send_bytes. howmany 10 decl_sz 10 channel 123 svc 412
+        received reason: "KO 4093 wrong service."; expected: "KO 4093 wrong service." --> OK
+
+     slowly sending decrypted datagram (svc!=0) transmission lasting less than auth_window
+        send_bytes. howmany 19 decl_sz 19 channel 123 svc 412
+        received reason: "KO 4093 wrong service."; expected: "KO 4093 wrong service." --> OK
+
+     slowly sending decrypted datagram (svc!=0) transmission lasting more than auth_window
+        send_bytes. howmany 21 decl_sz 21 channel 123 svc 412
+        received reason: "auth not granted in the allocated time."; expected: "auth not granted in the allocated time." --> OK
+
+
+
+
+--------------------------------------------------------------------
+619523baca26154d4b9abc71cd182c37f9b27cd9
+    void test_network() {
+
+
+    Runs an instrumented network model of n=numnodes nodes connected by TCP/IP using the loopback interface (127.0.0.*). 
+    Each node i, numbered from 0 to n-1, listents to the port 22222+i.
+
+    Each node is modelled as two thread
+        one daemon thread (multi threaded) running peerd, which is an instrumented instance of us::gov::net_daemon
+        one thread running a load test against peerd 
+
+    logs are written in the path networking.cpp__test_peerd/test_network.
+
+    Uses: static constexpr int numnodes{4};
+    
+    Eachnode n
+        is given an ip address 127.0.0.n
+        listens to port 22222+n
+    where n goes from 0 (inclusive) to numnodes (exclusive).
+    
+    
+    starts all threads and waits while load_tests are working.
+    the calling thread will be watching status screens while load tests execute (see function test_load() ).
+    
+
+
+--------------------------------------------------------------------
+619523baca26154d4b9abc71cd182c37f9b27cd9
+    void test_load() {
+
+    Sends instrumented evidences to the backend.
+
+    log file: networking.cpp__test_peerd/test_network/networking_daemon-node-0/test_load/
+
+    us::wallet::daemon_local_api dapi(os.str(),mynodeaddr,myport,k, new dispatcher());
+        Instantiates a us::wallet::daemon_local_api
+
+    us::wallet::wallet_local_api* api=dynamic_cast<us::wallet::wallet_local_api*>(dapi.get_wallet_api(""));
+        Then obtains the wallet api of the root subhome (non-custodial wallet) (get_wallet_api(""))
+
+    okev ev;
+        constructs an instance of evidence
+
+    datagram*d=ev.get_datagram(0);
+        from which the datagram is obtained.
+
+    evc.newev(h,myport-govport);
+        Record that this evidence (represented by its hash h) was sent by me (as a node index)
+
+     
+    dapi.endpoint.send0(d)
+        Delivers the datagram, the event is recorded in the log file
+        networking.cpp__test_peerd/test_network/networking_daemon-node-XX/test_load/daemon_local_api/gov_endpoint/traffic-outbound_XXXXXXXXXXXXXXX
+
+
+
+--------------------------------------------------------------------
+619523baca26154d4b9abc71cd182c37f9b27cd9
+    static evc_t evc;
+
+    accounts for all datagrams sent as load and which nodes receive them.
+    checks that every datagram reaches all nodes at least once.
+    An entry represents one datagram in transit, in relay.
+    Only when a datagram has been fully distributed the entry is removed from the container.
+    Its size() can be interpreted as the number of datagrams in transit, at any point after they were registered before they were sent and the point where a copy reached successfully all nodes.  
+    
+
+    ordered map time -> datagram_hash + int[numnodes]
+
+
+    each time a new dgram is added (see evc_t::newev) all those existing dgrams older then 10 seconds ago are pruned.
+    
+    
+    evc_t::newev is called by test_load, used as evidence produder.
+
+
+
+
+--------------------------------------------------------------------
+619523baca26154d4b9abc71cd182c37f9b27cd9
+    bool process_work(us::gov::socket::peer_t *c, datagram*d) override {
+
+    On arrival of an evidence:
+        increments the revidence reception counter recv_evs
+        computes the datagram hash and register its arrival in the evc table, which accounts.
+
+
+--------------------------------------------------------------------
+619523baca26154d4b9abc71cd182c37f9b27cd9
+    void watch(int frame, const vector<n>& svrs) {
+
+
+    Draws a monitoring screen showing relevant information of the evolution under test_load test.
+
+
+
+    As part of the testing instrumentation each node contains a pointer to an evc object.
+    The funcion checks that all nodes use the same evc, then it calls dump on any of them (the one pointed by node 0, it doesn't matter who because all of them point to the same evc object) 
+
+    networking::evc.dump(cout);
+        draws the evc container, which accounts for the evidences delivered and successfully received.
+
+
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

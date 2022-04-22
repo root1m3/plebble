@@ -1,0 +1,2 @@
+#!/bin/sh
+run-parts /etc/rc.local.d

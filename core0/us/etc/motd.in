@@ -1,0 +1,14 @@
+
+----------------------------------------------
+##str4##
+----------------------------------------------
+ Please always backup the directory:
+ /home/##str11##/.##str3##/wallet
+----------------------------------------------
+ Main commands (user ##str11##):
+    (from root user type 'su ##str11##')
+ network governance: ......... ##str12## 
+ your privacy wallet: ........ ##str13##
+ General help and tricks: .... ##str3##-help
+ Terminate this shell session: exit
+-----------------------------------------------

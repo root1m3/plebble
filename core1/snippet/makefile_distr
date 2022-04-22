@@ -1,0 +1,52 @@
+#===-                           P L E B B L E
+#===-                         https://plebble.us
+#===-
+#===-              Copyright (C) 2017-2022 root1m3@plebble.us
+#===-
+#===-                      GNU GENERAL PUBLIC LICENSE
+#===-                       Version 3, 29 June 2007
+#===-
+#===-    This program is free software: you can redistribute it and/or modify
+#===-    it under the terms of the AGPLv3 License as published by the Free
+#===-    Software Foundation.
+#===-
+#===-    This program is distributed in the hope that it will be useful,
+#===-    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#===-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+#===-
+#===-    You should have received a copy of the General Public License
+#===-    along with this program, see LICENCE file.
+#===-    see https://www.gnu.org/licenses
+#===-
+#===----------------------------------------------------------------------------
+#===-
+ARCH:=$(shell uname -m)
+PREFIX:=/usr/local
+pwd:=$(shell pwd)
+
+test:
+	echo ${ARCH}
+	$(MAKE) -C ${ARCH} test
+
+${ARCH}:
+	tar -xzf ${ARCH}.tgz
+
+install: ${ARCH}
+	$(MAKE) -C ${ARCH} install
+
+install-nginx: ${ARCH}
+	$(MAKE) -C ${ARCH} install-nginx
+
+install-system-base: ${ARCH}
+	$(MAKE) -C ${ARCH} install-system-base
+
+install-dev:
+	mkdir -p ${PREFIX}
+	bash -c "pushd ${PREFIX} >/dev/null; tar -xzf ${pwd}/${ARCH}-dev.tgz --strip-components=1; popd>/dev/null"
+
+clean:
+	rm -rf ${ARCH}
+
+.PHONY: test install install-nginx install-system-base
+
+

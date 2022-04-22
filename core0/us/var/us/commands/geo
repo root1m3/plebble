@@ -1,0 +1,7 @@
+    echo "sleepig random seconds 0-60"
+    sleep $[ ( $RANDOM % 60 )  + 1 ]s
+echo -n "geo "
+curl --silent --insecure --request GET --url https://freegeoip.app/csv/ | tr ',' ' ' | awk '{print $(NF-2)" "$(NF-1)}'
+
+exit 0
+

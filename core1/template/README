@@ -1,0 +1,6 @@
+copy templates to .cbs/config
+
+cascade customized for brand files as:
+.cbs/config_<brand>
+
+

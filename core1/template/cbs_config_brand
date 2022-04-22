@@ -1,0 +1,10 @@
+#this file goes to .cbs/config_<brand>
+
+#distr/blobs goes to upstream brand node
+#distr goes to upstream brand node
+
+distr_node_pkh=27FbhDbgny4ddXgbvfBmbuVqybky  #node id
+distr_node_url="http://brand_node:16680/downloads" #seed brand node http
+address_blobs=3aNXFotbjkmLZdKqtMhM4fpvVVex   #account
+
+

@@ -1,0 +1,240 @@
+#!/bin/bash
+#===-                           P L E B B L E
+#===-                         https://plebble.us
+#===-
+#===-              Copyright (C) 2017-2022 root1m3@plebble.us
+#===-
+#===-                      GNU GENERAL PUBLIC LICENSE
+#===-                       Version 3, 29 June 2007
+#===-
+#===-    This program is free software: you can redistribute it and/or modify
+#===-    it under the terms of the AGPLv3 License as published by the Free
+#===-    Software Foundation.
+#===-
+#===-    This program is distributed in the hope that it will be useful,
+#===-    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#===-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+#===-
+#===-    You should have received a copy of the General Public License
+#===-    along with this program, see LICENCE file.
+#===-    see https://www.gnu.org/licenses
+#===-
+#===----------------------------------------------------------------------------
+#===-
+
+opt=$1
+shift
+
+hdrfile=$1
+shift
+
+if [[ "_$opt" == "_" ]]; then
+    echo "patch_src [-i | -a <hdr_file>]     -a Adds header. -i removes header"
+    exit 1
+fi
+
+function exclude {
+    f=$1
+    if [[ "_$f" == "_./gov/crypto/base58.h" ]]; then return 1; fi
+    if [[ "_$f" == "_./gov/crypto/base58.cpp" ]]; then return 1; fi
+    if [[ "_$f" == "_./gov/crypto/endian_rw.h" ]]; then return 1; fi
+    if [[ "_$f" == "_./android/app/src/main/java/us/cash/IntentResult.java" ]]; then return 1; fi
+    if [[ "_$f" == "_./android/app/src/main/java/us/cash/IntentIntegrator.java" ]]; then return 1; fi
+    if [[ "_$f" == "_./sdk/java/us/gov/crypto/base58.java" ]]; then return 1; fi
+    if [[ "_$f" == "_./sdk/java/us/gov/crypto/linux_secure_random.java" ]]; then return 1; fi
+    if [[ "_$f" == "_./gov/io/command.h" ]]; then return 1; fi
+    return 0
+}
+
+let w=0
+
+function progress_reset {
+    let w=0
+}
+
+function progress {
+    echo -n "."
+    let w=$w+1
+    if [ $w -gt 40 ]; then
+        let w=4
+        echo ""
+        echo -n "    "
+    fi
+}
+
+function patch_cpp {
+    f=$1
+    head -n1 $f | grep "^//===.*" > /dev/null
+    if [[ $? -eq 0 ]]; then
+        echo "KO 50463 File $f has already a header."
+        exit 1
+    fi
+    #echo "patching file $f"
+    mv $f $f.off
+    cat $hdrfile | sed "s~\(.*\)~//===-\1~" >> $f
+    cat $f.off >> $f
+    rm $f.off
+}
+
+function unpatch_cpp {
+    f=$1
+    mv $f $f.off
+    cat $f.off | grep -v '^//===$' | grep -v '^//===[^=]' >> $f
+    rm $f.off
+}
+
+function patch_bash {
+    shebang=$1
+    f=$2
+    head -n2 $f | grep "^#===.*" > /dev/null
+    if [[ $? -eq 0 ]]; then
+        echo "KO 50464 File $f has already a header."
+        exit 1
+    fi
+    #echo "patching file $f"
+    mv $f $f.off
+    if [[ $shebang -eq 1 ]]; then
+        head -n1 $f.off > $f
+    fi
+    cat $hdrfile | sed "s~\(.*\)~#===-\1~" >> $f
+    if [[ $shebang -eq 1 ]]; then
+        tail -n+2 $f.off >> $f
+    else
+        cat $f.off >> $f
+    fi
+    rm $f.off
+    chmod +x $f
+}
+
+function unpatch_bash {
+    shebang=$1
+    f=$2
+    #echo "unpatching file $f"
+    mv $f $f.off
+#    cat $f.off | grep -v "^#===.*" >> $f
+    cat $f.off | grep -v '^#===$' | grep -v '^#===[^=]' >> $f
+    rm $f.off
+    chmod +x $f
+}
+
+function patch_cppish {
+    ext=$1
+    fs=`find -type f -name "*.$ext"`
+    for f in $fs; do
+        progress
+        #  echo $f
+        exclude $f
+        if [ $? -eq 1 ]; then
+            #       echo "excluding $f"
+            continue;
+        fi
+        patch_cpp $f
+    done
+}
+
+function unpatch_cppish {
+    ext=$1
+    fs=`find -type f -name "*.$ext"`
+    for f in $fs; do
+        #echo $f
+        progress
+        exclude $f
+        if [[ $? -eq 1 ]]; then
+            continue;
+        fi
+        unpatch_cpp $f
+    done
+}
+
+function patch_bashish {
+    shebang=$1
+    dir=$2
+    fs=`find $dir -type f -name "*"`
+    for f in $fs; do
+        progress
+        if [[ $shebang -eq 1 ]]; then
+            cat $f | head -n1 | grep '^#!/bin/' > /dev/null
+            if [ $? -ne 0 ]; then
+                continue;
+            fi
+        fi
+        patch_bash $shebang $f
+    done
+}
+
+function unpatch_bashish {
+    shebang=$1
+    dir=$2
+    fs=`find $dir -type f -name "*"`
+    for f in $fs; do
+        #echo $f
+        progress
+        if [[ $shebang -eq 1 ]]; then
+            cat $f | head -n1 | grep '^#!/bin/' > /dev/null
+            if [ $? -ne 0 ]; then
+                continue;
+            fi
+        fi
+        unpatch_bash $shebang $f
+    done
+}
+
+function patch_makefilish {
+    dir=$1
+    fs=`find $dir -type f -name "makefile*"`
+    for f in $fs; do
+        progress
+        patch_bash 0 $f
+    done
+}
+
+function unpatch_makefilish {
+    dir=$1
+    fs=`find $dir -type f -name "makefile*"`
+    for f in $fs; do
+        #echo $f
+        progress
+        unpatch_bash 0 $f
+    done
+}
+
+progress_reset
+
+if [[ "_$opt" == "_-i" ]]; then
+    unpatch_cppish cpp
+    unpatch_cppish h
+    unpatch_cppish h.in
+    unpatch_cppish inc
+    unpatch_cppish java
+    unpatch_cppish java.in
+    unpatch_cppish cs
+    unpatch_bashish 1 bin
+    unpatch_bashish 1 android/bin
+    unpatch_bash 1 android/configure
+    unpatch_bash 1 android/make.sh
+    unpatch_bash 1 sdk/wallet/java/make.sh
+    unpatch_bash 1 sdk/wallet/cs/make.sh
+    unpatch_bashish 1 sdk/wallet/java/bin
+    unpatch_makefilish .
+    unpatch_bash 0 snippet/distr_makefile.in
+elif [[ "_$opt" == "_-a" ]]; then
+    patch_cppish cpp
+    patch_cppish h
+    patch_cppish h.in
+    patch_cppish inc
+    patch_cppish java
+    patch_cppish java.in
+    patch_cppish cs
+    patch_bashish 1 bin
+    patch_bashish 1 android/bin
+    patch_bash 1 android/configure
+    patch_bash 1 android/make.sh
+    patch_bash 1 sdk/wallet/java/make.sh
+    patch_bash 1 sdk/wallet/cs/make.sh
+    patch_bashish 1 sdk/wallet/java/bin
+    patch_makefilish .
+    patch_bash 0 snippet/distr_makefile.in
+fi
+echo ""
+exit 0
+

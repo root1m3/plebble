@@ -1,0 +1,7 @@
+Why IPv4 Addresses?
+===================
+
+As opposed to the newest version 6 of the Internet Protocol, version 4 (IPv4) is a stable protocol with peculiar characteristics that can be exploited to achieve consensus in a BFT problem [Search Byzantine Fault Tolerant].
+
+[[TO DO]] Apologies. We'll write quality content here. Ask me in the meantime if you need more info mm@mm-studios.com.
+

@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:card_view="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#FFFFFF"
+    >
+<!--
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/cardview_light_background"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior"
+        >
+
+        <android.widget.LinearLayout
+            android:id="@+id/close"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:paddingBottom="5dp"
+            android:orientation="vertical">
+
+            <include layout="@layout/role_fragment_logo" android:id="@+id/workflow_logo"/>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/button_chat"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="10dp"
+                android:layout_marginVertical="5dp"
+                android:drawableLeft="@drawable/ic_chat"
+                android:drawablePadding="20dp"
+                android:paddingLeft="20dp"
+                android:text="Chat"
+                android:textAlignment="textStart"
+                android:textColor="@android:color/white"
+                android:visibility="gone"
+                app:textAllCaps="false" />
+
+            <include layout="@layout/tip"/>
+            <include layout="@layout/workflow_item" android:id="@+id/workflow_item_app"/>
+-->
+            <!-- Create A.I. Request -->
+<!--
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/create_ai_request"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="15dp"
+                android:layout_marginTop="10dp"
+                android:drawableLeft="@drawable/ic_open_doc"
+                android:drawablePadding="20dp"
+                android:paddingLeft="20dp"
+                android:text="Create a new A.I. Request to get a Health Coach"
+                android:textAlignment="textStart"
+                android:textColor="#ededed"
+                android:visibility="gone"
+                app:textAllCaps="false" />
+
+            <include layout="@layout/workflow_item" android:id="@+id/workflow_item_aireq"/>
+            <include layout="@layout/workflow_item" android:id="@+id/workflow_item_ehr"/>
+            <include layout="@layout/workflow_item" android:id="@+id/workflow_item_aires"/>
+            <include layout="@layout/workflow_item" android:id="@+id/workflow_item_pres"/>
+            <include layout="@layout/redirection"/>
+            <include layout="@layout/redirection_follow"/>
+
+        </android.widget.LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+-->
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

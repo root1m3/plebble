@@ -1,0 +1,226 @@
+//===-                           P L E B B L E
+//===-                         https://plebble.us
+//===-
+//===-              Copyright (C) 2017-2022 root1m3@plebble.us
+//===-
+//===-                      GNU GENERAL PUBLIC LICENSE
+//===-                       Version 3, 29 June 2007
+//===-
+//===-    This program is free software: you can redistribute it and/or modify
+//===-    it under the terms of the AGPLv3 License as published by the Free
+//===-    Software Foundation.
+//===-
+//===-    This program is distributed in the hope that it will be useful,
+//===-    but WITHOUT ANY WARRANTY; without even the implied warranty of
+//===-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+//===-
+//===-    You should have received a copy of the General Public License
+//===-    along with this program, see LICENCE file.
+//===-    see https://www.gnu.org/licenses
+//===-
+//===----------------------------------------------------------------------------
+//===-
+package us;
+import static us.gov.id.types.*;                                                               // *
+import static us.gov.io.types.*;                                                               // *
+import static us.gov.socket.types.*;                                                           // *
+import static us.stdint.*;                                                                     // *
+import us.ko;                                                                                  // ko
+import static us.ko.ok;                                                                        // ok
+
+public class CFG {
+
+    public static final String LOGDIR = "/var/log/##str3##";
+
+    public static final short TEST = ##str62##;
+    public static final String COPYRIGHT_LINE = "##str59##";
+    public static final String COPYRIGHT_LINE2 = "##str63##";
+    public static final String COPYRIGHT_LINE3 = "##str64##";
+    public static final String LICENSE_FILE = "/var/##str3##/LICENSE";
+    public static final String AUTOMATIC_UPDATES_PUBKEY = "##str10##";
+    public static final String NODEMASTER_PUBKEY = "##str35##";
+    public static final String AUTOMATIC_UPDATES_ACCOUNT = "##str39##";
+    public static final String BRANDID = "##str40##";
+    public static final String PLATFORM = "##str3##";
+    public static final String DATADIR = ".##str3##";
+    public static final int LAYOFF_DAYS = ##str36##;
+    public static final String UGAS = "##str37##";
+    public static final String LGAS = "##str38##";
+    public static final short COUNTERS = ##str41##;
+    public static final short CONNECTION_LOG = ##str42##;
+    public static final channel_t CHANNEL = new channel_t(##str6##);
+    public static final int MAX_SUBSIDY = ##str30##;
+    public static final int MAX_SIZE_DATAGRAM = ##str31##;
+    public static final short LOGS = ##str33##;
+    public static final port_t PORT = new port_t(##str18##);
+    public static final pport_t PPORT = new pport_t(##str20##);
+    public static final port_t WALLET_PORT = new port_t(##str19##);
+    public static final pport_t WALLET_PPORT = new pport_t(##str34##);
+    public static final int MAX_NODES = ##str46##;
+    public static final int REPORT_REASON = ##str44##;
+    public static final int FCGI = ##str45##;
+    public static final int DEBUG = ##str29##;
+    public static final int HMI_READY_TIMEOUT_SECS = ##str49##;
+    public static final int AUTH_TIMEOUT_SECS = ##str51##;
+    public static final int SENDQ_SIZE = 100;
+    public static final int SENDQ_WMH = ##str52##;
+    public static final int SENDQ_SCHUNK = ##str53##;
+    public static final int DGRAM_ROUNDTRIP_TIMEOUT_SECS = ##str54##;
+    public static final blob_t.version_t BLOB_VERSION = new blob_t.version_t((short)##str60##);
+
+    public static class network_topology_t {
+        public String TYPE;
+        public boolean PUBLIC;
+        public boolean PRIVATE;
+        public boolean PERMISSIONLESS;
+        public boolean PERMISSIONED;
+        public boolean MESH;
+        public boolean RING;
+
+        public network_topology_t(String type_) {
+            TYPE = type_;
+            String v[] = type_.split("_");
+            assert v.length == 3;
+            if (v[0].equals("PUBLIC")) {            
+                PUBLIC = true;
+            }
+            else if (v[0].equals("PRIVATE")) {            
+                PUBLIC = false;
+            }
+            else {
+                System.err.println("KO 79893");
+                System.exit(1);
+            }
+            PRIVATE = !PUBLIC;
+
+            if (v[1].equals("PERMISSIONLESS")) {            
+                PERMISSIONLESS = true;
+            }
+            else if (v[1].equals("PERMISSIONED")) {            
+                PERMISSIONLESS = false;
+            }
+            else {
+                System.err.println("KO 79893");
+                System.exit(1);
+            }
+            PERMISSIONED = !PERMISSIONLESS;
+            if (v[2].equals("MESH")) {            
+                MESH = true;
+            }
+            else if (v[2].equals("RING")) {            
+                MESH = false;
+            }
+            else {
+                System.err.println("KO 79893");
+                System.exit(1);
+            }
+            RING=!MESH;
+        }
+    }
+
+    public static final network_topology_t NETWORK_TOPOLOGY = new network_topology_t("##str9##");
+
+    public static class logs {                                                          //--strip
+        static boolean b = false;                                                       //--strip
+        public static boolean gov = b;                                                  //--strip
+        public static boolean gov_crypto = b;                                           //--strip
+        public static boolean gov_io = b;                                               //--strip
+        public static boolean gov_socket = b;                                           //--strip
+        public static boolean gov_id = b;                                               //--strip
+        public static boolean gov_auth = b;                                             //--strip
+        public static boolean gov_peer = b;                                             //--strip
+        public static boolean gov_relay = b;                                            //--strip
+        public static boolean gov_dfs = b;                                              //--strip
+        public static boolean gov_cli = b;                                              //--strip
+        public static boolean wallet = b;                                               //--strip
+        public static boolean wallet_wallet = b;                                        //--strip
+        public static boolean wallet_engine = b;                                        //--strip
+        public static boolean wallet_trader = b;                                        //--strip
+        public static boolean wallet_cli = b;                                           //--strip
+
+        public static void set(boolean b_in) {                                          //--strip
+            gov = gov_crypto = gov_io = gov_socket = gov_id = gov_auth =                //--strip
+                  gov_peer = gov_relay = gov_dfs = gov_cli =                            //--strip
+            wallet = wallet_engine = wallet_wallet = wallet_trader = wallet_cli         //--strip
+            = b_in;                                                                     //--strip
+            b = b_in;                                                                   //--strip
+        }                                                                               //--strip
+    }                                                                                   //--strip
+
+    public static void log_gov(final String line) {                                     //--strip
+        if (logs.gov)                                                                   //--strip
+        System.out.println("gov: " + line);                                             //--strip
+    }                                                                                   //--strip
+
+    public static void log_gov_crypto(final String line) {                              //--strip
+        if (logs.gov_crypto)                                                            //--strip
+        System.out.println("gov/crypto: " + line);                                      //--strip
+    }                                                                                   //--strip
+
+    public static void log_gov_socket(final String line) {                              //--strip
+        if (logs.gov_socket)                                                            //--strip
+        System.out.println("gov/socket: " + line);                                      //--strip
+    }                                                                                   //--strip
+
+    public static void log_gov_id(final String line) {                                  //--strip
+        if (logs.gov_id)                                                                //--strip
+        System.out.println("gov/id: " + line);                                          //--strip
+    }                                                                                   //--strip
+
+    public static void log_gov_auth(final String line) {                                  //--strip
+        if (logs.gov_auth)                                                                //--strip
+        System.out.println("gov/auth: " + line);                                          //--strip
+    }                                                                                     //--strip
+
+    public static void log_gov_peer(final String line) {                                  //--strip
+        if (logs.gov_peer)                                                                //--strip
+        System.out.println("gov/peer: " + line);                                          //--strip
+    }                                                                                     //--strip
+
+    public static void log_gov_relay(final String line) {                                  //--strip
+        if (logs.gov_relay)                                                                //--strip
+        System.out.println("gov/relay: " + line);                                          //--strip
+    }                                                                                      //--strip
+
+    public static void log_gov_dfs(final String line) {                                  //--strip
+        if (logs.gov_dfs)                                                                //--strip
+        System.out.println("gov/dfs: " + line);                                          //--strip
+    }                                                                                    //--strip
+
+    public static void log_gov_io(final String line) {                                  //--strip
+        if (logs.gov_io)                                                                //--strip
+        System.out.println("gov/io: " + line);                                          //--strip
+    }                                                                                   //--strip
+
+    public static void log_gov_cli(final String line) {                                  //--strip
+        if (logs.gov_cli)                                                                //--strip
+        System.out.println("gov/cli: " + line);                                          //--strip
+    }                                                                                    //--strip
+
+    public static void log_wallet(final String line) {                                  //--strip
+        if (logs.wallet)                                                                //--strip
+        System.out.println("wallet: " + line);                                          //--strip
+    }                                                                                   //--strip
+
+    public static void log_wallet_engine(final String line) {                           //--strip
+        if (logs.wallet_engine)                                                         //--strip
+        System.out.println("wallet/engine: " + line);                                   //--strip
+    }                                                                                   //--strip
+
+    public static void log_wallet_wallet(final String line) {                           //--strip
+        if (logs.wallet_wallet)                                                         //--strip
+        System.out.println("wallet/wallet: " + line);                                   //--strip
+    }                                                                                   //--strip
+
+    public static void log_wallet_trader(final String line) {                           //--strip
+        if (logs.wallet_trader)                                                         //--strip
+        System.out.println("wallet/trader: " + line);                                   //--strip
+    }                                                                                   //--strip
+
+    public static void log_wallet_cli(final String line) {                              //--strip
+        if (logs.wallet_cli)                                                            //--strip
+        System.out.println("wallet/cli: " + line);                                      //--strip
+    }                                                                                   //--strip
+
+}
+

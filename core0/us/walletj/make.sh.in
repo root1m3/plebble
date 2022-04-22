@@ -1,0 +1,62 @@
+#!/bin/bash
+
+US=##str3##
+
+function clean {
+	rm -rf build
+	rm -f *.jar
+}
+
+javac=`which javac`
+if [ "_$JAVA_HOME" != "_" ]; then
+    javac=$JAVA_HOME/bin/javac
+fi
+
+
+function source {
+    rm -f ${US}-walletj.jar
+    mkdir -p build
+    $javac -d build -cp $libspath us/*.java
+    if [[ $? -ne 0 ]]; then
+        exit 1
+    fi
+    cd build
+        jar cfe ../${US}-walletj.jar us.walletj.class *
+    cd ..
+    echo "bin/${US}-walletj is ready"
+    echo "bin/${US}-examples is ready"
+}
+
+function all {
+    echo "compiling using $javac"
+    source
+}
+
+cmd=$1
+libspath=".:./sdk/${US}-sdk_bc.jar:./sdk/libs_bouncy/*"
+
+if [[ ! -f ./sdk/${US}-sdk_bc.jar ]]; then
+    echo "KO 79863 no sdk. symlink the directory containing ${US}-sdk_bc.jar and libs_bouncy as sdk"
+    echo "e.g."
+    echo "    ln -s ../sdk/wallet/java sdk"
+    exit 1
+fi
+
+if [ "_$cmd" == "_" ]; then
+    cmd="all"
+fi
+
+if [ "_$cmd" == "_all" ]; then
+    all
+fi
+
+if [ "_$cmd" == "_source" ]; then
+    source
+fi
+
+if [ "_$cmd" == "_clean" ]; then
+    clean
+fi
+
+exit 0
+

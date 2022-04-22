@@ -1,0 +1,7 @@
+WARNING
+
+This C# sdk library is too old to work.
+Although it used to work fine long ago it is kept as a general reference
+for when any new initiative of having a sdk C-sharp rpc library is spawn by someone.
+
+

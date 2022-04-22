@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="210mm"
+   height="297mm"
+   viewBox="0 0 210 297"
+   version="1.1"
+   id="svg8"
+   inkscape:version="0.92.2 (5c3e80d, 2017-08-06)"
+   sodipodi:docname="us-cash.svg">
+  <defs
+     id="defs2" />
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="2.8"
+     inkscape:cx="246.34748"
+     inkscape:cy="779.11417"
+     inkscape:document-units="mm"
+     inkscape:current-layer="layer1"
+     showgrid="false"
+     inkscape:window-width="1920"
+     inkscape:window-height="1016"
+     inkscape:window-x="0"
+     inkscape:window-y="27"
+     inkscape:window-maximized="1" />
+  <metadata
+     id="metadata5">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1">
+    <path
+       style="font-style:normal;font-weight:normal;font-size:13.99144268px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.36012909"
+       d="m 108.64708,99.573627 -0.33207,0.0049 c -0.20498,0.003 -0.30601,0.138758 -0.30381,0.406917 l 0.0107,1.252976 a 3.2188499,2.8513092 0 0 1 0.94212,-0.50405 l -0.006,-0.762275 c -0.002,-0.26816 -0.10555,-0.401054 -0.31055,-0.398166 z m -0.58975,6.006623 0.01,1.21062 c 0.002,0.26816 0.10971,0.40071 0.32286,0.39771 l 0.31976,-0.005 c 0.20497,-0.003 0.30598,-0.13829 0.30378,-0.40645 l -0.006,-0.71258 a 3.2188499,2.8513092 0 0 1 -0.95012,-0.4847 z"
+       id="text3719"
+       inkscape:connector-curvature="0" />
+    <path
+       style="font-style:normal;font-weight:normal;font-size:13.99144268px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.3601501"
+       d="m 109.79949,99.573628 -0.33207,0.0049 c -0.20498,0.003 -0.30598,0.138318 -0.30378,0.40651 l 0.006,0.709412 a 3.2188499,2.8516417 0 0 1 0.94639,-0.13072 l -0.005,-0.592031 c -0.002,-0.268191 -0.10615,-0.400645 -0.31117,-0.397758 z m -0.58544,6.575412 0.006,0.64222 c 0.002,0.26818 0.10972,0.40075 0.32286,0.39775 l 0.31977,-0.005 c 0.20497,-0.003 0.30661,-0.13832 0.30441,-0.4065 l -0.005,-0.51284 a 3.2188499,2.8516417 0 0 1 -0.0394,9.9e-4 3.2188499,2.8516417 0 0 1 -0.90893,-0.11739 z"
+       id="text3723"
+       inkscape:connector-curvature="0" />
+    <text
+       id="text3859"
+       y="117.14789"
+       x="87.278419"
+       style="font-style:normal;font-weight:normal;font-size:9.61747742px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.24043693"
+       xml:space="preserve"
+       transform="scale(1.1004271,0.90873807)"><tspan
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Open Sans Condensed';-inkscape-font-specification:'Open Sans Condensed, ';stroke-width:0.24043693"
+         y="117.14789"
+         x="87.278419"
+         id="tspan3857"
+         sodipodi:role="line">USC</tspan></text>
+    <text
+       id="text3867"
+       y="93.081841"
+       x="81.831841"
+       style="font-style:normal;font-weight:normal;font-size:10.58333302px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332"
+       xml:space="preserve"><tspan
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Open Sans Condensed';-inkscape-font-specification:'Open Sans Condensed, ';stroke-width:0.26458332"
+         y="93.081841"
+         x="81.831841"
+         id="tspan3865"
+         sodipodi:role="line">Cash</tspan></text>
+    <text
+       transform="scale(1.2407166,0.80598583)"
+       id="text3871"
+       y="107.16135"
+       x="69.425079"
+       style="font-style:normal;font-weight:normal;font-size:8.84786034px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.22119652"
+       xml:space="preserve"><tspan
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Linux Libertine Display O';-inkscape-font-specification:'Linux Libertine Display O';stroke-width:0.22119652"
+         y="107.16135"
+         x="69.425079"
+         id="tspan3869"
+         sodipodi:role="line">us</tspan></text>
+    <path
+       inkscape:connector-curvature="0"
+       id="path3873"
+       d="m 83.984136,84.643567 -0.332073,0.0059 c -0.204979,0.0036 -0.306011,0.168027 -0.303809,0.492752 l 0.01071,1.517273 a 3.2188499,3.4527639 0 0 1 0.942119,-0.610367 l -0.006,-0.923071 c -0.0024,-0.324726 -0.105554,-0.485652 -0.310545,-0.482155 z m -0.589757,7.273658 0.0095,1.465986 c 0.0024,0.324727 0.109719,0.485233 0.322861,0.481606 l 0.319768,-0.0059 c 0.204967,-0.0036 0.305976,-0.167463 0.303774,-0.492189 l -0.0059,-0.862886 a 3.2188499,3.4527639 0 0 1 -0.950116,-0.586945 z"
+       style="font-style:normal;font-weight:normal;font-size:13.99144268px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.39629582" />
+    <path
+       inkscape:connector-curvature="0"
+       id="path3875"
+       d="m 85.136542,84.643568 -0.332072,0.0059 c -0.20498,0.0036 -0.305976,0.167495 -0.303774,0.492259 l 0.0059,0.859059 a 3.2188499,3.4531665 0 0 1 0.946391,-0.158295 l -0.0048,-0.716916 c -0.0024,-0.324764 -0.106149,-0.485157 -0.311176,-0.481661 z m -0.585438,7.962429 0.0059,0.777683 c 0.0024,0.324753 0.109719,0.485291 0.322862,0.481662 l 0.319768,-0.006 c 0.204967,-0.0036 0.306606,-0.167496 0.304405,-0.492246 l -0.0048,-0.621027 a 3.2188499,3.4531665 0 0 1 -0.03939,0.0012 3.2188499,3.4531665 0 0 1 -0.90893,-0.142155 z"
+       style="font-style:normal;font-weight:normal;font-size:13.99144268px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.39631894" />
+  </g>
+</svg>

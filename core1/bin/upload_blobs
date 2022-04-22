@@ -1,0 +1,93 @@
+#!/bin/bash
+#===-                           P L E B B L E
+#===-                         https://plebble.us
+#===-
+#===-              Copyright (C) 2017-2022 root1m3@plebble.us
+#===-
+#===-                      GNU GENERAL PUBLIC LICENSE
+#===-                       Version 3, 29 June 2007
+#===-
+#===-    This program is free software: you can redistribute it and/or modify
+#===-    it under the terms of the AGPLv3 License as published by the Free
+#===-    Software Foundation.
+#===-
+#===-    This program is distributed in the hope that it will be useful,
+#===-    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#===-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+#===-
+#===-    You should have received a copy of the General Public License
+#===-    along with this program, see LICENCE file.
+#===-    see https://www.gnu.org/licenses
+#===-
+#===----------------------------------------------------------------------------
+#===-
+
+if [[ `whoami` != "gov" ]]; then
+    echo "KO 69584 Execute as user gov. wallet must have keys for blob address $address."
+    exit 1
+fi
+
+if [ -f ./.cbs/config ]; then
+	cat .cbs/config
+    . ./.cbs/config
+else
+	echo "KO 8585 Missing .cbs/config."
+	exit 1
+fi
+
+address=$address_blobs
+
+shopt -s expand_aliases
+. ~/.bash_aliases
+
+home=`gov print_home`
+. $home/config
+
+function procblob {
+    brand=$1
+    blobid=$2
+    upstream_hash=`$gov cmd list_files $address $blobid`
+    if [ $? -ne 0 ]; then
+        echo "KO 8556"
+        exit
+    fi
+    echo "address $address"
+    echo "brand $brand"
+    echo "blobid $blobid"
+    echo "upstream_hash $upstream_hash"
+
+    local_blob=`ls -1 /var/$brand/blob/*.tzst`
+    echo "local_blob $local_blob"
+    set -x
+    local_hash=`$wallet digest $local_blob`
+    set +x
+    echo "local_hash $local_hash"
+
+    if [ "_$upstream_hash" == "_$local_hash" ]; then
+        echo "==OK=============>Blob $upstream_hash is already in the matrix."
+        return;
+    fi
+
+    if [ "_$upstream_hash" != "_" ]; then
+        echo "==!!=============>Upstream has old version $upstream_hash. Replacing it with $local_hash"
+        set -x
+        $wallet rm $address -f $upstream_hash $blobid
+        set +x
+    else
+        echo "Not upstream"
+    fi
+
+    echo "uploading blob"
+    set -x
+    $wallet -local store $address -f $local_blob $blobid
+    set +x
+}
+
+abrands=`find $brands -maxdepth 1 -mindepth 1 -type d | sed "s~$brands/~~" | xargs`
+for b in $abrands; do
+    blobid=`cat $brands/$b/blob | xargs`
+    procblob $b `cat $brands/$b/blob | xargs`
+done
+
+exit 0
+

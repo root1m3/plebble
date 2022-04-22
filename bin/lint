@@ -1,0 +1,10 @@
+#!/bin/bash
+
+find . -name "*.java" -type f -exec sed -i 's/\t/    /g' {} \;
+find . -name "*.h" -type f -exec sed -i 's/\t/    /g' {} \;
+find . -name "*.cpp" -type f -exec sed -i 's/\t/    /g' {} \;
+find core0/bin -type f -name "*" -exec sed -i 's/\t/    /g' {} \;
+find core1/bin -type f -name "*" -exec sed -i 's/\t/    /g' {} \;
+find . -name "*" -type f -exec dos2unix {} \;
+
+

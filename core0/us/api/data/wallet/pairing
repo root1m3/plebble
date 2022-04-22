@@ -1,0 +1,43 @@
+pair_device
+p pub  s subhome  s name
+sync
+s ans
+cmd=pair&device=pubkeyB58&subhome=&name=
+-
+
+unpair_device
+p pub
+sync
+s ans
+cmd=unpair&device=pubkeyB58&name=
+-
+
+list_devices
+-
+sync
+s data
+cmd=list_devices
+-
+
+attempts
+-
+sync
+v{s} data
+cmd=attempts
+-
+
+prepair_device
+u2 pin  s subhome  s name
+sync
+u2 pin  s subhome
+cmd=prepair&pin=&subhome=&name=
+-
+
+unprepair_device
+u2 pin
+sync
+s ans
+cmd=unprepair&pin=&name=
+-
+
+

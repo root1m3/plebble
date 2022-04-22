@@ -1,0 +1,99 @@
+CLIENT
+
+-------------------------------------------------------------
+325bf9623df76705602631679319570a76821e97
+finished
+    if set true this client will
+        parent!=0 -> end up in the garbage collector (gc) on the next wakeup via server::update
+
+-------------------------------------------------------------
+af7b9b3d1d8f55d2f469b90ef853e19b3be1798f
+finished_reason - String storing the reason for the disconnection.
+
+
+
+-------------------------------------------------------------
+af7b9b3d1d8f55d2f469b90ef853e19b3be1798f
+virtual pair<security_level_t,string> security_level() const { return make_pair(security_level_ok,""); }
+
+
+Specialized classes provide a security status result. One of:
+            security_level_ok,
+            security_level_disconnect,
+            security_level_ban,
+
+
+-------------------------------------------------------------
+af7b9b3d1d8f55d2f469b90ef853e19b3be1798f
+queue_t* sendq{0}; 
+
+    weak pointer to an active send_queue used to deliver datagrams that will end up in your mirror client (my instance of client).
+
+    client: you    <----------------- mirror_client: you   
+    mirror_client: -----------------> client: me
+                                      
+    updates the variable activity containing the timestamp activity is last registed outbound.
+
+
+-------------------------------------------------------------
+7d9204b5e9129a8082d4cf42ce4f0985b7906fd1
+void c::send0(datagram* d0) {
+
+    Encrypts and places the datagram in the sending queue with priority equals to service number. (lowest uint16_t service number have higher deliver priority)
+    
+    The datagram is always deleted from memory.
+    It wont deliver the datagram if
+        sendq is not available
+        the variable sendref is negative, meaning the client is at disposal in the garbage collector (gc)
+
+
+-------------------------------------------------------------
+325bf9623df76705602631679319570a76821e97
+pair<ko,datagram*> c::recv4x(datagram* d) 
+
+    Completes the given datagram from our socket.
+    It doesn't guarantee that datagram is null when ko!=0,
+    In fact, it always returns a valid datagram, which could be empty, regardless if the value of ko.    
+ 
+    If the supplied datagram is null a new datagram is created, otherwise the specified one would be filled.
+    calls datagram::recvfrom passing the sock we store, returning a ko code .
+
+    if ko is not null, returns the ko code and a null datagram.
+    if ko is null, update activity timestamps and return the updated datagram.
+
+    tnis function doesn't call disconnect in any case.
+
+
+-------------------------------------------------------------
+325bf9623df76705602631679319570a76821e97
+ko c::recv5x(datagram*& d0) 
+    replaces the datagram pointer with an updated new/same one, 
+    guarantees valid datagram in any case, regardless of the value of ko.
+    Completes the given datagram from our socket.
+    recv4x wrapper.
+
+    tnis function doesn't call disconnect in any case.
+
+
+-------------------------------------------------------------
+325bf9623df76705602631679319570a76821e97
+pair<ko,datagram*> c::recv6()
+    receives a complete datagram. 
+    It does guarantee that datagram is null when ko!=0,
+    Calls repeteadly to recv5x until the datagram is completed.
+    returns the decrypted datagram.
+
+    tnis function doesn't call disconnect in any case.
+
+
+-------------------------------------------------------------
+void c::set_finished() {
+    flags the object for disposal.
+    if CFG_REPORT_REASON is 1 (the default for alpha) a last datagram protocol::gov_socket_finished is sent before disconnecting the socket.
+
+
+    
+
+
+
+

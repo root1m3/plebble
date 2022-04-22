@@ -1,0 +1,3 @@
+#!/bin/sh
+/usr/local/bin/install_blob >/var/log/##str3##/install_blobs.last.log 2>&1
+exit $?

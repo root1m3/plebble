@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<us.cash.txlog_view
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:card_view="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:visibility="visible"
+    >
+
+    <com.google.android.material.card.MaterialCardView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="15dp"
+        android:checkable="true"
+        android:clickable="true"
+        android:focusable="true"
+        card_view:cardBackgroundColor="#ededed"
+        card_view:cardElevation="2dp"
+        android:id="@+id/card"
+        >
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="15dp"
+        android:layout_gravity="clip_vertical"
+        android:orientation="vertical">
+
+        <TextView
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:text="Recent"
+            android:textSize="16dp"
+             />
+                 
+        <androidx.core.widget.NestedScrollView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            app:layout_behavior="@string/appbar_scrolling_view_behavior">
+
+            <us.cash.no_scroll_list_view
+                android:id="@+id/listviewX"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="0dp"
+                app:layout_behavior="@string/appbar_scrolling_view_behavior"
+                />
+        </androidx.core.widget.NestedScrollView>
+
+    </LinearLayout>
+
+    </com.google.android.material.card.MaterialCardView>
+</us.cash.txlog_view>
+

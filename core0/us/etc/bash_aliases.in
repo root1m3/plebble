@@ -1,0 +1,4 @@
+. /home/##str11##/.##str3##/config ###str3##
+alias ##str12##="##str3##-gov -c ${CHANNEL} -p ${PORT}" ###str3##
+alias ##str13##="##str3##-wallet -c ${CHANNEL} -bp ${PORT} -wp ${WALLET_PORT}" ###str3##
+alias ##str14##="##str3##-bz -c ${CHANNEL}" ###str3##

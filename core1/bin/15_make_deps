@@ -1,0 +1,231 @@
+#!/bin/bash
+#===-                           P L E B B L E
+#===-                         https://plebble.us
+#===-
+#===-              Copyright (C) 2017-2022 root1m3@plebble.us
+#===-
+#===-                      GNU GENERAL PUBLIC LICENSE
+#===-                       Version 3, 29 June 2007
+#===-
+#===-    This program is free software: you can redistribute it and/or modify
+#===-    it under the terms of the AGPLv3 License as published by the Free
+#===-    Software Foundation.
+#===-
+#===-    This program is distributed in the hope that it will be useful,
+#===-    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#===-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+#===-
+#===-    You should have received a copy of the General Public License
+#===-    along with this program, see LICENCE file.
+#===-    see https://www.gnu.org/licenses
+#===-
+#===----------------------------------------------------------------------------
+#===-
+echo "##################"
+echo "## 15_make_deps ##"
+echo "##################"
+
+if [[ -f ./.cbs/config ]]; then
+    . ./.cbs/config
+else
+    echo "KO 85851 Missing .cbs/config."
+    exit 1
+fi
+
+grootkey=`ush show_groot_key`
+ssh="ssh -i $grootkey "
+hash=""
+branch=""
+let local_build=0
+
+function help {
+    echo "--local-build  --ignore-cache"
+}
+
+ignore_cache=0
+while [ true ]; do
+    opt=$1
+    echo "read opt=$opt"
+    shift
+    if [ "_$opt" == "_--local-build" ]; then
+        echo " [local build]"
+        let local_build=1
+        continue
+    elif [ "_$opt" == "_--ignore-cache" ]; then
+        echo " [ignore cache]"
+        ignore_cache=1
+        continue
+    elif [[ _$opt == _-* ]]; then
+        echo "KO 60594 Invalid flag $opt"
+        help
+        exit 1
+    else
+        echo "end parsing flags"
+        break
+    fi
+done
+
+build_jobs=$opt
+if [ "_$build_jobs" == "_" ]; then
+    help
+    echo -n "specify which one: "
+    find . -maxdepth 1 -type d -name "build_jobs*" | sed "s~^\./~~" | xargs
+    exit 1
+fi
+echo "using dir $build_jobs"
+
+let fcgi=`cat build_jobs/build_hashes  | grep "^vhash " | sed "s/.*fcgi-\([01]\).*/\1/"`
+if [[ "_$fcgi" == "_" ]]; then
+    let fcgi=0
+fi 
+cache_file="deps_fcgi-$fcgi.tgz"
+
+function do_arch {
+    host=$1
+    sshport=$2
+    arch=`$ssh -p$sshport $host "uname -m"`
+    echo "do_arch $host $arch"
+    echo "uploading build_jobs"
+    rsync -r -e "$ssh -p$sshport" --progress --delete -a ${build_jobs}.tzst $host:/root/
+
+    #rsync -r -e "$ssh -p$sshport" --progress --delete -a snippet/build_job_make $host:/root/
+    echo "building $arch"
+    cat << EOF > /tmp/make.sh
+#!/bin/bash
+#------------------------------remote
+pushd /root >/dev/null;
+    rm -rf ${build_jobs}
+    tar -I zstd -xf $build_jobs.tzst
+    pushd $build_jobs >/dev/null
+        ./make.sh deps
+        r=\$?
+        if [[ \$r -ne 0 ]]; then
+            echo "make ended with errors"
+            exit \$r
+        fi
+    popd >/dev/null
+    echo "finishing"
+    rm -rf deps
+    rm -f deps.tzst
+    mv $build_jobs/deps .
+    tar -I zstd -cf deps.tzst deps
+    echo "===DONE==="
+popd > /dev/null
+exit 0
+#------------------------------remote
+EOF
+    chmod +x /tmp/make.sh
+    rsync -r -e "$ssh -p$sshport" --progress --delete -a /tmp/make.sh $host:/root/
+    $ssh -p$sshport $host "rm -f foo.*; touch foo.out; touch foo.err; nohup ./make.sh > foo.out 2> foo.err < /dev/null &"
+}
+
+function wait_done {
+    archs=$1
+    for arch in $archs; do
+        vhost=host_$arch
+        vport=port_ssh_$arch
+        host=${!vhost}
+        port=${!vport}
+        do_arch ${host} ${port}
+    done
+    while [ true ]; do
+        echo "archs left: $archs"
+        if [ "_$archs" == "_" ]; then
+            break
+        fi
+        for arch in $archs; do
+            vhost=host_$arch
+            vport=port_ssh_$arch
+            host=${!vhost}
+            port=${!vport}
+            #echo "querying host $host"
+            s=`$ssh -p$port $host "head -n1 foo.err"`
+            if [ "_$s" != "_" ]; then
+                echo "?????????Abnormally found: $s"
+                echo "$ssh -p$port $host \"killall make; killall build_job_make; killall cc1plus\""
+                $ssh -p$port $host "killall make; killall build_job_make; killall cc1plus"
+                echo "Complete cerr file: $ssh -p16671 $host \"cat foo.err\""
+                echo "1st Error: $s"
+                exit 1
+                break
+            fi
+            s=`$ssh -p$port $host "tail -n1 foo.out"`
+            echo "$arch @$host: $s"
+            if [[ $s = ===DONE===* ]]; then
+                echo "Detected a good smell about certain shit ending in the cryptographic pattern ===DONE==="
+                arch=`$ssh -p$port $host "uname -m"`
+                archs=`echo "$archs" | sed "s#$arch ##"`
+                echo "fetching $arch binaries"
+                rsync -r -e "$ssh  -p$port" --progress  -a $host:/root/deps.tzst ./
+                tar -I zstd -xf deps.tzst
+                break
+            fi
+            sleep 15
+        done
+    done
+    echo "all jobs finished"
+}
+
+function move_to_distr {
+    mkdir -p $distr
+    mv deps/x86_64/include deps/
+    rm -r deps/armv7l/include
+    mv deps $distr/
+    [[ ! -d distr/deps/include ]] && echo "KO 68857 missing deps include" && exit 1
+    [[ ! -d distr/deps/x86_64 ]] && echo "KO 68858 missing deps x86_64" && exit 1
+    if [[ $local_build -eq 0 ]]; then
+        [[ ! -d distr/deps/armv7l ]] && echo "KO 68859 missing deps armv7l" && exit 1
+        pushd "$distr/deps" >/dev/null
+            ln -s armv7l armv6l  #raspi Zero
+        popd >/dev/null
+    fi
+    cp snippet/install_deps distr/deps/
+    chmod +x distr/deps/install_deps
+    for file in `find ec -type f -name "build_hashes_*"`; do
+        arch=`echo $file | sed "s/.*build_hashes_\(.*\)/\1/"`
+        echo "source bin/15_make_deps [cached]" >> $distr/build_hashes
+        cat $file >> $distr/build_hashes
+        rm $file
+    done
+}
+
+distr="distr"
+echo "distr: $distr"
+
+if [[ $ignore_cache -eq 0 ]]; then
+    if [[ -f .cache/$cache_file ]]; then
+        echo "Found deps in cache."
+        tar -xzf .cache/$cache_file
+        echo "source bin/15_make_deps [cached]" >> $distr/build_hashes
+        exit 0
+    else
+        echo "deps not found in cache."
+    fi
+else
+    echo "Ignoring cache"
+fi
+
+rm deps -rf
+mkdir -p deps
+
+if [[ $local_build -eq 1 ]]; then
+    host_x86_64="localhost"
+    port_ssh_x86_64="16671"
+    wait_done "x86_64 "
+else
+    wait_done "x86_64 armv7l "
+fi
+
+move_to_distr
+
+if [[ $ignore_cache -eq 0 ]]; then
+    mkdir -p .cache
+    rm -f .cache/$cache_file
+    tar -czf .cache/$cache_file $distr/deps
+    echo "created .cache/$cache_file"
+fi
+
+echo "Finished"
+find $distr -type f
+
+exit 0

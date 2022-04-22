@@ -1,0 +1,509 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:card_view="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#FFFFFF"
+    >
+ <!--
+    <androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/cardview_light_background"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior"
+        >
+        <LinearLayout
+            android:id="@+id/close"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            >
+
+            <include layout="@layout/role_fragment_logo" android:id="@+id/logo"/>
+
+            <TextView
+                android:id="@+id/status_msg"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:text=""
+                android:layout_marginHorizontal="10dp"
+                android:textSize="20sp"
+                android:visibility="gone"
+                android:textAlignment="center" />
+-->
+            <!-- Tip -->
+<!--
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/tip_card"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="15dp"
+                android:layout_marginTop="10dp"
+                card_view:cardBackgroundColor="#ffdfba"
+                card_view:cardElevation="2dp">
+
+                <android.widget.LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="5dp"
+                    android:orientation="vertical"
+                    android:visibility="visible">
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginLeft="15dp"
+                        android:layout_gravity="clip_vertical"
+                        android:orientation="horizontal">
+
+                        <ImageView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center_vertical"
+                            android:src="@drawable/ic_tip_24" />
+
+                        <TextView
+                            android:id="@+id/tip_explain"
+                            android:layout_width="250dp"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="top"
+                            android:layout_marginHorizontal="10dp"
+                            android:text="@string/addproductstoyourbasket"
+                            android:textSize="16dp" />
+
+                    </LinearLayout>
+
+                </android.widget.LinearLayout>
+
+            </com.google.android.material.card.MaterialCardView>
+-->
+            <!-- Prescription -->
+<!--
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/doc_pres_btn"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="15dp"
+                android:checkable="true"
+                android:clickable="true"
+                android:focusable="true"
+                android:layout_marginTop="10dp"
+                card_view:cardBackgroundColor="#ededed"
+                card_view:cardElevation="2dp">
+
+                <android.widget.LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="5dp"
+                    android:orientation="vertical"
+                    android:visibility="visible">
+
+                    <TextView
+                        android:layout_width="250dp"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="top"
+                        android:layout_marginHorizontal="10dp"
+                        android:text="@string/prescription"
+                        android:textColor="@color/colorPrimary"
+                        android:textSize="15dp"
+                        android:textStyle="bold" />
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_margin="8dp"
+                        android:orientation="horizontal">
+
+                        <ImageView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:src="@drawable/ic_prescription_48" />
+
+                        <TextView
+                            android:layout_width="250dp"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="top"
+                            android:layout_marginHorizontal="10dp"
+                            android:text="Check and send this prescription to your pharmacy to buy and get your medicines"
+                            android:textSize="12dp" />
+
+                        <ImageView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:src="@drawable/ic_arrow_view" />
+
+                    </LinearLayout>
+
+                    <TableLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginHorizontal="10dp"
+                        android:shrinkColumns="0"
+                        android:stretchColumns="1"
+                        >
+
+                        <TableRow
+                            android:layout_width="fill_parent"
+                            android:layout_height="wrap_content"
+                            >
+
+                            <LinearLayout
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:orientation="vertical"
+                                android:paddingEnd="5dp"
+                                android:layout_column="0"
+                                >
+
+                                <TextView
+                                    android:id="@+id/doc_pres_st"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginTop="0dp"
+                                    android:paddingLeft="5dp"
+                                    android:text="@string/expiringin"
+                                    android:textAlignment="textStart"
+                                    android:textSize="10dp" />
+
+                                <TextView
+                                    android:id="@+id/doc_pres_st2"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginTop="0dp"
+                                    android:paddingLeft="5dp"
+                                    android:textSize="10dp"
+                                    android:text=""
+                                    android:textAlignment="center"
+                                    android:visibility="gone" />
+                            </LinearLayout>
+
+                            <com.google.android.material.button.MaterialButton
+                                android:id="@+id/button_send_pres"
+                                android:layout_column="1"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_gravity="end"
+                                android:text="@string/sharewiththispharmacy"
+                                android:textColor="@android:color/white"
+                                android:visibility="visible"
+                                app:textAllCaps="false" />
+                        </TableRow>
+
+                    </TableLayout>
+
+                </android.widget.LinearLayout>
+
+            </com.google.android.material.card.MaterialCardView>
+-->
+            <!-- Basket -->
+<!--
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/basket_container"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="15dp"
+                android:checkable="true"
+                android:clickable="true"
+                android:focusable="true"
+                android:layout_marginTop="10dp"
+                card_view:cardBackgroundColor="#e2e3bc"
+                card_view:cardElevation="2dp">
+
+                <android.widget.LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="5dp"
+                    android:orientation="vertical"
+                    android:visibility="visible">
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_margin="8dp"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:layout_gravity="top"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/basket"
+                            android:textStyle="bold"
+                            android:textSize="15dp" />
+
+                    </LinearLayout>
+
+                    <TextView
+                        android:id="@+id/basketlist"
+                        android:layout_width="fill_parent"
+                        android:layout_height="fill_parent"
+                        android:layout_marginStart="8dp"
+                        android:layout_marginEnd="8dp"
+                        android:inputType="textMultiLine"
+                        android:text="@string/emptybasket"
+                        android:scrollHorizontally="true"
+                        android:singleLine="false"
+                        />
+
+                    <com.google.android.material.card.MaterialCardView
+                        android:id="@+id/basket_table"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginHorizontal="15dp"
+                        android:checkable="true"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:visibility="gone"
+                        android:layout_marginVertical="10dp"
+                        card_view:cardBackgroundColor="#feffe6"
+                        card_view:cardElevation="2dp">
+
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_margin="8dp"
+                            android:orientation="horizontal">
+
+                            <ImageView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:src="@drawable/ic_pill" />
+
+                            <TextView
+                                android:id="@+id/product_description"
+                                android:layout_width="250dp"
+                                android:layout_height="wrap_content"
+                                android:layout_gravity="top"
+                                android:layout_marginHorizontal="10dp"
+                                android:text="product_description"
+                                android:textSize="12dp" />
+
+
+                        </LinearLayout>
+
+
+                    </com.google.android.material.card.MaterialCardView>
+
+                    <TableLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginHorizontal="10dp"
+                        android:shrinkColumns="0,1"
+                        android:stretchColumns="2"
+                        >
+
+                        <TableRow
+                            android:layout_width="fill_parent"
+                            android:layout_height="wrap_content"
+                            >
+                                <com.google.android.material.button.MaterialButton
+                                    android:id="@+id/itemlist"
+                                    android:text="@string/add"
+                                    android:layout_width="fill_parent"
+                                    android:layout_height="match_parent"
+                                    android:layout_marginBottom="5dp"
+                                    android:drawableLeft="@drawable/ic_addbasket_24"
+                                    android:paddingHorizontal="12dp"
+                                    android:drawablePadding="20dp"
+                                    android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+                                    android:foregroundTint="@color/colorPrimaryDark"/>
+
+                                <com.google.android.material.button.MaterialButton
+                                    android:id="@+id/scan_items"
+                                    android:text="@string/scan"
+                                    android:singleLine="true"
+                                    android:layout_width="fill_parent"
+                                    android:layout_height="match_parent"
+                                    android:layout_marginBottom="5dp"
+                                    android:drawableLeft="@drawable/ic_qr"
+                                    android:paddingHorizontal="12dp"
+                                    style="@style/Widget.AppCompat.Button"
+                                    android:textColor="@android:color/white"/>
+
+                            <com.google.android.material.button.MaterialButton
+                                android:id="@+id/invoice_query"
+                                android:text="@string/checkout"
+                                android:singleLine="true"
+                                android:layout_width="fill_parent"
+                                android:layout_height="match_parent"
+                                android:layout_marginBottom="5dp"
+                                android:drawableLeft="@drawable/ic_checkout_24"
+                                android:paddingHorizontal="12dp"
+                                style="@style/Widget.AppCompat.Button"
+                                android:textColor="@android:color/white"/>
+                        </TableRow>
+
+                    </TableLayout>
+
+                </android.widget.LinearLayout>
+
+            </com.google.android.material.card.MaterialCardView>
+-->
+            <!-- Invoice -->
+<!--
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/invoice"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="15dp"
+                android:checkable="true"
+                android:clickable="true"
+                android:focusable="true"
+                android:visibility="visible"
+                android:layout_marginTop="10dp"
+                card_view:cardBackgroundColor="#dae8ed"
+                card_view:cardElevation="2dp">
+
+                <android.widget.LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="5dp"
+                    android:orientation="vertical"
+                    android:visibility="visible">
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_margin="8dp"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:layout_gravity="top"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/invoice"
+                            android:textStyle="bold"
+                            android:textSize="15dp" />
+
+                        <ImageView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:src="@drawable/ic_invoice48" />
+
+                        <TextView
+                            android:layout_width="210dp"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="top"
+                            android:layout_marginHorizontal="10dp"
+                            android:text="@string/invoicedescription"
+                            android:textSize="12dp" />
+
+                        <ImageView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:src="@drawable/ic_arrow_view" />
+
+                    </LinearLayout>
+
+                    <TableLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginHorizontal="10dp"
+                        android:shrinkColumns="0"
+                        android:stretchColumns="1"
+                        >
+
+                        <TableRow
+                            android:layout_width="fill_parent"
+                            android:layout_height="wrap_content"
+                            >
+
+                            <com.google.android.material.button.MaterialButton
+                                android:id="@+id/pay_invoice"
+                                android:layout_column="1"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_gravity="end"
+                                android:text="@string/pay"
+                                android:textColor="@android:color/white"
+                                android:visibility="visible"
+                                app:textAllCaps="false" />
+                        </TableRow>
+
+                    </TableLayout>
+
+                </android.widget.LinearLayout>
+
+            </com.google.android.material.card.MaterialCardView>
+-->
+            <!-- Bill -->
+<!--
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/bill"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="15dp"
+                android:checkable="true"
+                android:clickable="true"
+                android:focusable="true"
+                android:layout_marginTop="10dp"
+                card_view:cardBackgroundColor="#ffece6"
+                card_view:cardElevation="2dp">
+
+                <android.widget.LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="5dp"
+                    android:orientation="vertical"
+                    android:visibility="visible">
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_margin="8dp"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:layout_gravity="top"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/bill"
+                            android:textStyle="bold"
+                            android:textSize="15dp" />
+
+                        <ImageView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:src="@drawable/ic_bill_48" />
+
+                        <TextView
+                            android:layout_width="210dp"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="top"
+                            android:layout_marginHorizontal="10dp"
+                            android:text="@string/billdescription"
+                            android:textSize="12dp" />
+
+                        <ImageView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:src="@drawable/ic_arrow_view" />
+
+                    </LinearLayout>
+
+                    <TableLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginHorizontal="10dp"
+                        android:shrinkColumns="0"
+                        android:stretchColumns="1"
+                        >
+
+                        <TableRow
+                            android:layout_width="fill_parent"
+                            android:layout_height="wrap_content"
+                            />
+
+                    </TableLayout>
+
+                </android.widget.LinearLayout>
+
+            </com.google.android.material.card.MaterialCardView>
+
+        </LinearLayout>
+
+    </androidx.core.widget.NestedScrollView>
+-->
+</androidx.coordinatorlayout.widget.CoordinatorLayout>
+

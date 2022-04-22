@@ -1,0 +1,50 @@
+#!/bin/bash
+#===-                           P L E B B L E
+#===-                         https://plebble.us
+#===-
+#===-              Copyright (C) 2017-2022 root1m3@plebble.us
+#===-
+#===-                      GNU GENERAL PUBLIC LICENSE
+#===-                       Version 3, 29 June 2007
+#===-
+#===-    This program is free software: you can redistribute it and/or modify
+#===-    it under the terms of the AGPLv3 License as published by the Free
+#===-    Software Foundation.
+#===-
+#===-    This program is distributed in the hope that it will be useful,
+#===-    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#===-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+#===-
+#===-    You should have received a copy of the General Public License
+#===-    along with this program, see LICENCE file.
+#===-    see https://www.gnu.org/licenses
+#===-
+#===----------------------------------------------------------------------------
+#===-
+
+function tidy {
+file=$1
+    cat $file  | grep "^ *package us.*;" > /tmp/a
+    cat $file  | grep "^ *import " | sed "s/^ *import *static/importsstatic/" |  sed "s/^ *\([a-z]*\) \(.*\.\)\(.*\);.*/\3 \1 \2\3;/" | sort | uniq | awk '{ printf "%-13s %-80s // %s\n", $2, $3, $1 }' | sed "s/^import\([ ]*\) \([\.a-zA-Z;_0-9\*]*\)/import \2\1/" | sed "s/importsstatic/import static/" > /tmp/b
+    cat $file  | grep -v "^ *package us.*;" | grep -v "^ *import " > /tmp/c
+    cat /tmp/a > $file
+    cat /tmp/b >> $file
+    echo "" >> $file
+    cat /tmp/c | sed '/./,$!d' >> $file
+}
+
+for f in `find us -name "*.java"`; do
+	echo $f
+	tidy $f
+done
+for f in `find us -name "*.java.in"`; do
+	echo $f
+	tidy $f
+done
+
+rm -f /tmp/a
+rm -f /tmp/b
+rm -f /tmp/c
+
+exit 0
+

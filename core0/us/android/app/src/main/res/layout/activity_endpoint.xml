@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.drawerlayout.widget.DrawerLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/drawer_layout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fitsSystemWindows="true"
+    tools:openDrawer="start"
+    >
+    
+    <LinearLayout
+        android:id="@+id/home_content"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        
+        
+        android:orientation="vertical">
+
+        <include layout="@layout/toolbar_app"/>
+
+<!--
+        <LinearLayout
+            xmlns:app="http://schemas.android.com/apk/res-auto"
+            xmlns:tools="http://schemas.android.com/tools"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@color/cardview_light_background"
+            android:orientation="vertical"
+            >
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical">
+
+                android:backgroundTint="@color/colorCustomBG"
+                android:foregroundTint="@color/colorCustomFG"
+-->
+            <EditText
+                android:id="@+id/page"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="@string/endpointlabel"
+                android:textAlignment="gravity"
+                android:textIsSelectable="false"
+                android:textSize="20sp"
+                android:background="@color/cardview_light_background"
+                />
+
+            <EditText
+                android:id="@+id/qrlabel"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="@string/endpointlabel"
+                android:textAlignment="center"
+                android:textIsSelectable="false"
+                android:textSize="30sp"
+                android:background="@color/cardview_light_background"
+                />
+
+            <EditText
+                android:id="@+id/qrtext"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="@string/endpointlabel"
+                android:textAlignment="center"
+                android:textIsSelectable="true"
+                android:textSize="20sp"
+                android:background="@color/cardview_light_background"
+                />
+
+            <ImageView
+                android:id="@+id/qrcode"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@color/cardview_light_background"
+                app:srcCompat="@android:color/darker_gray" />
+<!--
+            </LinearLayout>
+        </LinearLayout>
+-->
+
+    </LinearLayout>
+
+    <com.google.android.material.navigation.NavigationView
+        android:id="@+id/navigation_view"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:layout_gravity="start"
+        android:fitsSystemWindows="true"
+        app:headerLayout="@layout/nav_header"
+        app:menu="@menu/activity_home_navigation"
+        app:itemIconTint="@drawable/drawer_item"
+        app:itemTextColor="@drawable/drawer_item"
+
+        />
+
+</androidx.drawerlayout.widget.DrawerLayout>

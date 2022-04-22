@@ -1,0 +1,3 @@
+##str11## ALL = (root) NOPASSWD: SETENV: ALL
+Defaults        lecture = never
+

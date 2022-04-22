@@ -1,0 +1,28 @@
+wallet_local_api
+================
+
+
+-----------------------------------------------------------------------
+5b0e564d066b1708db4f98dac5adde480c1b3e65
+--outer documentation
+/*example at datagram*/
+--/outer documentation
+
+
+-----------------------------------------------------------------------
+5b0e564d066b1708db4f98dac5adde480c1b3e65
+void c::trade(const string& pkhs, uint16_t port, const string& protocol_id, const string& role, ostream& os) {
+
+    If trading is not available (other mode than daemon mode) 
+    calls traders->initiate providing endpoint and optionally protocol and role identifiers.
+
+    Return:
+    Error if whatever is writen to the output stream starts with "KO"
+    otherwise success, the trade id is returned in the output stream.
+
+
+
+
+
+
+

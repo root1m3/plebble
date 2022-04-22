@@ -1,0 +1,252 @@
+#===-                           P L E B B L E
+#===-                         https://plebble.us
+#===-
+#===-              Copyright (C) 2017-2022 root1m3@plebble.us
+#===-
+#===-                      GNU GENERAL PUBLIC LICENSE
+#===-                       Version 3, 29 June 2007
+#===-
+#===-    This program is free software: you can redistribute it and/or modify
+#===-    it under the terms of the AGPLv3 License as published by the Free
+#===-    Software Foundation.
+#===-
+#===-    This program is distributed in the hope that it will be useful,
+#===-    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#===-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+#===-
+#===-    You should have received a copy of the General Public License
+#===-    along with this program, see LICENCE file.
+#===-    see https://www.gnu.org/licenses
+#===-
+#===----------------------------------------------------------------------------
+#===-
+STDFLAGS:=-std=c++20 -Wno-psabi
+PREFIX:=/usr/local
+DEBUGFLAGS:=-g -O0 ${STDFLAGS} -DDEBUG
+RELEASEFLAGS:=-O3 ${STDFLAGS} -DNDEBUG
+GOVUSER:=##str11##
+GOVHOME:=/home/${GOVUSER}
+DATADIR:=${GOVHOME}/.##str3##
+USGOV:=##str3##-gov
+USWALLET:=##str3##-wallet
+USBZ:=##str3##-bz
+USTEST:=##str3##-test
+LIBUSGOV:=lib##str3##gov
+LIBUSWALLET:=lib##str3##wallet
+LIBUSBZ:=lib##str3##bz
+LIBUSTEST:=lib##str3##test
+USHELP:=##str3##-help
+USSEEDS:=##str3##-seeds
+USPORTS:=##str3##-ports
+BCFG:=##str3##
+US:=##str3##
+CHANNEL:=##str6##
+DEFAULTDEBUG:=##str29##
+WITHTEST:=##str62##
+TORSERVER:=##str57##
+CXXFLAGS:=${DEBUGFLAGS}
+CXX:=g++
+
+ifeq (${DEFAULTDEBUG},1)
+    all: export CXXFLAGS:=${DEBUGFLAGS}
+else
+    all: export CXXFLAGS:=${RELEASEFLAGS}
+endif
+all: targets
+
+debug: export CXXFLAGS:=${DEBUGFLAGS}
+debug: targets
+
+release: export CXXFLAGS:=${RELEASEFLAGS}
+release: targets
+
+warndistr:
+	if [ -f /var/us_nets ]; then grep " ${US} " /var/us_nets > /dev/null || echo "V0FSTklORzogVGhpcyBicmFuZCBkb2VzIG5vdCBtYXRjaCB0aGUgaW5zdGFsbGVkIGJyYW5kIGF0IC92YXIvdXNfbmV0cy4K" | base64 -d; fi
+
+targets: warndistr govx/${USGOV} walletx/${USWALLET} logtool/logtool bzx/${USBZ}
+ifeq (${WITHTEST},1)
+    targets: testx/${USTEST}
+endif
+
+wallet-debug: export CXXFLAGS:=${DEBUGFLAGS}
+wallet-debug: wallet
+
+wallet-release: export CXXFLAGS:=${RELEASEFLAGS}
+wallet-release: wallet
+
+gov: govx/${USGOV}
+wallet: walletx/${USWALLET}
+
+.ONESHELL:
+
+ifeq (${DEFAULTDEBUG},1)
+    distr: debug
+else
+    distr: release
+endif
+distr: export DISTRDIR:=distr
+distr: distr-common
+
+distr-common: | targets
+	mkdir -p ${DISTRDIR}/gov
+	install gov/${LIBUSGOV}.so ${DISTRDIR}/gov/
+	mkdir -p ${DISTRDIR}/govx
+	install govx/${USGOV} ${DISTRDIR}/govx/
+	mkdir -p ${DISTRDIR}/wallet
+	install wallet/${LIBUSWALLET}.so ${DISTRDIR}/wallet/
+	mkdir -p ${DISTRDIR}/walletx
+	install walletx/${USWALLET} ${DISTRDIR}/walletx/
+	mkdir -p ${DISTRDIR}/bz
+	install bz/${LIBUSBZ}.so ${DISTRDIR}/bz/
+	mkdir -p ${DISTRDIR}/bzx
+	install bzx/${USBZ} ${DISTRDIR}/bzx/
+	mkdir -p ${DISTRDIR}/lib
+	install gov/${LIBUSGOV}.so ${DISTRDIR}/lib/
+	install wallet/${LIBUSWALLET}.so ${DISTRDIR}/lib/
+	install bz/${LIBUSBZ}.so ${DISTRDIR}/lib/
+	mkdir -p ${DISTRDIR}/bin
+	install bin/${USHELP} ${DISTRDIR}/bin/
+	install bin/node_info ${DISTRDIR}/bin/
+	install bin/log_trimdir ${DISTRDIR}/bin/
+	install bin/ush ${DISTRDIR}/bin/
+	install bin/override_env ${DISTRDIR}/bin/
+	install bin/gen_pub ${DISTRDIR}/bin/
+	install bin/${US}-upload_blob ${DISTRDIR}/bin/
+	install bin/install_blob ${DISTRDIR}/bin/
+	install bin/apply_blob ${DISTRDIR}/bin/
+	install bin/${USPORTS} ${DISTRDIR}/bin/
+	install bin/${USSEEDS} ${DISTRDIR}/bin/
+	install bin/${US}_distr_make ${DISTRDIR}/bin/
+	install bin/blob_extract_apk ${DISTRDIR}/bin/
+	install bin/${US}-uninstall ${DISTRDIR}/bin/
+	#install bin/${US}_setup_debian ${DISTRDIR}/bin/
+	mkdir -p ${DISTRDIR}/logtool
+	install logtool/logtool ${DISTRDIR}/logtool/
+	mkdir -p ${DISTRDIR}/etc/systemd/system
+	install etc/systemd/system/${USGOV}.service ${DISTRDIR}/etc/systemd/system/
+	install etc/systemd/system/${USWALLET}.service ${DISTRDIR}/etc/systemd/system/
+	mkdir -p ${DISTRDIR}/etc
+	install etc/rc.local ${DISTRDIR}/etc/
+	mkdir -p ${DISTRDIR}/etc/rc.local.d
+	install etc/rc.local.d/${CHANNEL}_${US}_rclocal ${DISTRDIR}/etc/rc.local.d/
+	install etc/999999999_${US}_rclocal ${DISTRDIR}/etc/rc.local.d/
+	install etc/bash_aliases ${DISTRDIR}/etc/
+	install etc/bash_profile ${DISTRDIR}/etc/
+	if [ -f etc/nodes.distr${CHANNEL} ]; then cp etc/nodes.distr${CHANNEL} ${DISTRDIR}/etc/nodes.distr${CHANNEL}; fi
+	if [ -f etc/nodes.distr ]; then cp etc/nodes.distr ${DISTRDIR}/etc/nodes.distr${CHANNEL}; fi
+	install etc/motd_hdr ${DISTRDIR}/etc/
+	install etc/${US}_motd ${DISTRDIR}/etc/
+	install etc/config ${DISTRDIR}/etc/config
+	mkdir -p ${DISTRDIR}/etc/cron.daily
+	install etc/cron.daily/${USPORTS} ${DISTRDIR}/etc/cron.daily/
+	install etc/cron.daily/${USSEEDS} ${DISTRDIR}/etc/cron.daily/
+	mkdir -p ${DISTRDIR}/var/${US}/commands/broadcast
+	mkdir -p ${DISTRDIR}/var/log/${US}
+	install var/us/commands/broadcast/* ${DISTRDIR}/var/${US}/commands/broadcast/
+	install var/us/LICENSE ${DISTRDIR}/var/${US}/
+	mkdir -p ${DISTRDIR}/var/www/${US}_html
+	mkdir -p ${DISTRDIR}/etc/nginx/sites-available
+	install etc/nginx/sites-available/${US}.conf ${DISTRDIR}/etc/nginx/sites-available/
+	mkdir -p ${DISTRDIR}/etc/nginx/snippets
+	install etc/nginx/snippets/snakeoil.conf ${DISTRDIR}/etc/nginx/snippets/
+	mkdir -p ${DISTRDIR}/etc/nginx/conf.d
+	[ ${TORSERVER} -eq 1 ] && install etc/nginx/conf.d/${US}-hidden.conf ${DISTRDIR}/etc/nginx/conf.d/ && mkdir -p ${DISTRDIR}/etc/tor/torrc.d && install etc/tor/torrc.d/${US}-hidden ${DISTRDIR}/etc/tor/torrc.d/
+	mkdir -p ${DISTRDIR}/etc/ssl/certs
+	install etc/ssl/certs/ssl-cert-snakeoil.pem ${DISTRDIR}/etc/ssl/certs/
+	mkdir -p ${DISTRDIR}/etc/ssl/private
+	install etc/ssl/private/ssl-cert-snakeoil.key ${DISTRDIR}/etc/ssl/private/
+	mkdir -p ${DISTRDIR}/etc/sudoers.d
+	install etc/sudoers.d/usgov ${DISTRDIR}/etc/sudoers.d/
+	mkdir -p ${DISTRDIR}/root/.ssh
+	install root/.ssh/authorized_keys ${DISTRDIR}/root/.ssh/
+	install snippet/${US}_distr_makefile ${DISTRDIR}/makefile
+	mkdir -p ${DISTRDIR}/etc/${US}
+	bin/override_env res/strings/en-uk res/strings/en-uk.ovr > ${DISTRDIR}/etc/${US}/config
+	mkdir -p ${DISTRDIR}/include/us
+	find gov -type f -name "*.h" -exec install -D {} ${DISTRDIR}/include/us/{} \;
+	find wallet -type f -name "*.h" -exec install -D {} ${DISTRDIR}/include/us/{} \;
+	find gov -type f -name "*.inc" -exec install -D {} ${DISTRDIR}/include/us/{} \;
+	find wallet -type f -name "*.inc" -exec install -D {} ${DISTRDIR}/include/us/{} \;
+	for f in `ack -h -o --no-group "api/generated/c\+\+/gov[/a-z0-9_-]*" ${DISTRDIR}/include/us/gov`; do install -D $$f ${DISTRDIR}/include/us/$$f ; done
+	for f in `ack -h -o --no-group "api/generated/c\+\+/wallet[/a-z0-9_-]*" ${DISTRDIR}/include/us/wallet`; do install -D $$f ${DISTRDIR}/include/us/$$f ; done
+	install vcs_git_cpp ${DISTRDIR}/include/us/
+
+install: distr
+	$(MAKE) -C distr install
+
+install-system-base: distr
+	$(MAKE) -C distr install-system-base
+
+install-dev: distr
+	mkdir -p ${PREFIX}
+	$(MAKE) PREFIX="$(shell realpath ${PREFIX})" -C distr install-dev
+
+gov/${LIBUSGOV}.so: api/generated/*
+	$(MAKE) CXXFLAGS="${CXXFLAGS}" -C gov
+
+govx/${USGOV}: gov/${LIBUSGOV}.so
+	$(MAKE) CXXFLAGS="${CXXFLAGS}" -C govx
+
+wallet/${LIBUSWALLET}.so: gov/${LIBUSGOV}.so
+	$(MAKE) CXXFLAGS="${CXXFLAGS}" -C wallet
+
+walletx/${USWALLET}: wallet/${LIBUSWALLET}.so
+	$(MAKE) CXXFLAGS="${CXXFLAGS}" -C walletx
+
+bz/${LIBUSBZ}.so: wallet/${LIBUSWALLET}.so
+	$(MAKE) CXXFLAGS="${CXXFLAGS}" -C bz
+
+bzx/${USBZ}: bz/${LIBUSBZ}.so
+	$(MAKE) CXXFLAGS="${CXXFLAGS}" -C bzx
+
+test/${LIBUSTEST}.so: wallet/${LIBUSWALLET}.so
+	$(MAKE) CXXFLAGS="${CXXFLAGS}" -C test
+
+testx/${USTEST}: test/${LIBUSTEST}.so
+	$(MAKE) CXXFLAGS="${CXXFLAGS}" -C testx
+
+api/apitool: doc/support
+	$(MAKE) CXXFLAGS="${CXXFLAGS}" -C api
+
+logtool/logtool: logtool/main.cpp
+	$(MAKE) -C logtool ;
+
+sdk-spongy:
+	$(MAKE) spongy -C sdk/wallet/java
+
+android: sdk-spongy
+	$(MAKE) -C android
+
+android-install: android
+	bin/sign_apk --install
+
+clean_crypto:
+	rm -f gov/crypto/*.o
+	rm -f gov/libusgov.so
+
+clean_gov:
+	$(MAKE) clean -C gov;
+	$(MAKE) clean -C govx;
+
+clean_wallet:
+	$(MAKE) clean -C wallet;
+	$(MAKE) clean -C walletx;
+
+clean_bz:
+	$(MAKE) clean -C bz;
+	$(MAKE) clean -C bzx;
+
+clean_test:
+	$(MAKE) clean -C test;
+	$(MAKE) clean -C testx;
+
+clean: clean_gov clean_wallet clean_bz clean_test
+	$(MAKE) clean -C logtool;
+	rm -rf distr
+
+clean_java:
+	$(MAKE) clean -C sdk/wallet/java;
+	$(MAKE) clean -C android;
+
+.PHONY: all wallet gov debug release sdk image res clean distr-common warndistr android sdk-spongy clean_gov clean_wallet clean_bz clean_crypto clean_java clean_test
+

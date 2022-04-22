@@ -1,0 +1,508 @@
+#!/bin/bash
+#===-                           P L E B B L E
+#===-                         https://plebble.us
+#===-
+#===-              Copyright (C) 2017-2022 root1m3@plebble.us
+#===-
+#===-                      GNU GENERAL PUBLIC LICENSE
+#===-                       Version 3, 29 June 2007
+#===-
+#===-    This program is free software: you can redistribute it and/or modify
+#===-    it under the terms of the AGPLv3 License as published by the Free
+#===-    Software Foundation.
+#===-
+#===-    This program is distributed in the hope that it will be useful,
+#===-    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#===-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+#===-
+#===-    You should have received a copy of the General Public License
+#===-    along with this program, see LICENCE file.
+#===-    see https://www.gnu.org/licenses
+#===-
+#===----------------------------------------------------------------------------
+#===-
+
+function banner {
+    cat << EOF
+----------------------------------------------
+$str4
+----------------------------------------------
+             Core-0 Configuration
+----------------------------------------------
+
+EOF
+}
+
+strset="en-uk"
+if [ ! -f res/strings/$strset ]; then
+    echo "unknown set $strset"
+    exit 1
+fi
+. res/strings/$strset
+if [ -f res/strings/${strset}.ovr ]; then
+    echo "found override string set"
+    . res/strings/${strset}.ovr
+fi
+
+channel=$str6
+dbg=$str29
+logs=$str33
+counters=$str41
+connlog=$str42
+fcgi=$str45
+brand=$str3
+test=$str62
+
+function help {
+    echo "bin/configure [--strset en-uk] [--with[out]-logs] [--[test]debug | --[test]release] [--with[out]-counters] [--with[out]-connlog ] [--with[out]-fcgi ] [--brand-dir <brand-dir>] [--help]"
+    echo "dbg $dbg"
+    echo "logs $logs"
+    echo "counters $counters"
+    echo "brand $brand"
+}
+
+while [ true ]; do
+    x=$1
+    shift
+    if [ "_$x" == "_" ]; then
+        break
+    elif [ "_$x" == "_--strset" ]; then
+       strset=$1
+       shift
+    elif [ "_$x" == "_--with-logs" ]; then
+        logs=1
+    elif [ "_$x" == "_--without-logs" ]; then
+        logs=0
+    elif [ "_$x" == "_--with-counters" ]; then
+        counters=1
+    elif [ "_$x" == "_--without-counters" ]; then
+        counters=0
+    elif [ "_$x" == "_--debug" ]; then
+        dbg=1
+        test=0
+    elif [ "_$x" == "_--release" ]; then
+        dbg=0
+        connlog=0
+        counters=0
+        logs=0
+        test=0
+    elif [ "_$x" == "_--testdebug" ]; then
+        dbg=1
+        counters=1
+        test=1
+    elif [ "_$x" == "_--testrelease" ]; then
+        dbg=0
+        connlog=0
+        counters=1
+        logs=0
+        test=1
+    elif [ "_$x" == "_--with-connlog" ]; then
+        connlog=1
+    elif [ "_$x" == "_--without-connlog" ]; then
+        connlog=0
+    elif [ "_$x" == "_--with-fcgi" ]; then
+        fcgi=1
+    elif [ "_$x" == "_--without-fcgi" ]; then
+        fcgi=0
+    elif [ "_$x" == "_--brand-dir" ]; then
+        b=$1
+        shift
+        echo $b
+        if [ "_$b" != "_$brand-dir" ]; then
+            if [ ! -d $b ]; then
+                echo "brand $b not found"
+                exit 1
+            fi
+            cp $b/${strset} res/strings/${strset}.ovr
+            . res/strings/${strset}.ovr
+            brand=$(basename $b)
+            #echo "applied brand $brand"
+        fi
+    elif [ "_$x" == "_--help" ]; then
+        help
+        exit 0
+    else
+        echo "unknown arg $x"
+        help
+        exit 1;
+    fi
+done
+
+if [ $dbg -eq 1 ]; then
+    str29=1
+else
+    str29=0
+fi
+
+if [ $logs -eq 1 ]; then
+    str33=1
+else
+    str33=0
+fi
+
+if [ $counters -eq 1 ]; then
+    str41=1
+else
+    str41=0
+fi
+
+if [ $connlog -eq 1 ]; then
+    str42=1
+else
+    str42=0
+fi
+
+if [ $fcgi -eq 1 ]; then
+    str45=1
+else
+    str45=0
+fi
+
+if [ $test -eq 1 ]; then
+    str62=1
+else
+    str62=0
+fi
+
+if [ ! -f res/strings/${strset}.ovr ]; then
+    cp res/strings/${strset} res/strings/${strset}.ovr
+fi
+
+sed -i "s/^str29=.*//" res/strings/${strset}.ovr
+sed -i "s/^str33=.*//" res/strings/${strset}.ovr
+sed -i "s/^str41=.*//" res/strings/${strset}.ovr
+sed -i "s/^str42=.*//" res/strings/${strset}.ovr
+sed -i "s/^str45=.*//" res/strings/${strset}.ovr
+sed -i "s/^str62=.*//" res/strings/${strset}.ovr
+
+echo "str29=$str29 #dbg" >> res/strings/${strset}.ovr
+echo "str33=$str33 #logs" >> res/strings/${strset}.ovr
+echo "str41=$str41 #counters" >> res/strings/${strset}.ovr
+echo "str42=$str42 #connlog" >> res/strings/${strset}.ovr
+echo "str45=$str45 #fcgi" >> res/strings/${strset}.ovr
+echo "str62=$str62 #test" >> res/strings/${strset}.ovr
+
+cat res/strings/${strset}.ovr | grep -v "^$" > res/strings/${strset}.ovr_
+mv res/strings/${strset}.ovr_ res/strings/${strset}.ovr
+
+function gen_api {
+    echo "generating API code snippets "
+    pushd api > /dev/null
+        make clean
+        make -j8
+    popd > /dev/null
+    echo ""
+}
+
+delimiter_open="//------------------------------------------------------------__begin__------generated by configure, do not edit."
+delimiter_close="//-/----------------------------------------------------------___end___------generated by configure, do not edit."
+
+patch_sdk_src_file2() {
+    file=$1
+    origfile=$2
+    if [[ ! -f ${file}  ]]; then
+        echo "file ${file} does not exist. from `pwd`"
+        exit 1
+    fi
+    if [[ ! -f ${origfile}  ]]; then
+        echo "file ${origfile} does not exist. from `pwd`"
+        exit 1
+    fi
+    num=`cat ${file} | grep "^ *//#include <us/$origfile>" | wc -l`
+    if [[ ${num} -ne 1  ]]; then
+        echo "repeated entry $origfile in file $file"
+        exit 1
+    fi
+    cat $file | grep "//#include" | grep $'\t' > /dev/null
+    if [[ $? -eq 0  ]]; then
+        echo "tabs found before //#include in file ${file}. required only spaces."
+        exit 1
+    fi
+    cp $file ${file}_old
+    if [[ $? -ne 0  ]]; then
+        echo "copy file ${file} failed. write permissions?"
+        exit 1
+    fi
+    n=`cat ${file}_old | wc -l`
+    dst=${file}
+    indent=`cat ${file}_old | grep "^ *//#include <us/$origfile>" | sed "s~^\( *\)//.*~\1~"`
+    cat ${file}_old | grep "^ *//#include <us/$origfile>" -B$n > $dst
+    if [[ $? -ne 0  ]]; then
+        echo "write to ${dst} failed. permissions?"
+        exit 1
+    fi
+    echo "$indent$delimiter_open" >> $dst
+    echo "$indent//content of file: <us/$origfile>" >> $dst
+    cat $origfile | grep -v "generated by apitool" | sed -e '/./,$!d' -e :a -e '/^\n*$/{$d;N;ba' -e '}' | sed "s/^/$indent/" | sed 's/^[[:space:]]*$//' >> $dst
+    echo "$indent$delimiter_close" >> $dst
+    nextline=`cat ${file}_old | grep "//#include <us/$origfile>" -A1 | tail -n1`
+    if [[ "$nextline" = *"$delimiter_open" ]]; then
+        nn=`cat ${file}_old | grep "^ *//#include <us/$origfile>" -A$n | nl -ba | grep "$delimiter_close" | head -n1 | awk '{ print $1 }'`
+        let nn=$nn+1
+        cat ${file}_old | grep "^ *//#include <us/$origfile>" -A$n | tail -n +$nn >> $dst
+    else
+        cat ${file}_old | grep "^ *//#include <us/$origfile>" -A$n | tail -n +2 >> $dst
+    fi
+    rm ${file}_old
+}
+
+patch_sdk_src_file() {
+    file=$1
+    incfiles=`cat $file | grep "^ *//#include " | sed "s~^ *//#include <us/\(.*\)>.*~\1~" | sort | uniq`
+    for f in $incfiles; do
+        progress
+        patch_sdk_src_file2 $file $f
+    done
+    progress
+}
+
+patch_sdk_src() {
+    echo "patching sdk sources"
+    usdir="."
+    pfx="$usdir/sdk/wallet/java"
+    files=`find $pfx/us -name "*.java" -exec grep -H "^ *//#include " {} \; | tr ':' ' ' | awk '{print $1}' | sort | uniq`
+    for f in $files; do
+        patch_sdk_src_file $f
+    done
+}
+
+function configure_sdk {
+    if [ ! -f vcs_git_java ]; then
+        echo "KO 89345 failed vcs_git_java"
+        exit 1
+    fi
+    progress_reset
+    patch_sdk_src
+    usdir="."
+    pfx="$usdir/sdk/wallet/java"
+    sedregex="s/^import org.spongycastle./import org.bouncycastle./g"
+    find $pfx/us/gov/crypto -name "*.java" -exec sed -i "$sedregex" {} \;
+    progress
+    find $pfx/test/us/gov/crypto -name "*.java" -exec sed -i "$sedregex" {} \;
+    progress
+    sed -i "$sedregex" $pfx/us/gov/socket/datagram.java
+    progress
+    rm -f sdk/wallet/java/selected_cryptosuite
+    echo ""
+    echo "java sdk: crypto-suite  (*)bouncycastle  ( )spongycastle"
+}
+
+let w=0
+
+function progress_reset {
+    let w=0
+}
+
+function progress {
+    echo -n "."
+    let w=$w+1
+    if [ $w -gt 40 ]; then
+        let w=4
+        echo ""
+        echo -n "    "
+    fi
+}
+
+function patch {
+    ifile="${1}.in"
+    ofile=$1
+    if [ "_$2" != "_" ]; then
+        #echo "$1 -> $2"
+        ofile=$2
+    fi
+    cp $ifile $ofile
+    strs=`cat $ifile  | grep -o "##str[0-9]*##" | sed "s/#//g"`
+    for s in $strs; do
+        progress
+        # echo -n "$s = ${!s}; "
+        sed -i "s%##$s##%${!s}%g" $ofile
+    done
+    progress
+}
+
+function patchin {
+    ifile=$(dirname $1)/$(basename $1 .in)
+    #echo "ifile=$ifile"
+    patch $ifile
+}
+
+function reroot {
+    if [ "_$1" != "_$2" ]; then
+        cp $1 $2 -R
+    fi
+    progress
+}
+
+banner
+echo "CONF:"
+echo " channel: $channel"
+echo " with-logs $logs"
+echo " debug $dbg"
+echo " counters $counters"
+echo " connlog $connlog"
+echo " fcgi $fcgi"
+echo " tests $test"
+
+progress_reset
+javapkgdir=`echo $str28 | sed "s#\.#/#g"`
+echo "java_pkg_dir: $javapkgdir"
+echo "processing .in files "
+#patch raspbian/patch
+patch raspbian/make
+patch raspbian/10-us/files/rc.local
+patch etc/motd etc/${str3}_motd
+mkdir -p etc/rc.local.d
+patch etc/rc.local etc/rc.local.d/${str6}_${str3}_rclocal
+chmod +x etc/rc.local.d/${str6}_${str3}_rclocal
+patch etc/999999999_rclocal etc/999999999_${str3}_rclocal
+patch doc/HOWTOFAQ
+#patch bin/setup_debian bin/${str3}_setup_debian
+patch bin/install_blob
+patch bin/apply_blob
+patch bin/ush
+patch bin/upload_blob bin/${str3}-upload_blob
+patch etc/config
+patch gov/config.h
+patch bin/us-ports bin/${str3}-ports
+patch bin/us-seeds bin/${str3}-seeds
+patch makefile
+patch gov/makefile
+patch wallet/makefile
+patch bz/makefile
+patch test/makefile
+patch govx/makefile
+patch walletx/makefile
+patch bzx/makefile
+patch testx/makefile
+patch etc/systemd/system/us-gov.service etc/systemd/system/${str3}-gov.service
+patch etc/systemd/system/us-wallet.service etc/systemd/system/${str3}-wallet.service
+patch etc/sudoers.d/usgov
+patch bin/us-help bin/${str3}-help
+patch etc/bash_aliases
+patch etc/tor/torrc.d/us-hidden etc/tor/torrc.d/${str3}-hidden
+patch etc/cron.daily/us-ports etc/cron.daily/${str3}-ports
+patch etc/cron.daily/us-seeds etc/cron.daily/${str3}-seeds
+patch etc/cron.daily/install_blobs
+patch etc/nginx/sites-available/us.conf etc/nginx/sites-available/${str3}.conf
+reroot var/us var/${str3}
+reroot var/www/html var/www/${str3}_html
+reroot var/www/html var/www/${str3}_anon
+patch bin/distr_make bin/${str3}_distr_make
+patch etc/nginx/conf.d/us-hidden.conf etc/nginx/conf.d/${str3}-hidden.conf
+patch etc/bash_profile
+patch snippet/distr_makefile snippet/${str3}_distr_makefile
+patch android/app/src/main/AndroidManifest.xml
+patch android/bin/sign_apk
+for f in `find android/app/src/main/java -name CFG.java.in`; do
+    patchin $f
+done
+patch sdk/wallet/java/us/CFG.java
+patch android/app/build.gradle
+patch api/config.h
+patch Doxyfile
+patch test/makefile
+patch walletj/bin/walletj walletj/bin/${str3}-walletj
+patch walletj/bin/examples walletj/bin/${str3}-examples
+patch bin/uninstall bin/${str3}-uninstall
+patch walletj/make.sh
+patch etc/bind/zones/db.bind_domain
+patch etc/bind/named.conf.local
+patch etc/home_skel/rest/timeseries/index.php
+#---------------------------------------------------------------
+
+echo ""
+echo "VCS"
+bin/gen_vcs_git
+if [ ! -f vcs_git_env ]; then
+    echo "KO 30219 configure finished with error."
+    exit 1
+fi
+
+echo ""
+echo "API"
+gen_api
+
+echo ""
+echo "SDK"
+configure_sdk
+
+echo ""
+echo "RASPI/VM setup"
+chmod +x raspbian/make
+#chmod +x bin/${str3}_setup_debian
+echo "ok"
+
+echo ""
+echo "ANDROID"
+pushd android > /dev/null
+    ./configure
+    if [ $? -ne 0 ]; then
+    exit 1
+    fi
+popd > /dev/null
+
+echo ""
+echo "Instrumentation"
+let instr=$logs
+if [ $instr -eq 0 ]; then
+    if [[ -f ../../.git/config ]]; then
+        let instr=1
+#         cat ../../.git/config | grep "url = " | grep devdjob_ > /dev/null
+#     if [[ $? -eq 0 ]]; then
+#     fi
+     fi
+     if [ $instr -eq 1 ]; then
+        echo "WARNING 30392 Instrumentation code has not been stripped because this is a git working copy."
+        echo "              To generate fully ready-for-release binaries use bin/apply_brand."
+     fi
+fi
+
+
+if [ $instr -eq 0 ]; then
+     echo "stripping instrumentation code...";
+     bin/strip .
+     if [ $? -ne 0 ]; then
+         echo "KO 66975 Strip failed"
+         exit 1
+     fi
+else
+    echo "The code goes instrumented."
+fi
+
+function pdots {
+   l="$1 `yes . | head -n50 | tr -d '\n'`"
+   l2="${l:1:50}"
+   echo "$l2 $2"
+}
+
+echo ""
+echo "SUMMARY"
+banner
+. vcs_git_env
+echo "version $core0_version_name $core0_build_date"
+echo "channel $str6"
+cat << EOF
+
+$brand successfully configured with flags: (see bin/configure --help)
+  strset $strset
+  with-logs $logs
+  debug $dbg
+  counters $counters
+  connlog $connlog
+  fcgi $fcgi
+  instrumentation $instr
+  tests $test
+Sources are ready.
+
+Build:
+EOF
+
+pdots "  C++:  core programs ($str3-gov, $str3-wallet):" "make"
+pdots "  java: SDK for console apps:" "cd sdk/wallet/java; make bouncy"
+pdots "        SDK for android apps:" "cd sdk/wallet/java; make spongy"
+pdots "        wallet java console client ($str3-walletj):" "cd walletj; make"
+pdots "        $str28 (SDK+android app):" "make android"
+echo ""
+
+exit 0
+

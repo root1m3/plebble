@@ -1,0 +1,9 @@
+Raspberry Pi 4
+  https://www.amazon.com/CanaKit-Raspberry-4GB-Starter-Kit/dp/B07V5JTMV9/ref=sr_1_1_sspa?crid=1U1MUA4GY0724&dchild=1&keywords=raspberry+pi+4&qid=1611010012&sprefix=raspberry%2Caps%2C233&sr=8-1-spons&psc=1&smid=A30ZYR2W3VAJ0A&spLa=ZW5jcnlwdGVkUXVhbGlmaWVyPUExQzJJNFEwR1FTVUFMJmVuY3J5cHRlZElkPUEwNDMyNzcxMUJOMlVaQzhJT1gwViZlbmNyeXB0ZWRBZElkPUEwNjQwMzU0MzNDMjdCTENJQlUwQSZ3aWRnZXROYW1lPXNwX2F0ZiZhY3Rpb249Y2xpY2tSZWRpcmVjdCZkb05vdExvZ0NsaWNrPXRydWU=
+  
+Ethernet cable:
+  https://www.amazon.com/CableCreation-5-Pack-Ethernet-Computer-Network/dp/B01JO3DGAO/ref=sr_1_7?dchild=1&keywords=short+ethernet+cables&qid=1611010054&sr=8-7
+
+microSD writer, although most laptops come with this feature integrated.
+  https://www.amazon.com/Anker-Portable-Reader-RS-MMC-Micro/dp/B006T9B6R2/ref=sr_1_3?dchild=1&keywords=sd+reader&qid=1611010116&sr=8-3
+

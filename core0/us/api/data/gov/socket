@@ -1,0 +1,20 @@
+error
+[dgram] s msg
+async
+-
+-
+
+ping
+s msg
+sync
+s ans
+-
+-
+
+finished
+s reason
+async
+-
+-
+
+

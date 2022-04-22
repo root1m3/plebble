@@ -1,0 +1,24 @@
+traders
+=======
+unordered_map<hash_t,trader*>
+
+
+
+-----------------------------------------------------------------------
+5b0e564d066b1708db4f98dac5adde480c1b3e65
+--outer documentation
+/*example at datagram*/
+--/outer documentation
+
+
+-----------------------------------------------------------------------
+5b0e564d066b1708db4f98dac5adde480c1b3e65
+pair<ko,hash_t> c::initiate(const endpoint_t& remote_endpoint, const string& protocol_id, const string& role) {
+
+    instantiates a new trader object with the given protocol instantiated, if any.
+    The trader is then stored and the UI devices are notified via a call to trader::schedule_push_initiate_new(). 
+    returns the trade_id
+
+}
+
+

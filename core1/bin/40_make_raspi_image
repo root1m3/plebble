@@ -1,0 +1,115 @@
+#!/bin/bash
+#===-                           P L E B B L E
+#===-                         https://plebble.us
+#===-
+#===-              Copyright (C) 2017-2022 root1m3@plebble.us
+#===-
+#===-                      GNU GENERAL PUBLIC LICENSE
+#===-                       Version 3, 29 June 2007
+#===-
+#===-    This program is free software: you can redistribute it and/or modify
+#===-    it under the terms of the AGPLv3 License as published by the Free
+#===-    Software Foundation.
+#===-
+#===-    This program is distributed in the hope that it will be useful,
+#===-    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#===-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+#===-
+#===-    You should have received a copy of the General Public License
+#===-    along with this program, see LICENCE file.
+#===-    see https://www.gnu.org/licenses
+#===-
+#===----------------------------------------------------------------------------
+#===-
+echo "#########################"
+echo "## 40_make_raspi_image ##"
+echo "#########################"
+
+if [[ -f ./.cbs/config ]]; then
+    . ./.cbs/config
+else
+    echo "KO 8585 Missing .cbs/config."
+    exit 1
+fi
+
+devjob=""
+
+if [[ -f .cache/distr_raspi.tzst ]]; then
+    echo "Extracting raspi images from cache"
+    tar -I zstd -xf .cache/distr_raspi.tzst
+    find distr -name "*os_$version.zip"
+    exit 0
+fi
+
+echo "WARNING: skipping generation of raspi images"
+exit 0
+
+function make_brand {
+    if [ "_$1" == "_" ]; then
+        echo "missing brand dir"
+        exit 1
+    fi
+
+    branddir=$brands/$1
+    shift
+
+    echo " Processing $branddir"
+    brand=`echo "${branddir##*/}"`
+    echo "brand: $brand"
+    pushd ../core0 > /dev/null
+        pushd us > /dev/null
+            echo "bin/apply_brand `realpath ../../$branddir` $branch"
+            bin/apply_brand `realpath ../../$branddir` $branch
+        popd > /dev/null
+    popd > /dev/null
+	rm brand_$brand -rf
+	mv ../core0/us/brand_$brand .
+	pushd brand_$brand/us > /dev/null
+        . vcs_git_env
+        version="${branch}_${core0_hashname}_${core0_build_date}"
+        mkdir -p distr/$brand/raspberry_pi
+        imgfile=${brand}os_${version}.img
+        zipfile=${brand}os_${version}.zip
+        echo "branddir $branddir"
+
+        find ../../distr/$brand/raspberry_pi -name "${brand}os_${branch}*" > /dev/null
+        if [[ $? -eq 0 ]]; then
+            echo "distr image for brand $brand exists. assuming done."
+            return
+        fi
+        bin/configure
+        pushd raspbian >/dev/null
+            echo "making distr for arch $arch"
+            rm -rf pi-gen
+            ./make
+		    let r = $?
+            if [[ $r -ne 0 ]]; then
+                echo "KO 86342 make failed"
+                exit $r
+            fi
+		    #pi-gen/work/us/export-image/2022-02-01-us-lite.img
+            img=`find pi-gen/work -name "*os-lite.img"`
+            echo "img: $img"
+            echo "imgfile: $imgfile"
+            echo "zipfile: $zipfile"
+            #zstd -10 $img -o ../../../distr/$brand/$brand-os_raspi_$version.zst
+            mv $img $imgfile
+            rm -f ../../../distr/$brand/raspberry_pi/$zipfile
+            zip ../../../distr/$brand/raspberry_pi/$zipfile $imgfile
+        popd > /dev/null
+    popd > /dev/null
+}
+
+if [[ ! -d ../core0 ]]; then
+	echo "need directory ../core0!"
+	exit 1
+fi
+
+abrands=`find $brands -maxdepth 1 -mindepth 1 -type d | sed "s~$brands/~~" | xargs`
+for b in $abrands; do
+    make_brand $b
+done
+
+echo "Generated images:"
+find distr -name "*os_$version.zip"
+

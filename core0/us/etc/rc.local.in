@@ -1,0 +1,38 @@
+#!/bin/bash
+
+sleep 5 #avoid systemd flood after banner
+
+GOVUSER="##str11##"
+US="##str3##"
+. /home/${GOVUSER}/.${US}/config
+
+_IP=$(hostname -I) || true
+if [ "$_IP" ]; then
+    printf "My IP address is %s\n" "$_IP"
+fi
+
+echo "Closing UPnP ports"
+/etc/cron.daily/${US}-ports close > /dev/null
+
+echo "Opening UPnP ports"
+/etc/cron.daily/${US}-ports > /dev/null
+
+if [ "$_IP" ]; then
+	echo "router port mappings:"
+    ip=`echo $_IP | awk '{print $1}'`
+	upnpc -l 2>&1 | grep $ip | grep "TCP ##str21##"
+fi
+
+echo "Technical support: ##str2##"
+echo ""
+echo "----------------------------------------------"
+echo "##str4##"
+echo "----------------------------------------------"
+echo ""
+chown ${GOVUSER}.${GOVUSER} /home/${GOVUSER}/.${US} -R
+${US}-gov -c ${CHANNEL} -home /home/${GOVUSER}/.${US} version
+${US}-gov -c ${CHANNEL} -home /home/${GOVUSER}/.${US} id
+echo ""
+
+exit 0
+

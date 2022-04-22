@@ -1,0 +1,24 @@
+. .bash_aliases
+
+USER="##str11##"
+
+if [ -f /var/${USER}_changepass ]; then
+    while [ true ]; do
+        echo "#########################"
+        echo "####   First Login   ####"
+        echo "#########################"
+        echo "Your are required to set a password for the governance user ($USER)."
+        echo "Hint: Write down in a paper a long sequence of random numbers and letters (recommended 32 characters), then store it in a safe place and don't lose it otherwise you will lose access to this computer."
+        echo "Hint: The best practice is to setup ssh keys to access remotely through ssh. For setting it up see ##str3##-help after login."
+        echo ""
+        echo "Enter a new password for user $USER:"
+        sudo passwd $USER
+        if [ $? -eq 0 ]; then
+            break
+        fi
+        echo
+        echo "try again"
+    done
+    sudo rm -f /var/${USER}_changepass
+fi
+

@@ -1,0 +1,14 @@
+GC Garbage Collector
+
+
+------------------------------------------------------
+af7b9b3d1d8f55d2f469b90ef853e19b3be1798f
+void c::add_(client*c)
+
+Only clients flagged finished are accepted
+
+The object will be destroyed in the future as soon as 
+busyrecv.load()==0 and sendref.load()<=0
+
+
+

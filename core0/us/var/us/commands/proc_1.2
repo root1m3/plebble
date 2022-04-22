@@ -1,0 +1,22 @@
+runningswversion=`us-gov -home /home/gov/.us version`
+if [ "_$runningswversion" == "_4f33ba515de77fe5f1d2c26c32dbcd5d410a83d6" ]; then
+    echo "Ok"
+    exit 0
+fi
+
+    echo "sleepig random seconds 0-60"
+    sleep $[ ( $RANDOM % 60 )  + 1 ]s
+
+
+pushd /home/gov/src/dtf/us
+make install
+popd
+
+v=`us-gov version | awk '{print $1}'`
+echo "installed version is $v"
+
+systemctl restart us-wallet
+systemctl restart us-gov
+
+exit 0
+

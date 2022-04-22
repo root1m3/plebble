@@ -1,0 +1,39 @@
+trader::endpoint
+
+Attributes
+
+-----------------------------------------------------------------------
+5b0e564d066b1708db4f98dac5adde480c1b3e65
+    hash_t pkh;
+
+    Address (Public key hash) of the remote node. 
+    
+
+-----------------------------------------------------------------------
+5b0e564d066b1708db4f98dac5adde480c1b3e65
+    uint16_t port;
+
+    TCP port
+
+
+-----------------------------------------------------------------------
+5b0e564d066b1708db4f98dac5adde480c1b3e65
+    string wloc;
+
+    wallet locator. 
+    Empty means is a non-custodial wallet
+    Contains a filesystem path where custodial wallets are stored.
+
+-----------------------------------------------------------------------
+5b0e564d066b1708db4f98dac5adde480c1b3e65
+--outer documentation
+/*example at datagram*/
+--/outer documentation
+
+
+-----------------------------------------------------------------------
+5b0e564d066b1708db4f98dac5adde480c1b3e65
+void c::endpoint_t::hash(us::gov::crypto::ripemd160& hasher) const {
+
+    Loads the given hasher with the object attributes.
+

@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:gravity="top|center"
+    android:orientation="vertical"
+    android:paddingLeft="16dp"
+    android:paddingRight="16dp"
+    android:background="@color/cardview_light_background">
+
+    <TextView
+        android:id="@+id/recipient_lbl"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Recipient:" />
+
+    <TextView
+        android:id="@+id/recipient"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_horizontal"
+        android:textSize="24dp"
+        android:text="" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:paddingTop="16dp"
+        >
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/select_coin"
+            android:text="@string/selectcoin"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="10dp"
+            android:layout_marginTop="15dp"
+            android:layout_marginBottom="5dp"
+            android:drawableLeft="@drawable/ic_crypto24"
+            android:paddingLeft="20dp"
+            android:drawablePadding="20dp"
+            android:textAlignment="textStart"
+            android:textColor="@android:color/white"
+        />
+
+        <TextView
+            android:id="@+id/coin"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:paddingRight="16dp"
+            android:hint="[ ^ select coin ^ ]"
+            android:text=""
+            android:textSize="28dp" />
+    </LinearLayout>
+
+    <EditText
+        android:id="@+id/amount"
+        style="@android:style/Widget.Holo.EditText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="16dp"
+        android:ems="10"
+        android:gravity="center_horizontal"
+        android:hint="@string/enteramount"
+        android:imeOptions="actionDone"
+        android:inputType="number"
+        android:singleLine="true"
+        android:visibility="visible" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/transfer"
+        android:text="@string/transfer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="10dp"
+        android:layout_marginTop="15dp"
+        android:layout_marginBottom="15dp"
+        android:drawableLeft="@drawable/ic_transfer"
+        android:paddingLeft="20dp"
+        android:drawablePadding="20dp"
+        android:textAlignment="textStart"
+
+        android:textColor="@android:color/white"
+        />
+<!--
+    <TextView
+        android:id="@+id/statusb"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="-status-" />
+
+    <LinearLayout
+        android:id="@+id/progress_layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:paddingLeft="8dp"
+        android:paddingTop="16dp"
+        android:paddingRight="8dp">
+
+        <ProgressBar
+            android:id="@+id/progressBar"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:max="100"
+            android:progress="50" />
+
+        <TextView
+            android:id="@+id/progreenum"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="right"
+            android:text="00%"
+            android:textSize="16dp" />
+
+    </LinearLayout>
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/reset"
+        android:text="@string/reset"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="10dp"
+        android:layout_marginTop="15dp"
+        android:layout_marginBottom="5dp"
+        android:drawableLeft="@drawable/ic_reset"
+        android:paddingLeft="20dp"
+        android:drawablePadding="20dp"
+        android:textAlignment="textStart"
+
+        android:textColor="@android:color/white"
+        />
+-->
+</LinearLayout>

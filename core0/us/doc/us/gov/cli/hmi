@@ -1,0 +1,13 @@
+GOV::HMI
+
+
+-----------------------------------------------------------------
+3706b847709fc5660c907f57988564f745c4cd60
+void c::sysop_localhost_allow() {
+
+
+Makes sure the private key for the RPC client exists in ${GOVHOME}/rpc_client/k
+Console client (us-gov) will use it to RPC the daemon via protocol port (16672) connecting as sysop.
+The daemon will require the private key for the sysop be the same as the private key of the daemon itself.
+
+

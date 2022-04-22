@@ -1,0 +1,8 @@
+#!/bin/bash
+
+testmain=`ls *_test`
+
+#LD_LIBRARY_PATH=../gov:/usr/local/lib gdb -batch -ex "run" -ex "bt" test/unit_tests 2>&1 | tail -n-3 | cut -d " " -f 4- | tac | nl -n ln | tac | sed "s/^/#/"
+LD_LIBRARY_PATH="../gov:../wallet" ./$testmain .
+exit $?
+

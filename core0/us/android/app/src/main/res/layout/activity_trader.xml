@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.drawerlayout.widget.DrawerLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/drawer_layout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fitsSystemWindows="true"
+    tools:openDrawer="start"
+    >
+
+    <LinearLayout
+        android:id="@+id/home_content"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+        <include layout="@layout/toolbar_app"/>
+
+        <!-- Activity Layout -->
+        <androidx.coordinatorlayout.widget.CoordinatorLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+            
+            <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+            xmlns:app="http://schemas.android.com/apk/res-auto"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:clickable="true"
+            android:background="@color/cardview_light_background">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:gravity="center"
+                android:orientation="horizontal"
+                android:paddingLeft="16dp"
+                android:paddingRight="16dp">
+
+                <Switch
+                    android:id="@+id/procol"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:height="40dp"
+                    android:textSize="18sp"
+                    android:outlineAmbientShadowColor="@color/colorPrimary"
+                    android:theme="@style/switch_theme"
+                    />
+
+                <TextView
+                    android:id="@+id/procol_cap"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text=" -" />
+<!--
+                <ImageView
+                    android:id="@+id/netactivity"
+                    android:layout_width="50dp"
+                    android:layout_height="50dp"
+                    android:height="50dp"
+                    app:srcCompat="@drawable/ic_node_idle" />
+-->
+
+            <TextView
+                android:id="@+id/tradeid"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="right"
+                android:textColor="@color/colorPrimary"
+                android:layout_marginHorizontal="8dp"
+                android:layout_marginBottom="0dp"
+                android:text="" />
+
+            </LinearLayout>
+
+            <!--
+                    android:textAlignment="textStart"
+            -->
+
+
+            <FrameLayout
+                android:id="@+id/fragment_container"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+            </FrameLayout>
+
+        </LinearLayout>
+            <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+            xmlns:app="http://schemas.android.com/apk/res-auto"
+            android:id="@+id/bottom_sheet"
+            android:layout_width="match_parent"
+            android:layout_height="450dp"
+            android:background="@drawable/sheet_bg"
+            android:orientation="vertical"
+            android:paddingHorizontal="10dp"
+            android:paddingTop="10dp"
+            app:behavior_hideable="true"
+            app:behavior_peekHeight="0dp"
+            app:behavior_skipCollapsed="true"
+            app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior">
+        </FrameLayout>
+        </androidx.coordinatorlayout.widget.CoordinatorLayout>
+
+    </LinearLayout>
+
+    <com.google.android.material.navigation.NavigationView
+        android:id="@+id/navigation_view"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:layout_gravity="start"
+        android:fitsSystemWindows="true"
+        app:headerLayout="@layout/nav_header"
+        app:menu="@menu/activity_home_navigation"
+        app:itemIconTint="@drawable/drawer_item"
+        app:itemTextColor="@drawable/drawer_item"
+        />
+
+</androidx.drawerlayout.widget.DrawerLayout>
+
+
+

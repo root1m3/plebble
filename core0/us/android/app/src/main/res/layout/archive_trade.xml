@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:padding="5dp"
+    >
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/closetrade_btn"
+        android:text="@string/terminate"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:drawableLeft="@drawable/ic_archive"
+        android:drawablePadding="20dp"
+        android:textAlignment="textStart"
+        android:gravity="top"
+        android:textColor="@android:color/white"/>
+
+    <com.google.android.material.button.MaterialButton
+        android:layout_width="fill_parent"
+        android:layout_height="80dp"
+        android:visibility="invisible"
+        />
+
+
+</LinearLayout>

@@ -1,0 +1,21 @@
+BGTASK
+
+
+provides an object with a worker thread interface and implementation of start(), stop(), status(), join().
+Derived objects are instatiated in stopped state.
+ 
+overridable functions are onwakeup
+
+---------------------------------------------------------------
+566334bb4831b867551c4e10f61efb7623fbda48
+void c::wakeup()
+    calls reset_resume() setting the internal state to resume
+    calls onwakeup() so specializations can signal their sleeping thread.   
+
+
+---------------------------------------------------------------
+
+
+
+
+

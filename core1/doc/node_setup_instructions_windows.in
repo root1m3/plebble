@@ -1,0 +1,74 @@
+##str1## - node setup
+Instructions (Windows oeprating systems)
+
+1. (optional,advanced) Make sure you have UPnP function enabled in your broadband router.
+    The node will try to program the router to forward ports 16671,16672,16673,15580 to itsels, so other nodes
+    can initate connections with your node. If this process fails your node will still be working fine, but
+    without helping inter-node connectivity (other nodes will try to reah you without success) which reduces
+    global performance. 
+    If you skip this step there is a chance the node will success opening ports, but if you feel skilled it is
+    worth to access the router configuration and make sure UPnP function is enabled. Alternatively to UPnP you
+    can program manually port forwarding. Range of TCP ports 16670-16680 should map to same range in the node.
+    Program DHCP to assign the same IP address to the node's MAC address, to make sure port forwarding manual
+    configuration lasts.
+    Your router can tipically be accessed via the following URLs accessible via your internet browser:
+        http://192.168.0.1 or http://192.168.1.1 
+    But it could be any other, depending on your local LAN configuration, if none of these works:
+    open a DOS shell.
+    Start menu, select 'execute', type 'cmd'
+    In the shell window type: ipconfig /all
+    C:> ipconfig /all
+    Find more information here: https://www.johnsonweld.com/find-default-gateway-ip-address/free/
+    
+    The use the ip address in your internet browser to access your router.
+    Example: http://192.168.0.1
+    Search in advanced configuration for UPnP and make sure it is enabled.
+    Make also sure the firewall, if enabled, doesn't filter packets in the port range 16670-16680.
+
+    Program DHCP to assign the same IP address to the node's MAC address, to make sure port forwarding manual
+    configuration lasts.
+    Your router can tipically be accessed via the following URLs accessible via your internet browser:
+        http://192.168.0.1 or http://192.168.1.1 
+    But it could be any other, depending on your local LAN configuration, if none of these works:
+    
+2.- Download and unzip the US Operating System for the Raspberry Pi. 
+	  The file is:
+      ##str15##/raspberry_pi/##str_os_raspi##
+      Check the size of the file after downloading it. It should be exactly ##str_os_raspi_size## bytes.
+    2.1  Uncompress & record the US Operating System into the microSD card.
+		1-unzip the downloaded file. The resulting image has extension .img
+		2-use etcher to record the microSD using the uncompressed file. https://www.balena.io/etcher/
+
+3. Insert the recorded microSD card in the raspberry pi slot.
+	Tested models: Raspberry PI 3B+ with at least 16Gb microSD
+    3.1. Connect the raspberry pi to your broadband router using a (short) ethernet cable.
+    3.2. Connect a TV using a HDMI cable.
+    3.3. Connect a USB keyboard.
+    3.4. Power up the raspberry pi using an official power supply.
+    3.5. Wait approximately 15 minutes until the instalation finishes
+    3.6. Login with the user and password shown in screen. You’ll be forced to change the password. 
+          Recommended procedure:
+       3.6.1. Write down on paper a long sequence (~10) of random numbers and letters.
+       3.6.1. Enter the new password twice.
+       3.6.3. Store the paper in a safe place.
+    3.7. Write down your IP address for later ssh access.
+      Know the LAN IP address of your node. Example:
+      $> hostname -I
+      192.168.0.26 ...
+    3.8. Type “us-help” to know more about the programs wallet and gov.
+    3.9. Type exit to terminate the session.
+    3.10. Unplug the HDMI cable and the keyboard
+    3.11. Leave the node running 24/7 beside the broadband router.
+4. Access your node via ssh,
+    Use the program putty. https://putty.org/
+    Parameters: 
+     The LAN IP address obtained in section 3.7
+     Port: 16671
+     username: gov
+5. (optional) Check installation.
+    Go to to the following URL using a computer or the mobile using the WIFI of the router.
+    http://adsl4ever.com/ip
+    annotate your public IP address 
+    send your public IP address by email to other.arkitech@protonmail.com 
+    you'll receive a response with an assessment of a successful installation, or any issue detected.
+

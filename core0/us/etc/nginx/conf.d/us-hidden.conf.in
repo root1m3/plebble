@@ -1,0 +1,8 @@
+server {
+    listen ##str23##;
+    root /var/www/##str3##_anon;
+    client_max_body_size 99M;
+    charset utf-8;
+    index index.html;
+}
+

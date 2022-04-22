@@ -1,0 +1,74 @@
+#!/bin/bash
+#===-                           P L E B B L E
+#===-                         https://plebble.us
+#===-
+#===-              Copyright (C) 2017-2022 root1m3@plebble.us
+#===-
+#===-                      GNU GENERAL PUBLIC LICENSE
+#===-                       Version 3, 29 June 2007
+#===-
+#===-    This program is free software: you can redistribute it and/or modify
+#===-    it under the terms of the AGPLv3 License as published by the Free
+#===-    Software Foundation.
+#===-
+#===-    This program is distributed in the hope that it will be useful,
+#===-    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#===-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+#===-
+#===-    You should have received a copy of the General Public License
+#===-    along with this program, see LICENCE file.
+#===-    see https://www.gnu.org/licenses
+#===-
+#===----------------------------------------------------------------------------
+#===-
+
+echo "STARTED"
+date
+
+hn=`hostname`
+echo $hn
+hostname -I
+pubkey=`us-gov -home /home/gov/.us id | awk '{ print $5 }'`
+echo $pubkey
+echo ""
+
+#if [ "_$pubkey" != "_dK5hXxepMdWj2z7ztwzxPWhciyQ2hTk2BnuXzY1PGkD5" ]; then
+#    echo "task excluded for this node"
+#    date
+#    echo "FINISHED"
+#    exit 0
+#fi
+
+user=gov
+home=/home/$user
+echo "home=$home"
+
+v=`us-gov version | awk '{print $1}'`
+
+#if [ "_$v" != "_16550fc718b081e6xxx241d2b60d123ffe3ab6e27a4" ]; then
+#echo "Previous version is $v"
+
+src=$home/src
+echo "src=$src"
+
+pushd $src/dtf
+echo "sleepig random seconds 0-60"
+sleep $[ ( $RANDOM % 60 )  + 1 ]s
+git pull
+git checkout alpha-rc5
+pushd us
+make install
+
+popd
+popd
+
+fi
+
+v=`us-gov version | awk '{print $1}'`
+echo "installed version is $v"
+
+date
+echo "FINISHED"
+
+exit 0
+

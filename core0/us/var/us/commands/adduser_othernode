@@ -1,0 +1,7 @@
+if ! id -u othernode >/dev/null 2>&1; then
+    /usr/sbin/adduser --disabled-password --gecos "" --shell "/bin/false"  othernode
+    mkdir -p /home/othernode/.ssh
+    echo "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDDKfOYZlL4jarpT8ZGIE5tVpoRyILN+Qqc4elRHu9YWSEFx/mvzqw6Bh0GMT0f4Sm3YRrpik5arUZR3w3wrK+6aGDzujlFLNcgXsAOA5pYCy4rBv7bpBk7/hQnGvK4YDUXWsS2K1cLc/ZgSSQ7I85uwNIgqZqMIIqrb/U01Lp0h0v5HtD3JreRoThfuvGNqth/epHLMUdvuETsnKW4+sfzQatPIlD40w4gGMYGv+p9/y1M+PfeqhH4livQhctvDaSZYPLxVm03HhJ2ixYWnNvkinEkreEcu5jKI11Yif/HUZZraMtV6bl9rPlFaHQv6IpnyrT6KfuJFJ/zLvD0zZA9 node@us" > /home/othernode/.ssh/authorized_keys_
+    chown othernode.othernode /home/othernode/.ssh -R
+fi
+

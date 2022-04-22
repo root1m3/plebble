@@ -1,0 +1,60 @@
+local_deltas
+[dgram] [heap] local_deltas_t local_deltas
+async
+-
+-
+
+vote_tip
+[dgram] h tip p pubkey S signature
+async
+-
+-
+
+query_block
+h block_hash
+sync
+[async_handler] 1 block_file
+-
+-
+
+sysop
+s cmd
+sync
+s ans
+-
+-
+
+track
+u8 ts
+sync
+[async_handler] s progress
+-
+-
+
+ev
+[dgram] v blob_evidence
+async
+-
+-
+
+ev_track
+[dgram] v blob_evidence
+sync
+s progress
+-
+-
+
+harvest
+[peerinfo] u2 key  u2 timeout  u2 decay  s payload
+async
+-
+-
+
+harvest_rollback
+[peerinfo] s response
+async
+-
+-
+
+
+

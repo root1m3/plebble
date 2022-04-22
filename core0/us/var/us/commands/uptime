@@ -1,0 +1,5 @@
+shopt -s expand_aliases
+. /home/gov/.bash_aliases
+gov -home /home/gov/.us -cmd uptime
+exit 0
+

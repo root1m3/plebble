@@ -1,0 +1,96 @@
+#!/bin/bash
+#===-                           P L E B B L E
+#===-                         https://plebble.us
+#===-
+#===-              Copyright (C) 2017-2022 root1m3@plebble.us
+#===-
+#===-                      GNU GENERAL PUBLIC LICENSE
+#===-                       Version 3, 29 June 2007
+#===-
+#===-    This program is free software: you can redistribute it and/or modify
+#===-    it under the terms of the AGPLv3 License as published by the Free
+#===-    Software Foundation.
+#===-
+#===-    This program is distributed in the hope that it will be useful,
+#===-    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#===-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+#===-
+#===-    You should have received a copy of the General Public License
+#===-    along with this program, see LICENCE file.
+#===-    see https://www.gnu.org/licenses
+#===-
+#===----------------------------------------------------------------------------
+#===-
+US="##str3##"
+prefix="/usr/local"
+systemctl stop ${US}-wallet
+systemctl stop ${US}-gov
+
+mv -f /var/us-nets /var/us-nets.off
+
+
+rm -f $prefix/bin/${US}-uninstall
+
+rm -f $prefix/bin/apply_blob
+rm -f $prefix/bin/blob_extract_apk
+rm -f $prefix/bin/gen_pub
+rm -f $prefix/bin/install_blob
+rm -f $prefix/bin/log_timeline
+rm -f $prefix/bin/logtool
+rm -f $prefix/bin/log_trimdir
+rm -f $prefix/bin/node_info
+rm -f $prefix/bin/override_env
+rm -f $prefix/bin/search_kv
+rm -f $prefix/bin/${US}-bz
+rm -f $prefix/bin/${US}_distr_make
+rm -f $prefix/bin/${US}-gov
+rm -f $prefix/bin/ush
+rm -f $prefix/bin/${US}-help
+rm -f $prefix/bin/${US}-ports
+rm -f $prefix/bin/${US}_proc_1.1
+rm -f $prefix/bin/${US}-seeds
+rm -f $prefix/bin/${US}-upload_blob
+rm -f $prefix/bin/${US}-wallet
+
+
+rm -f $prefix/lib/libsecp256k1.a
+rm -f $prefix/lib/libsecp256k1.la
+rm -f $prefix/lib/libsecp256k1.so
+rm -f $prefix/lib/libsecp256k1.so.0
+rm -f $prefix/lib/libsecp256k1.so.0.0.0
+rm -f $prefix/lib/lib${US}bz.so
+rm -f $prefix/lib/lib${US}gov.so
+rm -f $prefix/lib/lib${US}wallet.so
+
+rm -rf /var/${US}
+rm -f /var/${US}_motd
+rm -rf /var/log/${US}
+
+cat /home/gov/.bash_aliases | grep -v "#${US}" > /tmp/xx1993
+cat /tmp/xx1993 > /home/gov/.bash_aliases
+rm /tmp/xx1993
+
+rm -f /etc/nginx/sites-enabled/${US}.conf
+
+rm -f /etc/katlas/config
+rm -f /etc/systemd/system/${US}-wallet.service
+rm -f /etc/systemd/system/${US}-gov.service
+
+rm -f /etc/rc.local.d/999999999_${US}_rclocal
+rm -f /etc/rc.local.d/0_${US}_rclocal
+rm -f /etc/cron.daily/${US}-seeds
+rm -f /etc/cron.daily/${US}-ports
+
+cat << EOF > /etc/motd
+The programs included with the Debian GNU/Linux system are free software;
+the exact distribution terms for each program are described in the
+individual files in /usr/share/doc/*/copyright.
+
+Debian GNU/Linux comes with ABSOLUTELY NO WARRANTY, to the extent
+permitted by applicable law.
+EOF
+
+rm -f $prefix/bin/${US}-uninstall
+echo "TODO"
+exit 1
+

@@ -1,0 +1,73 @@
+#!/bin/bash
+#===-                           P L E B B L E
+#===-                         https://plebble.us
+#===-
+#===-              Copyright (C) 2017-2022 root1m3@plebble.us
+#===-
+#===-                      GNU GENERAL PUBLIC LICENSE
+#===-                       Version 3, 29 June 2007
+#===-
+#===-    This program is free software: you can redistribute it and/or modify
+#===-    it under the terms of the AGPLv3 License as published by the Free
+#===-    Software Foundation.
+#===-
+#===-    This program is distributed in the hope that it will be useful,
+#===-    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#===-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+#===-
+#===-    You should have received a copy of the General Public License
+#===-    along with this program, see LICENCE file.
+#===-    see https://www.gnu.org/licenses
+#===-
+#===----------------------------------------------------------------------------
+#===-
+#to be excuted as bin/strip - of/trader/bin uses a copy of it, keem them in sync
+dir=$1
+
+if [ "_$dir" == "_" ]; then
+    echo "$0 <src-code dir>"
+    exit 1
+fi
+
+let w=0
+
+function progress_reset {
+    let w=0
+}
+
+function progress {
+    echo -n "."
+    let w=$w+1
+    if [ $w -gt 40 ]; then
+        let w=4
+        echo ""
+        echo -n "    "
+    fi
+}
+
+pushd $dir > /dev/null
+    if [ -d $dir/.git ]; then
+        echo "Warning 40292 Not stripping controlled files"
+        exit 1
+    fi
+popd > /dev/null
+
+function dostrip {
+    dir=$1
+    type=$2
+    echo "stripping $type files"
+    progress_reset
+    for f in `find $dir -type f -name "*.$type"`; do
+        #echo "stripping $f"
+        progress
+        grep -v "\-\-strip" $f | sponge $f
+    done
+    echo ""
+}
+
+dostrip $dir "cpp"
+dostrip $dir "in"
+dostrip $dir "java"
+
+exit 0
+

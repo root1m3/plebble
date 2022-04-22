@@ -1,0 +1,9 @@
+#!/bin/bash -e
+
+testmain=`ls *-trader_c1test`
+
+echo "LD_LIBRARY_PATH=\"../../../../core0/us/gov:../../../../core0/us/wallet:../libtest:..\" ./$testmain $@"
+
+rm -rf logs/*
+LD_LIBRARY_PATH="../../../../core0/us/gov:../../../../core0/us/wallet:../libtest:.." ./$testmain $@
+exit $?

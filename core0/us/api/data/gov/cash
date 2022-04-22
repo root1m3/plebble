@@ -1,0 +1,35 @@
+fetch_accounts
+addresses_t addresses
+sync
+accounts_t accounts
+-
+-
+
+share_file
+v file_tx_blob  1 content
+sync
+s error
+-
+-
+
+search_kv
+hash_t addr  string key
+sync
+s data
+-
+-
+
+file_hash
+hash_t addr  string id
+sync
+hash_t content_fingerprint
+-
+-
+
+file_content
+hash_t addr  hash_t local_hash  string fileid
+sync
+1 content
+-
+-
+

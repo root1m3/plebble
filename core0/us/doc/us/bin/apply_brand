@@ -1,0 +1,12 @@
+bin/apply_brand <branddir> <branch>
+
+generates a branded version of the source code
+It grabs the source from the specified branch of a clone of the current repository, as reported by git config --get remote.origin.url
+
+Call it from working directory us 
+<brandir> shall be absolute pathname. relative pathnames could produce undefined behaviour.
+<branch> git branch 
+
+After execution, directory brand_<brandname> contains the new patched codebase
+
+

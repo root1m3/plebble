@@ -1,0 +1,68 @@
+#!/bin/bash
+#===-                           P L E B B L E
+#===-                         https://plebble.us
+#===-
+#===-              Copyright (C) 2017-2022 root1m3@plebble.us
+#===-
+#===-                      GNU GENERAL PUBLIC LICENSE
+#===-                       Version 3, 29 June 2007
+#===-
+#===-    This program is free software: you can redistribute it and/or modify
+#===-    it under the terms of the AGPLv3 License as published by the Free
+#===-    Software Foundation.
+#===-
+#===-    This program is distributed in the hope that it will be useful,
+#===-    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#===-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+#===-
+#===-    You should have received a copy of the General Public License
+#===-    along with this program, see LICENCE file.
+#===-    see https://www.gnu.org/licenses
+#===-
+#===----------------------------------------------------------------------------
+#===-
+cmd=$1
+apk=app/build/outputs/apk/debug/us.cash-v1-debug.apk
+package=us.cash
+fqclass=$package.MainActivity
+launcher=$package/$fqclass
+mkdir -p usbops_data
+
+function screenshot {
+    dest=$1
+    adb exec-out screencap -p > $dest && exit 1
+}
+
+function start {
+    adb -d shell am start -n $launcher && exit 1
+    screenshot usbops_data/initial_screen.png
+    exit 0
+}
+
+function stop {
+    adb -d shell am force-stop $package || exit 0 && exit 1
+}
+
+
+if [ "_$cmd" == "_uninstall" ]; then
+	adb uninstall $package || exit 0 && exit 1
+fi
+
+if [ "_$cmd" == "_reinstall" ]; then
+    adb -d install -r $apk && exit 1
+    if [ $? -ne 0 ]; then
+        exit 1
+    fi
+    exit 0
+fi
+if [ "_$cmd" == "_start" ]; then
+    start
+fi
+if [ "_$cmd" == "_stop" ]; then
+    stop
+fi
+
+echo "Commands:"
+echo "  uninstall   unReinstall app"
+echo "  reinstall   Reinstall app"
+echo "  start/stop         Starts/stops main activity"

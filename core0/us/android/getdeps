@@ -1,0 +1,21 @@
+#!/bin/bash
+
+if [ ! -f ../sdk/wallet/java/$us-sdk_sc.jar ]; then
+    echo -n "KO 40098 $us-sdk_sc.jar not found at "
+    realpath ../sdk/wallet/java/
+    echo "Hint: cd sdk/wallet/java; make spongy"
+    exit 1
+fi
+
+mkdir -p app/libs
+pushd app/libs >/dev/null
+    rm -f *.jar
+    ln -s ../../../sdk/wallet/java/$us-sdk_sc.jar .
+    ln -s ../../../sdk/wallet/java/libs_spongy/core-1.58.0.0.jar .
+    ln -s ../../../sdk/wallet/java/libs_spongy/pg-1.54.0.0.jar .
+    ln -s ../../../sdk/wallet/java/libs_spongy/pkix-1.54.0.0.jar .
+    ln -s ../../../sdk/wallet/java/libs_spongy/prov-1.58.0.0.jar .
+popd >/dev/null
+
+exit 0
+

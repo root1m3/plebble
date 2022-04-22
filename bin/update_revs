@@ -1,0 +1,19 @@
+#!/bin/bash
+
+. .revs
+if [ -d tmp/core0/core0 ]; then
+   pushd tmp/core0/core0
+     git checkout --quiet $branch
+     core0new=`git rev-parse HEAD`
+   popd
+   sed -i "s/^core0=.*/core0=$core0new/" revs
+fi
+if [ -d tmp/core1/core1 ]; then
+   pushd tmp/core1/core1
+     git checkout --quiet $branch
+     core1new=`git rev-parse HEAD`
+   popd
+   sed -i "s/^core1=.*/core1=$core1new/" revs
+fi
+git diff
+

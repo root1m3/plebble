@@ -1,0 +1,23 @@
+#!/bin/bash
+
+repl=`cat /etc/apt/sources.list | grep "^deb .*bian/ *buster .*" | sed "s#^\(deb .*bian/ *\)buster \(.*\)#\1bullseye \2#"`
+echo $repl > /etc/apt/sources.list.d/us.list
+
+cat << EOF > /etc/apt/preferences.d/us
+Package: libc6-dev
+Pin: release n=bullseye
+Pin-Priority: 900
+
+Package: g++
+Pin: release n=bullseye
+Pin-Priority: 900
+EOF
+
+export DEBIAN_FRONTEND=noninteractive
+
+apt update
+
+apt remove  -y libgcc-8-dev
+apt install  -y -o Dpkg::Options::=--force-confold g++ build-essential
+apt -y autoremove
+

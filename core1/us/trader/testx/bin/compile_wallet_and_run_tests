@@ -1,0 +1,10 @@
+#!/bin/bash -e
+
+pushd ~/devjob/core0/us
+make clean_wallet
+make -j8
+sudo make install
+sudo make install-dev
+popd
+
+bin/run_tests

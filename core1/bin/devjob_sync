@@ -1,0 +1,442 @@
+#!/bin/bash
+#===-                           P L E B B L E
+#===-                         https://plebble.us
+#===-
+#===-              Copyright (C) 2017-2022 root1m3@plebble.us
+#===-
+#===-                      GNU GENERAL PUBLIC LICENSE
+#===-                       Version 3, 29 June 2007
+#===-
+#===-    This program is free software: you can redistribute it and/or modify
+#===-    it under the terms of the AGPLv3 License as published by the Free
+#===-    Software Foundation.
+#===-
+#===-    This program is distributed in the hope that it will be useful,
+#===-    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#===-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+#===-
+#===-    You should have received a copy of the General Public License
+#===-    along with this program, see LICENCE file.
+#===-    see https://www.gnu.org/licenses
+#===-
+#===----------------------------------------------------------------------------
+#===-
+
+djactive=.cbs/devjobs_active
+
+if [[ ! -f ./.cbs/config ]]; then
+    echo "Not implemented yet. generate+import devjob from/to another devjob"
+    exit 1
+else
+    . ./.cbs/config
+fi
+
+if [ ! -f $djactive ]; then
+    echo "created $djactive file"
+    echo "#id url" > $djactive
+fi
+
+function help {
+    echo "$0 file <devjob zst file>"
+    echo "$0 url <url> "
+    echo "$0 id <urlid> "
+    echo "active devjobs: id url"
+    cat $djactive | grep -v "^#"
+}
+
+wf=0
+
+function check {
+    file=$1
+    wf=1
+    if [[ ! -f $file ]]; then
+        echo "KO 78690 file $file doesn't exist"
+        exit 1
+    fi
+    echo "checking patch $file"
+    file $file | grep "with CRLF"
+    if [ $? -eq 0 ]; then
+        echo "Contains CRLF line terminators"
+        #dos2unix $file
+        #exit 1
+    fi
+    let sz=`stat --printf="%s" $file`
+    if [ $sz -eq 0 ]; then
+        echo "Empty diff file $file";
+        #echo "[enter]"
+        #read x
+        wf=0
+    fi
+}
+
+function apply {
+    rev=$1
+    patch=$2
+    msgf=$3
+    apply_branch=$4
+    echo $rev $patch $msgf $apply_branch
+    git checkout --quiet $rev
+    if [[ $? -ne 0 ]]; then
+        pwd
+        echo "KO 88092 invalid $rev"
+        exit 1
+    fi
+    git checkout --quiet -b patch
+    if [[ $? -ne 0 ]]; then
+        pwd
+        echo "KO 88093 couldn't create branch patch"
+        exit 1
+    fi
+    git apply $patch
+    if [[ $? -ne 0 ]]; then
+        pwd
+        echo "KO 88094 $patch didnt apply"
+        exit 1
+    fi
+    git add *
+    GNUPGHOME=$gpgh git commit -F $msgf --author="$author" -S$gpgkey
+    git checkout --quiet $apply_branch
+    if [[ $? -ne 0 ]]; then
+        pwd
+        echo "KO 88094 couldn't checkout"
+        exit 1
+    fi
+    echo "merging: git merge patch"
+    GNUPGHOME=$gpgh git merge patch -F $msgf -S$gpgkey
+    if [[ $? -ne 0 ]]; then
+        echo "KO 88095 merge failed"
+        echo "commit command: GNUPGHOME=$gpgh git commit -F $msgf --author=\"$author\" -S$gpgkey"
+        echo "ctrl-z, fix it (commit branch), come back (fg) and press enter to continue"
+        pwd
+        read x
+    fi
+}
+
+function adapt {
+    baseh=$1
+    nbranch=$2
+    echo "adapt baseh=$baseh nbranch=$nbranch"
+    #copy core2 into upstream from downstream at the revision where upstream forked
+    pushd upstream > /dev/null
+        git checkout --quiet ${baseh}
+        if [[ $? -ne 0 ]]; then
+            echo "KO 71660"
+            exit 1
+        fi
+    popd > /dev/null
+    pushd downstream > /dev/null
+        git checkout --quiet ${downstream_hash}
+        if [[ $? -ne 0 ]]; then
+            echo "KO 71661"
+            exit 1
+        fi
+        cp core2 ../upstream/ -R
+        rm -r ../upstream/core2/brands/$brand 
+        git checkout --quiet $branch
+        if [[ $? -ne 0 ]]; then
+            echo "KO 71662"
+            exit 1
+        fi
+    popd > /dev/null
+    pushd upstream > /dev/null
+        git checkout --quiet -b ${nbranch}
+        if [[ $? -ne 0 ]]; then
+            echo "KO 80093"
+            exit 1
+        fi
+        git mv core1/brands/$brand core2/brands/
+        cp README.md core2/brands/$brand/devjob_skel/
+        git add core2
+        git rm README.md
+        git rm LICENSE
+        if [[ -f .revs ]]; then
+            echo "deleting .revs"
+            git rm .revs
+        else
+            echo "no .revs"
+            #echo "KO 69969"
+            #exit 1
+        fi
+        echo "unlicensing core0"
+        pushd core0/us > /dev/null
+            ../../../downstream/core0/us/bin/patch_src -i
+            if [[ $? -ne 0 ]]; then
+                echo "KO 79680 patch_src failed"
+                exit 1
+            fi
+        popd > /dev/null
+        echo "unlicensing core1"
+        pushd core1 > /dev/null
+            ../../downstream/core1/bin/patch_src -i
+            if [[ $? -ne 0 ]]; then
+                echo "KO 79681 patch_src failed"
+                exit 1
+            fi
+        popd > /dev/null
+        git add -u
+        git commit --quiet -m "a"
+        if [[ $? -ne 0 ]]; then
+            echo "KO 71663"
+            exit 1
+        fi
+    popd > /dev/null
+}
+
+upstream_head=""
+
+function procurl {
+    url=$1
+    shift
+    . .cbs/config
+    if [[ "_$upstream_branch" == "_" ]]; then
+        upstream_branch="main"
+    fi
+    rm -rf tmp
+    mkdir tmp
+    pushd tmp > /dev/null
+        #clone reps
+        git clone $url upstream
+        if [[ $? -ne 0 ]]; then
+            echo "KO 71664"
+            exit 1
+        fi
+        pushd upstream > /dev/null
+            git checkout $upstream_branch
+            if [[ $? -ne 0 ]]; then
+                echo "KO 71634"
+                exit 1
+            fi
+            upstream_head=`git rev-parse HEAD`
+            echo "upstream_head $upstream_head"
+        popd > /dev/null
+        if [[ ! -f upstream/.revs ]]; then
+            echo "KO 77795"
+            exit 1
+        fi
+        cat upstream/.revs
+        . upstream/.revs
+        if [[ "_$upstream_branch" == "_" ]]; then
+            upstream_branch="main"
+        fi
+
+        #check if upstream contains only one brand
+        numbrands_upstream=`ls upstream/core1/brands/ -1 | wc -l`
+        if [[ ${numbrands_upstream} -ne 1 ]]; then
+            echo "KO 80794. Multiple brands upstream"
+            exit 1
+        fi
+        #check if upstream brand exists downstream
+        brand=`ls upstream/core1/brands/ -1`
+
+        git clone -b $branch --single-branch ${gitrep} downstream
+        if [[ $? -ne 0 ]]; then
+            echo "KO 71665"
+            exit 1
+        fi
+        if [[ ! -d downstream/core2/brands/$brand ]]; then
+            echo "KO 80795 brand $brand not found downstream."
+            exit 1
+        fi
+        if [[ -f ../.cbs/config_$brand ]]; then
+            echo "loading config for brand $brand"
+            . ../.cbs/config_$brand
+        fi
+
+        adapt ${upstream_hash} hqrefactor0
+        adapt ${upstream_branch} hqrefactor1
+
+        echo "branch hqrefactor1 ready"
+        echo "devjob_id $devjob_id"
+
+        djid=${devjob_id}
+
+        echo -n "" > hint
+
+        #=======================
+        ##################
+        echo "prepare patch for upstream "
+        pushd downstream > /dev/null
+	        git diff --binary ${downstream_hash} HEAD > ../patch4upstream
+            ls -la ../patch4upstream
+	        echo "downstream refs:" > ../msg4upstream
+            git log --oneline --no-decorate --no-merges ${downstream_hash}..HEAD >> ../msg4upstream
+        popd > /dev/null
+        ##################
+        echo "prepare patch for downstream"
+        pushd upstream > /dev/null
+            git checkout hqrefactor1
+            if [[ $? -ne 0 ]]; then
+                echo "KO 71666"
+                exit 1
+            fi
+
+#exit 1
+#            git rebase hqrefactor0
+#            if [[ $? -ne 0 ]]; then
+#                echo "KO 71667"
+#                exit 1
+#            fi
+            git diff --binary hqrefactor0 hqrefactor1 > ../patch4downstream
+            echo ${djid} > ../msg4downstream
+            git checkout ${upstream_branch}
+            if [[ $? -ne 0 ]]; then
+                echo "KO 71668"
+                exit 1
+            fi
+            git log --oneline --no-decorate --no-merges ${upstream_hash}..HEAD >> ../msg4downstream
+        popd > /dev/null
+
+        #echo "1.- cd tmp/; git push" >> hint
+
+        #=======================
+        ##################
+        let n=0
+        let nu=0
+        let nd=0
+
+        echo ""
+        echo "apply patches upstream."
+        check patch4upstream
+        pushd upstream > /dev/null
+            if [[ $wf -eq 0 ]]; then
+                rm -f ../patch4upstream
+                rm -f ../msg4upstream
+                echo "************ No changes upstream (devjob rep). OK"
+            else
+                echo "----------------------patching upstream"
+	            apply hqrefactor0 ../patch4upstream ../msg4upstream hqrefactor1
+	            echo "1.- cd tmp/upstream; git push" >> hint
+                echo "----------------------"
+                let n=$n+1
+                let nu=1
+            fi
+        popd > /dev/null
+        ##################
+
+        echo ""
+        echo "apply patches downstream"
+        check patch4downstream
+        pushd downstream > /dev/null
+            if [[ $wf -eq 0 ]]; then
+                rm -f ../patch4downstream
+                rm -f ../msg4downstream
+	            echo "************ No changes downstream (hq rep). OK"
+            else
+                if [[ -f /tmp/prepatch ]]; then
+                    cat /tmp/prepatch
+                    echo "apply prepatch?"
+                    read x
+                    git apply /tmp/prepatch
+                fi
+                echo "---------------------- patching downstream"
+                apply ${downstream_hash} ../patch4downstream ../msg4downstream $branch
+                echo "2.- cd tmp/downstream; git push origin $branch" >> ../hint
+                echo "----------------------"
+                let n=$n+1
+                let nd=1
+            fi
+        popd > /dev/null
+        echo ""
+        if [[ $n -eq 0 ]]; then
+            echo "no changes."
+            return
+        fi
+        pushd downstream > /dev/null
+            downstream_hash=`git rev-parse HEAD`
+            echo "ds ${downstream_hash}" >> ../msg4upstream
+        popd > /dev/null
+        echo "downstream_hash $downstream_hash"
+        if [[ $nu -eq 1 ]]; then
+            pushd upstream > /dev/null
+                mkdir core1/brands
+                mv core2/brands/$brand core1/brands/
+                rm core2 -r
+                git add core1/brands/$brand
+                cp core1/brands/$brand/devjob_skel/* ./ -R
+                cp core1/brands/$brand/LICENSE ./ -R
+                echo "Licensing core0"
+                pushd core0/us > /dev/null
+                    bin/patch_src -a ../../core1/brands/$brand/source_code_header
+                    if [[ $? -ne 0 ]]; then
+                        echo "KO 79680 patch_src failed"
+                        exit 1
+                    fi
+                popd > /dev/null
+                echo "licensing core1"
+                pushd core1 > /dev/null
+                    bin/patch_src -a ../core1/brands/$brand/source_code_header
+                    if [[ $? -ne 0 ]]; then
+                        echo "KO 79681 patch_src failed"
+                        exit 1
+                    fi
+                popd > /dev/null
+
+                git add README.md
+                git add LICENSE
+                git add -u
+                git commit -q -m "a"  #gpg id must have no passphrase!
+                if [[ $? -ne 0 ]]; then
+                    echo "KO 87096 Error signing commit"
+                    exit 1
+                fi
+                git checkout ${upstream_branch}
+                git merge hqrefactor1 -m "a"
+                git reset --soft $upstream_head
+                GNUPGHOME=$dj_gpgh git commit -q -F ../msg4upstream --author="$dj_author" -S$dj_gpgkey
+
+                upstream_hash=`git rev-parse HEAD`
+                cat << EOF > .revs
+upstream_hash=${upstream_hash}
+upstream_branch=${upstream_branch}
+downstream_hash=${downstream_hash}
+downstream_branch=${branch}
+devjob_id=${djid}
+EOF
+                git add .revs
+                GNUPGHOME=$dj_gpgh git commit -q -m ".revs" --author="$dj_author" -S$dj_gpgkey
+                if [[ $? -ne 0 ]]; then
+                    echo "KO 87097 Error signing commit"
+                    exit 1
+                fi
+                git push origin ${upstream_branch}
+                if [[ $? -ne 0 ]]; then
+                    echo "KO 71669"
+                    exit 1
+                fi
+            popd > /dev/null
+        fi
+        h=`cat hint`
+        if [ "_$h" == "_" ]; then
+            echo "All fine, devjob is synced with hq. No further action required"
+        else
+            echo "To commit the sync these actions are to be done:"
+            cat hint | sort | uniq
+        fi
+        rm -f hint
+    popd > /dev/null
+}
+
+function procid {
+  id=$1
+  shift
+  url=`cat $djactive | grep -v "^#" | grep "^$id " | awk '{ print $2 }'`
+  procurl $url $@
+}
+
+mode=$1
+shift
+echo "mode $mode"
+
+if [ "_$mode" == "_file" ]; then
+  procfile $@
+elif [ "_$mode" == "_url" ]; then
+  procurl $@
+elif [ "_$mode" == "_id" ]; then
+  procid $@
+else
+   help
+   exit 1
+fi
+
+exit 0
+

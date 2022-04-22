@@ -1,0 +1,99 @@
+#===-                           P L E B B L E
+#===-                         https://plebble.us
+#===-
+#===-              Copyright (C) 2017-2022 root1m3@plebble.us
+#===-
+#===-                      GNU GENERAL PUBLIC LICENSE
+#===-                       Version 3, 29 June 2007
+#===-
+#===-    This program is free software: you can redistribute it and/or modify
+#===-    it under the terms of the AGPLv3 License as published by the Free
+#===-    Software Foundation.
+#===-
+#===-    This program is distributed in the hope that it will be useful,
+#===-    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#===-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+#===-
+#===-    You should have received a copy of the General Public License
+#===-    along with this program, see LICENCE file.
+#===-    see https://www.gnu.org/licenses
+#===-
+#===----------------------------------------------------------------------------
+#===-
+US:=##str3##
+DEFAULTDEBUG:=##str29##
+WITHTEST:=##str62##
+STDFLAGS:=-std=c++20 -Wno-psabi
+DEBUGFLAGS:=-g -O0 ${STDFLAGS} -DDEBUG
+RELEASEFLAGS:=-O3 ${STDFLAGS} -DNDEBUG
+PREFIX:=/usr/local
+ARCH:=$(shell uname -m)
+CXXFLAGS=${DEBUGFLAGS}
+CXX:=g++
+CORE0:=$(shell realpath ../../../core0)
+CORE1:=$(shell realpath ../../../core1)
+INCC0:=-I${CORE0}
+LIBC0:=-L${CORE0}/us/gov -L${CORE0}/us/wallet
+INCC1:=-I${CORE1}
+INC:=${INCC0} ${INCC1}
+LIB:=${LIBC0}
+
+RPATH:=-Wl,-z,defs
+
+ifeq (${DEFAULTDEBUG},1)
+    all: debug
+else
+    all: release
+endif
+
+debug: export CXXFLAGS:=${DEBUGFLAGS}
+debug: targets
+
+release: export CXXFLAGS:=${RELEASEFLAGS}
+release: targets
+
+ifeq (${WITHTEST},1)
+    targets: testx/${USTEST}
+else
+    targets: libs
+endif
+
+test/${LIBUSTEST}.so: libs
+	$(MAKE) CXXFLAGS="${CXXFLAGS}" INC="${INC}" LIB0="${LIB}" -C test
+
+testx/${USTEST}: test/${LIBUSTEST}.so
+	$(MAKE) CXXFLAGS="${CXXFLAGS}" INC="${INC}" LIB0="${LIB}" -C testx
+
+libs: lib${US}trader-bid2ask-bid.so lib${US}trader-bid2ask-ask.so
+
+DEPS_bid2ask=workflow/consumer/wf.o workflow/logistics/wf.o
+
+lib${US}trader-bid2ask-bid.so: bid2ask
+	${CXX} -shared -fPIC ${CXXFLAGS} ${RPATH} ${DEPS_bid2ask} r2r/bid2ask/bid2ask-bid.o ${INC} ${LIB} -l${US}wallet -l${US}gov -lstdc++fs -pthread -o lib${US}trader-bid2ask-bid.so
+
+lib${US}trader-bid2ask-ask.so: bid2ask
+	${CXX} -shared -fPIC ${CXXFLAGS} ${RPATH} ${DEPS_bid2ask} r2r/bid2ask/bid2ask-ask.o ${INC} ${LIB} -l${US}wallet -l${US}gov -lstdc++fs -pthread -o lib${US}trader-bid2ask-ask.so
+
+bid2ask: r2r
+
+r2r: workflow
+	$(MAKE) CXXFLAGS="${CXXFLAGS}" INC="${INC}" LIB0="${LIB}" -C r2r;
+
+workflow:
+	$(MAKE) CXXFLAGS="${CXXFLAGS}" INC="${INC}" LIB0="${LIB}" -C workflow;
+
+install: release
+	bin/install
+
+protocols.tgz: arch
+	tar -czf protocols.tgz `uname -m`
+
+clean:
+	$(MAKE) clean -C r2r;
+	$(MAKE) clean -C workflow;
+	$(MAKE) clean -C test;
+	$(MAKE) clean -C testx;
+	rm -f *.so
+
+.PHONY: all debug release clean targets arch libs test libtest workflow r2r bid2ask
+

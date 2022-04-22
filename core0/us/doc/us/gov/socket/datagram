@@ -1,0 +1,57 @@
+DATAGRAM
+
+-----------------------------------------------------------------------
+01e9e46dc19803479313e8009408b5c9b53199a5
+--outer documentation
+Nodes exchangue information each other by sending and receiving blocks of bits, packeted under the name 'datagram'.
+Impl: datagram.cpp
+
+Datagrams are data structures represented in memory as a continuous block of bytes, think vector<byte>.
+
+The structure contains a fixed-size header and a variable-sized payload space which can be of any size in the interval [0,maxsize].
+
+HEADER
+------
+  Fixed-size memory structure preceding the payload block.
+  ref: datagram::h (10 bytes)
+
+
+
+PAYLOAD
+-------
+
+
+
+
+--/outer documentation
+
+
+-----------------------------------------------------------------------
+9418601605fe7dc62a47e95a21ecc08a60c8d08a
+ko c::recvfrom(int sock)
+
+construct the datagram (totally or partially) sucking the information from the socket.
+
+Contains two calls to ::recv (supplied by Posix O/S). The logic for reading the datagram header is different from the logic for loading the rest of thge datagram.
+The return value of both calls are treated in the following way:
+
+Regardless of whether ::recv is called on a blocking socket or on a non-blocking socket (e.g. rpc_api receiving datagrams (blocking); daemon receiving datagrams (non-blocking)),
+::recv return an integer n. The function result depends on the value obtained for n:
+   If
+   n>0 --> OK, datagram has been filled with more information from the wire. The datagram is not neccesarily complete. (ref. is_completed()) 
+   n<0 --> KO 4921 socket error
+   n==0 -> 
+       errno is any of {EAGAIN|EINPROGRESS|EWOULDBLOCK} --> OK, datagram hasn't been filled this time but we should retry later 
+       errno is 0 (remote peer closed the connection) --> KO 9021 disconnect the socket.  (errno=0 would mean an orderly shutdown)
+       errno is any other --> KO 9021 disconnect the socket.
+
+if sock is -1 returns KO 7014
+instantiates variable ts_recv with the timestamp of reception
+if the size already obtained is smaller than the header reads the header.
+    TBD document the actions performed here
+reads the body.
+updates the variable dend, storing the pointer to the first available remaining space in the datagram.
+
+tnis function doesn't call disconnect in any case.
+-----------------------------------------------------------------------
+

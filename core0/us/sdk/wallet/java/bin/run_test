@@ -1,0 +1,54 @@
+#!/bin/bash
+#===-                           P L E B B L E
+#===-                         https://plebble.us
+#===-
+#===-              Copyright (C) 2017-2022 root1m3@plebble.us
+#===-
+#===-                      GNU GENERAL PUBLIC LICENSE
+#===-                       Version 3, 29 June 2007
+#===-
+#===-    This program is free software: you can redistribute it and/or modify
+#===-    it under the terms of the AGPLv3 License as published by the Free
+#===-    Software Foundation.
+#===-
+#===-    This program is distributed in the hope that it will be useful,
+#===-    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#===-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+#===-
+#===-    You should have received a copy of the General Public License
+#===-    along with this program, see LICENCE file.
+#===-    see https://www.gnu.org/licenses
+#===-
+#===----------------------------------------------------------------------------
+#===-
+
+java=`which java`
+if [ "_$JAVA_HOME" != "_" ]; then
+    java=$JAVA_HOME/bin/java
+fi
+echo "java = $java"
+
+
+strset="en-uk"
+. ../../../res/strings/$strset
+if [ -f ../../../res/strings/${strset}.ovr ]; then
+    echo "found override string set"
+    . ../../../res/strings/${strset}.ovr
+fi
+
+dbg=$str29
+logs=$str33
+us=$str3
+
+echo "================================================================bouncy"
+echo "testing $us-sdk_bc.jar"
+if [ -f $us-sdk_bc.jar ]; then
+    $java -ea -cp $us-sdk-test_bc.jar:libs_bouncy/*:$us-sdk_bc.jar:. main
+fi
+
+echo "================================================================spongy"
+echo "testing $us-sdk_sc.jar"
+if [ -f $us-sdk_sc.jar ]; then
+    $java -ea -cp $us-sdk-test_sc.jar:libs_spongy/*:$us-sdk_sc.jar:. main
+fi
+

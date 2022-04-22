@@ -1,0 +1,23 @@
+;
+; BIND data file for local loopback interface
+;
+$TTL	604800
+$ORIGIN ##str68##.
+@	IN	SOA	##str68##. root.##str68##. (
+			     18		; Serial
+			 604800		; Refresh
+			  86400		; Retry
+			2419200		; Expire
+			 604800 )	; Negative Cache TTL
+
+	IN	A	##PUBLICIP##
+
+	IN	NS	ns1
+
+	IN	MX	##str70##.
+	IN	MX	##str71##.
+
+ns1	IN	A	##str69##
+bde	IN	A	##str69##
+
+

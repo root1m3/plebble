@@ -1,0 +1,240 @@
+#!/bin/bash
+#===-                           P L E B B L E
+#===-                         https://plebble.us
+#===-
+#===-              Copyright (C) 2017-2022 root1m3@plebble.us
+#===-
+#===-                      GNU GENERAL PUBLIC LICENSE
+#===-                       Version 3, 29 June 2007
+#===-
+#===-    This program is free software: you can redistribute it and/or modify
+#===-    it under the terms of the AGPLv3 License as published by the Free
+#===-    Software Foundation.
+#===-
+#===-    This program is distributed in the hope that it will be useful,
+#===-    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#===-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+#===-
+#===-    You should have received a copy of the General Public License
+#===-    along with this program, see LICENCE file.
+#===-    see https://www.gnu.org/licenses
+#===-
+#===----------------------------------------------------------------------------
+#===-
+branddir=$1
+branch=$2
+
+dbg=0
+logs=0
+counters=0
+connlog=0
+
+echo "Apply brand: $@"
+
+function help {
+    echo "$0 <branddir> <branch>"
+}
+
+if [ "_$branddir" == "_" ]; then
+    help
+    echo "KO 40307"
+    exit 1
+fi
+if [ "_$branch" == "_" ]; then
+    help
+    echo "KO 46538"
+    exit 1
+fi
+
+branddir=`realpath $branddir`
+
+echo "applying $branddir"
+echo "branch $branch"
+
+bh=$(mktemp /tmp/brand_hash.XXXXXX)
+
+function copyhash {
+    local file=$1
+    local dest=$2
+    if [ -f $file ]; then
+        cp $file $dest
+        f=$(basename $file)
+        sha256sum $file | sed "s#^\(.*\) .*#\1 $dest $f#" >> $bh
+    fi
+}
+
+function patch_core {
+    branddir=$1
+    c0=$2
+    if [ -f $branddir/en-uk ]; then
+        $c0/us/bin/override_env $c0/us/res/strings/en-uk $branddir/en-uk > $c0/us/res/strings/en-uk.ovr
+    else
+      echo "KO 7060"
+      exit 1
+    fi
+    if [ $dbg -eq 1 ]; then
+      sed -i 's~^str29=\(.*\)~str29=1~' $c0/us/res/strings/en-uk.ovr
+    else
+      sed -i 's~^str29=\(.*\)~str29=0~' $c0/us/res/strings/en-uk.ovr
+    fi
+    if [ $logs -eq 1 ]; then
+      sed -i 's~^str33=\(.*\)~str33=1~' $c0/us/res/strings/en-uk.ovr
+    else
+      sed -i 's~^str33=\(.*\)~str33=0~' $c0/us/res/strings/en-uk.ovr
+    fi
+    if [ $counters -eq 1 ]; then
+      sed -i 's~^str41=\(.*\)~str41=1~' $c0/us/res/strings/en-uk.ovr
+    else
+      sed -i 's~^str41=\(.*\)~str41=0~' $c0/us/res/strings/en-uk.ovr
+    fi
+    if [ $connlog -eq 1 ]; then
+      sed -i 's~^str42=\(.*\)~str42=1~' $c0/us/res/strings/en-uk.ovr
+    else
+      sed -i 's~^str42=\(.*\)~str42=0~' $c0/us/res/strings/en-uk.ovr
+    fi
+    pushd $c0 > /dev/null
+        pushd us > /dev/null
+            copyhash $branddir/nodes.distr etc/nodes.distr
+            copyhash $branddir/source_code_header doc/header
+            copyhash $branddir/LICENSE var/us/LICENSE
+        popd > /dev/null
+    popd > /dev/null
+}
+
+function patch_android {
+    branddir=$1
+    c0=$2
+    dest=$c0/us/android/files
+    copyhash $branddir/brand.png $dest/
+    copyhash $branddir/google-services.json $dest/
+    copyhash $branddir/settings.xml $dest/
+    copyhash $branddir/splash.png $dest/
+    copyhash $branddir/icoapp.png $dest/
+    copyhash $branddir/colors.xml $dest/
+    if [ -x $branddir/bin/configure ]; then
+        $branddir/bin/configure $c0 $bh
+    fi
+    echo "us/android: replacing us.cash with: $str28"
+    pushd $c0/us/android > /dev/null
+        gradlename=${str28/./-}
+        sed -i "s/us-cash/$gradlename/g" settings.gradle
+        pushd app > /dev/null
+            sed -i "s/applicationId \"us\.cash\"/applicationId \"$str28\"/" build.gradle.in
+            sed -i "s#versionName \"0 28/03/2017\"#versionName \"$core0_version_name $core0_build_date\"#" build.gradle.in
+            sed -i "s#versionCode 6#versionCode $core0_version_code#" build.gradle.in
+            pushd src > /dev/null
+                find . -type f -name "*.java" -exec sed -i "s/package us\.cash;/package $str28;/g" {} \;
+                find . -type f -name "*.java.in" -exec sed -i "s/package us\.cash;/package $str28;/g" {} \;
+                sed -i "s/android:value=\"us\.cash\./android\:value=\"$str28./g" main/AndroidManifest.xml.in
+                find . -type f -name "*.xml" -exec sed -i "s/us\.cash\./$str28./g" {} \;
+                pushd main/java  > /dev/null
+                    pkgdir=`echo $str28 | sed "s#\.#/#g"`
+                    if [ ! -d $pkgdir ]; then
+                        mkdir tmp
+                        mv us/cash/* tmp/
+                        rm us* -r
+                        mkdir -p $pkgdir
+                        mv tmp/* $pkgdir/
+            rmdir tmp
+                    fi
+                popd > /dev/null
+            popd > /dev/null
+        popd > /dev/null
+    popd > /dev/null
+}
+
+tf=$(mktemp /tmp/override_env.XXXXXX)
+echo "" > $tf
+
+#just to pick the brand name
+if [ -f $branddir/en-uk ]; then
+    echo "overriding env"
+    . $branddir/en-uk
+else
+    echo "KO 50095 en-uk missing"
+    rm $tf -f
+    exit 1
+fi
+brand=$str3
+echo $brand
+out=brand_$brand
+rm -rf $out
+mkdir $out
+pushd $out > /dev/null
+    url=`git config --get remote.origin.url`
+    git clone -b $branch --single-branch $url rep
+    if [ $? -ne 0 ]; then
+        echo "KO 50128 Invalid url or branch"
+        exit 1
+    fi
+    c0=rep/core0
+    pushd $c0/us > /dev/null
+    . res/strings/en-uk
+        if [ -f $branddir/en-uk ]; then
+            echo "overriding env"
+            bin/override_env res/strings/en-uk $branddir/en-uk > $tf
+        else
+            echo "KO 7040"
+            rm -f $tf
+            exit 1
+        fi
+    popd > /dev/null
+    . $tf
+    if [ $dbg -eq 1 ]; then
+        str29=1
+    else
+        str29=0
+    fi
+    if [ $logs -eq 1 ]; then
+        str33=1
+    else
+        str33=0
+    fi
+    if [ $counters -eq 1 ]; then
+        str41=1
+    else
+        str41=0
+    fi
+    if [ $connlog -eq 1 ]; then
+        str42=1
+    else
+        str42=0
+    fi
+    sed -i "s/^str29=.*/str29=$str29 #dbg/" $tf
+    sed -i "s/^str33=.*/str33=$str33 #logs/" $tf
+    sed -i "s/^str41=.*/str41=$str41 #counters/" $tf
+    sed -i "s/^str42=.*/str42=$str42 #connlog/" $tf
+    mv $tf $c0/us/res/strings/en-uk.ovr
+    echo "gen_vcs_git"
+    pushd $c0 > /dev/null
+        pushd us > /dev/null
+            bin/gen_vcs_git $bh
+            . vcs_git_env
+        popd > /dev/null
+    popd > /dev/null
+    echo "patch core"
+    patch_core $branddir $c0
+    echo "patch android"
+    patch_android $branddir $c0
+    rm rep/.git -rf
+    mv $c0/us .
+    rm rep -r
+    rm -f $bh
+popd > /dev/null
+
+#pushd $out/us > /dev/null
+#    echo "patching sources with header"
+#    pushd srctool > /dev/null
+#        make
+#    popd > /dev/null
+#    bin/patch_src -a doc/header
+#    pushd srctool > /dev/null
+#        make clean
+#    popd > /dev/null
+#popd > /dev/null
+
+echo "branch $branch"
+echo "Generated:"
+#the following last output line is used by other scripts. Dont remove it." # TDOD  lineheader 4 safe processing -- echo "<hash> $out"
+echo "$out"
+

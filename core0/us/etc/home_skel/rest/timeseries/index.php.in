@@ -1,0 +1,240 @@
+<?php
+$us="##str3##";
+$user="demo";
+$wallet="/usr/local/bin/".$us."-wallet -c 0 -bp 16672 -wp 16673 -home /home/".$user."/.".$us";
+
+function timeseries_new() {
+    global $wallet;
+    global $address;
+    $output=null;
+    $retval=null;
+    exec($wallet." address new | awk {'print $2'}", $address, $retval);
+    if ($retval != 0) {
+        $data=array("exitcode" => $retval, "output" => $address);
+    }
+    else {
+        $cmd=$wallet.' timeseries '.$address[0]." new | grep -v '^$'";
+        exec($cmd, $output, $retval);
+        if ($retval != 0) {
+            $data=array("exitcode" => $retval, "output" => $output);
+        }
+        else {
+            $data=array("exitcode" => $retval, "output" => $output);
+        }
+    }
+    echo json_encode($data);
+}
+
+function timeseries_show($address, $args) {
+    global $wallet;
+    $cmd=null;
+    if ("".$args === "") {
+        $cmd=$wallet.' timeseries '.$address." show | grep -v '^$'";
+    }
+    else {
+        $cmd=$wallet.' timeseries '.$address." show '".$args."' | base58 -d";
+    }
+    $output=null;
+    $retval=null;
+    exec($cmd, $output, $retval);
+    $data=array("exitcode" => $retval, "output" => $output, "cmd" => $cmd);
+    echo json_encode($data);
+}
+
+function timeseries_add($address, $args) {
+    global $wallet;
+    $output=null;
+    $retval=null;
+    $cmd=$wallet.' timeseries '.$address." add '".$args."'";
+    exec($cmd, $output, $retval);
+    $data=array("exitcode" => $retval, "output" => $output);
+    echo json_encode($data);
+}
+
+if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+    $data=$_GET;
+    $address=$data["address"];
+    $ts=$data["ts"];
+}
+else if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $fun="";
+    $args="";
+    $data=array();
+    if ($_SERVER["CONTENT_TYPE"] === 'application/x-www-form-urlencoded') {
+        // The request is using the POST method
+        $data=$_POST;
+    }
+    if ($_SERVER["CONTENT_TYPE"] === 'application/json') {
+        $data = json_decode(file_get_contents('php://input'), true);
+    }
+    $fun = $data["function"];
+    if (isset($data['address'])) {
+        $address=$data["address"];
+        if ($fun === "add") {
+            header('Content-Type: application/json; charset=utf-8');
+            $args = $data["args"];
+            //echo json_encode($args);
+            timeseries_add($address, $args);
+            die();
+        }
+        if ($fun === "show") {
+            header('Content-Type: application/json; charset=utf-8');
+            $args = $data["args"];
+            timeseries_show($address, $args);
+            die();
+        }
+    }
+    else {
+        if ($fun === "new") {
+            header('Content-Type: application/json; charset=utf-8');
+            timeseries_new();
+            die();
+        }
+    }
+    $data=array("exitcode" => 1, "output" => "KO 76092 Invalid function. ".$fun);
+    echo json_encode($data);
+    die();
+}
+else {
+    die();
+}
+
+?>
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset='utf-8' />
+        <title>timeseries API</title>
+    </head>
+    <body>
+<?php
+if ("".$address === "") {
+?>
+        <h2>Existing timeseries:</h2>
+        <div style="margin-left:40px">
+            <pre>
+                <i>Command</i>: <?=$wallet?> timeseries list
+            </pre>
+            <div style="overflow-y: auto; height:200px; width:330px">
+                <pre>
+<?php
+    $output=null;
+    $retval=null;
+    exec($wallet.' timeseries list | sed "s~.*/\\(.*\\)~\\1~" | grep -v "^$"', $output, $retval);
+    foreach ($output as &$value) {
+        echo('address: <a href="?address='.$value.'">'.$value.'</a><br/>');
+    }
+?>
+                </pre>
+            </div>
+        </div>
+
+
+        <h2>New timeseries:</h2>
+        <div style="margin-left:40px; margin-right:40px">
+            <pre>
+<i>Command</i>: <?=$wallet?> address new
+<i>Command</i>: <?=$wallet?> timeseries &lt;address&gt; new
+<i>REST</i>:
+                <div style="margin-left:60px; margin-right:60px">
+                    <pre>
+{
+ "function": "new",
+ "args":""
+}
+                </pre>
+            </div>
+            </pre>
+            <form method="POST">
+                <input type="hidden" name="function" value="new"></input>
+                <input type="submit" value="Create timeseries in a new address"></input>
+            </form>
+        </div>
+<?php
+}
+else {
+?>
+        <h2>Using address: <?=$address?></h2>
+<?php
+    if ("".$ts === "") {
+?>
+        <a href="/rest/pi/timeseries">back</a>
+        <h3>Stored items</h3>
+        <div style="margin-left:40px; margin-right:40px">
+            <pre>
+<i>Command</i>: <?=$wallet?> timeseries <?=$address?> show
+            </pre>
+            <div style="height:200px;width:100%;border:1px solid #ccc;overflow:auto;">
+<?php
+    $output=null;
+    $retval=null;
+    exec($wallet.' timeseries '.$address.' show | sed "s~\\./\\(.*\\)~\\1~" | grep -v params | grep -v "^$" | sort', $output, $retval);
+    foreach ($output as &$value) {
+        echo('item: <a href="?address='.$address.'&ts='.$value.'">'.$value.'</a><br/>');
+    }
+?>
+            </div>
+        </div>
+        <br/>
+        <h3>Post new items</h3>
+        <div style="margin-left:40px; margin-right:40px">
+            <pre>
+<i>Command</i>: <?=$wallet?> timeseries <?=$address?> add '&lt;payload&gt'
+<i>REST</i>:
+            <div style="margin-left:60px; margin-right:60px">
+                <pre>
+{
+ "address": "<?=$address?>",
+ "function": "add",
+ "args":"<payload>"
+}
+                </pre>
+            </div>
+        </pre>
+        <form method="POST">
+            <input type="hidden" name="address" value="<?=$address?>"></input>
+            <input type="hidden" name="function" value="add"></input>
+            <textarea rows="20" name="args" style="width:100%" placeholder="payload"></textarea>
+            <br/>
+            <input type="submit" value="submit"></input>
+        </form>
+    </div>
+<?php
+}
+else {
+?>
+    <a href="/rest/pi/timeseries?address=<?=$address?>">back</a>
+    <h3>item <?=$ts?></h3>
+    <div style="margin-left:40px; margin-right:40px">
+    <pre>
+<i>Command</i>: <?=$wallet?> timeseries <?=$address?> show '<?=$ts?>'
+<i>REST</i>:
+        <div style="margin-left:60px; margin-right:60px">
+            <pre>
+{
+ "address": "<?=$address?>",
+ "function": "show",
+ "args":"<?=$ts?>"
+}
+            </pre>
+        </div>
+    </pre>
+    <div style="height:200px;width:100%;border:1px solid #ccc;overflow:auto;">
+<?php
+    $output=null;
+    $retval=null;
+    exec($wallet.' timeseries '.$address." show '".$ts."' | base58 -d", $output, $retval);
+
+    foreach ($output as &$value) {
+        echo($value);
+    }
+?>
+    </div>
+</div>
+<?php
+    }
+}
+?>
+    </body>
+</html>
+

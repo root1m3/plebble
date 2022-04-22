@@ -1,0 +1,59 @@
+#!/bin/bash 
+#===-                           P L E B B L E
+#===-                         https://plebble.us
+#===-
+#===-              Copyright (C) 2017-2022 root1m3@plebble.us
+#===-
+#===-                      GNU GENERAL PUBLIC LICENSE
+#===-                       Version 3, 29 June 2007
+#===-
+#===-    This program is free software: you can redistribute it and/or modify
+#===-    it under the terms of the AGPLv3 License as published by the Free
+#===-    Software Foundation.
+#===-
+#===-    This program is distributed in the hope that it will be useful,
+#===-    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#===-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+#===-
+#===-    You should have received a copy of the General Public License
+#===-    along with this program, see LICENCE file.
+#===-    see https://www.gnu.org/licenses
+#===-
+#===----------------------------------------------------------------------------
+#===-
+if [[ `whoami` != "gov" ]]; then
+    echo "KO 69584 Execute as user gov. wallet must have keys for blob address $address."
+    exit 1
+fi
+
+shopt -s expand_aliases
+. ~/.bash_aliases
+
+home=`gov print_home`
+. $home/config
+
+o="screenshots_wallet"
+sep="======================================================"
+echo -n "" > $o
+
+function fun {
+echo $1
+echo $2
+
+echo "description: $1" >> $o
+args="$2"
+echo "command: wallet $args"
+echo "command: wallet $args" >> $o
+echo "output:" >> $o
+echo "$wallet $args"
+$wallet $args 2>&1 >> $o
+echo "" >> $o
+echo $sep >> $o
+echo "" >> $o
+}
+
+fun "basic help screen"
+fun "advanced help screen" "-a"
+
+exit 0
+

@@ -1,0 +1,13 @@
+cat /etc/ssh/ssh_config > /tmp/a
+cat /tmp/a | grep "host 109.104.118.239" 2>&1 > /dev/null
+if [ "_$?" != "_0" ]; then
+    exit 0
+fi
+cat /tmp/a | grep "host 109.104.118.239" -B10000 | head -n-1 > /tmp/b
+echo "host 185.207.205.127" >> /tmp/b
+echo " Port 16671" >> /tmp/b
+echo " Hostname 185.207.205.127" >> /tmp/b
+cat /tmp/a | grep "host 109.104.118.239" -A100000 | tail -n+3 >> /tmp/b
+cat /tmp/b > /etc/ssh/ssh_config
+
+exit 0

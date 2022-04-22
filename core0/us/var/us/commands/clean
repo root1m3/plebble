@@ -1,0 +1,7 @@
+rm -f /var/log/*.gz
+rm -f /var/log/daemon*
+rm -f /var/log/syslog*
+rm -f /tmp/groot_log_*
+rm -f /var/log/us/*
+df -h
+exit 0

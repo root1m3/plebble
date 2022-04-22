@@ -1,0 +1,14 @@
+    mv /etc/tor/torrc /etc/tor/torrc_
+    cat /etc/tor/torrc_ | grep -v '#us$' > /etc/tor/torrc
+    echo "HiddenServiceDir /var/lib/tor/us_hidden/  #us" >> /etc/tor/torrc
+    echo "HiddenServicePort 80 127.0.0.1:16679  #us" >> /etc/tor/torrc
+    echo "HiddenServicePort 16671 127.0.0.1:16671  #us" >> /etc/tor/torrc
+    echo "HiddenServicePort 16673 127.0.0.1:16673  #us" >> /etc/tor/torrc
+    echo "HiddenServicePort 16680 127.0.0.1:16680  #us" >> /etc/tor/torrc
+
+systemctl restart tor
+echo -n "THN "
+cat /var/lib/tor/us_hidden/hostname
+
+exit 0
+

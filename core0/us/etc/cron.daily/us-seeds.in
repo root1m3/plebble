@@ -1,0 +1,4 @@
+#!/bin/sh
+/usr/local/bin/##str3##-seeds >/var/log/##str3##/##str3##-seeds.last.log 2>&1
+exit $?
+
