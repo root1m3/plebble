@@ -1,4 +1,4 @@
-upstream_hash=
+upstream_hash=252b8a96c4a25ebf0b2320d4d5822ed97219d6dd
 upstream_branch=main
 downstream_hash=605f9b292da31d2b18d4d1e2513ee6fd197935f2
 downstream_branch=alpha-29.22
