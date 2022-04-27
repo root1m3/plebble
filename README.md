@@ -1,3 +1,10 @@
+<table>
+ <tr>
+  <td><img src="https://plebble.net/plebble_logo.png" width="130" title="Plebble"></td>
+  <td><img src="https://plebble.net/header.png" width="350" alt="Plebble"></td>
+ </tr>
+</table>
+
 # plebble
 <pre>
 P2P network powering a cryptocurrency ecosystem.
