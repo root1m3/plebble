@@ -27,11 +27,11 @@
 #include <us/gov/config.h>
 #include "types.h"
 
-namespace us { namespace wallet { namespace wallet {
+namespace us::wallet::wallet {
     struct local_api;
-}}}
+}
 
-namespace us { namespace wallet { namespace engine {
+namespace us::wallet::engine {
 
     struct daemon_t;
     struct peer_t;
@@ -58,5 +58,5 @@ namespace us { namespace wallet { namespace engine {
         mutable mutex mx;
     };
 
-}}}
+}
 

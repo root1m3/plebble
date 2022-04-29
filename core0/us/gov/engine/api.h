@@ -29,7 +29,7 @@
 #include <us/gov/cash/addresses_t.h>
 #include <us/gov/types.h>
 
-namespace us { namespace gov { namespace engine {
+namespace us::gov::engine {
 
     struct peer_t;
 
@@ -69,5 +69,5 @@ namespace us { namespace gov { namespace engine {
         #include <us/api/generated/c++/gov/sys/hdlr_purevir>
     };
 
-}}}
+}
 

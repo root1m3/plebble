@@ -35,7 +35,7 @@
 #include "api.h"
 #include "types.h"
 
-namespace us { namespace gov { namespace peer {
+namespace us::gov::peer {
 
     struct daemon_t;
 
@@ -80,5 +80,5 @@ namespace us { namespace gov { namespace peer {
         stage_t stage;
     };
 
-}}}
+}
 

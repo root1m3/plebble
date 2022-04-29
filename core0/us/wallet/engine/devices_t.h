@@ -32,7 +32,7 @@
 #include "device_t.h"
 #include "types.h"
 
-namespace us { namespace wallet { namespace engine {
+namespace us::wallet::engine {
 
     struct devices_t: unordered_map<hash_t, device_t> {
 
@@ -82,5 +82,5 @@ namespace us { namespace wallet { namespace engine {
         bool random_pin{true};
     };
 
-}}}
+}
 

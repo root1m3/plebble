@@ -24,7 +24,7 @@
 #include <string>
 #include <sstream>
 
-namespace us { namespace vcs {
+namespace us::vcs {
 
     using namespace std;
 
@@ -58,5 +58,5 @@ namespace us { namespace vcs {
         return os.str();
     }
 
-}}
+}
 

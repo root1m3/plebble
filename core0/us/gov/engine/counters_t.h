@@ -26,7 +26,7 @@
 #if CFG_COUNTERS == 1
 #include <iostream>
 
-namespace us { namespace gov { namespace engine {
+namespace us::gov::engine {
 
    struct counters_t final {
         uint32_t cycles{0};
@@ -66,7 +66,7 @@ namespace us { namespace gov { namespace engine {
         void dump(std::ostream&) const;
     };
 
-}}}
+}
 
 #endif
 

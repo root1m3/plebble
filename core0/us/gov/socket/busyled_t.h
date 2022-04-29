@@ -24,7 +24,7 @@
 #include <atomic>
 #include "types.h"
 
-namespace us { namespace gov { namespace socket {
+namespace us::gov::socket {
 
     struct busyled_t {
 
@@ -45,5 +45,5 @@ namespace us { namespace gov { namespace socket {
         atomic<int> ref{0};
     };
 
-}}}
+}
 

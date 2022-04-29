@@ -31,7 +31,7 @@ function step2 {
     ush update_dfs_index
     let ln=0
     let t=10
-    while [ true ]; do
+    while [[ true ]]; do
         sleep $t
         echo "Checking for ans"
         ush ans > /tmp/xx55910 2>&1
@@ -55,7 +55,7 @@ function step2 {
 #ssh gov@pi2 bin/up_blobs 
 
 function repeat_step2 {
-    while [ true ]; do
+    while [[ true ]]; do
         step2
         echo "expecting $n 0-files. found $x"
         if [[ $x -eq $n ]]; then
@@ -67,14 +67,13 @@ function repeat_step2 {
 repeat_step2
 exit 0
 
-
-if [ ! -d blobs ]; then
+if [[ ! -d blobs ]]; then
    echo "KO 2291 blobs dir doesn't exists"
    exit 1
 fi
 
-if [[ -f ./.cbs/config ]]; then
-    . ./.cbs/config
+if [[ -f .cbs/config ]]; then
+    . .cbs/config
 else
     echo "KO 85851 Missing .cbs/config."
     exit 1

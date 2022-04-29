@@ -25,8 +25,8 @@ echo "##################"
 echo "## 20_make_core ##"
 echo "##################"
 
-if [[ -f ./.cbs/config ]]; then
-    . ./.cbs/config
+if [[ -f .cbs/config ]]; then
+    . .cbs/config
 else
     echo "KO 85850 Missing .cbs/config."
     exit 1
@@ -42,18 +42,18 @@ hash=""
 branch=""
 local_build=0
 
-while [ true ]; do
-  opt=$1
-  echo "read opt=$opt"
-  shift
-  if [ "_$opt" == "_--local-build" ]; then
-    echo " [local build]"
-    local_build=1
-    continue
-  else
-    echo "end parsing flags"
-    break
-  fi
+while [[ true ]]; do
+    opt=$1
+    #echo "read opt=$opt"
+    shift
+    if [[ "_$opt" == "_--local-build" ]]; then
+        echo " [local build]"
+        local_build=1
+        continue
+    else
+        echo "end parsing flags"
+        break
+    fi
 done
 
 build_jobs=$opt

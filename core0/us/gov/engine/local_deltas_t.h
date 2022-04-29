@@ -33,7 +33,7 @@
 #include "signed_data.h"
 #include "types.h"
 
-namespace us { namespace gov { namespace engine {
+namespace us::gov::engine {
 
     struct local_deltas_t final: map<appid_t, app::local_delta*>, signed_data, virtual io::seriable {
         using b = map<appid_t, app::local_delta*>;
@@ -64,7 +64,7 @@ namespace us { namespace gov { namespace engine {
         ts_t id;
     };
 
-}}}
+}
 
 namespace us { namespace gov { namespace io {
     template<> inline ko blob_reader_t::readD(const us::gov::socket::datagram& d, us::gov::engine::local_deltas_t& o) { return o.read(d); }

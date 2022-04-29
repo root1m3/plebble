@@ -37,7 +37,7 @@
 #include <us/gov/crypto/symmetric_encryption.h>
 #include "types.h"
 
-namespace us { namespace gov { namespace socket {
+namespace us::gov::socket {
 
     struct daemon0_t;
     struct datagram;
@@ -157,5 +157,5 @@ namespace us { namespace gov { namespace socket {
     #endif
     };
 
-}}}
+}
 

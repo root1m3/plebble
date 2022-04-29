@@ -29,7 +29,7 @@
 #include "types.h"
 #include "outbound/caller_daemon_t.h"
 
-namespace us { namespace gov { namespace socket {
+namespace us::gov::socket {
 
     struct daemon0_t: caller_daemon_t {
         using b = caller_daemon_t;
@@ -60,5 +60,5 @@ namespace us { namespace gov { namespace socket {
         channel_t channel;
     };
 
-}}}
+}
 

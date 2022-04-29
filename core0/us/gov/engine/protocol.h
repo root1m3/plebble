@@ -24,7 +24,7 @@
 #include <stdint.h>
 #include <us/gov/dfs/protocol.h>
 
-namespace us { namespace gov { namespace protocol {
+namespace us::gov::protocol {
 
     static constexpr svc_t net_daemon_end{dfs_end};
 
@@ -34,5 +34,5 @@ namespace us { namespace gov { namespace protocol {
     #include <us/api/generated/c++/gov/traders/svc>
     #include <us/api/generated/c++/gov/sys/svc>
 
-}}}
+}
 

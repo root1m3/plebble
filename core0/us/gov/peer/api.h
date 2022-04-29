@@ -28,7 +28,7 @@
     #define has_us_gov_peer_api
 #endif
 
-namespace us { namespace gov { namespace peer {
+namespace us::gov::peer {
 
     using namespace gov::io;
 
@@ -52,5 +52,5 @@ namespace us { namespace gov { namespace peer {
 
     #endif
 
-}}}
+}
 

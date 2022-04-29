@@ -40,7 +40,7 @@ namespace us { namespace apitool { namespace java {
         coder(model& m): b(m) {}
         static string protocol_prefix;
         static unordered_map<string, string> types;
-        string get_type(const string& nne) const override;
+        string get_type(const string&) const override;
         string lang() const override { return "java"; }
         void do_device_api(const api_t&, int base) const;
         void gen_service_handlers(const api_t&, const string& scope, ostream&) const;

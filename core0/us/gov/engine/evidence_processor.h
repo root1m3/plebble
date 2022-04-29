@@ -25,7 +25,7 @@
 #include <us/gov/bgtask.h>
 #include "calendar.h"
 
-namespace us { namespace gov { namespace engine {
+namespace us::gov::engine {
 
     struct evidence_processor: bgtask {
         using t = bgtask;
@@ -53,5 +53,5 @@ namespace us { namespace gov { namespace engine {
     #endif
     };
 
-}}}
+}
 

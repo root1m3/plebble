@@ -27,7 +27,7 @@
 #include <us/gov/config.h>
 #include "types.h"
 
-namespace us { namespace gov { namespace engine {
+namespace us::gov::engine {
 
     struct diff;
     struct local_deltas_t;
@@ -42,5 +42,5 @@ namespace us { namespace gov { namespace engine {
         mutable mutex mx;
     };
 
-}}}
+}
 

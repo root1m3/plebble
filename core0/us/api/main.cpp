@@ -40,7 +40,8 @@ using namespace std;
 using namespace us::apitool;
 
 void help(ostream& os) {
-    os << "apitool - help\n";
+    os << "apitool -h              Prints help.\n";
+    os << "apitool gendoc          Generates documentation.\n";
     os << "apitool [no arguments]  Generates api for all supported languages.\n";
 }
 
@@ -48,10 +49,18 @@ void help(ostream& os) {
 #include "coder_java.h"
 
 int main(int argc, char** argv) {
+    bool gencode = true;
+    bool gendoc = false;
+
     if (argc == 2) {
         string cmd = argv[1];
         if (cmd == "-h") {
             help(cout);
+            return 0;
+        }
+        else if (cmd == "gendoc") {
+            gencode = false;
+            gendoc = true;
             return 0;
         }
         else {
@@ -78,9 +87,13 @@ int main(int argc, char** argv) {
         svc0 = m.add("engine_auth", svc0);
         svc0 = m.add("traders", svc0);
         svc0 = m.add("sys", svc0);
-        cpp::coder(m).generate();
-        java::coder(m).generate();
-        //tex::coder(m).generate();
+        if (gencode) {
+            cpp::coder(m).generate();
+            java::coder(m).generate();
+        }
+        if (gendoc) {
+            tex::coder(m).generate();
+        }
     }
     {
         model m("wallet");
@@ -89,9 +102,13 @@ int main(int argc, char** argv) {
         svc0 = m.add("pairing", svc0);
         svc0 = m.add("r2r", svc0);
         svc0 = m.add_delegate("wallet", svc0);
-        cpp::coder(m).generate();
-        java::coder(m).generate();
-        //tex::coder(m).generate();
+        if (gencode) {
+            cpp::coder(m).generate();
+            java::coder(m).generate();
+        }
+        if (gendoc) {
+            tex::coder(m).generate();
+        }
     }
     if (coder::feedback_enabled) cout << '\n';
     return 0;

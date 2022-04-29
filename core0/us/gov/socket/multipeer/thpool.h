@@ -31,13 +31,13 @@
 
 #include <us/gov/config.h>
 
-namespace us { namespace gov { namespace socket {
+namespace us::gov::socket {
 
     struct peer_t;
 
-}}}
+}
 
-namespace us { namespace gov { namespace socket {  namespace multipeer {
+namespace us::gov::socket::multipeer {
 
     struct thpool final: vector<thread*> {
 
@@ -74,5 +74,5 @@ namespace us { namespace gov { namespace socket {  namespace multipeer {
         #endif
     };
 
-}}}}
+}
 

@@ -29,7 +29,7 @@
 
 #include "shell.h"
 
-namespace us { namespace gov { namespace engine {
+namespace us::gov::engine {
 
     struct daemon_t;
     struct peer_t;
@@ -43,6 +43,5 @@ namespace us { namespace gov { namespace engine {
         daemon_t& d;
     };
 
-}}}
-
+}
 

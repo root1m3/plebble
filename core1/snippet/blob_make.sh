@@ -12,7 +12,7 @@ branch=`pwd | tr '/' ' ' | awk '{print $NF}' | tr '_' ' ' | awk '{ print $2 }'`
 hash=`pwd | tr '/' ' ' | awk '{print $NF}' | tr '_' ' ' | awk '{ print $3 }'`
 
 if [[ "_$cmd" == "_r2r_sdk" ]]; then
-    rm -rf r2r_sdk 
+    rm -rf r2r_sdk
     tar -I zstd -xf core_${branch}_${hash}.tar.zst
     pushd core > /dev/null
         make PREFIX=../r2r_sdk install-dev

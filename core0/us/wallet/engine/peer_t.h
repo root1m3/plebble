@@ -26,16 +26,16 @@
 #include <us/wallet/wallet/algorithm.h>
 #include "api.h"
 
-namespace us { namespace wallet { namespace wallet {
+namespace us::wallet::wallet {
         struct local_api;
-}}}
+}
 
-namespace us { namespace wallet { namespace trader {
+namespace us::wallet::trader {
         struct trader_t;
         struct traders_t;
-}}}
+}
 
-namespace us { namespace wallet { namespace engine {
+namespace us::wallet::engine {
 
     struct daemon_t;
 
@@ -93,7 +93,5 @@ namespace us { namespace wallet { namespace engine {
         wallet::local_api* wallet{nullptr};
     };
 
-}}}
-
-
+}
 

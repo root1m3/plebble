@@ -24,14 +24,14 @@
 #include "server.h"
 #include "thpool.h"
 
-namespace us { namespace gov { namespace socket {
+namespace us::gov::socket {
 
     struct peer_t;
     struct client;
 
-}}}
+}
 
-namespace us { namespace gov { namespace socket { namespace multipeer {
+namespace us::gov::socket::multipeer {
 
     struct clients_t;
 
@@ -70,5 +70,5 @@ namespace us { namespace gov { namespace socket { namespace multipeer {
         uint8_t num_workers;
     };
 
-}}}}
+}
 

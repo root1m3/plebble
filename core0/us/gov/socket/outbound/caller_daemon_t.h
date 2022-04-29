@@ -25,7 +25,7 @@
 #include "rendezvous_t.h"
 #include <chrono>
 
-namespace us { namespace gov { namespace socket {
+namespace us::gov::socket {
 
     struct datagram;
     struct client;
@@ -44,5 +44,5 @@ namespace us { namespace gov { namespace socket {
         bool encrypt_traffic{true};
     };
 
-}}}
+}
 

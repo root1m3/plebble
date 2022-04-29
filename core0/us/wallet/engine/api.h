@@ -28,7 +28,7 @@
 #include "types.h"
 #include "protocol.h"
 
-namespace us { namespace wallet { namespace engine {
+namespace us::wallet::engine {
 
     struct peer_t;
 
@@ -51,5 +51,5 @@ namespace us { namespace wallet { namespace engine {
 
     };
 
-}}}
+}
 

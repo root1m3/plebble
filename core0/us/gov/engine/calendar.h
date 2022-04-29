@@ -31,7 +31,7 @@
 
 #include "evidence.h"
 
-namespace us { namespace gov { namespace engine {
+namespace us::gov::engine {
 
     using namespace std;
 
@@ -45,8 +45,8 @@ namespace us { namespace gov { namespace engine {
 
     struct calendar_t:set<calndx> {
 
-        static constexpr chrono::seconds cycle_period {60};
-        static constexpr chrono::seconds relay_interval {15}; //Tx execution is delayed this many seconds to account for propagation.
+        static constexpr chrono::seconds cycle_period{60};
+        static constexpr chrono::seconds relay_interval{15}; //Tx execution is delayed this many seconds to account for propagation.
 
         static const char* KO_50450, *WP_50451;
 
@@ -65,6 +65,5 @@ namespace us { namespace gov { namespace engine {
         uint64_t last_processed;
     };
 
-}}}
-
+}
 

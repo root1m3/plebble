@@ -86,7 +86,7 @@ namespace {
     }
 }
 
-void c::write_file_prefix(const api_t&a, ostream& os) const {
+void c::write_file_prefix(const api_t& a, ostream& os) const {
     ostringstream path;
     path << "generated/" << lang() << '/' << m.process << '/' << a.name;
     ensure_dir(path.str());

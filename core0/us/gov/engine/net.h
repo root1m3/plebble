@@ -27,7 +27,7 @@
 #include <us/gov/dfs/rpc_daemon_t.h>
 #include <us/gov/dfs/api.h>
 
-namespace us { namespace gov { namespace engine { namespace net {
+namespace us::gov::engine::net {
 
     namespace ns = us::gov::dfs;
     using peer_t = ns::peer_t;
@@ -35,5 +35,5 @@ namespace us { namespace gov { namespace engine { namespace net {
     using rpc_daemon_t = ns::rpc_daemon_t;
     using rpc_peer_t = ns::rpc_peer_t;
 
-}}}}
+}
 

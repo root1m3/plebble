@@ -28,7 +28,7 @@
 #include <us/gov/ko.h>
 #include <us/gov/socket/types.h>
 
-namespace us { namespace gov { namespace socket {
+namespace us::gov::socket {
 
     using namespace us;
     struct datagram;
@@ -54,5 +54,5 @@ namespace us { namespace gov { namespace socket {
         bool finished{false};
     };
 
-}}}
+}
 

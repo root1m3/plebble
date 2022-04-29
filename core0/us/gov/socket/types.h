@@ -48,9 +48,9 @@ namespace us {
 
 }
 
-namespace us { namespace gov { namespace socket {
+namespace us::gov::socket {
 
     using namespace us;
 
-}}}
+}
 

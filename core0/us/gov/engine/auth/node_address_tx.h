@@ -23,7 +23,7 @@
 #pragma once
 #include <us/gov/engine/evidence.h>
 
-namespace us { namespace gov { namespace engine { namespace auth {
+namespace us::gov::engine::auth {
 
     struct node_address_tx final: engine::evidence {
         using b = engine::evidence;
@@ -48,5 +48,5 @@ namespace us { namespace gov { namespace engine { namespace auth {
         uint16_t pport;
     };
 
-}}}}
+}
 

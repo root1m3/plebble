@@ -27,7 +27,7 @@
 #include <us/gov/peer/nodes_t.h>
 #include <us/gov/types.h>
 
-namespace us { namespace gov { namespace engine { namespace auth {
+namespace us::gov::engine::auth {
 
     using account_t = peer::account_t;
     using nodes_t = peer::nodes_t;
@@ -60,5 +60,5 @@ namespace us { namespace gov { namespace engine { namespace auth {
         merger online_merger;
     };
 
-}}}}
+}
 

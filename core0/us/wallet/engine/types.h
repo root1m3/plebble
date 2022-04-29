@@ -35,10 +35,10 @@ namespace us {
 
 }
 
-namespace us { namespace wallet { namespace engine {
+namespace us::wallet::engine {
 
     using namespace us;
     using namespace us::gov;
 
-}}}
+}
 

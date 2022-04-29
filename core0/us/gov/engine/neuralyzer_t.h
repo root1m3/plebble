@@ -27,7 +27,7 @@
 #include <us/gov/crypto/types.h>
 #include "types.h"
 
-namespace us { namespace gov { namespace engine {
+namespace us::gov::engine {
 
     struct daemon_t;
 
@@ -51,5 +51,5 @@ namespace us { namespace gov { namespace engine {
         mutex mx;
     };
 
-}}}
+}
 

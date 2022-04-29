@@ -67,9 +67,9 @@ import android.view.View;                                                       
 
 public class txlog_view extends LinearLayout {
 
-    static void log(final String line) { //--strip
+    static void log(final String line) {            //--strip
         CFG.log_android("txlog_view: " + line);     //--strip
-    } //--strip
+    }                                               //--strip
 
     public static class txlog_entry {
 
@@ -323,8 +323,6 @@ public class txlog_view extends LinearLayout {
             return ok;
         }
     };
-
-
 
     public void update(byte[] payload) {
         blob_reader_t reader = new blob_reader_t(new blob_t(payload));

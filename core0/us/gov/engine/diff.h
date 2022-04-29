@@ -38,7 +38,7 @@
 #include "app.h"
 #include "signed_data.h"
 
-namespace us { namespace gov { namespace engine {
+namespace us::gov::engine {
 
     struct peer_t;
     struct diff;
@@ -86,10 +86,10 @@ namespace us { namespace gov { namespace engine {
 
     using base = diff;
 
-}}}
+}
 
-namespace us { namespace gov { namespace io {
+namespace us::gov::io {
     template<> inline ko blob_reader_t::readD(const us::gov::socket::datagram& d, us::gov::engine::diff& o) { return o.read(d); }
     template<> inline datagram* blob_writer_t::get_datagram(channel_t channel, svc_t svc, seq_t seq, const us::gov::engine::diff& o) { return o.get_datagram(channel, svc, seq); }
-}}}
+}
 

@@ -32,7 +32,7 @@
 #include <us/gov/io/seriable_vector.h>
 #include "txlog_item_t.h"
 
-namespace us { namespace wallet { namespace trader { namespace r2r { namespace w2w {
+namespace us::wallet::trader::r2r::w2w {
 
     struct protocol;
 
@@ -78,5 +78,5 @@ namespace us { namespace wallet { namespace trader { namespace r2r { namespace w
         protocol* p;
     };
 
-}}}}}
+}
 

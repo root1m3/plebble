@@ -28,14 +28,14 @@
 #include <us/gov/socket/client.h>
 #include "gc.h"
 
-namespace us { namespace gov { namespace socket {
+namespace us::gov::socket {
 
     struct client;
     struct daemon_t;
 
-}}}
+}
 
-namespace us { namespace gov { namespace socket { namespace multipeer {
+namespace us::gov::socket::multipeer {
 
     struct clients_t final: unordered_map<sock_t, client*> { //neighbour ring
         using b = unordered_map<sock_t, client*>;
@@ -68,5 +68,5 @@ namespace us { namespace gov { namespace socket { namespace multipeer {
         daemon_t& daemon;
     };
 
-}}}}
+}
 

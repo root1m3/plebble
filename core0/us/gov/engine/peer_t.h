@@ -24,7 +24,7 @@
 #include "net.h"
 #include "api.h"
 
-namespace us { namespace gov { namespace engine {
+namespace us::gov::engine {
 
     struct daemon_t;
     struct net_daemon_t;
@@ -91,5 +91,5 @@ namespace us { namespace gov { namespace engine {
         stage_t stage{unknown};
     };
 
-}}}
+}
 

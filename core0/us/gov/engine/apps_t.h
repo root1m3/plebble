@@ -26,7 +26,7 @@
 #include <iostream>
 #include <us/gov/io/seriable.h>
 
-namespace us { namespace gov { namespace engine {
+namespace us::gov::engine {
 
     struct apps_t final: map<appid_t, app*>, virtual io::seriable {
         ~apps_t();
@@ -41,6 +41,5 @@ namespace us { namespace gov { namespace engine {
         void to_blob(blob_writer_t&) const override;
     };
 
-}}}
-
+}
 

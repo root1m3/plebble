@@ -141,6 +141,7 @@ ko c::from_blob(blob_reader_t& reader) {
         auto r = reader.read(seen);
         if (is_ko(r)) return r;
     }
+/*
     if (reader.header.version == 7) {
         //v7 and 8 are written as v7, so we need to use heuristics
         if (reader.cur == reader.end) {
@@ -157,6 +158,7 @@ ko c::from_blob(blob_reader_t& reader) {
         w = 1;
         return ok;
     }
+*/
     {
         auto r = reader.read(w);
         if (is_ko(r)) return r;

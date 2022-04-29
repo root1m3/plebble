@@ -31,7 +31,7 @@
 
 #include "types.h"
 
-namespace us { namespace gov { namespace engine {
+namespace us::gov::engine {
 
     struct votes_t final {
         #if CFG_COUNTERS == 1
@@ -54,5 +54,5 @@ namespace us { namespace gov { namespace engine {
         mutable mutex mx;
     };
 
-}}}
+}
 

@@ -123,8 +123,6 @@ public class fragment_w2w extends role_fragment  {
             case us.gov.protocol.engine_ev_track_response:
                 log("============================================== us.gov.protocol.engine_ev_track_response > " + us.gov.protocol.engine_ev_track_response); //--strip
                 break;
-
-
         }
     }
 
@@ -209,7 +207,7 @@ public class fragment_w2w extends role_fragment  {
             getActivity().runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    coin.setText(selected_coin + " [MAX "+selected_coin_max+"]");
+                    coin.setText(selected_coin + " [MAX " + selected_coin_max + "]");
                 }
             });
         }

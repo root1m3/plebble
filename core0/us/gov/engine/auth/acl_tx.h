@@ -29,7 +29,7 @@
 #include <us/gov/socket/datagram.h>
 #include <us/gov/engine/signed_data.h>
 
-namespace us { namespace gov { namespace engine {
+namespace us::gov::engine {
 
     struct acl_tx: evidence, signed_data {
         using b = evidence;
@@ -58,7 +58,7 @@ namespace us { namespace gov { namespace engine {
         bool allow;
     };
 
-}}}
+}
 
 #endif
 

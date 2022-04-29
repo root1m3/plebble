@@ -24,10 +24,12 @@
 #include <string>
 #include <array>
 
-namespace us { namespace gov { namespace engine {
+namespace us::gov::engine {
+
     using namespace std;
+
     struct param_t {
-        enum consensus_t { majority=0, average, median, num_types };
+        enum consensus_t { majority = 0, average, median, num_types };
         constexpr static array<const char*, num_types> typestr = {"majority", "average", "median"};
 
         param_t(int id, consensus_t type): id(id), consensus_type(type) {}
@@ -37,5 +39,5 @@ namespace us { namespace gov { namespace engine {
         consensus_t consensus_type;
     };
 
-}}}
+}
 

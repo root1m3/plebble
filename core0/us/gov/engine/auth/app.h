@@ -50,12 +50,12 @@ namespace test {
     struct auth_app;
 }
 
-namespace us { namespace gov { namespace engine {
+namespace us::gov::engine {
     struct daemon_t;
     struct acl_tx;
-}}}
+}
 
-namespace us { namespace gov { namespace engine { namespace auth {
+namespace us::gov::engine::auth {
 
     using nodes_t = peer::nodes_t;
     using account_t = peer::account_t;
@@ -144,5 +144,5 @@ namespace us { namespace gov { namespace engine { namespace auth {
         mutable unique_lock<mutex> lock_hall;
     };
 
-}}}}
+}
 

@@ -177,6 +177,7 @@ function move_to_distr {
         [[ ! -d distr/deps/armv7l ]] && echo "KO 68859 missing deps armv7l" && exit 1
         pushd "$distr/deps" >/dev/null
             ln -s armv7l armv6l  #raspi Zero
+            ln -s armv7l aarch64  #arm64bits
         popd >/dev/null
     fi
     cp snippet/install_deps distr/deps/

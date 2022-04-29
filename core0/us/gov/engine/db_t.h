@@ -25,24 +25,23 @@
 #include "apps_t.h"
 #include "types.h"
 
-namespace us { namespace gov { namespace engine { namespace auth {
+namespace us::gov::engine::auth {
     struct app;
-}}}}
+}
 
-namespace us { namespace gov { namespace cash {
+namespace us::gov::cash {
     struct app;
-}}}
+}
 
-namespace us { namespace gov { namespace sys {
+namespace us::gov::sys {
     struct app;
-}}}
+}
 
-namespace us { namespace gov { namespace traders {
+namespace us::gov::traders {
     struct app;
-}}}
+}
 
-
-namespace us { namespace gov { namespace engine {
+namespace us::gov::engine {
 
     struct daemon_t;
     struct app;
@@ -74,11 +73,10 @@ namespace us { namespace gov { namespace engine {
 
     };
 
-}}}
+}
 
-namespace us { namespace gov { namespace io {
+namespace us::gov::io {
     template<> inline ko blob_reader_t::readD(const us::gov::socket::datagram& d, us::gov::engine::db_t& o) { return o.read(d); }
     template<> inline datagram* blob_writer_t::get_datagram(channel_t channel, svc_t svc, seq_t seq, const us::gov::engine::db_t& o) { return o.get_datagram(channel, svc, seq); }
-}}}
-
+}
 

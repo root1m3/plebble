@@ -57,13 +57,13 @@
 #include "types.h"
 #include "auth/app.h"
 
-namespace us { namespace gov { namespace io {
+namespace us::gov::io {
 
     struct cfg;
 
-}}}
+}
 
-namespace us { namespace gov { namespace engine {
+namespace us::gov::engine {
 
     struct daemon_t;
     struct local_deltas_t;
@@ -268,5 +268,5 @@ namespace us { namespace gov { namespace engine {
         #endif
     };
 
-}}}
+}
 

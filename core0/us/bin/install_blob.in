@@ -46,6 +46,7 @@ function do_help {
     echo "  uninstall                removes the software from the system, leaving user data intact."
     echo "  bootstrap_home <homedir> Installs wallet-rpc for a new system user."
     echo "  extract_r2r_sdk          Obtains the R2R SDK from the blob."
+    echo "  extract_src              Obtains the source code."
     echo "  fetch                    fetch blob from nodes."
     echo "  fetch_local              Print published blob/s."
     echo "  print_deps               Just prints debs as deps."
@@ -113,6 +114,7 @@ function parse_input {
             let force=1
             continue
         elif [[ _$opt == _-* ]]; then
+            cfg_vars
             do_help
             echo "KO 86755 Invalid option $opt"
             exit 1
@@ -149,6 +151,26 @@ function do_bootstrap_home {
     exit 1
 }
 
+function extract_src_from_blob {
+    blob=$1
+    mkdir src
+    if [[ $? -ne 0 ]]; then
+        echo "KO 59483 directory src exists."
+        exit 1
+    fi
+    pushd src > /dev/null
+        tar -I zstd -xf $blob
+        dir=`ls -1`
+        pushd "$dir" > /dev/null
+            mv src/* ..
+            if [[ $? -ne 0 ]]; then
+                exit 1
+            fi
+        popd > /dev/null
+        rm -rf $dir
+    popd > /dev/null
+}
+
 function extract_r2r_sdk_from_blob {
     blob=$1
     mkdir r2r_sdk
@@ -168,6 +190,20 @@ function extract_r2r_sdk_from_blob {
         popd > /dev/null
         rm -rf $dir
     popd > /dev/null
+}
+
+function do_extract_src {
+    if [[ "_$blob" == "_" ]]; then
+        if [[ ! -f ${JAILDIR}/home/$GOVUSER/downloads/blob/${US}/cur ]]; then
+            echo "KO 87025 cur blob not found at ${JAILDIR}/home/$GOVUSER/downloads/blob/${US}/cur"
+            exit 1
+        fi
+        blob=${JAILDIR}/home/$GOVUSER/downloads/blob/${US}/cur
+    fi
+    blob=`realpath $blob`
+    extract_src_from_blob $blob
+    echo "Sources at directory src"
+    exit 0
 }
 
 function do_extract_r2r_sdk {
@@ -403,7 +439,7 @@ function cfg_vars {
         if [[ "_$CHANNEL" != "_0" ]]; then
             datadir=${datadir0}/$CHANNEL
         fi
-        cat ${datadir}/gov/nodes.* > /tmp/x5833677
+        cat ${datadir}/gov/nodes.* 2>/dev/null > /tmp/x5833677
         echo ${SEEDS} | xargs -n1 >> /tmp/x5833677
         ns=`cat /tmp/x5833677 | wc -l`
         SEEDS="`cat /tmp/x5833677 | sed 's/72$/80/' | sort | uniq  | grep -v '^$' | shuf | xargs`"
@@ -448,7 +484,10 @@ function test_os_apt {
         echo "debian_version: $v"
         echo $v | grep "/sid" > /dev/null
         if [[ $? -eq 0 ]]; then
-            echo "Running on sid (unstable)"
+            echo "Error: Running on sid (unstable)."
+            echo "This installer contains binaries for the stable distribution."
+            echo "If you want to run a node on sid you'd have to build from sources."
+            exit 1            
         else
             echo "Info: System needs apt distr-upgrade and reboot."
             let runapt=1
@@ -817,6 +856,7 @@ function post_install {
         echo "Since you installed this package manually automatic upgrades are blocked for ${JAILDIR}/."
         echo "Remove the file ${JAILDIR}/var/${US}/installed_blob__pinned to resume."
     fi
+    echo "ldconfig" >> ${JAILDIR}/tmp/post-install_blob
     if [[ $reboot -eq 1 ]]; then
         echo "reboot" >> ${JAILDIR}/tmp/post-install_blob
     else
@@ -923,6 +963,8 @@ function exec_cmd20 {
         do_bootstrap_home "$where"
     elif [[ "_$cmd" == "_extract_r2r_sdk" ]]; then
         do_extract_r2r_sdk
+    elif [[ "_$cmd" == "_extract_src" ]]; then
+        do_extract_src
     elif [[ "_$cmd" == "_resolve_blob" ]]; then
         read_addr_key
         resolve_blob

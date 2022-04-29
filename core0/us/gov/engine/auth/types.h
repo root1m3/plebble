@@ -24,11 +24,12 @@
 #include <us/gov/crypto/types.h>
 
 namespace us {
+
 }
 
-namespace us { namespace gov { namespace engine { namespace auth {
+namespace us::gov::engine::auth {
 
     using namespace us;
 
-}}}}
+}
 

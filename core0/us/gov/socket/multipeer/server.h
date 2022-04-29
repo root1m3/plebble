@@ -25,15 +25,15 @@
 #include <us/gov/socket/types.h>
 #include <us/gov/socket/busyled_t.h>
 
-namespace us { namespace gov { namespace socket {
+namespace us::gov::socket {
 
     struct datagram;
     struct client;
     struct daemon_t;
 
-}}}
+}
 
-namespace us { namespace gov { namespace socket { namespace multipeer {
+namespace us::gov::socket::multipeer {
 
     struct server0 {
 
@@ -94,5 +94,5 @@ namespace us { namespace gov { namespace socket { namespace multipeer {
         #endif
     };
 
-}}}}
+}
 

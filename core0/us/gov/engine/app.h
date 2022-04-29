@@ -33,7 +33,7 @@
 
 #include "evidence.h"
 
-namespace us { namespace gov { namespace engine {
+namespace us::gov::engine {
 
     struct peer_t;
     struct local_delta;
@@ -84,5 +84,5 @@ namespace us { namespace gov { namespace engine {
         daemon_t& demon;
     };
 
-}}}
+}
 

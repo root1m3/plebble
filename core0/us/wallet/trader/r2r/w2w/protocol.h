@@ -34,12 +34,11 @@
 #include <us/wallet/trader/workflow/trader_protocol.h>
 #include "txlog_t.h"
 
-
-namespace us { namespace wallet { namespace trader {
+namespace us::wallet::trader {
     struct traders_t;
-}}}
+}
 
-namespace us { namespace wallet { namespace trader { namespace r2r { namespace w2w {
+namespace us::wallet::trader::r2r::w2w {
 
     struct business_t;
 
@@ -143,5 +142,5 @@ namespace us { namespace wallet { namespace trader { namespace r2r { namespace w
         mutable mutex mx;
     };
 
-}}}}}
+}
 

@@ -184,6 +184,7 @@ function move_to_distr {
     if [ "_$arch" == "_armv7l" ]; then
         pushd "distr/${us}/lib" >/dev/null
             ln -s armv7l armv6l  #raspi Zero
+            ln -s armv7l aarch64 #arm64 bits
         popd >/dev/null
     fi
 }

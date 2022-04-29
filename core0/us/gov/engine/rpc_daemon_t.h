@@ -25,7 +25,7 @@
 #include "rpc_peer_t.h"
 #include <us/gov/socket/client.h>
 
-namespace us { namespace gov { namespace engine {
+namespace us::gov::engine {
 
     struct rpc_daemon_t: net::rpc_daemon_t {
         using b = net::rpc_daemon_t;
@@ -43,6 +43,5 @@ namespace us { namespace gov { namespace engine {
         void dump_all(const string& prefix, ostream&) const override;
     };
 
-}}}
-
+}
 

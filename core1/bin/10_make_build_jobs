@@ -26,9 +26,8 @@ echo "########################"
 echo "## 10_make_build_jobs ##"
 echo "########################"
 
-
-if [[ -f ./.cbs/config ]]; then
-    . ./.cbs/config
+if [[ -f .cbs/config ]]; then
+    . .cbs/config
 else
 	echo "KO 8585 Missing .cbs/config."
 	exit 1
@@ -59,11 +58,11 @@ test=0
 ignore_cache=0
 fcgi=0
 
-while [ true ]; do
+while [[ true ]]; do
     opt=$1
     echo "read opt=$opt"
     shift
-    if [ "_$opt" == "_--release" ]; then
+    if [[ "_$opt" == "_--release" ]]; then
         echo "release flag"
         debug=0
         release=1
@@ -71,7 +70,7 @@ while [ true ]; do
         counters=0
         connlog=0
         continue
-    elif [ "_$opt" == "_--debug" ]; then
+    elif [[ "_$opt" == "_--debug" ]]; then
         echo "debug flag"
         debug=1
         release=0
@@ -79,55 +78,55 @@ while [ true ]; do
         counters=1
         connlog=1
     continue
-        elif [ "_$opt" == "_--with-logs" ]; then
+        elif [[ "_$opt" == "_--with-logs" ]]; then
         echo "logs flag"
         logs=1
     continue
-        elif [ "_$opt" == "_--without-logs" ]; then
+        elif [[ "_$opt" == "_--without-logs" ]]; then
         echo "-logs flag"
         logs=0
     continue
-        elif [ "_$opt" == "_--with-counters" ]; then
+        elif [[ "_$opt" == "_--with-counters" ]]; then
         echo "counters flag"
         counters=1
         continue
-    elif [ "_$opt" == "_--without-counters" ]; then
+    elif [[ "_$opt" == "_--without-counters" ]]; then
         echo "-counters flag"
         counters=0
         continue
-    elif [ "_$opt" == "_--with-connlog" ]; then
+    elif [[ "_$opt" == "_--with-connlog" ]]; then
         echo "connlog flag"
         connlog=1
         continue
-    elif [ "_$opt" == "_--without-connlog" ]; then
+    elif [[ "_$opt" == "_--without-connlog" ]]; then
         echo "-connlog flag"
         connlog=0
         continue
-    elif [ "_$opt" == "_--with-fcgi" ]; then
+    elif [[ "_$opt" == "_--with-fcgi" ]]; then
         echo "fcgi flag"
         fcgi=1
         continue
-    elif [ "_$opt" == "_--without-fcgi" ]; then
+    elif [[ "_$opt" == "_--without-fcgi" ]]; then
         echo "-fcgi flag"
         fcgi=0
         continue
-    elif [ "_$opt" == "_--branch" ]; then
+    elif [[ "_$opt" == "_--branch" ]]; then
         echo "-branch flag"
         branch=$1
         shift
         continue
-    elif [ "_$opt" == "_--ignore-cache" ]; then
+    elif [[ "_$opt" == "_--ignore-cache" ]]; then
         echo " [ignore cache]"
         ignore_cache=1
         continue
-    elif [ "_$opt" == "_--test" ]; then
+    elif [[ "_$opt" == "_--test" ]]; then
         echo "--test flag"
         test=1
         continue
-    elif [ "_$opt" == "_--help" ]; then
+    elif [[ "_$opt" == "_--help" ]]; then
         help
         exit 0
-    elif [ "_$opt" == "_-o" ]; then
+    elif [[ "_$opt" == "_-o" ]]; then
         bjdir=$1
         shift
         echo "output flag -o=$bjdir"
@@ -142,7 +141,7 @@ while [ true ]; do
     fi
 done
 conf=$opt
-if [ "_$conf" == "_" ]; then
+if [[ "_$conf" == "_" ]]; then
     echo "KO 69862 brand expected."
     help
     exit 1

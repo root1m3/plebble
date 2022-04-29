@@ -80,10 +80,6 @@ public class sw_updates_t {
         curapk = curapk0;
     }
 
-    //String curapk_filename() {
-    //    return "curapk";
-    //}
-
     void setup_curapk() {
         String r = hmi_t.cfg_android.read_private_file_string(a.getApplicationContext(), "curapk");
         if (r == null) {
@@ -123,14 +119,25 @@ public class sw_updates_t {
 //    private static String[] PERMISSIONS_ISTORAGE = {Manifest.permission.READ_INTERNAL_STORAGE, Manifest.permission.WRITE_INTERNAL_STORAGE};
 //    private static final int REQUEST_INNTERNAL_STORAGE = 1;
 
+    public static boolean ask_permission(Activity ac) {
+        String[] options = {"Install now.", "Remind me later."};
+        //final sw_updates_t i = this;
+        new AlertDialog.Builder(ac).setTitle("Info about automatic updates.")
+                .setMessage("Please Grant permissions to access external storage to be able to install software updates.")
+                .setIcon(android.R.drawable.ic_dialog_info).show();
+
+        log("request Permission"); //--strip
+        ActivityCompat.requestPermissions(ac, PERMISSIONS_STORAGE, REQUEST_EXTERNAL_STORAGE);
+        int permission = ActivityCompat.checkSelfPermission(ac, Manifest.permission.WRITE_EXTERNAL_STORAGE);
+        return permission == PackageManager.PERMISSION_GRANTED;
+    }
+
     public static boolean verify_storage_permissions(Activity ac) {        // Check if we have write permission
         log("verify_storage_permissions"); //--strip
         int permission = ActivityCompat.checkSelfPermission(ac, Manifest.permission.WRITE_EXTERNAL_STORAGE);
         log("A"); //--strip
         if (permission != PackageManager.PERMISSION_GRANTED) {
-            log("request Permission"); //--strip
-            ActivityCompat.requestPermissions(ac, PERMISSIONS_STORAGE, REQUEST_EXTERNAL_STORAGE);
-            return false;
+            return ask_permission(ac);
         }
         else {
             log("Permission already granted"); //--strip

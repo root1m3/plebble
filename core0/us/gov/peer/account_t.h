@@ -24,7 +24,7 @@
 #include <us/gov/types.h>
 #include <us/gov/io/seriable.h>
 
-namespace us { namespace gov { namespace peer {
+namespace us::gov::peer {
 
     struct account_t: virtual io::seriable {
 
@@ -57,7 +57,7 @@ namespace us { namespace gov { namespace peer {
         uint16_t w;
     };
 
-}}}
+}
 
 namespace std {
     template <>
@@ -65,5 +65,4 @@ namespace std {
         size_t operator()(const us::gov::peer::account_t&) const noexcept;
     };
 }
-
 

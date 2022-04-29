@@ -26,7 +26,7 @@
 #if CFG_COUNTERS == 1
 #include <us/gov/types.h>
 
-namespace us { namespace gov { namespace engine { namespace auth {
+namespace us::gov::engine::auth {
 
     struct counters_t final {
         uint32_t basic_auth_completed{0};
@@ -40,7 +40,7 @@ namespace us { namespace gov { namespace engine { namespace auth {
         void dump(ostream&) const;
     };
 
-}}}}
+}
 
 #endif
 

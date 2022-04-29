@@ -26,15 +26,15 @@
 #include <us/gov/socket/busyled_t.h>
 #include <us/gov/socket/datagram.h>
 
-namespace us { namespace gov { namespace socket {
+namespace us::gov::socket {
 
     struct rpc_daemon_t;
     struct peer_t;
     struct client;
 
-}}}
+}
 
-namespace us { namespace gov { namespace socket { namespace single {
+namespace us::gov::socket::single {
 
     struct handler_daemon_t: bgtask {
         using b = bgtask;
@@ -93,5 +93,5 @@ namespace us { namespace gov { namespace socket { namespace single {
         #endif
     };
 
-}}}}
+}
 

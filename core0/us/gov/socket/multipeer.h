@@ -24,10 +24,10 @@
 #include "multipeer/peer_t.h"
 #include "multipeer/daemon.h"
 
-namespace us { namespace gov { namespace socket {
+namespace us::gov::socket {
 
     using multipeer_peer_t = multipeer::peer_t;
     using multipeer_daemon_t = multipeer::daemon;
 
-}}}}
+}
 

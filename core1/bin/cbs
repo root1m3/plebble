@@ -78,7 +78,7 @@ while [ true ]; do
         shift
         continue
     elif [ "_$opt" == "_--flags" ]; then
-        flags10=$1
+        flags10="$1"
         shift
         continue
     else
@@ -108,7 +108,10 @@ function mk_blobs {
     fi
     echo "brand=$brand"
     echo "branch=$branch"
-    echo "flags=$flags"
+    echo "flags10(src)=$flags10"
+    echo "flags15(deps)=$flags15"
+    echo "flags20(core)=$flags20"
+    echo "flags35(r2r)=$flags35"
     echo "flags_compile_job=$flags_compile_job"
     echo "Make sure you have your signing password ready."
     echo "Sure? yes or CTRL-C"

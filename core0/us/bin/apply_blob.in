@@ -238,8 +238,8 @@ function do_upgrade {
                 ln -s $(basename $apksrc) blob.apk
             popd > /dev/null
 
-            cp wallet-cli/blobhash $apkdownload/
-            echo $(basename $apksrc) > $apkdownload/blob_name
+            #cp wallet-cli/blobhash $apkdownload/
+            echo -n $(basename $apksrc) > $apkdownload/blob_name
             echo "apk copied to $apkdownload/"
             find $apkdownload
         fi

@@ -39,13 +39,13 @@
 //#define FIND_DGRAM_DOUBLE_DELETE
 #endif
 
-namespace us { namespace gov { namespace crypto {
+namespace us::gov::crypto {
 
     struct symmetric_encryption;
 
-}}}
+}
 
-namespace us { namespace gov { namespace socket {
+namespace us::gov::socket {
 
     struct busyled_t;
 
@@ -166,5 +166,5 @@ namespace us { namespace gov { namespace socket {
         uint32_t dend;
     };
 
-}}}
+}
 

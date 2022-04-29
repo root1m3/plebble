@@ -1,31 +1,22 @@
 # plebble
-An open source P2P digital currency
-
-Plebble is a currency, a protocol, and a software that enables
-
-    Instant peer to peer transactions
-    Worldwide payments
-    Low processing fees
-    And much more!
-
-Plebble uses peer to peer technology to operate with no central authority; managing transactions and issuing gas are carried out collectively by the network.
-Through many of its unique properties, plebble allows exciting uses that could not be covered by any previous payment systems.
-
-The software is a community-driven free open source project, released under the free GPL license.
+<pre>
+P2P network powering a cryptocurrency ecosystem.
+</pre>
 
 # Introduction
-This codebase produces the binaries run by nopdes in the plebble network.
+<pre>
+This codebase produces the binaries run by nodes in the plebble network.
 
-Plebble is pretty much designed along cypherpunk lines inpired by Bitcoin, centered on values like self-sovereignty, privacy, anonymity, fairness, borderless, inclusive, distributed control and censorship resistance.
+Plebble is pretty much designed along cypherpunk lines, centered on values like self-sovereignty, privacy, anonymity, fairness, borderless, inclusive, distributed control and censorship resistance.
 
 Plebble is a peer-to-peer permissionless network, which means that anyone can join.
 
-Nodes run a public blockchain protocol with a nobel cooperative consensus mechanism where user wallets are all paid for their work (transaction verification work) and their role in securing the network against malicious attacks.
+Nodes run a public blockchain protocol with a nobel cooperative consensus mechanism where users are all paid for their work in transaction verification and network resilience.
 
-The network increases its resiliency with the number of nodes.
+The network grows stronger with the number of IP4 addresses.
 
 Sybils (spawned nodes) are controlled by IPv4 address preventing an attacker from accumulating
-voting power without paying the cost of acquiring different IPv4 addresses, which are 'expensive' and scarce.
+voting power without paying the cost of acquiring different IPv4 addresses, providing the traits needed to prevent this sort of attack: cost and scarcity.
 
 Major features:
   * creating and transfering gas (the coin controlling the behaviour (cryptoeconomics) of the system).
@@ -36,7 +27,10 @@ Major features:
 
 Contributions in any form are welcome.
 
-# source code stats reported by the program sloccount
+</pre>
+
+# source code stats
+<pre>
 Totals grouped by language (dominant language first):
 cpp:          68848 (63.79%)
 java:         24113 (22.34%)
@@ -47,12 +41,14 @@ php:             56 (0.05%)
 
 Total Physical Source Lines of Code (SLOC) = 107,924
 (Excluded comments and blank lines)
+(reported by the program sloccount)
+</pre>
 
 
 # DEV INSTRUCTIONS
-
-BUILD STEPS FOR BEGINNERS
-=========================
+<pre>
+BUILD STEPS
+===========
 
 bin/configure
 bin/make -j8
@@ -83,3 +79,5 @@ Core1 [core1/] devops toolchain
        * [r2r/]
    -cbs -continous build script
        * [bin/cbs]
+</pre>
+ 

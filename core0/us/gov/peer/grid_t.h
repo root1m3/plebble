@@ -29,7 +29,7 @@
 #include <us/gov/crypto/types.h>
 #include <us/gov/socket/types.h>
 
-namespace us { namespace gov { namespace peer {
+namespace us::gov::peer {
 
     struct peer_t;
 
@@ -56,5 +56,5 @@ namespace us { namespace gov { namespace peer {
         faillog_t faillog;
     };
 
-}}}
+}
 

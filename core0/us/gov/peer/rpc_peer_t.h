@@ -26,7 +26,7 @@
 #include "api.h"
 #include "types.h"
 
-namespace us { namespace gov { namespace peer {
+namespace us::gov::peer {
 
     struct rpc_peer_t: base_ns::peer_t, caller_api {
         using b = base_ns::peer_t;
@@ -43,5 +43,5 @@ namespace us { namespace gov { namespace peer {
 
     };
 
-}}}
+}
 

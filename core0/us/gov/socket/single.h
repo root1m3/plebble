@@ -24,10 +24,10 @@
 #include "single/peer_t.h"
 #include "single/daemon.h"
 
-namespace us { namespace gov { namespace socket {
+namespace us::gov::socket {
 
     using single_peer_t = single::peer_t;
     using single_daemon_t = single::daemon;
 
-}}}}
+}
 

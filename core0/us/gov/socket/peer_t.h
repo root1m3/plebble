@@ -26,7 +26,7 @@
 #include "client.h"
 #include "api.h"
 
-namespace us { namespace gov { namespace socket {
+namespace us::gov::socket {
 
     struct datagram;
     struct daemon_t;
@@ -77,5 +77,5 @@ namespace us { namespace gov { namespace socket {
         #endif
     };
 
-}}}
+}
 

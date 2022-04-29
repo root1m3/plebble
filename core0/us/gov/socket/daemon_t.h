@@ -31,7 +31,7 @@
 #include "multipeer/handler_daemon_t.h"
 #include "daemon0_t.h"
 
-namespace us { namespace gov { namespace socket {
+namespace us::gov::socket {
 
     struct daemon_t: daemon0_t, multipeer::handler_daemon_t {
         using b = daemon0_t;
@@ -84,6 +84,5 @@ namespace us { namespace gov { namespace socket {
         #endif
     };
 
-}}}
-
+}
 

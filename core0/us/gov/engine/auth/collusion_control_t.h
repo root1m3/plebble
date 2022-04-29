@@ -26,7 +26,7 @@
 #include <unordered_map>
 #include <us/gov/types.h>
 
-namespace us { namespace gov { namespace engine { namespace auth {
+namespace us::gov::engine::auth {
 
     using nodes_t = peer::nodes_t;
 
@@ -38,5 +38,5 @@ namespace us { namespace gov { namespace engine { namespace auth {
         void dump(ostream&) const;
     };
 
-}}}}
+}
 

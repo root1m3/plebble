@@ -26,7 +26,7 @@
 #include <unordered_set>
 #include <string>
 
-namespace us { namespace gov { namespace engine {
+namespace us::gov::engine {
 
     struct daemon_t;
     struct local_deltas_t;
@@ -63,5 +63,5 @@ namespace us { namespace gov { namespace engine {
         engine::daemon_t& engine_daemon;
     };
 
-}}}
+}
 

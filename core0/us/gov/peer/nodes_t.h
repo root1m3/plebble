@@ -27,7 +27,7 @@
 #include <us/gov/io/seriable_map.h>
 #include "account_t.h"
 
-namespace us { namespace gov { namespace peer {
+namespace us::gov::peer {
 
     struct nodes_t final: io::seriable_map<hash_t, account_t> {
         using b = io::seriable_map<hash_t, account_t>;
@@ -52,6 +52,5 @@ namespace us { namespace gov { namespace peer {
 
     };
 
-}}}
-
+}
 

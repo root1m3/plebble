@@ -33,13 +33,13 @@
 #include "devices_t.h"
 #include "types.h"
 
-namespace us { namespace wallet { namespace wallet {
+namespace us::wallet::wallet {
 
     struct local_api;
 
-}}}
+}
 
-namespace us { namespace wallet { namespace engine {
+namespace us::wallet::engine {
 
     struct peer_t;
     struct daemon_t;
@@ -115,6 +115,5 @@ namespace us { namespace wallet { namespace engine {
         hash_t trusted_address; /// automatic updates
     };
 
-}}}
-
+}
 

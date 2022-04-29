@@ -26,7 +26,7 @@
 #include <iostream>
 #include "types.h"
 
-namespace us { namespace gov { namespace engine {
+namespace us::gov::engine {
 
     struct daemon_t;
 
@@ -48,5 +48,5 @@ namespace us { namespace gov { namespace engine {
         string memory_cmd_lvl;
     };
 
-}}}
+}
 

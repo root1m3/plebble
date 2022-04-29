@@ -26,7 +26,7 @@
 #include <us/gov/config.h>
 #include "types.h"
 
-namespace us { namespace gov { namespace io {
+namespace us::gov::io {
 
     using namespace std;
 
@@ -56,7 +56,6 @@ namespace us { namespace gov { namespace io {
         static void to_identifier(string&);
         static string directory_of_file(const string& file);
         static bool ensure_writable(const string& file);
-        //static string file_content(const string& file);
         static pair<ko, pair<string, string>> split_fqn(string fqn);
 
         cfg0(const string& home);
@@ -68,5 +67,5 @@ namespace us { namespace gov { namespace io {
 
     using cfg_filesystem = cfg0;
 
-}}}
+}
 

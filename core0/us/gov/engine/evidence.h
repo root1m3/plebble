@@ -28,11 +28,11 @@
 #include <us/gov/io/seriable.h>
 #include <us/gov/types.h>
 
-namespace us { namespace gov { namespace socket {
+namespace us::gov::socket {
     struct datagram;
-}}}
+}
 
-namespace us { namespace gov { namespace engine {
+namespace us::gov::engine {
 
     struct evidence: virtual io::seriable {
         using s = io::seriable;
@@ -79,10 +79,10 @@ namespace us { namespace gov { namespace engine {
         eid_t eid;
     };
 
-}}}
+}
 
-namespace us { namespace gov { namespace io {
+namespace us::gov::io {
     template<> inline ko blob_reader_t::readD(const us::gov::socket::datagram& d, us::gov::engine::evidence& o) { return o.read(d); }
     template<> inline datagram* blob_writer_t::get_datagram(channel_t channel, svc_t svc, seq_t seq, const us::gov::engine::evidence& o) { return o.get_datagram(channel, svc, seq); }
-}}}
+}
 

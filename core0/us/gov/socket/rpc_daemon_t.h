@@ -30,7 +30,7 @@
 #include "types.h"
 #include "single/handler_daemon_t.h"
 
-namespace us { namespace gov { namespace socket {
+namespace us::gov::socket {
 
     struct client;
     struct peer_t;
@@ -80,5 +80,5 @@ namespace us { namespace gov { namespace socket {
         #endif
     };
 
-}}}
+}
 

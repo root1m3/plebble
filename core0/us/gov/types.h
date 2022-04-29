@@ -38,9 +38,9 @@ namespace us {
 
 }
 
-namespace us { namespace gov {
+namespace us::gov {
 
     using namespace us;
 
-}}
+}
 

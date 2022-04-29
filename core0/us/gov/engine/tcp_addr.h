@@ -23,7 +23,7 @@
 #pragma once
 #include "addr_t.h"
 
-namespace us{ namespace gov { namespace engine {
+namespace us::gov::engine {
 
     using namespace std;
 
@@ -38,5 +38,5 @@ namespace us{ namespace gov { namespace engine {
         uint16_t port;
     };
 
-}}}
+}
 

@@ -27,7 +27,7 @@
 #include <set>
 #include <string>
 
-namespace us { namespace gov { namespace engine {
+namespace us::gov::engine {
 
     using namespace std;
 
@@ -84,5 +84,5 @@ namespace us { namespace gov { namespace engine {
         chains_t chains;
     };
 
-}}}
+}
 

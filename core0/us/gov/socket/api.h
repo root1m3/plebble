@@ -31,7 +31,7 @@
     #define has_us_gov_socket_api
 #endif
 
-namespace us { namespace gov { namespace socket {
+namespace us::gov::socket {
 
     using namespace gov::io;
 
@@ -56,5 +56,5 @@ namespace us { namespace gov { namespace socket {
 
     #endif
 
-}}}
+}
 

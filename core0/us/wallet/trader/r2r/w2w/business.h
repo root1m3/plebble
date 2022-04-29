@@ -32,12 +32,12 @@
 #include <us/gov/cash/tx_t.h>
 #include <us/gov/relay/pushman.h>
 
-namespace us { namespace wallet { namespace trader {
+namespace us::wallet::trader {
     struct traders_t;
     struct trader_protocol;
-}}}
+}
 
-namespace us { namespace wallet { namespace trader { namespace r2r { namespace w2w {
+namespace us::wallet::trader::r2r::w2w {
 
     using namespace us::gov;
 
@@ -59,5 +59,5 @@ namespace us { namespace wallet { namespace trader { namespace r2r { namespace w
         ko exec(istream&, traders_t&, wallet::local_api&) override;
     };
 
-}}}}}
+}
 

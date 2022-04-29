@@ -24,9 +24,9 @@
 #include <inttypes.h>
 #include "types.h"
 
-namespace us { namespace gov { namespace protocol {
+namespace us::gov::protocol {
 
     #include <us/api/generated/c++/gov/socket/svc>
 
-}}}
+}
 

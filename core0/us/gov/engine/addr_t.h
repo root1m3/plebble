@@ -24,7 +24,7 @@
 #include <string>
 #include <iostream>
 
-namespace us{ namespace gov { namespace engine {
+namespace us::gov::engine {
 
     using namespace std;
 
@@ -36,5 +36,5 @@ namespace us{ namespace gov { namespace engine {
 
     ostream& operator << (ostream&, const addr_t&);
 
-}}}
+}
 

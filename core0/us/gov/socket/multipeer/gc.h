@@ -26,13 +26,13 @@
 #include <us/gov/bgtask.h>
 #include <us/gov/config.h>
 
-namespace us { namespace gov { namespace socket {
+namespace us::gov::socket {
 
     struct client;
 
-}}}
+}
 
-namespace us { namespace gov { namespace socket { namespace multipeer {
+namespace us::gov::socket::multipeer {
 
     struct gc_t final: unordered_set<client*>, wbgtask {
         using t = wbgtask;
@@ -58,5 +58,5 @@ namespace us { namespace gov { namespace socket { namespace multipeer {
         #endif
     };
 
-}}}}
+}
 

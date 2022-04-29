@@ -27,7 +27,7 @@
 #include <us/gov/io/seriable.h>
 #include <string>
 
-namespace us { namespace gov { namespace engine {
+namespace us::gov::engine {
 
     using namespace std;
     using blob_writer_t = us::gov::io::blob_writer_t;
@@ -83,5 +83,5 @@ namespace us { namespace gov { namespace engine {
         virtual void write_pretty_es(ostream&) const;
     };
 
-}}}
+}
 

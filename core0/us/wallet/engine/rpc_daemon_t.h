@@ -28,7 +28,7 @@
 
 #include "types.h"
 
-namespace us { namespace wallet { namespace engine {
+namespace us::wallet::engine {
 
     struct rpc_daemon_t: gov::relay::rpc_daemon_t {
         using b = gov::relay::rpc_daemon_t;
@@ -40,5 +40,5 @@ namespace us { namespace wallet { namespace engine {
 
     };
 
-}}}
+}
 

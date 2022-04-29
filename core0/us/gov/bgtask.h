@@ -30,7 +30,7 @@
 #include <us/gov/config.h>
 #include "types.h"
 
-namespace us { namespace gov {
+namespace us::gov {
 
     using namespace std;
 
@@ -113,5 +113,5 @@ namespace us { namespace gov {
         void run();
     };
 
-}}
+}
 

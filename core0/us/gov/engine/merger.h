@@ -24,7 +24,7 @@
 #include <unordered_map>
 #include <us/gov/likely.h>
 
-namespace us { namespace gov { namespace engine {
+namespace us::gov::engine {
 
     template<typename d>
     struct average_merger {
@@ -68,5 +68,5 @@ namespace us { namespace gov { namespace engine {
         unordered_map<d, uint64_t> m;
     };
 
-}}}
+}
 

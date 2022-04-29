@@ -25,6 +25,7 @@
 #include "types.h"
 
 #include <us/gov/config.h>
+#include <us/gov/io/cfg0.h>
 #include <us/gov/socket/datagram.h>
 
 #include <us/wallet/engine/daemon_t.h>
@@ -141,7 +142,7 @@ Returns:
         ostringstream os;
         os << demon.downloads_dir << '/' << o_in.component << '/' << brandcode;
         branddir = os.str();
-        os << "/blobhash";
+        os << "/blob_name";
         blobhashfile = os.str();
         blobfile = branddir + "/blob.apk";
     }
@@ -152,11 +153,12 @@ Returns:
         if (is_ko(r)) {
             o_out.file = o_in.curver;
             o_out.bin_pkg.clear();
-            auto r = "KO 70973 blobhash file not found.";
+            auto r = "KO 70973 blob_name file not found.";
             log(r);
             return r;
         }
     }
+    us::gov::io::cfg0::trim(sblobhash);
     log("sblobhash, o_in.curver", sblobhash, o_in.curver);
     if (sblobhash == o_in.curver) {
         log("sblobhash == o_in.curver");

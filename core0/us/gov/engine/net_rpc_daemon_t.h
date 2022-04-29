@@ -23,9 +23,9 @@
 #pragma once
 #include "net.h"
 
-namespace us { namespace gov { namespace engine {
+namespace us::gov::engine {
 
     using net_rpc_daemon_t = net::rpc_daemon_t;
 
-}}}
+}
 

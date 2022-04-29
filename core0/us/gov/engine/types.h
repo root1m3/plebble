@@ -34,10 +34,10 @@ namespace us {
 
 }
 
-namespace us { namespace gov { namespace engine {
+namespace us::gov::engine {
 
     using namespace us;
     using namespace us::gov;
 
-}}}
+}
 

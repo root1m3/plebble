@@ -133,8 +133,18 @@ Production releases. beta
 Production releases. alpha
 --------------------------
 
+alpha-29.24 -
+    * Android Pay
+    * cbs - symlinked aarch64. Prevent installing on sid distros.
+
+alpha-29.23 - 25 Apr 2022 - alpha-29.23_8543e584 2022-04-25_19-46-36 vhash 8543e584 <- R ee16aace94e39fb42a14e68e8819403003327a2e
+    * android fix automatic updates. write blob in external storage
+    * android fix w2w payments couldn't complete.
+    * Fixed bug in get_component_update needed for Android automatic updates.
+
 alpha-29.22 - 14 april 2022 - alpha-29.22_0e00eddb 2022-04-14_22-59-24
     * r2r sdk generated from blob
+    * cbs devjob{new|sync} enabling up|downflow of branded child repositories.
 
 alpha-29.21 - 13 Apr 2022 - vhash 3b49ec5d <- R ed01cd048537149f76a2be59bd68bb6b87a249ef
     * r2r tests shared library refactored and moved to core0

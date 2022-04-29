@@ -9,7 +9,8 @@
 <pre>
 P2P network powering a cryptocurrency ecosystem.
 </pre>
-https://plebble.net
+
+main site: https://plebble.net
 
 # Introduction
 <pre>

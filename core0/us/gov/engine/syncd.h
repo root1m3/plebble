@@ -31,7 +31,7 @@
 
 #include "diff.h"
 
-namespace us { namespace gov { namespace engine {
+namespace us::gov::engine {
 
     using namespace std;
 
@@ -91,5 +91,5 @@ namespace us { namespace gov { namespace engine {
         #endif
     };
 
-}}}
+}
 

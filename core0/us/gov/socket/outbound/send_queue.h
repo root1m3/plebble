@@ -30,7 +30,7 @@
 #include <us/gov/config.h>
 #include <us/gov/socket/busyled_t.h>
 
-namespace us { namespace gov { namespace socket {
+namespace us::gov::socket {
 
     struct datagram;
     struct client;
@@ -108,5 +108,5 @@ namespace us { namespace gov { namespace socket {
         #endif
     };
 
-}}}
+}
 
