@@ -1,6 +1,4 @@
-#!/bin/bash -e
-
-pushd ~/devjob/core1/us/trader
+###############pushd ~/devjob/core1/us/trader
 make clean
 make -j8
 popd

@@ -1,6 +1,4 @@
-#!/bin/bash
-
-US=##str3##
+############US=##str3##
 
 function clean {
 	rm -rf build

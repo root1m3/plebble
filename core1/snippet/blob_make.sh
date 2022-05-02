@@ -1,6 +1,4 @@
-#!/bin/bash
-
-cmd=$1
+############cmd=$1
 
 function help {
 	echo "blobmake"

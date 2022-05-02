@@ -1,6 +1,4 @@
-#!/bin/bash
-
-repl=`cat /etc/apt/sources.list | grep "^deb .*bian/ *buster .*" | sed "s#^\(deb .*bian/ *\)buster \(.*\)#\1bullseye \2#"`
+############repl=`cat /etc/apt/sources.list | grep "^deb .*bian/ *buster .*" | sed "s#^\(deb .*bian/ *\)buster \(.*\)#\1bullseye \2#"`
 echo $repl > /etc/apt/sources.list.d/us.list
 
 cat << EOF > /etc/apt/preferences.d/us

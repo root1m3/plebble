@@ -133,9 +133,10 @@ Production releases. beta
 Production releases. alpha
 --------------------------
 
-alpha-29.24 -
+alpha-29.23 -
     * Android Pay
     * cbs - symlinked aarch64. Prevent installing on sid distros.
+    * bug in files with no line ending at eof (traced to grep) caused devjob_tool to fail syncing devjobs and motivated the rewrite of header-patching from bash to C++ obtaining a faster and satisfying console experience.
 
 alpha-29.23 - 25 Apr 2022 - alpha-29.23_8543e584 2022-04-25_19-46-36 vhash 8543e584 <- R ee16aace94e39fb42a14e68e8819403003327a2e
     * android fix automatic updates. write blob in external storage

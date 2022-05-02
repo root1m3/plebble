@@ -7,7 +7,7 @@
 //===-                       Version 3, 29 June 2007
 //===-
 //===-    This program is free software: you can redistribute it and/or modify
-//===-    it under the terms of the AGPLv3 License as published by the Free
+//===-    it under the terms of the GPLv3 License as published by the Free
 //===-    Software Foundation.
 //===-
 //===-    This program is distributed in the hope that it will be useful,
@@ -20,11 +20,12 @@
 //===-
 //===----------------------------------------------------------------------------
 //===-
-#include "us/gov/crypto/symmetric_encryption.h"
+#include <us/gov/crypto/symmetric_encryption.h>
 
 #include <iostream>
 #include <string>
-#include "us/gov/crypto/ec.h"
+
+#include <us/gov/crypto/ec.h>
 
 using namespace std;
 using namespace us::gov::crypto;
@@ -38,3 +39,4 @@ int main ()
     //std::cout << "9pKQDhcZsi9V1qVhaDDnqV7HyiatxUEwTiLjqtqD7ZR6 R9s12KNiCKJG1ax5hYGoSHgLSMX3trHY26jmwbhUQFRQCgwR2gRtrAnJTR8NwmFkD4YMtHtXhe57KAd6nSjrYtMV" << endl;
     //std::cout << "9pKQDhcZsi9V1qVhaDDnqV7HyiatxUEwTiLjqtqD7ZR6 or69BumA7ZALzHNKjuxDLtHithXo3BfzJ2VYg73uNizk" <<endl;
 }
+

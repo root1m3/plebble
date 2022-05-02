@@ -8,7 +8,7 @@
 #===-                       Version 3, 29 June 2007
 #===-
 #===-    This program is free software: you can redistribute it and/or modify
-#===-    it under the terms of the AGPLv3 License as published by the Free
+#===-    it under the terms of the GPLv3 License as published by the Free
 #===-    Software Foundation.
 #===-
 #===-    This program is distributed in the hope that it will be useful,
@@ -32,15 +32,42 @@ connlog=0
 echo "Apply brand: $@"
 
 function help {
-    echo "$0 <branddir> <branch>"
+    echo "$0 [<branddir> <branch>]"
 }
 
-if [ "_$branddir" == "_" ]; then
+function findbrand {
+    d=$1
+    if [[ -d $d ]]; then
+        n=`find $d -maxdepth 1 -mindepth 1 -type d | wc -l`
+        if [[ $n -eq 1 ]]; then
+            branddir=`find $d -maxdepth 1 -mindepth 1 -type d`
+            echo "selecting existing brand at $branddir"
+        fi
+	fi
+}
+
+if [[ "_$branddir" == "_" ]]; then
+    findbrand ../../core1/brands
+    if [[ "_$branddir" == "_" ]]; then
+        findbrand ../../core2/brands
+        if [[ "_$branddir" != "_" ]]; then
+            branch="main"
+        fi
+    fi
+fi
+
+if [[ -f ../../.revs ]]; then
+    . ../../.revs
+    branch=$upstream_branch
+fi
+
+if [[ "_$branddir" == "_" ]]; then
     help
     echo "KO 40307"
     exit 1
 fi
-if [ "_$branch" == "_" ]; then
+
+if [[ "_$branch" == "_" ]]; then
     help
     echo "KO 46538"
     exit 1
@@ -221,17 +248,6 @@ pushd $out > /dev/null
     rm rep -r
     rm -f $bh
 popd > /dev/null
-
-#pushd $out/us > /dev/null
-#    echo "patching sources with header"
-#    pushd srctool > /dev/null
-#        make
-#    popd > /dev/null
-#    bin/patch_src -a doc/header
-#    pushd srctool > /dev/null
-#        make clean
-#    popd > /dev/null
-#popd > /dev/null
 
 echo "branch $branch"
 echo "Generated:"

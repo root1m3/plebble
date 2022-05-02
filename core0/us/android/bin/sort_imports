@@ -8,7 +8,7 @@
 #===-                       Version 3, 29 June 2007
 #===-
 #===-    This program is free software: you can redistribute it and/or modify
-#===-    it under the terms of the AGPLv3 License as published by the Free
+#===-    it under the terms of the GPLv3 License as published by the Free
 #===-    Software Foundation.
 #===-
 #===-    This program is distributed in the hope that it will be useful,

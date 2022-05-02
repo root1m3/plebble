@@ -1,6 +1,4 @@
-#!/bin/bash
-
-if [ ! -f ../sdk/wallet/java/$us-sdk_sc.jar ]; then
+############if [ ! -f ../sdk/wallet/java/$us-sdk_sc.jar ]; then
     echo -n "KO 40098 $us-sdk_sc.jar not found at "
     realpath ../sdk/wallet/java/
     echo "Hint: cd sdk/wallet/java; make spongy"

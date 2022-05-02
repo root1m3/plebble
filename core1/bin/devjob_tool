@@ -8,7 +8,7 @@
 #===-                       Version 3, 29 June 2007
 #===-
 #===-    This program is free software: you can redistribute it and/or modify
-#===-    it under the terms of the AGPLv3 License as published by the Free
+#===-    it under the terms of the GPLv3 License as published by the Free
 #===-    Software Foundation.
 #===-
 #===-    This program is distributed in the hope that it will be useful,
@@ -140,7 +140,7 @@ function apply0 {
     patch=$2
     #msgf=$3
     #apply_branch=$4
-    echo $rev $patch $msgf
+    echo $rev $patch
     git checkout --quiet $rev
     if [[ $? -ne 0 ]]; then
         pwd
@@ -265,9 +265,6 @@ function apply1 {
     #------------- branch rev ready
     return
 
-
-
-
     git checkout --quiet $apply_branch
     if [[ $? -ne 0 ]]; then
         pwd
@@ -339,7 +336,7 @@ function adapt1 {
         fi
         echo "unlicensing core0"
         pushd core0/us > /dev/null
-            bin/patch_src -i
+            ../../../srctool --dir -i .
             if [[ $? -ne 0 ]]; then
                 echo "KO 79680 patch_src failed"
                 exit 1
@@ -347,7 +344,7 @@ function adapt1 {
         popd > /dev/null
         echo "unlicensing core1"
         pushd core1 > /dev/null
-            bin/patch_src -i
+            ../../srctool --dir -i .
             if [[ $? -ne 0 ]]; then
                 echo "KO 79681 patch_src failed"
                 exit 1
@@ -412,7 +409,7 @@ function adapt0 {
         fi
         echo "unlicensing core0"
         pushd core0/us > /dev/null
-            bin/patch_src -i
+            ../../../srctool --dir -i .
             if [[ $? -ne 0 ]]; then
                 echo "KO 79680 patch_src failed"
                 exit 1
@@ -420,7 +417,7 @@ function adapt0 {
         popd > /dev/null
         echo "unlicensing core1"
         pushd core1 > /dev/null
-            bin/patch_src -i
+            ../../srctool --dir -i .
             if [[ $? -ne 0 ]]; then
                 echo "KO 79681 patch_src failed"
                 exit 1
@@ -440,7 +437,7 @@ function adapt_ups {
 #    pushd downstream > /dev/null
         echo "Licensing core0"
         pushd core0/us > /dev/null
-            bin/patch_src -a ../../core2/brands/$brand/source_code_header
+            ../../../srctool --dir -a ../../core2/brands/$brand/source_code_header .
             if [[ $? -ne 0 ]]; then
                 echo "KO 79680 patch_src failed"
                 exit 1
@@ -448,7 +445,7 @@ function adapt_ups {
         popd > /dev/null
         echo "licensing core1"
         pushd core1 > /dev/null
-            bin/patch_src -a ../core2/brands/$brand/source_code_header
+            ../../srctool --dir -a ../core2/brands/$brand/source_code_header .
             if [[ $? -ne 0 ]]; then
                 echo "KO 79681 patch_src failed"
                 exit 1
@@ -551,6 +548,14 @@ function procurl {
             echo "KO 71665"
             exit 1
         fi
+        pushd downstream/core0/us/srctool > /dev/null
+            make
+            if [[ $? -ne 0 ]]; then
+                echo "KO 44665"
+                exit 1
+            fi
+        popd > /dev/null
+        mv downstream/core0/us/srctool/srctool .
         if [[ ! -d downstream/core2/brands/$brand ]]; then
             echo "KO 80795 brand $brand not found downstream."
             exit 1
@@ -653,16 +658,19 @@ function procurl {
 
                 GNUPGHOME=$dj_gpgh git rebase -S$dj_gpgkey main
                 if [[ $? -ne 0 ]]; then
-                    echo "ctrl-z, fix it (commit branch), come back (fg) and press enter to continue"
-                    echo "come back before you do 'git rebase --continue'"
-                    pwd
-                    read x
-                fi
-                git add -u
-                GNUPGHOME=$dj_gpgh git rebase --continue
-                if [[ $? -ne 0 ]]; then
-                    echo "KO 87698"
-                    exit 1
+                    while [[ true ]]; do
+                        echo -n "cur dir:"
+                        pwd
+                        echo "ctrl-z, fix it (just edit the conflicting files), come back (fg) and press enter to continue"
+                        read x
+                        git add -u
+                        GNUPGHOME=$dj_gpgh git rebase --continue
+                        if [[ $? -ne 0 ]]; then
+                            continue
+                        fi
+                        echo "All good"
+                        break
+                    done
                 fi
 
                 git checkout main
@@ -761,15 +769,6 @@ EOF
         echo "DONE"
         exit 0
 
-
-
-
-
-
-
-
-
-
         if [[ $nu -eq 1 ]]; then
             pushd upstream > /dev/null
                 mkdir core1/brands
@@ -780,7 +779,7 @@ EOF
                 cp core1/brands/$brand/LICENSE ./ -R
                 echo "Licensing core0"
                 pushd core0/us > /dev/null
-                    bin/patch_src -a ../../core1/brands/$brand/source_code_header
+                    ../../../srctool --dir -a ../../core1/brands/$brand/source_code_header .
                     if [[ $? -ne 0 ]]; then
                         echo "KO 79680 patch_src failed"
                         exit 1
@@ -788,7 +787,7 @@ EOF
                 popd > /dev/null
                 echo "licensing core1"
                 pushd core1 > /dev/null
-                    bin/patch_src -a ../core1/brands/$brand/source_code_header
+                    ../../../srctool --dir -a ../core1/brands/$brand/source_code_header .
                     if [[ $? -ne 0 ]]; then
                         echo "KO 79681 patch_src failed"
                         exit 1
@@ -940,6 +939,15 @@ function new_devjob {
     pushd $workdir > /dev/null
         echo "git clone -b $branch --single-branch ${gitrep}"
         git clone -b $branch --single-branch ${gitrep} downstream
+        pushd downstream/core0/us/srctool > /dev/null
+            make
+            if [[ $? -ne 0 ]]; then
+                echo "KO 44665"
+                exit 1
+            fi
+        popd > /dev/null
+        mv downstream/core0/us/srctool/srctool .
+
         pushd downstream > /dev/null
             downstream_hash=`git log | grep "^commit" | head -n1 | awk '{ print $2 }'`
         popd > /dev/null
@@ -955,7 +963,7 @@ function new_devjob {
         pushd downstream > /dev/null
             echo "Licensing core0"
             pushd core0/us > /dev/null
-                bin/patch_src -a ../../core2/brands/$brand/source_code_header
+                ../../../srctool --dir -a ../../core2/brands/$brand/source_code_header .
                 if [[ $? -ne 0 ]]; then
                     echo "KO 79680 patch_src failed"
                     exit 1
@@ -963,18 +971,20 @@ function new_devjob {
             popd > /dev/null
             echo "licensing core1"
             pushd core1 > /dev/null
-                bin/patch_src -a ../core2/brands/$brand/source_code_header
+                ../../srctool --dir -a ../core2/brands/$brand/source_code_header .
                 if [[ $? -ne 0 ]]; then
                     echo "KO 79681 patch_src failed"
                     exit 1
                 fi
             popd > /dev/null
         popd > /dev/null
+        rm srctool    
         mv downstream/core0 .
         mv downstream/core1 .
 
         mkdir core1/brands
         mv downstream/core2/brands/$brand core1/brands/
+        mkdir -p bin
         mv downstream/bin/* bin/
         rm downstream -rf
         cp core1/brands/$brand/devjob_skel/* ./ -R

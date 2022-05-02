@@ -1,6 +1,4 @@
-#!/bin/bash
-
-read -r priv_a public_a <<< $(LD_LIBRARY_PATH=../../gov:/usr/lib ../helpers/generate_keys_cpp) 
+############read -r priv_a public_a <<< $(LD_LIBRARY_PATH=../../gov:/usr/lib ../helpers/generate_keys_cpp) 
 read -r priv_b public_b <<< $(LD_LIBRARY_PATH=../../gov:/usr/lib ../helpers/generate_keys_cpp) 
 
 MESSAGE=$1

@@ -8,7 +8,7 @@
 #===-                       Version 3, 29 June 2007
 #===-
 #===-    This program is free software: you can redistribute it and/or modify
-#===-    it under the terms of the AGPLv3 License as published by the Free
+#===-    it under the terms of the GPLv3 License as published by the Free
 #===-    Software Foundation.
 #===-
 #===-    This program is distributed in the hope that it will be useful,
@@ -61,64 +61,55 @@ function help {
     echo "brand $brand"
 }
 
-while [ true ]; do
+branddir=""
+
+while [[ true ]]; do
     x=$1
     shift
-    if [ "_$x" == "_" ]; then
+    if [[ "_$x" == "_" ]]; then
         break
-    elif [ "_$x" == "_--strset" ]; then
+    elif [[ "_$x" == "_--strset" ]]; then
        strset=$1
        shift
-    elif [ "_$x" == "_--with-logs" ]; then
+    elif [[ "_$x" == "_--with-logs" ]]; then
         logs=1
-    elif [ "_$x" == "_--without-logs" ]; then
+    elif [[ "_$x" == "_--without-logs" ]]; then
         logs=0
-    elif [ "_$x" == "_--with-counters" ]; then
+    elif [[ "_$x" == "_--with-counters" ]]; then
         counters=1
-    elif [ "_$x" == "_--without-counters" ]; then
+    elif [[ "_$x" == "_--without-counters" ]]; then
         counters=0
-    elif [ "_$x" == "_--debug" ]; then
+    elif [[ "_$x" == "_--debug" ]]; then
         dbg=1
         test=0
-    elif [ "_$x" == "_--release" ]; then
+    elif [[ "_$x" == "_--release" ]]; then
         dbg=0
         connlog=0
         counters=0
         logs=0
         test=0
-    elif [ "_$x" == "_--testdebug" ]; then
+    elif [[ "_$x" == "_--testdebug" ]]; then
         dbg=1
         counters=1
         test=1
-    elif [ "_$x" == "_--testrelease" ]; then
+    elif [[ "_$x" == "_--testrelease" ]]; then
         dbg=0
         connlog=0
         counters=1
         logs=0
         test=1
-    elif [ "_$x" == "_--with-connlog" ]; then
+    elif [[ "_$x" == "_--with-connlog" ]]; then
         connlog=1
-    elif [ "_$x" == "_--without-connlog" ]; then
+    elif [[ "_$x" == "_--without-connlog" ]]; then
         connlog=0
-    elif [ "_$x" == "_--with-fcgi" ]; then
+    elif [[ "_$x" == "_--with-fcgi" ]]; then
         fcgi=1
-    elif [ "_$x" == "_--without-fcgi" ]; then
+    elif [[ "_$x" == "_--without-fcgi" ]]; then
         fcgi=0
-    elif [ "_$x" == "_--brand-dir" ]; then
-        b=$1
+    elif [[ "_$x" == "_--brand-dir" ]]; then
+        branddir=$1
         shift
-        echo $b
-        if [ "_$b" != "_$brand-dir" ]; then
-            if [ ! -d $b ]; then
-                echo "brand $b not found"
-                exit 1
-            fi
-            cp $b/${strset} res/strings/${strset}.ovr
-            . res/strings/${strset}.ovr
-            brand=$(basename $b)
-            #echo "applied brand $brand"
-        fi
-    elif [ "_$x" == "_--help" ]; then
+    elif [[ "_$x" == "_--help" ]]; then
         help
         exit 0
     else
@@ -127,6 +118,45 @@ while [ true ]; do
         exit 1;
     fi
 done
+
+function findbrand {
+    d=$1
+    if [[ -d $d ]]; then
+        n=`find $d -maxdepth 1 -mindepth 1 -type d | wc -l`
+        if [[ $n -eq 1 ]]; then
+            branddir=`find $d -maxdepth 1 -mindepth 1 -type d`
+            echo "selecting existing brand at $branddir"
+        fi
+	fi
+}
+
+if [[ "_$branddir" == "_" ]]; then
+    findbrand ../../core1/brands
+    if [[ "_$branddir" == "_" ]]; then
+        findbrand ../../core2/brands
+    fi
+fi
+
+if [[ "_$branddir" != "_" ]]; then
+    if [[ ! -d $branddir ]]; then
+        echo "brand $branddir not found"
+        exit 1
+    fi
+    cp $branddir/${strset} res/strings/${strset}.ovr
+    brand=$(basename $branddir)
+    echo "applied brand $brand"
+else
+    if [[ -f res/strings/${strset}.ovr ]]; then
+        echo "building with existing override file res/strings/${strset}.ovr"
+    else
+        echo "building whitelabel US brand"
+    fi
+fi
+
+if [[ -f res/strings/${strset}.ovr ]]; then
+    . res/strings/${strset}.ovr
+fi
+
 
 if [ $dbg -eq 1 ]; then
     str29=1
@@ -505,4 +535,3 @@ pdots "        $str28 (SDK+android app):" "make android"
 echo ""
 
 exit 0
-
