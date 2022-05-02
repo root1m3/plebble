@@ -29,12 +29,14 @@
 #include <set>
 #include <map>
 #include <cstring>
+#include <cassert>
 #include <filesystem>
 
 using namespace std;
 
 string _ext;
 bool _recursive{false};
+bool _dryrun{false};
 
 set<string> excludeset {
     "./gov/io/command.h",
@@ -196,6 +198,10 @@ bool read_file(const string& filename, vector<unsigned char>& buf) {
 
 bool write_file(const string& filename, size_t from, const vector<unsigned char>& buf) {
 //    ofstream os(filename + ".check", ios::binary);
+    if (_dryrun) {
+        cout.write((char*)&buf[from], buf.size() - from);
+        return true;
+    }
     ofstream os(filename , ios::binary);
     if (!os) {
         return false;
@@ -211,6 +217,7 @@ void help(ostream& os) {
     os << "Options:\n";
     os << "  --ext <extension>                              Treat file as if it had the given extension.\n";
     os << "  --dir                                          <file> is a directory, apply recursively.\n";
+    os << "  --dryrun                                       Write to srdout instead of rewriting files.\n";
     os << "    extension: sh                                File shall have bangshe on 1st line.\n";
 }
 
@@ -327,6 +334,7 @@ int add_header(const string& hfile, const string& file) {
 }
 
 int remove_header(const string& file) {
+//cout << file << endl;
     vector<uint8_t> content;
     string comment;
     size_t hdr_start;
@@ -338,35 +346,51 @@ int remove_header(const string& file) {
     //cout << "comment " << comment << endl;
     auto n = content.begin();
     advance(n, hdr_start);
+    if (n == content.end()) return 0;
+//cout << *n << " " << hdr_start << " " << content.size() << endl;
+    if (hdr_start < content.size() - 1) { // empty file
+        assert(*n == 10);
+    }
 
     vector<uint8_t> s;
     s.resize(1 + comment.size());
-
-//    s.resize(1);
     s[0] = 10;
 //    s.reserve(1 + comment.size());
     memcpy(s.data() + 1, comment.data(), comment.size());
 //    copy(comment.begin(), comment.end(), back_inserter(s));
 
     while(true) {
-        ++n;
+        //++n;
         auto i = search(n, content.end(), s.begin(), s.end());
         if (i == content.end()) {
-            n = search(n, content.end(), s.begin(), s.begin() + 1);
-            ++n;
+            //n = search(n, content.end(), s.begin(), s.begin() + 1); //position at next lf
+            //++n;
             //cout << "pattern found at offset " << distance(content.begin(), n) << endl;  
             break;
         }
-        n = i;
+        n = search(i + 1, content.end(), s.begin(), s.begin() + 1);
+        //n = i;
     }
-    auto b0 = content.begin() + (distance(content.begin(), n) - hdr_start);
+//cout << hdr_start << endl;
+//cout << content.size() << endl;
+    auto b0 = content.begin() + (distance(content.begin(), n) - hdr_start + 1);
+    if (b0 == content.end()) return 0;
     auto b = b0;
+//cout << distance(content.begin(), n) << endl;
+//cout << distance(b, n) << endl;
     size_t i = 1;
-    while (b != n) {
-        *b = content[i];
-        ++b;
-        ++i;
+    if (distance(b, n) > 0) {
+        memmove(&*b, &content[1], distance(b, n));
     }
+/*
+        while (b != n) {
+    cout << i << endl;
+            *b = content[i];
+            ++b;
+            ++i;
+        }
+*/
+    //}
     if (!write_file(file, distance(content.begin(), b0), content)) {
         cerr << "KO 78699 Coult not write file.\n";
         exit(1);
@@ -461,7 +485,7 @@ int main(int argc, char** argv) {
     while(true) {
         string arg = argv[p++];
         if (arg == "--ext") {
-            if (argc < p) {
+            if (argc <= p) {
                 help(cerr);
                 return 1;
             }
@@ -471,14 +495,14 @@ int main(int argc, char** argv) {
                 return 1;
             }
             if (_ext == "sh") _ext = "script";
-            if (argc < p) {
+            if (argc <= p) {
                 help(cerr);
                 return 1;
             }
             continue;
         }
         if (arg == "--dir") {
-            if (argc < p) {
+            if (argc <= p) {
                 help(cerr);
                 return 1;
             }
@@ -489,6 +513,12 @@ int main(int argc, char** argv) {
             _recursive = true;
             continue;
         }
+        if (arg == "--dryrun") {
+            _dryrun = true;
+            continue;
+        }
+
+
 
         if (arg == "-i") {
             if (argc < p) {

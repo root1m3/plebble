@@ -755,6 +755,7 @@ void test_r2r(const string& homedir, const string& logdir, const string& vardir)
     cout << "ended" << endl;
 }
 
+/*
 #if CFG_LOGS == 0
 #undef log_dir
 namespace {
@@ -765,6 +766,7 @@ namespace {
     }
 }
 #endif
+*/
 
 void test_nodes_main() {
     string logdir0 = "test_r2r";

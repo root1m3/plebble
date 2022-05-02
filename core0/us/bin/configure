@@ -158,43 +158,48 @@ if [[ -f res/strings/${strset}.ovr ]]; then
 fi
 
 
-if [ $dbg -eq 1 ]; then
+if [[ $dbg -eq 1 ]]; then
     str29=1
 else
     str29=0
 fi
 
-if [ $logs -eq 1 ]; then
+if [[ $logs -eq 1 ]]; then
     str33=1
 else
     str33=0
 fi
 
-if [ $counters -eq 1 ]; then
+if [[ $counters -eq 1 ]]; then
     str41=1
 else
     str41=0
 fi
 
-if [ $connlog -eq 1 ]; then
+if [[ $connlog -eq 1 ]]; then
     str42=1
 else
     str42=0
 fi
 
-if [ $fcgi -eq 1 ]; then
+if [[ $fcgi -eq 1 ]]; then
     str45=1
 else
     str45=0
 fi
 
-if [ $test -eq 1 ]; then
+if [[ $counters -eq 0 ]]; then
+    test=0
+    echo "WARNING: without counters tests must be disabled."
+fi
+
+if [[ $test -eq 1 ]]; then
     str62=1
 else
     str62=0
 fi
 
-if [ ! -f res/strings/${strset}.ovr ]; then
+if [[ ! -f res/strings/${strset}.ovr ]]; then
     cp res/strings/${strset} res/strings/${strset}.ovr
 fi
 

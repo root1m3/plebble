@@ -392,9 +392,12 @@ function adapt0 {
             exit 1
         fi
         git mv core1/brands/$brand core2/brands/
-        #cp README.md core2/brands/$brand/devjob_skel/
+        cp README.md core2/brands/$brand/devjob_skel/
         if [[ -d .github ]]; then
-            git rm .github -r
+            echo ".github exists upstream"
+            rm -rf core2/brands/$brand/devjob_skel/.github
+            cp .github core2/brands/$brand/devjob_skel/ -R
+            rm .github -r
         fi
         git add core2
         git rm README.md
@@ -461,6 +464,10 @@ function adapt_ups {
 #    mv bin/* bin/
 #    rm downstream -rf
     cp core1/brands/$brand/devjob_skel/* ./ -R
+    if [[ -d core1/brands/$brand/devjob_skel/.github ]]; then
+        cp core1/brands/$brand/devjob_skel/.github ./ -R
+        git add .github
+    fi
     cp core1/brands/$brand/LICENSE ./
 
     #git add bin/*
