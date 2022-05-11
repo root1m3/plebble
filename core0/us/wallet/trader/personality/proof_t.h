@@ -29,7 +29,7 @@
 #include <us/gov/io/seriable.h>
 #include <us/gov/crypto/ripemd160.h>
 
-namespace us { namespace wallet { namespace trader {  namespace personality {
+namespace us::wallet::trader::personality {
 
     struct raw_personality_t: virtual us::gov::io::seriable {
         using hash_t = us::gov::crypto::ripemd160::value_type;
@@ -75,5 +75,5 @@ namespace us { namespace wallet { namespace trader {  namespace personality {
 
     };
 
-}}}}
+}
 

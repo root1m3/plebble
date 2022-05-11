@@ -32,10 +32,10 @@ namespace us {
 
 }
 
-namespace us { namespace gov { namespace sys {
+namespace us::gov::sys {
 
     using namespace us;
     using namespace us::gov;
 
-}}}
+}
 

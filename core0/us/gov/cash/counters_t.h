@@ -22,10 +22,12 @@
 //===-
 #pragma once
 #include <us/gov/config.h>
+
 #if CFG_COUNTERS == 1
+
 #include <us/gov/types.h>
 
-namespace us { namespace gov { namespace cash {
+namespace us::gov::cash {
 
     struct counters_t final {
         uint32_t tx_rejected_bad_amounts{0};
@@ -37,7 +39,7 @@ namespace us { namespace gov { namespace cash {
         void dump(ostream&) const;
     };
 
-}}}
+}
 
 #endif
 

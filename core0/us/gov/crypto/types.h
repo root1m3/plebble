@@ -26,6 +26,7 @@
    struct assert_is_root_namespace;
    static_assert(std::is_same<assert_is_root_namespace, ::assert_is_root_namespace>::value, "Not root namespace. Check includes.");
 #endif
+
 #include "ripemd160.h"
 #include "sha256.h"
 #include "ec.h"
@@ -48,9 +49,9 @@ namespace us {
 
 }
 
-namespace us { namespace gov { namespace crypto {
+namespace us::gov::crypto {
 
     using namespace us;
 
-}}}
+}
 

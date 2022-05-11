@@ -23,11 +23,10 @@
 #pragma once
 #include <us/gov/engine/rpc_peer_t.h>
 
-namespace us { namespace gov { namespace cli {
+namespace us::gov::cli {
 
     struct rpc_peer_t: engine::rpc_peer_t {
         using b = engine::rpc_peer_t;
-
         using b::rpc_peer_t;
 
         void dump(const string& prefix, ostream&) const;
@@ -37,5 +36,5 @@ namespace us { namespace gov { namespace cli {
 
     };
 
-}}}
+}
 

@@ -31,8 +31,10 @@
 
 #include <us/gov/cash/tx_t.h>
 #include <us/gov/engine/daemon_t.h>
+#include <us/gov/engine/track_status_t.h>
+
 #include <us/wallet/trader/workflow/trader_protocol.h>
-#include "txlog_t.h"
+#include <us/wallet/wallet/txlog_t.h>
 
 namespace us::wallet::trader {
     struct traders_t;
@@ -44,10 +46,14 @@ namespace us::wallet::trader::r2r::w2w {
 
     struct protocol final: us::wallet::trader::workflow::trader_protocol {
         using b = us::wallet::trader::workflow::trader_protocol;
+        using txlog_t = us::wallet::wallet::txlog_t;
+        using track_t = us::wallet::wallet::track_t;
+        using tx_t = us::gov::cash::tx_t;
+        using track_status_t = us::gov::engine::track_status_t;
 
         static constexpr const char* name{"w2w"};
 
-        enum progress_t { //values coupled in fragment_w2w.java (android app)
+        enum progress_t: uint8_t { //values coupled in fragment_w2w.java (android app)
             pg_idle,
             pg_error,
             pg_wait_4_outputs,
@@ -59,15 +65,14 @@ namespace us::wallet::trader::r2r::w2w {
 
         static constexpr const char* pgstr[pg_numstates] = { "idle", "error", "wait_4_outputs", "wait_4_inputs", "delivered" };
 
-        enum push_code_t { //communications node-HMI
+        enum push_code_t: uint16_t { //communications node-HMI
             push_begin = trader_protocol::push_r2r_begin,
             push_tx = push_begin,
 
-            push_txlog,
-
             push_end
         };
-        enum service_t { //communications node-node
+
+        enum service_t: uint16_t { //communications node-node
             svc_begin = trader_protocol::svc_r2r_begin,
             svc_invoice_query = svc_begin,
             svc_invoice,
@@ -81,13 +86,8 @@ namespace us::wallet::trader::r2r::w2w {
         protocol(business_t&);
         ~protocol() override;
 
-//        ko trading_msg(client&, uint16_t svc, const string& msg) override;
         ko trading_msg(peer_t&, svc_t, blob_t&&) override;
         void dump(ostream&) const override;
-//        void data(const string& lang, ostream&) const override;
-        //size_t data_size() const override;
-        //void write_data(blob_writer_t&) const override;
-
         void help_online(const string& indent, ostream&) const override;
         void help_onoffline(const string& indent, ostream&) const override;
         void help_show(const string& indent, ostream&) const override;
@@ -102,36 +102,9 @@ namespace us::wallet::trader::r2r::w2w {
         ko exec_online(peer_t&, const string& cmd, ch_t&) override;
         static void exec_help(const string& prefix, ostream&);
         static ko exec(istream&, traders_t&, wallet::local_api&);
-
         uint32_t trade_state_() const;
         void judge(const string& lang) override;
 
-        struct t1_t: us::gov::io::seriable {
-            t1_t(const cash_t& amount, const hash_t& coin);
-
-            size_t blob_size() const override;
-            void to_blob(blob_writer_t&) const override;
-            ko from_blob(blob_reader_t&) override;
-
-            hash_t coin;
-            cash_t amount;
-        };
-
-        struct t2_t: us::gov::io::seriable {
-            t2_t() {}
-            t2_t(const track_t&, tx_t*);
-
-            size_t blob_size() const override;
-            void to_blob(blob_writer_t&) const override;
-            ko from_blob(blob_reader_t&) override;
-
-            track_t track;
-            tx_t* tx{nullptr};
-        };
-
-
-
-        txlog_t txlog;
 
 //        progress_t pg{pg_idle};
 //        string pg_info;

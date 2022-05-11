@@ -146,13 +146,13 @@ ko c::exec_online1(const string& cmdline) {
             if (ts == 0) {
                 return "KO 58831";
             }
-            string ans;
-            auto r = rpc_peer->call_track(ts, ans);
+            us::gov::engine::track_status_t track_status;
+            auto r = rpc_peer->call_track(ts, track_status);
             if (is_ko(r)) {
                 return r;
             }
             screen::lock_t lock(scr, interactive);
-            lock.os << ans << '\n';
+            track_status.dump(lock.os);
             return ok;
         }
         if (cmd == "nodes" || cmd == "n") {
@@ -459,7 +459,7 @@ void c::interactive_shell() {
 
 void c::print_id() const {
     auto r = cfg_daemon::load(p.channel, home, false);
-    if (r.first!=ok) {
+    if (is_ko(r.first)) {
         scr << r.first << '\n';
         assert(r.second == nullptr);
         return;

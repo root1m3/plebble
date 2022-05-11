@@ -23,7 +23,7 @@
 #pragma once
 #include <us/wallet/engine/rpc_peer_t.h>
 
-namespace us { namespace wallet { namespace cli {
+namespace us::wallet::cli {
 
     struct rpc_peer_t: engine::rpc_peer_t {
         using b = engine::rpc_peer_t;
@@ -39,5 +39,5 @@ namespace us { namespace wallet { namespace cli {
 
     };
 
-}}}
+}
 

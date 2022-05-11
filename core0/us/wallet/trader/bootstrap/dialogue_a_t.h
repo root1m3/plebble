@@ -26,15 +26,19 @@
 #include <us/wallet/trader/endpoint_t.h>
 #include "protocols_t.h"
 
-namespace us { namespace wallet { namespace engine {
+namespace us::wallet::engine {
+
     struct peer_t;
-}}}
 
-namespace us { namespace wallet { namespace trader {
+}
+
+namespace us::wallet::trader {
+
     struct trader_t;
-}}}
 
-namespace us { namespace wallet { namespace trader { namespace bootstrap {
+}
+
+namespace us::wallet::trader::bootstrap {
 
     using namespace std;
 
@@ -69,5 +73,5 @@ namespace us { namespace wallet { namespace trader { namespace bootstrap {
         bootstrapper_t& parent;
     };
 
-}}}}
+}
 

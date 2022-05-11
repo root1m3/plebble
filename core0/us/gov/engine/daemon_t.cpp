@@ -302,35 +302,36 @@ hash_t c::get_last_delta_imported() const {
 }
 
 void c::set_tx_error(ts_t from, ts_t to, const string& err) {
-    string progress = evt.set_errorx(from, to, err);
-    if (progress.empty()) {
+    auto st = evt.set_errorx(from, to, err);
+    if (st.st == evt_untracked) {
         return;
     }
-    pm.schedule_push(blob_writer_t::get_datagram(peerd.channel, protocol::engine_track_response, 0, progress), device_filter);
+    pm.schedule_push(st.get_datagram(peerd.channel, protocol::engine_track_response, 0), device_filter);
 }
 
-void c::set_tx_status(ts_t from, ts_t to, evt_status_t st) {
-    string progress = evt.set_statusx(from, to, st);
-    if (progress.empty()) {
+void c::set_tx_status(ts_t from, ts_t to, evt_status_t evst) {
+    auto st = evt.set_statusx(from, to, evst);
+    if (st.st == evt_untracked) {
         return;
     }
-    pm.schedule_push(blob_writer_t::get_datagram(peerd.channel, protocol::engine_track_response, 0, progress), device_filter);
+//    pm.schedule_push(blob_writer_t::get_datagram(peerd.channel, protocol::engine_track_response, 0, progress), device_filter);
+    pm.schedule_push(st.get_datagram(peerd.channel, protocol::engine_track_response, 0), device_filter);
 }
 
 void c::set_tx_error(ts_t ts, const string& err) {
-    string progress = evt.set_errorx(ts, err);
-    if (progress.empty()) {
+    auto st = evt.set_errorx(ts, err);
+    if (st.st == evt_untracked) {
         return;
     }
-    pm.schedule_push(blob_writer_t::get_datagram(peerd.channel, protocol::engine_track_response, 0, progress), device_filter);
+    pm.schedule_push(st.get_datagram(peerd.channel, protocol::engine_track_response, 0), device_filter);
 }
 
-void c::set_tx_status(ts_t ts, evt_status_t st) {
-    string progress = evt.set_statusx(ts, st);
-    if (progress.empty()) {
+void c::set_tx_status(ts_t ts, evt_status_t evst) {
+    auto st = evt.set_statusx(ts, evst);
+    if (st.st == evt_untracked) {
         return;
     }
-    pm.schedule_push(blob_writer_t::get_datagram(peerd.channel, protocol::engine_track_response, 0, progress), device_filter);
+    pm.schedule_push(st.get_datagram(peerd.channel, protocol::engine_track_response, 0), device_filter);
 }
 
 void c::eat_diff(const hash_t& voted_tip, diff* my_tip) {
@@ -819,66 +820,61 @@ pair<ko, io::cfg*> c::init_chain(channel_t channel, const string& govhome, const
     return conf;
 }
 
-c::evt_data_t c::ev_track_t::track(calendar_t& cal, ts_t ts) {
+void c::ev_track_t::track(calendar_t& cal, ts_t ts, track_status_t& st) {
+    log("ev_track_t::track", ts);
     lock_guard<mutex> lock(mx);
-    if (ts < mints) {
-        return evt_data_t(c::evt_untracked, string(evt_status_str[evt_untracked]) + ". Too old."); //make_pair(c::evt_untracked, string(evt_status_str[evt_untracked])+". Too old.");
+    if (unlikely(ts < mints)) {
+        log("too old", ts, mints);
+        st.reset(ts, evt_untracked, "Too old.");
+        return;
     }
     auto i = find(ts);
-    if (unlikely(i != end())) {
+    if (i != end()) {
         log("tracking info found", ts);
-        return i->second;
-    }
-    if (cal.has(ts)) {
-        log("tracking info created. calendar. ", ts);
-        return emplace(ts, evt_data_t(evt_calendar)).first->second;
     }
     else {
-        log("tracking info created. waiting arrival. ", ts);
-        return emplace(ts, evt_data_t(evt_wait_arrival)).first->second;
+        if (cal.has(ts)) {
+            log("tracking info created. calendar. ", ts);
+            i = emplace(ts, evt_data_t(evt_calendar)).first;
+        }
+        else {
+            log("tracking info created. waiting arrival. ", ts);
+            i = emplace(ts, evt_data_t(evt_wait_arrival)).first;
+        }
     }
+    st.reset(ts, i->second.st, i->second.info);
 }
 
-string c::ev_track_t::set_errorx(ts_t ts, const string& err) {
+track_status_t c::evt_data_t::get_status(ts_t ts) const {
+    return track_status_t(ts, st, info);
+}
+
+c::ev_track_t::status_t c::ev_track_t::set_errorx(ts_t ts, const string& err) {
     lock_guard<mutex> lock(mx);
     auto i = find(ts);
     if (unlikely(i == end())) {
-        return "";
+        return status_t(0);
     }
-    if (i->second.st != evt_error) {
-        return "";
+    if (i->second.st != evt_error) { //ignore 2nd error
+        i->second.st = evt_error;
+        i->second.info = err;
     }
-    i->second.st = evt_error;
-    i->second.info = err;
-    ostringstream os;
-    os << ts << " 0 " << evt_error << ' ' << evt_status_str[evt_error] << ' ' << err;
-    return os.str();
+    return i->second.get_status(ts);
 }
 
-string c::ev_track_t::set_statusx(ts_t ts, evt_status_t st) {
+c::ev_track_t::status_t c::ev_track_t::set_statusx(ts_t ts, evt_status_t st) {
     lock_guard<mutex> lock(mx);
     auto i = find(ts);
     if (unlikely(i == end())) {
-        return "";
+        return status_t(0);
     }
-    if (i->second.st == evt_error) {
-        return "";
+    if (i->second.st != evt_error) { //ignore 2nd error
+        i->second.st = st;
     }
-    i->second.st = st;
-    i->second.info = c::evt_status_str[st];
-    ostringstream os;
-    os << ts << " 0 " << st << ' ' << evt_status_str[st];
-    return os.str();
+    return i->second.get_status(ts);
 }
 
-void c::ev_track_t::dump(ostream& os) const {
-    for (auto& i: *this) {
-        os << i.first << ' ' << i.second.st << ' ' << i.second.info << '\n';
-    }
-    os << size() << " tracked evidences.\n";
-}
-
-string c::ev_track_t::set_statusx(ts_t from, ts_t to, evt_status_t st) {
+c::ev_track_t::status_t c::ev_track_t::set_statusx(ts_t from, ts_t to, evt_status_t st) {
     lock_guard<mutex> lock(mx);
     mints = from;
     auto i = begin();
@@ -887,7 +883,7 @@ string c::ev_track_t::set_statusx(ts_t from, ts_t to, evt_status_t st) {
         if (from <= i->first && i->first < to) {
             if (i->second.st != evt_error) {
                 i->second.st = st;
-                i->second.info = c::evt_status_str[st];
+                //i->second.info = evt_status_str[st];
                 b = true;
             }
             ++i;
@@ -901,13 +897,11 @@ string c::ev_track_t::set_statusx(ts_t from, ts_t to, evt_status_t st) {
             }
         }
     }
-    if (!b) return "";
-    ostringstream os;
-    os << from << ' ' << to << ' ' << st << ' ' << evt_status_str[st];
-    return os.str();
+    if (b) return status_t(from, to, st);
+    return status_t(0);
 }
 
-string c::ev_track_t::set_errorx(ts_t from, ts_t to, const string& err) {
+c::ev_track_t::status_t c::ev_track_t::set_errorx(ts_t from, ts_t to, const string& err) {
     lock_guard<mutex> lock(mx);
     mints = from;
     auto i = begin();
@@ -922,7 +916,7 @@ string c::ev_track_t::set_errorx(ts_t from, ts_t to, const string& err) {
             ++i;
         }
         else {
-            if (i->first<from) {
+            if (i->first < from) {
                 i = erase(i);
             }
             else {
@@ -930,10 +924,15 @@ string c::ev_track_t::set_errorx(ts_t from, ts_t to, const string& err) {
             }
         }
     }
-    if (!b) return "";
-    ostringstream os;
-    os << from << ' ' << to << ' ' << evt_error << ' ' << evt_status_str[evt_error] << ' ' << err;
-    return os.str();
+    if (b) return status_t(from, to, evt_error, err);
+    return status_t(0);
+}
+
+void c::ev_track_t::dump(ostream& os) const {
+    for (auto& i: *this) {
+        os << i.first << ' ' << i.second.st << ' ' << i.second.info << '\n';
+    }
+    os << size() << " tracked evidences.\n";
 }
 
 void c::files_to_keep(vector<pair<hash_t, uint32_t>>& v) const {

@@ -25,7 +25,7 @@
 #include <us/gov/id/rpc_daemon_t.h>
 #include "types.h"
 
-namespace us { namespace gov { namespace auth {
+namespace us::gov::auth {
 
     struct rpc_daemon_t: base_ns::rpc_daemon_t {
         using b = base_ns::rpc_daemon_t;
@@ -39,5 +39,5 @@ namespace us { namespace gov { namespace auth {
 
     };
 
-}}}
+}
 

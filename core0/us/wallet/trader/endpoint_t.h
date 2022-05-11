@@ -25,7 +25,7 @@
 #include <us/gov/io/seriable.h>
 #include <us/gov/socket/types.h>
 
-namespace us { namespace wallet { namespace trader {
+namespace us::wallet::trader {
 
     using namespace us::gov;
     struct traders_t;
@@ -71,10 +71,10 @@ namespace us { namespace wallet { namespace trader {
         string wloc;
     };
 
-}}}
+}
 
-namespace us { namespace gov { namespace io {
+namespace us::gov::io {
     template<> inline ko blob_reader_t::readD(const us::gov::socket::datagram& d, us::wallet::trader::endpoint_t& o) { return o.read(d); }
     template<> inline datagram* blob_writer_t::get_datagram(channel_t channel, svc_t svc, seq_t seq, const us::wallet::trader::endpoint_t& o) { return o.get_datagram(channel, svc, seq); }
-}}}
+}
 

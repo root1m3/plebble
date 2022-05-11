@@ -518,7 +518,7 @@ void c::send_bytes(size_t howmany, uint32_t decl_sz, uint16_t channel, uint16_t 
         w[datagram::offset_channel + 1] = channel >> 8 & 0xff;
     }
     assert(datagram::size_size == 4);
-    if (howmany>=datagram::offset_size + 4) {
+    if (howmany >= datagram::offset_size + 4) {
         log("encoding decl_sz (", decl_sz , ")");
         w[datagram::offset_size] = decl_sz & 0xff;
         w[datagram::offset_size + 1] = decl_sz >> 8 & 0xff;
@@ -526,7 +526,7 @@ void c::send_bytes(size_t howmany, uint32_t decl_sz, uint16_t channel, uint16_t 
         w[datagram::offset_size + 3] = decl_sz >> 24 & 0xff;
     }
     assert(datagram::size_service == 2);
-    if (howmany>=datagram::offset_size + 4) {
+    if (howmany >= datagram::offset_size + 4) {
         w[datagram::offset_service] = svc & 0xff;
         w[datagram::offset_service + 1] = svc >> 8 & 0xff;
     }

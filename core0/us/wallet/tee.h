@@ -23,7 +23,7 @@
 #pragma once
 #include <iostream>
 
-namespace us{ namespace wallet {
+namespace us::wallet {
 
     using namespace std;
 
@@ -68,7 +68,5 @@ namespace us{ namespace wallet {
     };
 
 
-}}
-
-
+}
 

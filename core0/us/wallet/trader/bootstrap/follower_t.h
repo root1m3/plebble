@@ -22,11 +22,12 @@
 //===-
 #pragma once
 #include <us/gov/crypto/ripemd160.h>
+
 #include <us/wallet/engine/peer_t.h>
 
 #include "bootstrapper_t.h"
 
-namespace us { namespace wallet { namespace trader { namespace bootstrap {
+namespace us::wallet::trader::bootstrap {
 
     struct follower_t final: bootstrapper_t {
         using b = bootstrapper_t;
@@ -43,5 +44,5 @@ namespace us { namespace wallet { namespace trader { namespace bootstrap {
         peer_t& peer;
     };
 
-}}}}
+}
 

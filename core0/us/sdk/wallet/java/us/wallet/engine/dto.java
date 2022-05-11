@@ -1627,27 +1627,6 @@ public interface dto {
         public hash_t job = new hash_t();
     }
 
-    public static final class track_pay_out_dst_t extends blob_reader_t.readable {
-        //source: coder_java.cpp::gen_dto_out_hdr (2)
-
-        public track_pay_out_dst_t() {}
-
-        @Override public ko from_blob(blob_reader_t reader) {
-            {
-                ko r = reader.read(blob_tx);
-                if (ko.is_ko(r)) return r;
-            }
-            {
-                ko r = reader.read(progress);
-                if (ko.is_ko(r)) return r;
-            }
-            return ok;
-        }
-
-        public blob_t blob_tx = new blob_t();
-        public string progress = new string();
-    }
-
     /// trade - IN
     public static final class trade_in_t extends blob_writer_t.writable {
         //source: coder_java.cpp::gen_dto_in_hdr (1)
@@ -2730,39 +2709,6 @@ public interface dto {
 
         public blob_t blob_ev;
         public hash_t job;
-    }
-
-    /// track_pay - OUT
-    public static final class track_pay_out_t extends blob_writer_t.writable {
-        //source: coder_java.cpp::gen_dto_out_hdr (1)
-
-        public track_pay_out_t() {}
-        public track_pay_out_t(final blob_t blob_tx, final string progress) {
-            this.blob_tx = blob_tx;
-            this.progress = progress;
-        }
-
-        @Override public int blob_size() {
-            return blob_writer_t.blob_size(blob_tx) +
-                blob_writer_t.blob_size(progress);
-        }
-
-        @Override public void to_blob(blob_writer_t writer) {
-            writer.write(blob_tx);
-            writer.write(progress);
-        }
-
-        public datagram get_datagram(final channel_t channel, final seq_t seq) {
-            return super.get_datagram(channel, new svc_t(protocol.wallet_track_pay_response), seq);
-        }
-
-        public static datagram get_datagram(final channel_t channel, final seq_t seq, final blob_t blob_tx, final string progress) {
-            track_pay_out_t o = new track_pay_out_t(blob_tx, progress);
-            return o.get_datagram(channel, seq);
-        }
-
-        public blob_t blob_tx;
-        public string progress;
     }
 
     public static final class trade_in_dst_t extends blob_reader_t.readable {

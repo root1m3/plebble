@@ -42,9 +42,9 @@ namespace us {
 
 }
 
-namespace us { namespace gov { namespace io {
+namespace us::gov::io {
 
     using namespace us;
 
-}}}
+}
 

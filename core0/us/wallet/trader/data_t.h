@@ -32,7 +32,7 @@
 #include <us/gov/io/seriable_vector.h>
 #include <us/gov/io/seriable_map.h>
 
-namespace us { namespace wallet { namespace trader {
+namespace us::wallet::trader {
 
     struct trader_t;
 
@@ -51,9 +51,9 @@ namespace us { namespace wallet { namespace trader {
         };
 
         data_t();
-        ~data_t();
         data_t(const data_t&);
         data_t(data_t&&);
+        ~data_t();
 
         data_t& operator = (const data_t&);
 
@@ -81,5 +81,5 @@ namespace us { namespace wallet { namespace trader {
 
     template<> void data_t::add(const string& key, const string& value);
 
-}}}
+}
 

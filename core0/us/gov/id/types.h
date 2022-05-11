@@ -31,10 +31,10 @@ namespace us {
 
 }
 
-namespace us { namespace gov { namespace id {
+namespace us::gov::id {
 
     using namespace us;
     namespace base_ns = us::gov::socket;
 
-}}}
+}
 

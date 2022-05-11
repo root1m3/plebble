@@ -31,7 +31,7 @@
 #include "protocols_t.h"
 #include <us/wallet/trader/personality/proof_t.h>
 
-namespace us { namespace wallet { namespace trader { namespace bootstrap {
+namespace us::wallet::trader::bootstrap {
 
     using namespace std;
 
@@ -85,6 +85,5 @@ namespace us { namespace wallet { namespace trader { namespace bootstrap {
         personality_proof_t personality_proof;
     };
 
-}}}}
-
+}
 

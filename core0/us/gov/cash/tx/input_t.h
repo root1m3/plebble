@@ -21,11 +21,12 @@
 //===----------------------------------------------------------------------------
 //===-
 #pragma once
-#include <us/gov/io/seriable.h>
-#include <us/gov/cash/locking_program_input_t.h>
 #include <string>
 
-namespace us { namespace gov { namespace cash { namespace tx {
+#include <us/gov/io/seriable.h>
+#include <us/gov/cash/locking_program_input_t.h>
+
+namespace us::gov::cash::tx {
 
     struct input_t final: io::seriable {
 
@@ -48,6 +49,5 @@ namespace us { namespace gov { namespace cash { namespace tx {
         locking_program_input_t locking_program_input;
     };
 
-
-}}}}
+}
 

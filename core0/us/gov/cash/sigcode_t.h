@@ -24,7 +24,7 @@
 #include <us/gov/io/seriable.h>
 #include "sigcode_section_t.h"
 
-namespace us { namespace gov { namespace cash {
+namespace us::gov::cash {
 
     using namespace std;
 
@@ -52,5 +52,5 @@ namespace us { namespace gov { namespace cash {
         bool ts{true};
     };
 
-}}}
+}
 

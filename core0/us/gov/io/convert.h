@@ -25,7 +25,7 @@
 #include <us/gov/crypto/types.h>
 #include "types.h"
 
-namespace us { namespace gov { namespace io {
+namespace us::gov::io {
 
     template<typename T>
     T convert(const string& s) {
@@ -39,5 +39,5 @@ namespace us { namespace gov { namespace io {
     template<> priv_t convert(const string&);
     template<> pub_t convert(const string&);
 
-}}}
+}
 

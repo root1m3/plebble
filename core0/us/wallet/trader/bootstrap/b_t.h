@@ -28,7 +28,7 @@
 #include <us/wallet/trader/business.h>
 #include <us/wallet/trader/protocol_selection_t.h>
 
-namespace us { namespace wallet { namespace trader { namespace bootstrap {
+namespace us::wallet::trader::bootstrap {
 
     using namespace std;
 
@@ -81,5 +81,5 @@ namespace us { namespace wallet { namespace trader { namespace bootstrap {
         params_t params;
     };
 
-}}}}
+}
 

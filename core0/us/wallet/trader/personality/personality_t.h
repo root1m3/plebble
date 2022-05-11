@@ -26,7 +26,7 @@
 #include <us/gov/crypto/ec.h>
 #include <us/gov/crypto/ripemd160.h>
 
-namespace us { namespace wallet { namespace trader { namespace personality {
+namespace us::wallet::trader::personality {
 
     using namespace std;
 
@@ -70,5 +70,5 @@ namespace us { namespace wallet { namespace trader { namespace personality {
         keys k;
     };
 
-}}}}
+}
 

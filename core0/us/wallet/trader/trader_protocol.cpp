@@ -434,6 +434,11 @@ us::wallet::wallet::local_api& c::w() {
     return *tder->w;
 }
 
+const us::wallet::wallet::local_api& c::w() const {
+    assert(tder->w != nullptr);
+    return *tder->w;
+}
+
 string c::get_lang() const {
     return "en";
 }

@@ -26,7 +26,7 @@
 #include <us/gov/ko.h>
 #include <us/gov/io/seriable.h>
 
-namespace us { namespace wallet { namespace trader {
+namespace us::wallet::trader {
 
     using namespace us::gov;
 
@@ -56,5 +56,5 @@ namespace us { namespace wallet { namespace trader {
         ko from_streamX(istream&);
     };
 
-}}}
+}
 

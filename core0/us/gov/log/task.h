@@ -35,7 +35,7 @@
 #include <unistd.h>
 #include <iostream>
 
-namespace us { namespace dbg {
+namespace us::dbg {
 
     using namespace std;
     using namespace chrono;
@@ -120,5 +120,5 @@ namespace us { namespace dbg {
     template<>
     void task::dolog(const vector<uint8_t>& arg1);
 
-}}
+}
 

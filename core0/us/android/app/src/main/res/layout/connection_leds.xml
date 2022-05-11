@@ -6,64 +6,32 @@
     android:layout_height="wrap_content"
     android:layout_gravity="end"
     android:paddingRight="2dp"
-
     android:orientation="vertical"
     android:visibility="visible"
     >
-<!--
-    <ProgressBar
-        android:id="@+id/pb_send"
-        android:layout_width="12dp"
-        android:layout_height="10dp"
-        style="?android:attr/progressBarStyleHorizontal"
-        android:progressBackgroundTint="#201020"
-        android:progressTint="#00ff00"
-        android:indeterminate="false"
-        android:progress="0"
-        android:visibility="visible"
-        />
-    <ProgressBar
-        android:id="@+id/pb_receive"
-        android:layout_width="12dp"
-        android:layout_height="10dp"
-        style="?android:attr/progressBarStyleHorizontal"
-        android:progressBackgroundTint="#201020"
-        android:progressTint="#00ff00"
-        android:indeterminate="false"
-        android:progress="0"
-        android:visibility="visible"
-        />
-
-    <ProgressBar
-        android:id="@+id/pb_online"
-        android:layout_width="12dp"
-        android:layout_height="10dp"
-        style="?android:attr/progressBarStyleHorizontal"
-        android:progressBackgroundTint="#ff0000"
-        android:progressBackgroundTintMode="src_over"
-        android:progressTint="#00ff00"
-        android:indeterminate="false"
-        android:progress="0"
-        android:visibility="visible"
-        />
--->
     <ImageView android:id="@+id/pb_send" 
         android:layout_width="14dp" 
         android:layout_height="6dp" 
         android:paddingTop="2dp"
         android:src="@drawable/led"
+        android:background="#000000"
+        android:padding="1dp"
         android:visibility="visible">
     </ImageView>
     <ImageView android:id="@+id/pb_receive" 
         android:layout_width="14dp" 
         android:layout_height="6dp" 
         android:paddingTop="2dp"
+        android:background="#000000"
+        android:padding="1dp"
         android:visibility="visible">
     </ImageView>
     <ImageView android:id="@+id/pb_online" 
         android:layout_width="14dp" 
         android:layout_height="6dp" 
         android:paddingTop="2dp"
+        android:background="#000000"
+        android:padding="1dp"
         android:visibility="visible">
     </ImageView>
 

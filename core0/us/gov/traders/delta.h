@@ -28,7 +28,7 @@
 #include <us/gov/engine/app.h>
 #include <us/gov/peer/account_t.h>
 
-namespace us { namespace gov { namespace traders {
+namespace us::gov::traders {
 
     struct delta final: engine::app::delta {
         using b = engine::app::delta;
@@ -61,5 +61,5 @@ namespace us { namespace gov { namespace traders {
         merger online_merger;
     };
 
-}}}
+}
 

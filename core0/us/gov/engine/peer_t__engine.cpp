@@ -206,23 +206,19 @@ ko c::handle_sysop(string&& cmd, string& ans) {
     return ok;
 }
 
-ko c::handle_track(uint64_t&& ts, string& progress) {
+ko c::handle_track(uint64_t&& ts, track_status_t& track_status) {
     log("track");
-    auto a = engine_daemon().evt.track(engine_daemon().calendar, ts);
-    ostringstream os;
-    os << a.st << ' ' << a.info;
-    progress = os.str();
+    engine_daemon().evt.track(engine_daemon().calendar, ts, track_status);
     return ok;
 }
 
-ko c::handle_track_response(string&& progress) {
+ko c::handle_track_response(track_status_t&& track_status) {
     log("track_response");
     return ok; //Ignore
 }
 
 ko c::handle_ev(datagram* dgram, blob_t&& blob_evidence) {
     log("ev", "svc", dgram->service, "sz", dgram->size());
-
     {
         evidence* ev;
         {
@@ -245,11 +241,11 @@ ko c::handle_ev(datagram* dgram, blob_t&& blob_evidence) {
     return ok;
 }
 
-ko c::handle_ev_track(datagram* dgram, blob_t&& blob_evidence, string& progress) {
+ko c::handle_ev_track(datagram* dgram, blob_t&& blob_evidence, track_status_t& track_status) {
     log("ev_track", "svc", dgram->service, "sz", dgram->size());
-
-    evidence* ev;
+    ts_t ts;
     {
+        evidence* ev;
         {
             auto r = engine_daemon().parse_evidence(blob_evidence);
             if (unlikely(is_ko(r.first))) {
@@ -257,6 +253,7 @@ ko c::handle_ev_track(datagram* dgram, blob_t&& blob_evidence, string& progress)
                 return r.first;
             }
             ev = r.second;
+            ts = ev->ts;
         }
         {
             auto r = engine_daemon().process_evidence2(ev);
@@ -271,17 +268,10 @@ ko c::handle_ev_track(datagram* dgram, blob_t&& blob_evidence, string& progress)
             }
         }
     }
-    {
-        ts_t ts;
-        ts = ev->ts;
-        log("track", ts);
-        auto a = engine_daemon().evt.track(engine_daemon().calendar, ts);
-        ostringstream os;
-        os << a.st << ' ' << a.info;
-        progress = os.str();
-        log("relaying evidence");
-        static_cast<net_daemon_t&>(daemon).relay_evidence(dgram, this);
-    }
+    log("track evidence", ts);
+    engine_daemon().evt.track(engine_daemon().calendar, ts, track_status);
+    log("relaying evidence");
+    static_cast<net_daemon_t&>(daemon).relay_evidence(dgram, this);
     return ok;
 }
 

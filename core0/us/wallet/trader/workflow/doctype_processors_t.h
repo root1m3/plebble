@@ -26,10 +26,11 @@
 #include <string>
 #include <vector>
 #include <iostream>
+
 #include "doc_t.h"
 #include "doc0_t.h"
 
-namespace us { namespace wallet { namespace trader { namespace workflow {
+namespace us::wallet::trader::workflow {
 
     using namespace std;
     using magic_t = us::wallet::trader::workflow::doc0_t::magic_t;
@@ -53,5 +54,5 @@ namespace us { namespace wallet { namespace trader { namespace workflow {
         ko save(const string& filename);
     };
 
-}}}}
+}
 

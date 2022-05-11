@@ -83,6 +83,7 @@ string c::codename(uint16_t code) {
         case us::wallet::trader::workflow::trader_protocol::push_workflow_item: return "push_workflow_item";
         case us::wallet::trader::workflow::trader_protocol::push_doc: return "push_doc";
         case trader_t::protocol::push_logo: return "push_logo";
+        case us::wallet::wallet::local_api::push_txlog: return "push_txlog";
     }
     ostringstream os;
     os << "unknown code " << code;
@@ -125,19 +126,16 @@ bool c::dispatch(us::gov::socket::datagram* d0) {
             if (o_in.code == us::wallet::trader::trader_t::push_data) {
                 string payload;
                 assert(is_ok(us::gov::io::blob_reader_t::parse(o_in.blob, payload)));
+                out << "===========DATA summary for node " << id << '\n';
                 if (data_seq.add(payload)) {
-                    out << "===========DATA summary for node " << id << '\n';
                     data_seq.dump(out);
-                    out << "=========/=DATA summary" << endl;
-                    expected_code.arrived(o_in.tid, o_in.code, o_in.blob);
                 }
                 else {
-                    out << "empty data arrived arrived at node " << id << '\n';
+                    out << "empty data arrived at node " << id << '\n';
                 }
+                out << "=========/=DATA summary" << endl;
             }
-            else {
-                expected_code.arrived(o_in.tid, o_in.code, o_in.blob);
-            }
+            expected_code.arrived(o_in.tid, o_in.code, o_in.blob);
 
         }
         break;
@@ -189,7 +187,7 @@ void c::expected_code_t::increase_or_set_1_if_nonpos(uint16_t code) {
     auto i = find(code);
     assert(i != end());
     ++i->second;
-    if (i->second<1) i->second=1;
+    if (i->second < 1) i->second = 1;
 }
 
 bool c::expected_code_t::all_empty() const {

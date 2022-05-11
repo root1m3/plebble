@@ -40,19 +40,19 @@
 #include "bootstrap/protocols_t.h"
 #include "personality/personality_t.h"
 
-namespace us { namespace wallet { namespace wallet {
+namespace us::wallet::wallet {
 
     struct local_api;
 
-}}}
+}
 
-namespace us { namespace wallet { namespace engine {
+namespace us::wallet::engine {
 
     struct daemon_t;
 
-}}}
+}
 
-namespace us { namespace wallet { namespace trader {
+namespace us::wallet::trader {
 
     struct business_t;
 
@@ -69,7 +69,7 @@ namespace us { namespace wallet { namespace trader {
         traders_t(const traders_t&) = delete;
         ~traders_t();
 
-        enum service_t { //communications node-node
+        enum service_t: uint16_t { //communications node-node
             svc_begin = 0,
             svc_ko = svc_begin,
             svc_kill_trade,
@@ -205,5 +205,5 @@ namespace us { namespace wallet { namespace trader {
 
     };
 
-}}}
+}
 

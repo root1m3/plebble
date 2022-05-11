@@ -25,7 +25,7 @@
 #include <us/gov/id/daemon_t.h>
 #include "types.h"
 
-namespace us { namespace gov { namespace auth {
+namespace us::gov::auth {
 
     struct daemon_t: base_ns::daemon_t {
         using b = base_ns::daemon_t;
@@ -39,5 +39,5 @@ namespace us { namespace gov { namespace auth {
 
     };
 
-}}}
+}
 

@@ -455,3 +455,8 @@ void c::register_wallet() {
 
 }
 
+void c::banner(ostream& os) const {
+    os << "     homedir = " << homedir << '\n';
+    os << "     logdir = " << logdir << '\n';
+    os << "     vardir = " << vardir << '\n';
+}

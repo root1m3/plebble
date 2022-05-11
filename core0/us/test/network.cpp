@@ -29,6 +29,9 @@
 
 #include <us/gov/engine/daemon_t.h>
 #include <us/gov/engine/db_t.h>
+#include <us/gov/engine/track_status_t.h>
+#include <us/gov/cli/rpc_peer_t.h>
+
 
 //#include <us/trader/workflow/consumer/docs.h>
 
@@ -514,19 +517,20 @@ bool c::check() {
 }
 
 void c::wait_settlement(govx_t& gov_cli, uint64_t ts) {
-    string st;
+    using track_status_t = us::gov::engine::track_status_t;
+    us::gov::engine::evt_status_t st = us::gov::engine::evt_unknown;
     auto t0 = chrono::system_clock::now();
 
     cout << "waiting for settlement tx.ts=" << ts << endl;
     while (true) {
         cout << "."; cout.flush();
-        string progress;
-        auto t = gov_cli.rpc_daemon->get_peer().call_track(ts, progress);
-        assert(t == ok);
-        if (progress != st) {
-            st = progress;
-            cout << "\ntx status changed to: " << st << '\n';
-            if (st == "6 settled") break;
+        track_status_t track_status;
+        auto r = gov_cli.rpc_daemon->get_peer().call_track(ts, track_status);
+        assert(r == ok);
+        if (track_status.st != st) {
+            st = track_status.st;
+            cout << "\ntx status changed to: " << us::gov::engine::evt_status_str[st] << '\n';
+            if (st == us::gov::engine::evt_settled) break;
         }
         this_thread::sleep_for(1s);
     }

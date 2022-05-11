@@ -34,7 +34,7 @@
 
 #include "types.h"
 
-namespace us { namespace gov { namespace relay {
+namespace us::gov::relay {
 
     struct peer_t;
 
@@ -70,11 +70,13 @@ namespace us { namespace gov { namespace relay {
         mutex mx;
         condition_variable cv;
         daemon_t& daemon;
-        #if CFG_LOGS == 1
-            string logdir;
-            string logfile;
-        #endif
+
+    #if CFG_LOGS == 1
+        string logdir;
+        string logfile;
+    #endif
+
     };
 
-}}}
+}
 

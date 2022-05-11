@@ -21,13 +21,15 @@
 //===----------------------------------------------------------------------------
 //===-
 #pragma once
-#include "cfg1.h"
 #include <string>
 #include <vector>
+
 #include <us/gov/crypto/ripemd160.h>
 #include <us/gov/socket/types.h>
 
-namespace us { namespace gov { namespace io {
+#include "cfg1.h"
+
+namespace us::gov::io {
 
     using namespace std;
 
@@ -48,5 +50,5 @@ namespace us { namespace gov { namespace io {
 
     using cfg_daemon = cfg;
 
-}}}
+}
 

@@ -34,7 +34,7 @@
 #include "fileattr_t.h"
 #include "types.h"
 
-namespace us { namespace gov { namespace dfs {
+namespace us::gov::dfs {
 
     struct daemon_t;
     struct peer_t;
@@ -90,5 +90,5 @@ namespace us { namespace gov { namespace dfs {
         string fsroot;
     };
 
-}}}
+}
 

@@ -22,11 +22,12 @@
 //===-
 #pragma once
 #include <us/gov/config.h>
-#include <us/gov/types.h>
-#include "locking_program_input_t.h"
 #include <us/gov/engine/evidence.h>
+#include <us/gov/types.h>
 
-namespace us { namespace gov { namespace cash {
+#include "locking_program_input_t.h"
+
+namespace us::gov::cash {
 
     struct ttx final: engine::evidence {
         using b = engine::evidence;
@@ -64,5 +65,5 @@ namespace us { namespace gov { namespace cash {
         return os;
     }
 
-}}}
+}
 

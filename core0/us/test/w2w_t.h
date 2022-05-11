@@ -22,6 +22,7 @@
 //===-
 #pragma once
 #include "r2r_t.h"
+#include <us/wallet/wallet/txlog_t.h>
 
 namespace us { namespace test {
 
@@ -32,7 +33,14 @@ namespace us { namespace test {
 
     struct w2w_t: r2r_t {
         using b = r2r_t;
+        using track_t = us::wallet::wallet::track_t;
+
         w2w_t(network& n): b(n) {}
+
+        track_t init_transfer(node& sender, node& rcpt);
+        void cancel_transfer_by_sender1(node& sender, node& rcpt, track_t track);
+        void cancel_transfer_by_sender2(node& sender, node& rcpt, track_t track);
+        void confirm_transfer(node& sender, node& rcpt, track_t track);
 
         void test(node&, node&);
         void run();

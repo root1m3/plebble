@@ -21,12 +21,13 @@
 //===----------------------------------------------------------------------------
 //===-
 #pragma once
-#include <us/gov/io/seriable.h>
 #include <set>
 #include <vector>
+
+#include <us/gov/io/seriable.h>
 #include <us/gov/dfs/fileattr_t.h>
 
-namespace us { namespace gov { namespace cash {
+namespace us::gov::cash {
 
     using fileattr_t = us::gov::dfs::fileattr_t;
     struct tx_t;
@@ -78,5 +79,5 @@ namespace us { namespace gov { namespace cash {
         t_t* t{nullptr};
     };
 
-}}}
+}
 

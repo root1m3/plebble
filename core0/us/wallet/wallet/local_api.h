@@ -24,24 +24,31 @@
 
 #include <us/gov/config.h>
 #include <us/gov/relay/pushman.h>
+#include <us/gov/engine/track_status_t.h>
 
 #include "handler_api.h"
 #include "algorithm.h"
+#include "txlog_t.h"
 #include "types.h"
 
-namespace us { namespace wallet { namespace engine {
+namespace us::wallet::engine {
+
         struct daemon_t;
-}}}
+}
 
-namespace us { namespace wallet { namespace trader {
+namespace us::wallet::trader {
+
         struct traders_t;
-}}}
 
-namespace us { namespace wallet { namespace wallet {
+}
+
+namespace us::wallet::wallet {
 
     struct local_api: algorithm, handler_api {
         using w = algorithm;
         using daemon_t = engine::daemon_t;
+        using track_status_t = us::gov::engine::track_status_t;
+
         static const char* KO_10428;
 
         local_api(engine::daemon_t&, const string& home, const string& subhome, const hash_t& subhomeh, trader::endpoint_t&&);
@@ -49,12 +56,24 @@ namespace us { namespace wallet { namespace wallet {
 
         ko refresh_data();
         void dump(const string& pfx, ostream& os) const;
-        pair<ko, affected_t> track_pay(const asa_t& asa_pay, const asa_t& asa_charge, tx_t&, string& progress);
-        pair<ko, affected_t> analyze_pay(const asa_t& asa_pay, const asa_t& asa_charge, const tx_t&) const;
-        ko track(const ts_t&, string& progress);
+        pair<ko, affected_t> track_pay(const asa_t& asa_pay, const asa_t& asa_charge, tx_t&, const hash_t& tid, track_status_t&);
+        pair<ko, affected_t> analyze_pay(const asa_t& asa_pay, const asa_t& asa_charge, const tx_t&);
+        //ko track(const ts_t&, track_status_t&);
 
     public: //wallet
         #include <us/api/generated/c++/wallet/wallet/hdlr_override>
+
+    public:
+        enum push_code_t: uint16_t { //communications node-HMI
+            push_begin = 50,
+            push_txlog = push_begin,
+
+            push_end
+        };
+
+    public:
+        blob_t push_payload(uint16_t pc) const;
+        datagram* get_push_datagram(const hash_t& trade_id, uint16_t pc) const;
 
     public:
         relay::pushman::filter_t device_filter;
@@ -64,12 +83,12 @@ namespace us { namespace wallet { namespace wallet {
         string home;
         trader::endpoint_t local_endpoint;
         daemon_t& daemon;
+        txlog_t txlog;
+
         #if CFG_LOGS == 1
             string logdir;
         #endif
     };
 
-}}}
-
-
+}
 

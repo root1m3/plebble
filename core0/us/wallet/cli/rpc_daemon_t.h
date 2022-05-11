@@ -22,14 +22,17 @@
 //===-
 #pragma once
 #include <stack>
-#include <us/wallet/engine/rpc_daemon_t.h>
+
 #include <us/gov/io/screen.h>
 #include <us/gov/io/seriable.h>
 #include <us/gov/crypto/types.h>
+
+#include <us/wallet/engine/rpc_daemon_t.h>
+
 #include "rpc_peer_t.h"
 #include "types.h"
 
-namespace us { namespace wallet { namespace cli {
+namespace us::wallet::cli {
 
     struct hmi;
 
@@ -75,5 +78,5 @@ namespace us { namespace wallet { namespace cli {
         hmi* parent{nullptr};
     };
 
-}}}
+}
 

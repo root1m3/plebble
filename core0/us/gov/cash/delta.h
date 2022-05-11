@@ -22,12 +22,13 @@
 //===-
 #pragma once
 #include <us/gov/types.h>
-#include "accounts_t.h"
-#include "local_delta.h"
 #include <us/gov/engine/app.h>
 #include <us/gov/engine/merger.h>
 
-namespace us { namespace gov { namespace cash {
+#include "accounts_t.h"
+#include "local_delta.h"
+
+namespace us::gov::cash {
 
     struct delta final: engine::app::delta {
         using b = engine::app::delta;
@@ -53,6 +54,6 @@ namespace us { namespace gov { namespace cash {
         engine::majority_merger<local_delta>* m;
     };
 
-}}}
+}
 
 

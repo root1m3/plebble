@@ -34,7 +34,8 @@
 #include <us/wallet/trader/protocol_selection_t.h>
 #include <us/wallet/trader/business.h>
 
-namespace us { namespace wallet { namespace trader { namespace bootstrap {
+namespace us::wallet::trader::bootstrap {
+
     using namespace std;
 
     struct c1_t: handshake_t {
@@ -78,5 +79,5 @@ namespace us { namespace wallet { namespace trader { namespace bootstrap {
     using c3_t = b2_t; //params+personality
     using c4_t = b3_t; //params
 
-}}}}
+}
 

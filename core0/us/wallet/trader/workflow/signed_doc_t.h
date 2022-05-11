@@ -23,7 +23,7 @@
 #pragma once
 #include "expiry_doc_t.h"
 
-namespace us { namespace wallet { namespace trader { namespace workflow {
+namespace us::wallet::trader::workflow {
 
     using namespace std;
 
@@ -147,5 +147,5 @@ namespace us { namespace wallet { namespace trader { namespace workflow {
     using signed_doc_t = signed_doc<doc0_t>;
     using signed_expiry_doc_t = signed_doc<expiry_doc_t>;
 
-}}}}
+}
 

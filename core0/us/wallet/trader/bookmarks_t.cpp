@@ -275,3 +275,15 @@ ko s::add(string name, const bookmark_t& o) {
     return ok;
 }
 
+s::const_iterator s::find_protocol_role(const string& prot, const string& role) const {
+    for (auto i = begin(); i != end(); ++i) {
+        auto& qr = i->second.qr;
+        if (qr.protocol_selection.first != prot) continue;
+        if (!role.empty()) {
+            if (qr.protocol_selection.second != role) continue;
+        }
+        return i;
+    }
+    return end();
+}
+

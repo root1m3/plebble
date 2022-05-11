@@ -54,11 +54,13 @@
 #include "kv.h"
 #include "data_t.h"
 
-namespace us { namespace wallet { namespace engine {
-    struct peer_t;
-}}}
+namespace us::wallet::engine {
 
-namespace us { namespace wallet { namespace trader {
+    struct peer_t;
+
+}
+
+namespace us::wallet::trader {
 
     using namespace std;
     struct traders_t;
@@ -120,7 +122,7 @@ namespace us { namespace wallet { namespace trader {
         const endpoint_t& local_endpoint() const override;
         pair<ko, hostport_t> resolve_ip_address(const hash_t& address) const override;
 
-        enum push_code_t { //communications node-HMI
+        enum push_code_t: uint16_t { //communications node-HMI
             push_begin = 100,
             push_log = push_begin,
             push_data,
@@ -141,7 +143,7 @@ namespace us { namespace wallet { namespace trader {
             push_end
         };
 
-        enum service_t { //communications node-node
+        enum service_t: uint16_t { //communications node-node
             svc_begin = 100,
             svc_ping = svc_begin,
             svc_pong,
@@ -251,10 +253,12 @@ namespace us { namespace wallet { namespace trader {
         wallet::local_api* w{nullptr};
         traders_t& parent;
         string datasubdir;
-    #if CFG_LOGS == 1
-        mutable data_t prev_data;
-    #endif
+
+        #if CFG_LOGS == 1
+            mutable data_t prev_data;
+        #endif
+
     };
 
-}}}
+}
 

@@ -23,13 +23,16 @@
 #pragma once
 
 #include "handshake_t.h"
-#include "bootstrapper_t.h"
+
+#include <us/gov/crypto/ripemd160.h>
+
 #include <us/wallet/trader/endpoint_t.h>
 #include <us/wallet/trader/trader_protocol.h>
 #include <us/wallet/trader/protocol_selection_t.h>
-#include <us/gov/crypto/ripemd160.h>
 
-namespace us { namespace wallet { namespace trader { namespace bootstrap {
+#include "bootstrapper_t.h"
+
+namespace us::wallet::trader::bootstrap {
 
     using namespace std;
 
@@ -54,5 +57,5 @@ namespace us { namespace wallet { namespace trader { namespace bootstrap {
         wallet::local_api& w;
     };
 
-}}}}
+}
 

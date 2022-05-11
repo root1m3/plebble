@@ -22,11 +22,12 @@
 //===-
 #pragma once
 #include <iostream>
+
 #include <us/gov/io/seriable.h>
 #include <us/gov/crypto/ec.h>
 #include <us/gov/crypto/ripemd160.h>
 
-namespace us { namespace gov { namespace dfs {
+namespace us::gov::dfs {
 
     using namespace std;
 
@@ -51,7 +52,5 @@ namespace us { namespace gov { namespace dfs {
         string path;
     };
 
-}}}
-
-
+}
 

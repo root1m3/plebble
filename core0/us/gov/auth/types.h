@@ -27,10 +27,10 @@ namespace us {
 
 }
 
-namespace us { namespace gov { namespace auth {
+namespace us::gov::auth {
 
     using namespace us;
     namespace base_ns = us::gov::id;
 
-}}}
+}
 

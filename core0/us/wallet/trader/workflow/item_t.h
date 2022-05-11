@@ -32,7 +32,7 @@
 
 #include "doc0_t.h"
 
-namespace us { namespace wallet { namespace trader { namespace workflow {
+namespace us::wallet::trader::workflow {
 
     struct workflow_t;
 
@@ -101,6 +101,5 @@ namespace us { namespace wallet { namespace trader { namespace workflow {
         mode_t mode{mode_recv};
     };
 
-}}}}
-
+}
 

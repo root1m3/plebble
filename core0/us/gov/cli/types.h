@@ -32,10 +32,10 @@ namespace us {
 
 }
 
-namespace us { namespace gov { namespace cli {
+namespace us::gov::cli {
 
     using namespace us;
     using namespace us::gov;
 
-}}}
+}
 

@@ -35,7 +35,7 @@
 #include "task.h"
 #include <us/gov/config.h>
 
-namespace us { namespace dbg {
+namespace us::dbg {
 
     using namespace std;
     using namespace chrono;
@@ -81,5 +81,5 @@ namespace us { namespace dbg {
         string root_logdir;
     };
 
-}}
+}
 

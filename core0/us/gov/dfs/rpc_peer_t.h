@@ -23,11 +23,12 @@
 #pragma once
 #include <us/gov/relay/rpc_peer_t.h>
 #include <us/gov/config.h>
+
 #include "rpc_daemon_t.h"
 #include "api.h"
 #include "types.h"
 
-namespace us { namespace gov { namespace dfs {
+namespace us::gov::dfs {
 
     struct rpc_peer_t: base_ns::rpc_peer_t, caller_api {
         using b = base_ns::rpc_peer_t;
@@ -39,5 +40,5 @@ namespace us { namespace gov { namespace dfs {
         #endif
     };
 
-}}}
+}
 

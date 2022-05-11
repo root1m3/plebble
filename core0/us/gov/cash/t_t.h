@@ -24,7 +24,7 @@
 #include <us/gov/types.h>
 #include <us/gov/io/seriable_map.h>
 
-namespace us { namespace gov { namespace cash {
+namespace us::gov::cash {
 
     struct accounts_t;
 
@@ -43,5 +43,5 @@ namespace us { namespace gov { namespace cash {
 
     };
 
-}}}
+}
 

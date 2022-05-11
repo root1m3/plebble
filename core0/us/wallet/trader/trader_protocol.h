@@ -49,11 +49,13 @@
 #include "chat_t.h"
 #include "ch_t.h"
 
-namespace us { namespace wallet { namespace engine {
-    struct peer_t;
-}}}
+namespace us::wallet::engine {
 
-namespace us { namespace wallet { namespace trader {
+    struct peer_t;
+
+}
+
+namespace us::wallet::trader {
 
 //    using namespace us::gov;
 
@@ -94,7 +96,7 @@ namespace us { namespace wallet { namespace trader {
 
         static const char *WP_29101, *KO_29100; //WayPoint
 
-        enum push_code_t { //communications node-HMI
+        enum push_code_t: uint16_t { //communications node-HMI
             push_begin = 200,
             push_ico = push_begin, // push 200
             push_logo,
@@ -105,7 +107,7 @@ namespace us { namespace wallet { namespace trader {
             push_r2r_begin = 300
         };
 
-        enum service_t { //communications node-node
+        enum service_t: uint16_t { //communications node-node
             svc_begin = 200,
             svc_ico_request = svc_begin, //svc 200
             svc_ico,  //svc 201
@@ -154,6 +156,7 @@ namespace us { namespace wallet { namespace trader {
         template<typename... Args> void olog(const Args&... args) const;
         const hash_t& tid() const;
         wallet::local_api& w();
+        const wallet::local_api& w() const;
         void schedule_push(uint16_t code) const;
         void to_stream(ostream&) const;
         protocol_selection_t opposite_protocol_selection() const;
@@ -194,5 +197,5 @@ namespace us { namespace wallet { namespace trader {
         static remote_params_t* remote_params_on_hold;
     };
 
-}}}
+}
 

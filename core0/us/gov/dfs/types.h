@@ -27,10 +27,10 @@ namespace us {
 
 }
 
-namespace us { namespace gov { namespace dfs {
+namespace us::gov::dfs {
 
     using namespace us;
     namespace base_ns = us::gov::relay;
 
-}}}
+}
 

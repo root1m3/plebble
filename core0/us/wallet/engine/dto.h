@@ -21,14 +21,17 @@
 //===----------------------------------------------------------------------------
 //===-
 #pragma once
+
 #include <us/gov/io/seriable.h>
+#include <us/gov/engine/track_status_t.h>
+
 #include <us/wallet/trader/bookmarks_t.h>
 #include <us/wallet/trader/endpoint_t.h>
 
 #include "types.h"
 #include "protocol.h"
 
-namespace us { namespace wallet { namespace engine {
+namespace us::wallet::engine {
 
     struct peer_t;
 
@@ -39,6 +42,7 @@ namespace us { namespace wallet { namespace engine {
         using bookmarks_t = us::wallet::trader::bookmarks_t;
         using bookmark_t = us::wallet::trader::bookmark_t;
         using endpoint_t = us::wallet::trader::endpoint_t;
+        using track_status_t = us::gov::engine::track_status_t;
 
         #include <us/api/generated/c++/wallet/engine/cllr_dto-hdr>
         #include <us/api/generated/c++/wallet/engine/hdlr_dto-hdr>
@@ -51,5 +55,5 @@ namespace us { namespace wallet { namespace engine {
 
     };
 
-}}}
+}
 

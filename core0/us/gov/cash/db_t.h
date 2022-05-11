@@ -25,7 +25,7 @@
 #include <vector>
 #include <mutex>
 
-namespace us { namespace gov { namespace cash {
+namespace us::gov::cash {
 
     struct accounts_t;
 
@@ -64,5 +64,5 @@ namespace us { namespace gov { namespace cash {
         mutable mutex mx;
     };
 
-}}}
+}
 

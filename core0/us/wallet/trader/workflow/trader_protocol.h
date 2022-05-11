@@ -21,11 +21,10 @@
 //===----------------------------------------------------------------------------
 //===-
 #pragma once
-
 #include <us/wallet/trader/trader_protocol.h>
 #include "workflows_t.h"
 
-namespace us { namespace wallet { namespace trader { namespace workflow {
+namespace us::wallet::trader::workflow {
 
         using namespace std;
         struct item_t;
@@ -58,18 +57,19 @@ namespace us { namespace wallet { namespace trader { namespace workflow {
             void sig_reload(ostream&);
 
             virtual void on_send_item(const string& what) {}
-            enum push_code_t { //communications node-HMI
+
+            enum push_code_t: uint16_t { //communications node-HMI
                 push_begin = b::push_end,
 
-                push_workflow_item = push_begin, // 203,
-                push_doc, // 204,
+                push_workflow_item = push_begin,
+                push_doc,
                 push_redirects,
 
-                push_end, //push 205 end
+                push_end,
                 push_r2r_begin = b::push_r2r_begin
             };
 
-            enum service_t { //communications node-node
+            enum service_t: uint16_t { //communications node-node
                 svc_begin = b::svc_end,
 
                 svc_workflow_item_request = svc_begin,
@@ -100,5 +100,5 @@ namespace us { namespace wallet { namespace trader { namespace workflow {
             string _user_hint{"Let's have a chat."};
         };
 
-}}}}
+}
 

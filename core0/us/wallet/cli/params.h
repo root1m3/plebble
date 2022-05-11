@@ -22,11 +22,13 @@
 //===-
 #pragma once
 #include <string>
+
 #include <us/gov/config.h>
 #include <us/gov/io/shell_args.h>
+
 #include "types.h"
 
-namespace us{ namespace wallet { namespace cli {
+namespace us::wallet::cli {
 
     struct params {
         using shell_args = us::gov::io::shell_args;
@@ -88,5 +90,5 @@ namespace us{ namespace wallet { namespace cli {
         bool nolog{false};
     };
 
-}}}
+}
 

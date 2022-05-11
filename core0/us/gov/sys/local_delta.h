@@ -24,9 +24,10 @@
 #include <us/gov/config.h>
 #include <us/gov/types.h>
 #include <us/gov/engine/app.h>
+
 #include "sensor_t.h"
 
-namespace us { namespace gov { namespace sys {
+namespace us::gov::sys {
 
     struct local_delta: engine::app::local_delta {
         using b = engine::app::local_delta;
@@ -59,7 +60,7 @@ namespace us { namespace gov { namespace sys {
         mutable hash_t hash{0};
     };
 
-}}}
+}
 
 namespace std {
     template <> struct hash<us::gov::sys::local_delta> {

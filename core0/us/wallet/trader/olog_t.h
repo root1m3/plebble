@@ -33,7 +33,7 @@
 #include <us/gov/io/blob_writer_t.h>
 #include "endpoint_t.h"
 
-namespace us { namespace wallet { namespace trader {
+namespace us::wallet::trader {
 
     using namespace std;
 
@@ -56,5 +56,5 @@ namespace us { namespace wallet { namespace trader {
         string ologfile;
     };
 
-}}}
+}
 

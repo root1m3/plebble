@@ -24,16 +24,15 @@
 #include <iostream>
 #include <string>
 #include <stdio.h>
-
-#include <us/gov/config.h>
-
 #include <crypto++/gcm.h>
 #include <crypto++/aes.h>
 #include <crypto++/osrng.h>
 
+#include <us/gov/config.h>
+
 #include "ec.h"
 
-namespace us { namespace gov { namespace crypto {
+namespace us::gov::crypto {
 
     using namespace std;
     using CryptoPP::AutoSeededRandomPool;
@@ -59,5 +58,5 @@ namespace us { namespace gov { namespace crypto {
         byte key_[key_size];
     };
 
-}}}
+}
 

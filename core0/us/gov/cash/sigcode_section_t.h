@@ -24,7 +24,7 @@
 #include <us/gov/io/seriable.h>
 #include <vector>
 
-namespace us { namespace gov { namespace cash {
+namespace us::gov::cash {
 
     struct sigcode_section_t final: io::seriable {
 
@@ -55,5 +55,5 @@ namespace us { namespace gov { namespace cash {
         side_t outputs;
     };
 
-}}}
+}
 

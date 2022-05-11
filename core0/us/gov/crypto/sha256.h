@@ -27,10 +27,12 @@
 #include <cassert>
 #include <cstring>
 #include <array>
+
 #include <us/gov/likely.h>
+
 #include "ripemd160.h"
 
-namespace us { namespace gov { namespace crypto {
+namespace us::gov::crypto {
 
     using namespace std;
 
@@ -103,7 +105,7 @@ namespace us { namespace gov { namespace crypto {
         return is;
     }
 
-}}}
+}
 
 namespace std {
 

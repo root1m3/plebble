@@ -23,14 +23,16 @@
 #pragma once
 #include <mutex>
 #include <condition_variable>
+
 #include <us/gov/config.h>
 #include <us/gov/crypto/types.h>
 #include <us/gov/crypto/symmetric_encryption.h>
 #include <us/gov/socket/peer_t.h>
+
 #include "types.h"
 #include "api.h"
 
-namespace us { namespace gov { namespace id {
+namespace us::gov::id {
 
     struct daemon_t;
     struct rpc_daemon_t;
@@ -131,5 +133,5 @@ namespace us { namespace gov { namespace id {
         thread_local static bool inbound_traffic__was_encrypted;
     };
 
-}}}
+}
 

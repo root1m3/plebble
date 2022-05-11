@@ -26,6 +26,7 @@
 #include <us/gov/config.h>
 #include <us/gov/cli/rpc_daemon_t.h>
 #include <us/gov/relay/pushman.h>
+#include <us/gov/engine/daemon_t.h>
 
 #include <us/wallet/trader/traders_t.h>
 
@@ -56,6 +57,7 @@ namespace us::wallet::engine {
         using housekeeping = us::wallet::engine::mezzanine;
         using dispatcher_t = us::gov::datagram::dispatcher_t;
         using pushman = us::gov::relay::pushman;
+        using track_status_t = us::gov::engine::daemon_t::ev_track_t::status_t;
 
         static const char* KO_20193, *KO_20197;
 
@@ -87,7 +89,7 @@ namespace us::wallet::engine {
         void configure_gov_rpc_daemon(const shost_t&);
         string wallet_home(const string& subhome) const;
         bool has_home(const string& subhome) const;
-        void on_tx_tracking_status(const string& status);
+        void on_tx_tracking_status(const track_status_t&);
 
         ko lookup_wallet(const hash_t& addr, hostport_t&);
         #ifdef CFG_TOPOLOGY_RING

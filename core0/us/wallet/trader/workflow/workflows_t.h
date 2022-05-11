@@ -21,12 +21,11 @@
 //===----------------------------------------------------------------------------
 //===-
 #pragma once
-
 #include <tuple>
-#include "workflow_t.h"
 #include <us/wallet/trader/params_t.h>
+#include "workflow_t.h"
 
-namespace us { namespace wallet { namespace trader { namespace workflow {
+namespace us::wallet::trader::workflow {
 
     using namespace std;
 
@@ -59,5 +58,5 @@ namespace us { namespace wallet { namespace trader { namespace workflow {
         string home;
     };
 
-}}}}
+}
 

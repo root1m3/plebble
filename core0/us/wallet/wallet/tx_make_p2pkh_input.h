@@ -24,7 +24,7 @@
 #include <us/gov/types.h>
 #include <us/gov/io/seriable.h>
 
-namespace us { namespace wallet { namespace wallet {
+namespace us::wallet::wallet {
 
     struct tx_make_p2pkh_input: us::gov::io::seriable {
         tx_make_p2pkh_input() {}
@@ -41,5 +41,5 @@ namespace us { namespace wallet { namespace wallet {
         hash_t token;
     };
 
-}}}
+}
 

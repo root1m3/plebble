@@ -21,14 +21,14 @@
 //===----------------------------------------------------------------------------
 //===-
 #pragma once
-#include "protocol.h"
 #include <us/gov/io/seriable.h>
+#include "protocol.h"
 
 #if __has_include(<us/api/generated/c++/gov/dfs/svc>)
     #define has_us_gov_dfs_api
 #endif
 
-namespace us { namespace gov { namespace dfs {
+namespace us::gov::dfs {
 
     using namespace gov::io;
 
@@ -52,5 +52,6 @@ namespace us { namespace gov { namespace dfs {
         struct api {};
 
     #endif
-}}}
+
+}
 

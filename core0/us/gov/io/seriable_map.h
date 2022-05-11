@@ -25,7 +25,7 @@
 #include <map>
 #include <unordered_map>
 
-namespace us { namespace gov { namespace io {
+namespace us::gov::io {
 
     template<typename k, typename v>
     struct seriable_map: map<k, v>, virtual seriable {
@@ -45,5 +45,5 @@ namespace us { namespace gov { namespace io {
         inline ko from_blob(blob_reader_t& reader) override { return reader.read(static_cast<unordered_map<k, v>&>(*this)); }
     };
 
-}}}
+}
 

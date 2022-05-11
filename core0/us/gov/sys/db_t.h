@@ -25,7 +25,7 @@
 #include <us/gov/io/seriable.h>
 #include "sensors_t.h"
 
-namespace us { namespace gov { namespace sys {
+namespace us::gov::sys {
 
     struct db_t final: io::seriable {
         db_t();
@@ -48,5 +48,5 @@ namespace us { namespace gov { namespace sys {
         sensors_t sensors;
     };
 
-}}}
+}
 

@@ -23,22 +23,28 @@
 #pragma once
 
 #include "handshake_t.h"
+
 #include <us/wallet/trader/params_t.h>
 #include <us/wallet/trader/trader_protocol.h>
 #include <us/wallet/trader/ch_t.h>
+
 #include "dialogue_a_t.h"
 #include "dialogue_b_t.h"
 #include "dialogue_c_t.h"
 
-namespace us { namespace wallet { namespace engine {
+namespace us::wallet::engine {
+
     struct peer_t;
-}}}
 
-namespace us { namespace wallet { namespace trader {
+}
+
+namespace us::wallet::trader {
+
     struct trader_t;
-}}}
 
-namespace us { namespace wallet { namespace trader { namespace bootstrap {
+}
+
+namespace us::wallet::trader::bootstrap {
 
     using namespace std;
 
@@ -70,5 +76,5 @@ namespace us { namespace wallet { namespace trader { namespace bootstrap {
         trader_t* trader{nullptr};
     };
 
-}}}}
+}
 

@@ -42,11 +42,13 @@
 #include "fcgi.h"
 #include "rpc_daemon_t.h"
 
-namespace us { namespace wallet { namespace engine {
-    struct daemon_t;
-}}}
+namespace us::wallet::engine {
 
-namespace us { namespace wallet { namespace cli {
+    struct daemon_t;
+
+}
+
+namespace us::wallet::cli {
 
     struct hmi {
         using shell_args = us::gov::io::shell_args;
@@ -80,6 +82,7 @@ namespace us { namespace wallet { namespace cli {
         void constructor();
 
     public:
+        void print_id() const;
         void trade(bool interactive, shell_args& args);
         bool rpc_ok();
         ko tx(shell_args&);
@@ -111,7 +114,7 @@ namespace us { namespace wallet { namespace cli {
         void set_mute(bool);
         void new_trade(const hash_t tid);
         virtual us::gov::socket::datagram::dispatcher_t* create_dispatcher();
-        virtual pair<ko, gov::io::cfg1*> load_cfg(const string& home, bool gen);
+        virtual pair<ko, gov::io::cfg1*> load_cfg(const string& home, bool gen) const;
         virtual void on_stop();
         static void process_cleanup();
 
@@ -138,7 +141,7 @@ namespace us { namespace wallet { namespace cli {
 
     public:
         string home;
-        screen scr;
+        mutable screen scr;
         bool interactive{false};
         params p;
         us::gov::io::cfg1* cfg{nullptr};
@@ -167,5 +170,5 @@ namespace us { namespace wallet { namespace cli {
         #endif
     };
 
-}}}
+}
 

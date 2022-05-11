@@ -86,7 +86,6 @@ void c::wait(node& n1, node& n2) {
     #endif
 }
 
-
 void c::wait_no_clear(node& n1, node& n2) {
     n1.wallet_cli_dis->expected_code.wait_no_clear();
     n2.wallet_cli_dis->expected_code.wait_no_clear();

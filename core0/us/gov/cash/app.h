@@ -36,7 +36,7 @@
 #include "counters_t.h"
 #include "locking_program_input_t.h"
 
-namespace us { namespace gov { namespace cash {
+namespace us::gov::cash {
 
     struct map_tx;
     struct file_tx;
@@ -129,5 +129,5 @@ namespace us { namespace gov { namespace cash {
         #endif
     };
 
-}}}
+}
 

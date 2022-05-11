@@ -32,14 +32,14 @@
 
 #include "item_t.h"
 
-namespace us { namespace wallet { namespace trader {
+namespace us::wallet::trader {
 
     struct trader_t;
     struct trader_protocol;
 
-}}}
+}
 
-namespace us { namespace wallet { namespace trader { namespace workflow {
+namespace us::wallet::trader::workflow {
 
     struct workflows_t;
 
@@ -86,7 +86,5 @@ namespace us { namespace wallet { namespace trader { namespace workflow {
         mutable mutex mx;
     };
 
-}}}}
-
-
+}
 

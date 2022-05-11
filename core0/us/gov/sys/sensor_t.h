@@ -24,7 +24,7 @@
 #include <us/gov/types.h>
 #include <us/gov/io/seriable.h>
 
-namespace us { namespace gov { namespace sys {
+namespace us::gov::sys {
 
     struct sensor_t: virtual io::seriable {
 
@@ -72,5 +72,5 @@ namespace us { namespace gov { namespace sys {
 */
     };
 
-}}}
+}
 

@@ -21,15 +21,16 @@
 //===----------------------------------------------------------------------------
 //===-
 #pragma once
-#include "protocol.h"
 #include <us/gov/io/seriable.h>
 #include <us/gov/crypto/ec.h>
+
+#include "protocol.h"
 
 #if __has_include(<us/api/generated/c++/gov/id/svc>)
     #define has_us_gov_id_api
 #endif
 
-namespace us { namespace gov { namespace id {
+namespace us::gov::id {
 
     using namespace gov::io;
     using sig_t = us::gov::crypto::ec::sig_t;
@@ -55,5 +56,6 @@ namespace us { namespace gov { namespace id {
         struct api {};
 
     #endif
-}}}
+
+}
 

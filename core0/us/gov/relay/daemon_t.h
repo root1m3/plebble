@@ -34,7 +34,7 @@
 #include "types.h"
 #include "peer_t.h"
 
-namespace us { namespace gov { namespace relay {
+namespace us::gov::relay {
 
     struct daemon_t: base_ns::daemon_t {
         using b = base_ns::daemon_t;
@@ -63,5 +63,5 @@ namespace us { namespace gov { namespace relay {
 
     };
 
-}}}
+}
 

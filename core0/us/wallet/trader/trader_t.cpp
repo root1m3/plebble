@@ -124,7 +124,7 @@ void c::init(const hash_t& tid, const endpoint_t& rep, wallet::local_api& wallet
     w = &wallet;
     if (parent_tid.is_zero()) { //users can input zero meaning root
         parent_tid = tid; // zero is root (me root)
-    } //parent trade shares datadir with their children, unless overriden by datasubdir
+    } //parent trade shares datadir with its children, unless overriden by datasubdir
     log("datasubdir", datasubdir);
     if (datasubdir.empty()) {
         datasubdir = parent_tid.encode();
@@ -152,7 +152,7 @@ void c::init(const hash_t& tid, const endpoint_t& rep, wallet::local_api& wallet
         olog("New bootstrapper");
     }
     olog("Remote: ", remote_endpoint.to_string());
-    olog("Side", bootstrapper->initiator() ? "Initiator" : "Follower");
+    olog("Side", initiator() ? "Initiator" : "Follower");
 }
 
 void c::on_stop() {

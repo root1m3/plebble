@@ -35,7 +35,7 @@ namespace us { namespace test {
 
         node(const string& id, const string& root_homedir, const string& root_logdir, const string& root_vardir, uint16_t gport, uint16_t wport);
         virtual string desc() const = 0;
-        virtual void banner(ostream&) const = 0;
+        virtual void banner(ostream&) const;
 
         string ep() const;
         void start_govd(bool init_chain = false);

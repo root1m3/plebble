@@ -27,7 +27,7 @@ s ans
 track
 u8 ts
 sync
-[async_handler] s progress
+[async_handler] track_status_t track_status
 -
 -
 
@@ -40,7 +40,7 @@ async
 ev_track
 [dgram] v blob_evidence
 sync
-s progress
+track_status_t track_status
 -
 -
 

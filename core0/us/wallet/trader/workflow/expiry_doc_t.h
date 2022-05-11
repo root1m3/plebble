@@ -25,7 +25,7 @@
 #include <string>
 #include <us/gov/socket/types.h>
 
-namespace us { namespace wallet { namespace trader { namespace workflow {
+namespace us::wallet::trader::workflow {
 
     using namespace us::gov;
 
@@ -64,5 +64,5 @@ namespace us { namespace wallet { namespace trader { namespace workflow {
         ts_t expiry;
     };
 
-}}}}
+}
 

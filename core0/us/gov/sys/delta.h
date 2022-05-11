@@ -25,7 +25,7 @@
 #include "sensors_t.h"
 #include "local_delta.h"
 
-namespace us { namespace gov { namespace sys {
+namespace us::gov::sys {
 
     struct delta: engine::app::delta {
         using b = engine::app::delta;
@@ -56,5 +56,5 @@ namespace us { namespace gov { namespace sys {
         merger m;
     };
 
-}}}
+}
 

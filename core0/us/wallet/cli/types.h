@@ -25,6 +25,7 @@
    struct assert_is_root_namespace;
    static_assert(std::is_same<assert_is_root_namespace, ::assert_is_root_namespace>::value, "Not root namespace. Check includes.");
 #endif
+
 #include <us/wallet/engine/types.h>
 #include <us/wallet/wallet/types.h>
 #include <us/wallet/trader/types.h>
@@ -33,10 +34,10 @@ namespace us {
 
 }
 
-namespace us { namespace wallet { namespace cli {
+namespace us::wallet::cli {
 
     using namespace us;
     using namespace us::gov;
 
-}}}
+}
 

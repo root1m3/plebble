@@ -53,6 +53,7 @@ function help {
     echo "    sync <options>     Synchronize upstream devjob."
     echo "        --id <id>      by id (ids in file .cbs/devjobs_active)"
     echo "        --url <url>    upstream devjob git url"
+    echo "        --dryrun       Don't push neither upstream nor downstream."
     echo "active devjobs: id url"
     cat $djactive | grep -v "^#"
 }
@@ -63,6 +64,7 @@ let upload=0
 brand=""
 workdir=""
 upstream_branch="main"
+let dryrun=0
 
 while [[ true ]]; do
     opt=$1
@@ -79,6 +81,9 @@ while [[ true ]]; do
         continue
     elif [[ "_$opt" == "_--upload" ]]; then
         let upload=1
+        continue
+    elif [[ "_$opt" == "_--dryrun" ]]; then
+        let dryrun=1
         continue
     elif [[ "_$opt" == "_--brand" ]]; then
         brand=$1
@@ -752,27 +757,28 @@ EOF
             echo ""
 
         popd > /dev/null
-        
-
-        echo -n "push origin main upstream? [yes|anything_else=no]: "
-        read x
-        if  [[ "_$x" == "_yes" ]]; then
-            pushd upstream > /dev/null
-                git push origin main
-                if [[ $? -ne 0 ]]; then
-                    echo "KO 87321"
-                    exit 1
-                fi
-            popd  > /dev/null
-            pushd downstream > /dev/null
-                git push origin $branch
-                if [[ $? -ne 0 ]]; then
-                    echo "KO 87322"
-                    exit 1
-                fi
-            popd  > /dev/null
+	if [[ $dryrun -eq 0 ]]; then
+            echo -n "push origin main upstream? [yes|anything_else=no]: "
+            read x
+            if  [[ "_$x" == "_yes" ]]; then
+                pushd upstream > /dev/null
+                    git push origin main
+                    if [[ $? -ne 0 ]]; then
+                        echo "KO 87321"
+                        exit 1
+                    fi
+                popd  > /dev/null
+                pushd downstream > /dev/null
+                    git push origin $branch
+                    if [[ $? -ne 0 ]]; then
+                        echo "KO 87322"
+                        exit 1
+                    fi
+                popd  > /dev/null
+            fi
+        else
+            echo "DRYRUN: Skipped push"
         fi
-
         echo "DONE"
         exit 0
 

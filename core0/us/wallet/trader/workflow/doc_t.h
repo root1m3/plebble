@@ -22,12 +22,14 @@
 //===-
 #pragma once
 
+#include <us/gov/crypto/types.h>
+
 #include <us/wallet/trader/traders_t.h>
 #include <us/wallet/wallet/local_api.h>
-#include <us/gov/crypto/types.h>
+
 #include "doc0_t.h"
 
-namespace us { namespace wallet { namespace trader { namespace workflow {
+namespace us::wallet::trader::workflow {
 
     ///b one of {workflow_signed_expiry_doc_t, workflow_signed_doc_t, workflow_expiry_doc_t, workflow_doc0_t }
     ///traits. Must publish t:: values
@@ -137,5 +139,5 @@ namespace us { namespace wallet { namespace trader { namespace workflow {
         }
     };
 
-}}}}
+}
 

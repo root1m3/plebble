@@ -29,7 +29,7 @@
 #include "convert.h"
 #include "types.h"
 
-namespace us { namespace gov { namespace io {
+namespace us::gov::io {
 
     struct shell_args final {
 
@@ -84,5 +84,5 @@ namespace us { namespace gov { namespace io {
         int n{1};
     };
 
-}}}
+}
 

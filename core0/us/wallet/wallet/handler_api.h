@@ -22,17 +22,21 @@
 //===-
 #pragma once
 #include <us/gov/io/seriable.h>
+
 #include <us/wallet/engine/protocol.h>
 #include <us/wallet/engine/dto.h>
 #include <us/wallet/trader/bookmarks_t.h>
 #include <us/wallet/trader/endpoint_t.h>
+
 #include "types.h"
 
-namespace us { namespace wallet { namespace engine {
-    struct peer_t;
-}}}
+namespace us::wallet::engine {
 
-namespace us { namespace wallet { namespace wallet {
+    struct peer_t;
+
+}
+
+namespace us::wallet::wallet {
 
     using blob_writer_t = gov::io::blob_writer_t;
     using blob_reader_t = gov::io::blob_reader_t;
@@ -45,5 +49,5 @@ namespace us { namespace wallet { namespace wallet {
         #include <us/api/generated/c++/wallet/wallet/cllr_purevir>
     };
 
-}}}
+}
 

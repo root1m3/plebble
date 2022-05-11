@@ -33,7 +33,7 @@
 #include <us/gov/cash/app.h>
 #include <us/gov/cash/locking_program_input_t.h>
 
-namespace us { namespace wallet { namespace wallet {
+namespace us::wallet::wallet {
 
     using namespace us::gov;
 
@@ -73,13 +73,14 @@ namespace us { namespace wallet { namespace wallet {
             void dump(const string& prefix, int detail, ostream&) const;
         };
 
-        struct affected_t {
+        struct affected_t: vector<string> {
             affected_t();
+
+        public:
             void add_pay(const cash_t& to_pay, const hash_t& coin);
             void add_charge(const cash_t& to_charge, const hash_t& coin);
-            string to_string() const;
+            string to_string(string&& prefix) const;
 
-            ostringstream os;
         };
 
         algorithm(const string& keys_file);
@@ -141,5 +142,5 @@ namespace us { namespace wallet { namespace wallet {
         mutable bool need_save{false};
     };
 
-}}}
+}
 

@@ -23,10 +23,9 @@
 #pragma once
 #include <us/gov/socket/protocol.h>
 
-namespace us { namespace gov { namespace protocol {
+namespace us::gov::protocol {
 
     #include <us/api/generated/c++/gov/id/svc>
 
-
-}}}
+}
 

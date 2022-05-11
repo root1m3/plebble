@@ -34,11 +34,12 @@
 #include "rpc_daemon_t.h"
 #include "rpc_peer_t.h"
 
-namespace us { namespace gov { namespace engine {
-    struct daemon_t;
-}}}
+namespace us::gov::engine {
 
-namespace us { namespace gov { namespace cli {
+    struct daemon_t;
+}
+
+namespace us::gov::cli {
 
     struct screen;
     struct printer_t;
@@ -127,5 +128,5 @@ namespace us { namespace gov { namespace cli {
         #endif
     };
 
-}}}
+}
 

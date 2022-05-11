@@ -52,28 +52,30 @@ us::wallet::engine::mezzanine::mezzanine(daemon_t* d): d(d), b(bind(&c::run, d),
 }
 
 namespace {
+
     struct my_dispatcher_t: us::gov::socket::datagram::dispatcher_t {
         using b = us::gov::socket::datagram::dispatcher_t;
 
         my_dispatcher_t(c& daemon): daemon(daemon) {
         }
 
-        virtual bool dispatch(datagram* d) {
+        bool dispatch(datagram* d) override {
             if (d->service != us::gov::protocol::engine_track_response) {
                 return false;
             }
-            string status;
+            using track_status_t = us::gov::engine::daemon_t::ev_track_t::status_t;
+            track_status_t status;
             auto r = blob_reader_t::readD(*d, status);
+            delete d;
             if (is_ko(r)) {
                 log("engine_track", r);
-                delete d;
                 return true;
             }
-            log("engine_track", status);
-            delete d;
+            log("engine_track");
             daemon.on_tx_tracking_status(status);
             return true;
         }
+
         c& daemon;
     };
 
@@ -308,8 +310,9 @@ void c::on_peer_wallet(const hash_t& addr, host_t address, pport_t rpport) {
     gov_rpc_daemon.get_peer().call_ev(move(blob));
 }
 
-void c::on_tx_tracking_status(const string& status) {
-    log("on_tx_tracking_status", status);
+void c::on_tx_tracking_status(const track_status_t& status) {
+    log("on_tx_tracking_status");
+    //traders.on_tx_tracking_status(status);
 }
 
 /*//////////////////////////////////////

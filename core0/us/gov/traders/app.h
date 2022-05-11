@@ -29,15 +29,19 @@
 
 #include "db_t.h"
 
-namespace us { namespace gov { namespace peer {
+namespace us::gov::peer {
+
     struct nodes_t;
-}}}
 
-namespace us { namespace gov { namespace engine {
+}
+
+namespace us::gov::engine {
+
     struct daemon_t;
-}}}
 
-namespace us { namespace gov { namespace traders {
+}
+
+namespace us::gov::traders {
 
     struct wallet_address;
     struct local_delta;
@@ -84,5 +88,5 @@ namespace us { namespace gov { namespace traders {
 
     };
 
-}}}
+}
 

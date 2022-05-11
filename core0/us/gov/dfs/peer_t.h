@@ -23,10 +23,11 @@
 #pragma once
 #include <us/gov/relay/peer_t.h>
 #include <us/gov/config.h>
+
 #include "api.h"
 #include "types.h"
 
-namespace us { namespace gov { namespace dfs {
+namespace us::gov::dfs {
 
     struct daemon_t;
 
@@ -45,5 +46,5 @@ namespace us { namespace gov { namespace dfs {
         #endif
     };
 
-}}}
+}
 

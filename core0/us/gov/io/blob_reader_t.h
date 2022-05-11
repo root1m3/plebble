@@ -43,7 +43,7 @@
    static_assert(std::is_same<assert_is_root_namespace, ::assert_is_root_namespace>::value, "Not root namespace. Check includes.");
 #endif
 
-namespace us { namespace gov { namespace io {
+namespace us::gov::io {
 
     using namespace us::gov;
 
@@ -53,6 +53,7 @@ namespace us { namespace gov { namespace io {
 
         static constexpr version_t current_version{CFG_BLOB_VERSION};
         static constexpr uint64_t max_sizet_containers{numeric_limits<uint16_t>::max()};
+
         static const char* KO_67217, *KO_60499, *KO_60498, *KO_75643;
 
         struct blob_header_t {
@@ -227,5 +228,5 @@ namespace us { namespace gov { namespace io {
     template<> ko blob_reader_t::read(time_point&);
     template<> ko blob_reader_t::read(char&);
 
-}}}
+}
 

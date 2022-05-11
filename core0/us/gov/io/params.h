@@ -25,7 +25,7 @@
 #include <us/gov/config.h>
 #include "shell_args.h"
 
-namespace us { namespace gov { namespace io {
+namespace us::gov::io {
 
     using namespace std;
 
@@ -77,5 +77,5 @@ namespace us { namespace gov { namespace io {
         bool banner{true};
     };
 
-}}}
+}
 

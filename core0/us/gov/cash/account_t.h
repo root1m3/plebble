@@ -44,7 +44,7 @@
 #include "tx_t.h"
 #include "safe_deposit_box.h"
 
-namespace us { namespace gov { namespace cash {
+namespace us::gov::cash {
 
     struct accounts_t;
 
@@ -78,5 +78,5 @@ namespace us { namespace gov { namespace cash {
         box_t box;
     };
 
-}}}
+}
 

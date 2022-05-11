@@ -26,7 +26,7 @@
 #include <us/gov/peer/nodes_t.h>
 #include <us/gov/engine/app.h>
 
-namespace us { namespace gov { namespace traders {
+namespace us::gov::traders {
 
     struct local_delta final: engine::app::local_delta {
         using b = engine::app::local_delta;
@@ -51,5 +51,5 @@ namespace us { namespace gov { namespace traders {
         wallets_t online;
     };
 
-}}}
+}
 

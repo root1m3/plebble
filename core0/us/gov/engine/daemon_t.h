@@ -55,6 +55,7 @@
 #include "votes_t.h"
 #include "pools_t.h"
 #include "types.h"
+#include "track_status_t.h"
 #include "auth/app.h"
 
 namespace us::gov::io {
@@ -96,25 +97,25 @@ namespace us::gov::engine {
             atomic<uint32_t> max{0};
         };
 
-        enum evt_status_t { //values coupled in fragment_w2w.java (android app)
-            evt_unknown,
-            evt_error,
-            evt_wait_arrival,
-            evt_calendar,
-            evt_mempool,
-            evt_consensus,
-            evt_settled,
-            evt_untracked,
-
-            evt_num
-        };
-
-        static constexpr const char* evt_status_str[evt_num] = {"unknown", "error", "wait_arrival", "calendar", "mempool", "consensus", "settled", "untracked"};
-
         struct evt_data_t {
+            evt_data_t() {}
+/*
+            void reset(evt_status_t ist, const hash_t& src) {
+                st = ist;
+                if (src.is_not_zero()) srcs.emplace(src);
+            }
+
+            void reset(evt_status_t ist, const string& iinfo, const hash_t& src) {
+                st = ist;
+                info = iinfo;
+                if (src.is_not_zero()) srcs.emplace(src);
+            }
+*/
             evt_data_t(evt_status_t st): st(st), info(evt_status_str[st]) {}
             evt_data_t(evt_status_t st, const string& info): st(st), info(info) {}
             evt_data_t(const evt_data_t& other): st(other.st), info(other.info) {}
+
+            track_status_t get_status(ts_t) const;
 
         public:
             evt_status_t st;
@@ -123,12 +124,13 @@ namespace us::gov::engine {
 
         struct ev_track_t final: unordered_map<ts_t, evt_data_t> {
             using evt_ret_t = pair<pair<ts_t, ts_t>, evt_data_t>;
+            using status_t = track_status_t;
 
-            evt_data_t track(calendar_t&, ts_t);
-            string set_errorx(ts_t, const string& err);
-            string set_errorx(ts_t from, ts_t to, const string& err);
-            string set_statusx(ts_t, evt_status_t st);
-            string set_statusx(ts_t from, ts_t to, evt_status_t st);
+            void track(calendar_t&, ts_t, track_status_t&);
+            status_t set_errorx(ts_t, const string& err);
+            status_t set_errorx(ts_t from, ts_t to, const string& err);
+            status_t set_statusx(ts_t, evt_status_t st);
+            status_t set_statusx(ts_t from, ts_t to, evt_status_t st);
 
         public:
             void dump(ostream&) const;
@@ -144,6 +146,7 @@ namespace us::gov::engine {
         daemon_t(const daemon_t&) = delete;
         daemon_t(daemon_t&&) = delete;
         ~daemon_t() override;
+
         daemon_t& operator = (const daemon_t&) = delete;
 
         void constructor();
@@ -238,6 +241,7 @@ namespace us::gov::engine {
         bool encrypt_protocol{false};
         local_deltas_t* _local_deltas{nullptr};
         votes_t votes;
+
         #if CFG_COUNTERS == 1
             struct silent_t: set<hash_t> {
                 void dump(ostream&) const;
@@ -245,6 +249,7 @@ namespace us::gov::engine {
             };
             silent_t silent;
         #endif
+
         pools_t pools;
         syncd_t syncd;
         neuralyzer_t neuralyzer;

@@ -30,7 +30,7 @@
 #include "cfg0.h"
 #include "types.h"
 
-namespace us { namespace gov { namespace io {
+namespace us::gov::io {
 
     using namespace std;
 
@@ -53,5 +53,5 @@ namespace us { namespace gov { namespace io {
 
     using cfg_id = cfg1;
 
-}}}
+}
 

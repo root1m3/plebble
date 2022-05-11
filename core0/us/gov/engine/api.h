@@ -21,12 +21,13 @@
 //===----------------------------------------------------------------------------
 //===-
 #pragma once
-#include <us/gov/engine/protocol.h>
-#include <us/gov/engine/local_deltas_t.h>
 #include <us/gov/io/blob_writer_t.h>
 #include <us/gov/io/blob_reader_t.h>
 #include <us/gov/cash/accounts_t.h>
 #include <us/gov/cash/addresses_t.h>
+#include <us/gov/engine/protocol.h>
+#include <us/gov/engine/local_deltas_t.h>
+#include <us/gov/engine/track_status_t.h>
 #include <us/gov/types.h>
 
 namespace us::gov::engine {

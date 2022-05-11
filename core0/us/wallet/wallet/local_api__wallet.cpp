@@ -701,12 +701,28 @@ ko c::handle_file(hash_t&& digest, vector<uint8_t>& content) {
     return daemon.gov_rpc_daemon.get_peer().call_file_request(digest, content);
 }
 
-ko c::handle_exec(string&& cmd) {
-    log("exec");
-    auto r = daemon.traders.exec(cmd, *this);
+ko c::handle_exec(string&& cmd0) {
+    log("exec", cmd0);
+    {
+        istringstream is(cmd0);
+        string cmd;
+        is >> cmd;
+        if (cmd == "show") {
+            log("show");
+            string cmd;
+            is >> cmd;
+            if (cmd == "txlog") {
+                log("show txlog");
+                daemon.pm.schedule_push(get_push_datagram(hash_t(0), push_txlog), device_filter);
+                return ok;
+            }
+        }
+    }
+    auto r = daemon.traders.exec(cmd0, *this);
     if (is_ko(r)) {
         daemon.pm.push_KO(r, device_filter);
     }
+
     return ok;
 }
 
@@ -903,52 +919,76 @@ ko c::handle_patch_os(patch_os_in_dst_t&& o_in, patch_os_out_t& o_out) {
     }
     return ok;
 }
+/*
+ko c::handle_track(track_in_dst_t&& o_in, track_status_t& track_status) {
+    log("track");
+    /// in:
+    ///     uint64_t ts;
+    ///     hash_t src;
 
-ko c::handle_track(uint64_t&& ts) {
     log("track");
     string progress;
-    return daemon.gov_rpc_daemon.get_peer().call_track(ts, progress);
+    return daemon.gov_rpc_daemon.get_peer().call_track(o_in.ts, track_status);
 }
 
-ko c::handle_track_pay(blob_t&& blob_tx, track_pay_out_t& o_out) {
+ko c::handle_track_response(track_status_t&& track_status) {
+    log("track_response");
+    
+    return ok; //Ignore
+}
+
+ko c::handle_track_pay(track_pay_in_dst_t&& o_in, track_pay_out_t& o_out) {
     log("track_pay");
+    /// in:
+    ///     blob_t blob_tx;
+    ///     hash_t src;
+
     /// out:
     ///    blob_t blob_tx;
-    ///    string progress;
+    ///    track_status_t track_status;
 
     tx_t tx;
     {
-        auto r = tx.read(blob_tx);
+        auto r = tx.read(o_in.blob_tx);
         if (is_ko(r)) {
             return r;
         }
     }
     {
-        auto r = track_pay("algS0", "algR0", tx, o_out.progress);
+        auto r = track_pay("algS0", "algR0", tx, o_in.src, o_out.track_status);
         if (is_ko(r.first)) {
             return r.first;
         }
     }
-    blob_t paid_tx;
-    tx.write(paid_tx);
+    tx.write(o_out.blob_tx);
     return ok;
 }
 
-ko c::handle_track_relay(blob_t&& blob_ev, string& progress) {
+ko c::handle_track_relay(track_relay_in_dst_t&& o_in, track_status_t& track_status) {
+    log("track_relay");
+    /// in:
+    ///     blob_t blob_tx;
+    ///     hash_t src;
+
     log("track_relay");
     {
         using evidence = us::gov::engine::evidence;
-        pair<ko, evidence*> r = evidence::from_blob(blob_ev);
+        pair<ko, evidence*> r = evidence::from_blob(o_in.blob_tx);
+        if (is_ko(r.first)) {
+            assert(r.first == nullptr);
+            return r.first;
+        }
         if (!r.second->check_amounts()) {
-            auto r = "KO 84306 Input and output amounts must match.";
-            log(r);
-            return r;
+            delete r.second;
+            auto e = "KO 84306 Input and output amounts must match.";
+            log(e);
+            return e;
         }
         delete r.second;
     }
-    return daemon.gov_rpc_daemon.get_peer().call_ev_track(blob_ev, progress);
+    return daemon.gov_rpc_daemon.get_peer().call_ev_track(o_in.blob_tx, track_status);
 }
-
+*/
 ko c::handle_list_protocols(string& data) {
     log("list_protocols");
     ostringstream os;
@@ -1078,7 +1118,6 @@ ko c::handle_timeseries_show(timeseries_show_in_dst_t&& o_in, string& ans) {
     {
         ostringstream os;
         os << tshome << '/' << o_in.ts;
-//cout << "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX " << os.str() << endl;
         auto r = us::gov::io::read_file_(os.str(), v);
         if (is_ko(r)) {
             return r;
@@ -1215,11 +1254,13 @@ ko c::handle_nodes_deny(nodes_deny_in_dst_t&& o_in, blob_t& blob_ev) {
 
 #endif
 
-ko c::track(const ts_t& track, string& progress) {
-    return daemon.gov_rpc_daemon.get_peer().call_track(track, progress);
+/*
+ko c::track(const ts_t& ts, track_status_t& track_status) {
+    return daemon.gov_rpc_daemon.get_peer().call_track(ts, track_status);
 }
+*/
 
-pair<ko, c::affected_t> c::track_pay(const asa_t& asa_pay, const asa_t& asa_charge, tx_t& tx, string& progress) {
+pair<ko, c::affected_t> c::track_pay(const asa_t& asa_pay, const asa_t& asa_charge, tx_t& tx, const hash_t& tid, track_status_t& track_status) {
     log("track_pay");
     pair<ko, affected_t> ret;
     {
@@ -1230,7 +1271,7 @@ pair<ko, c::affected_t> c::track_pay(const asa_t& asa_pay, const asa_t& asa_char
         }
     }
     {
-        auto r = algorithm::tx_pay("algS0", "algR0", tx, ret.second);
+        auto r = tx_pay("algS0", "algR0", tx, ret.second);
         if (is_ko(r)) {
             ret.first = r;
             return move(ret);
@@ -1238,18 +1279,27 @@ pair<ko, c::affected_t> c::track_pay(const asa_t& asa_pay, const asa_t& asa_char
     }
     blob_t blob;
     tx.write(blob);
-    ret.first = daemon.gov_rpc_daemon.get_peer().call_ev_track(blob, progress);
+    ret.first = daemon.gov_rpc_daemon.get_peer().call_ev_track(blob, track_status);
     return move(ret);
 }
 
-pair<ko, c::affected_t> c::analyze_pay(const asa_t& asa_pay, const asa_t& asa_charge, const tx_t& tx0) const {
+pair<ko, c::affected_t> c::analyze_pay(const asa_t& asa_pay, const asa_t& asa_charge, const tx_t& tx0) {
     tx_t tx(tx0);
     string title;
     pair<ko, affected_t> ret;
-    auto r = tx_pay(asa_pay, asa_charge, tx, ret.second);
-    if (is_ko(r)) {
-        ret.first = r;
-        return move(ret);
+    {
+        auto r = refresh_data();
+        if (unlikely(is_ko(r))) {
+            ret.first = r;
+            return ret;
+        }
+    }
+    {
+        auto r = tx_pay(asa_pay, asa_charge, tx, ret.second);
+        if (is_ko(r)) {
+            ret.first = r;
+            return move(ret);
+        }
     }
     ret.first = ok;
     return move(ret);

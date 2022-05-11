@@ -23,9 +23,10 @@
 #pragma once
 #include <us/gov/types.h>
 #include <us/gov/engine/app.h>
+
 #include "accounts_t.h"
 
-namespace us { namespace gov { namespace cash {
+namespace us::gov::cash {
 
     struct local_delta final: engine::app::local_delta {
         using b = engine::app::local_delta;
@@ -61,7 +62,7 @@ namespace us { namespace gov { namespace cash {
         mutable hash_t hash{0};
     };
 
-}}}
+}
 
 namespace std {
     template <>

@@ -23,11 +23,12 @@
 #pragma once
 #include "types.h"
 
-namespace us { namespace wallet { namespace protocol {
+namespace us::wallet::protocol {
+
     #include <us/api/generated/c++/wallet/engine/svc>
     #include <us/api/generated/c++/wallet/pairing/svc>
     #include <us/api/generated/c++/wallet/r2r/svc>
     #include <us/api/generated/c++/wallet/wallet/svc>
-}}}
 
+}
 

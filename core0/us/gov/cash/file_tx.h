@@ -27,7 +27,7 @@
 
 #include "locking_program_input_t.h"
 
-namespace us { namespace gov { namespace cash {
+namespace us::gov::cash {
 
     struct file_tx final: engine::evidence {
         using b = engine::evidence;
@@ -61,5 +61,5 @@ namespace us { namespace gov { namespace cash {
         return os;
     }
 
-}}}
+}
 

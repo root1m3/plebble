@@ -27,6 +27,7 @@
 #include <us/gov/io/shell_args.h>
 #include <us/gov/io/cfg0.h>
 #include <us/gov/engine/daemon_t.h>
+#include <us/gov/cli/rpc_peer_t.h>
 
 #include <us/wallet/protocol.h>
 #include <us/wallet/engine/daemon_t.h>
@@ -47,7 +48,7 @@ const char* c::rolestr() const { return "w"; }
 const char* c::peer_rolestr() const { return "w"; }
 const char* c::get_name() const { return name; }
 
-c::protocol(business_t& bz): b(bz), txlog(*this) {
+c::protocol(business_t& bz): b(bz) {
     log("created protocol_w2w_w");
 }
 
@@ -72,7 +73,7 @@ void c::help_online(const string& indent, ostream& os) const {
 
 void c::help_onoffline(const string& indent, ostream& os) const {
     b::help_onoffline(indent, os);
-    os << indent << "track <txlog_id>                                    Track tx status in the txlog.\n";
+//    os << indent << "track <txlog_id>                                    Track tx status in the txlog.\n";
 }
 
 void c::help_show(const string& indent, ostream& os) const {
@@ -87,14 +88,10 @@ blob_t c::push_payload(uint16_t pc) const {
     if (pc < push_begin) {
         return b::push_payload(pc);
     }
+    assert(false);
     blob_t blob;
     switch(pc) {
         case push_tx: {
-        }
-        break;
-        case push_txlog: {
-            log("computing push_txlog");
-            txlog.index().write(blob);
         }
         break;
         default:
@@ -109,17 +106,12 @@ ko c::exec_offline(const string& cmd0, ch_t& ch) {
         auto r = b::exec_offline(cmd0, ch);
         if (r != trader_protocol::WP_29101) return move(r);
     }
-    istringstream is(cmd0);
-    string cmd;
-    is >> cmd;
-    if (cmd == "show") {
-        string cmd;
-        is >> cmd;
-        if (cmd == "txlog") {
-            tder->schedule_push(get_push_datagram(push_txlog));
-            return ok;
-        }
-    }
+//    istringstream is(cmd0);
+//    string cmd;
+//    is >> cmd;
+//    if (cmd == "show") {
+//    }
+/*
     if (cmd == "track") { //trackid
         log("track");
         track_t track;
@@ -129,70 +121,18 @@ ko c::exec_offline(const string& cmd0, ch_t& ch) {
             log(r);
             return move(r);
         }
-        string progress;
-        auto r = w().track(track, progress);
+        track_status_t track_status;
+        auto r = w().track(track, tder->id, track_status);
         if (is_ko(r)) {
             return r;
         }
-        return tder->push_OK(progress);
+        ostringstream os;
+        track_status.dump(os);
+        return tder->push_OK(os.str());
     }
-    auto r = WP_29101;
+*/    auto r = WP_29101;
     log(r);
     return move(r);
-}
-
-c::t2_t::t2_t(const track_t& track, tx_t* tx): track(track), tx(tx) {
-}
-
-size_t c::t2_t::blob_size() const {
-    return blob_writer_t::blob_size(track) + blob_writer_t::blob_size(*tx);
-}
-
-void c::t2_t::to_blob(blob_writer_t& writer) const {
-    writer.write(track);
-    writer.write(*tx);
-}
-
-ko c::t2_t::from_blob(blob_reader_t& reader) {
-    {
-        auto r = reader.read(track);
-        if (is_ko(r)) return r;
-    }
-    {
-        tx_t* t = new tx_t();
-        auto r = reader.read(*t);
-        if (is_ko(r)) {
-            delete t;
-            return r;
-        }
-        delete tx;
-        tx = t;
-    }
-    return ok;
-}
-
-c::t1_t::t1_t(const cash_t& amount, const hash_t& coin): amount(amount), coin(coin) {
-}
-
-size_t c::t1_t::blob_size() const {
-    return blob_writer_t::blob_size(amount) + blob_writer_t::blob_size(coin);
-}
-
-void c::t1_t::to_blob(blob_writer_t& writer) const {
-    writer.write(amount);
-    writer.write(coin);
-}
-
-ko c::t1_t::from_blob(blob_reader_t& reader) {
-    {
-        auto r = reader.read(amount);
-        if (is_ko(r)) return r;
-    }
-    {
-        auto r = reader.read(coin);
-        if (is_ko(r)) return r;
-    }
-    return ok;
 }
 
 ko c::exec_online(peer_t& peer, const string& cmd0, ch_t& ch) {
@@ -207,29 +147,31 @@ ko c::exec_online(peer_t& peer, const string& cmd0, ch_t& ch) {
     is >> cmd;
     if (cmd == "transfer") {
         log("transfer");
-        t1_t t1(0, hash_t(0));
-        is >> t1.amount;
+        cash_t amount{0};
+        hash_t coin{0};
+        is >> amount;
         if (is.fail()) {
             auto r = "KO 30203 Invalid amount.";
             log(r);
             return move(r);
         }
-        if (t1.amount == 0) {
+        if (amount == 0) {
             auto r = "KO 30204 Invalid amount.";
             log(r);
             return move(r);
         }
-        t1.coin = us::gov::io::shell_args::next_token(is);
+        coin = us::gov::io::shell_args::next_token(is);
         if (is.fail()) {
             auto r = "KO 30205 Invalid coin.";
             log(r);
             return move(r);
         }
         blob_t blob;
-        t1.write(blob);
+        track_t track = w().txlog.register_transfer(amount, coin, tid(), blob);
         log("send peer svc_invoice_query");
         auto r = peer.call_trading_msg(peer_t::trading_msg_in_t(tid(), svc_invoice_query, blob));
         if (is_ko(r)) {
+            w().txlog.cancel(track);
             return move(r);
         }
         return ok;
@@ -243,44 +185,20 @@ ko c::exec_online(peer_t& peer, const string& cmd0, ch_t& ch) {
             log(r);
             return move(r);
         }
-        //TODO verify outputs. must match stored amount+coin
-        log("RBF", "check outputs");
-        tx_t* tx;
+        blob_t response_blob;
         {
-            pair<ko, tx_t*> r = txlog.get_invoice(track);
-            if (is_ko(r.first)) {
-                return r.first;
-            }
-            assert(r.second != nullptr);
-            tx = r.second;
-        }
-
-        {
-            string pg_info;
-            using affected_t = us::wallet::wallet::algorithm::affected_t;
-            pair<ko, affected_t> r = w().track_pay("algS0", "algR0", *tx, pg_info);
-            if (is_ko(r.first)) {
-                delete tx;
-                return r.first;
-            }
-            txlog.store_new_tx(track, r.second.to_string(), 4, pg_info, tx);
-        }
-        log("paid tx", tx->encode());
-        {
-            blob_t response_blob;
-            {
-                t2_t t2(track, tx);
-                t2.write(response_blob);
-            }
-            log("Forward to peer. track", track);
-            auto r = peer.call_trading_msg(peer_t::trading_msg_in_t(tid(), svc_tx, response_blob));
+            auto r = w().txlog.pay_inv(track, response_blob);
             if (is_ko(r)) {
                 return r;
             }
-            log("sent signed tx to peer"); //, os.str());
         }
+        log("Forward to peer. track", track);
+        auto r = peer.call_trading_msg(peer_t::trading_msg_in_t(tid(), svc_tx, response_blob));
+        if (is_ko(r)) {
+            return r;
+        }
+        log("sent signed tx to peer"); //, os.str());
         return ok;
-
     }
     if (cmd == "cancel") { //trackid
         log("cancel");
@@ -291,14 +209,12 @@ ko c::exec_online(peer_t& peer, const string& cmd0, ch_t& ch) {
             log(r);
             return move(r);
         }
-        auto r = txlog.cancel(track);
+        blob_t response_blob;
+        auto r = w().txlog.cancel(track, response_blob);
         if (is_ko(r)) {
             return r;
         }
-        blob_t blob;
-        blob_writer_t w(blob, blob_writer_t::blob_size(track));
-        w.write(track);
-        return peer.call_trading_msg(peer_t::trading_msg_in_t(tid(), svc_cancel, blob));
+        return peer.call_trading_msg(peer_t::trading_msg_in_t(tid(), svc_cancel, response_blob));
     }
     auto r = WP_29101;
     log(r);
@@ -335,44 +251,14 @@ ko c::trading_msg(peer_t& peer, svc_t svc, blob_t&& blob) {
     }
     switch(svc) {
         case svc_invoice_query: {
-        log("received svc_invoice_query");
-            log("invoice_request");
-            t1_t t1(0, hash_t(0));
-            auto r = t1.read(blob);
-            if (is_ko(r)) {
-                return r;
-            }
+            log("received svc_invoice_query");
+            blob_t response_blob;
             {
-                auto r = w().refresh_data();
+                auto r = w().txlog.register_transfer(blob, tid(), response_blob);
                 if (is_ko(r)) {
                     return r;
                 }
             }
-            pair<ko, hash_t> ret = w().select_receiving_account();
-            if (is_ko(ret.first)) {
-                return ret.first;
-            }
-            hash_t recv_address = ret.second;
-            if (recv_address.is_zero()) {
-                ko e = "KO 22019 Invalid recv address";
-                log(e);
-                return e;
-            }
-            tx_t* tx;
-            {
-                auto r = w().tx_charge(recv_address, t1.amount, t1.coin);
-                if (is_ko(r.first)) {
-                    return ret.first;
-                }
-                tx = r.second;
-            }
-            assert(tx != nullptr);
-            using affected_t = us::wallet::wallet::algorithm::affected_t;
-            affected_t a;
-            a.add_charge(t1.amount, t1.coin);
-            track_t track = txlog.store_new_invoice(a.to_string(), 1, "Waiting for peer confirmation.", tx);
-            blob_t response_blob;
-            tx->write(response_blob);
             {
                 auto r = peer.call_trading_msg(peer_t::trading_msg_in_t(tid(), svc_invoice, response_blob));
                 if (is_ko(r)) {
@@ -384,68 +270,19 @@ ko c::trading_msg(peer_t& peer, svc_t svc, blob_t&& blob) {
         break;
         case svc_invoice: {
             log("received svc_invoice");
-            log("received outputs");
-            cash::tx_t* inv = new cash::tx_t();
-            {
-                auto r = inv->read(blob);
-                if (is_ko(r)) {
-                    delete inv;
-                    return r;
-                }
-            }
-            {
-                using affected_t = us::wallet::wallet::algorithm::affected_t;
-                pair<ko, affected_t> r = w().analyze_pay("algS0", "algR0", *inv);
-                track_t inv_track = txlog.store_recv_invoice(r.second.to_string(), 2, "Confirm payment.", inv);
-            }
-            return ok;
+            return w().txlog.register_invoice(blob);
         }
         break;
         case svc_cancel: {
-            log("received svc_tx");
-            track_t track;
-            {
-                blob_reader_t reader(blob);
-                auto r = reader.read(track);
-                if (is_ko(r)) {
-                    return r;
-                }
-            }
-            return txlog.cancel(track);
+            log("received svc_cancel");
+            return w().txlog.cancel(blob);
         }
         break;
         case svc_tx: {
             log("received svc_tx");
-            tx_t* tx;
-            track_t track;
-            {
-                t2_t t2;
-                auto r = t2.read(blob);
-                if (is_ko(r)) {
-                    auto r = "KO 92201 Invalid transaction wrapper t2.";
-                    log(r);
-                    return r;
-                }
-                track = t2.track;
-                tx = t2.tx;
-            }
-            log("Received peer's payment. track", track);
-
-            log("relay tx + track");
-            string pg_info;
-            {
-                log("Broadcasting tx. track", track, "tx.ts=", tx->ts);
-                blob_t blobev;
-                tx->write(blobev);
-                auto r = w().daemon.gov_rpc_daemon.get_peer().call_ev_track(blobev, pg_info);
-                if (is_ko(r)) {
-                    delete tx;
-                    return r;
-                }
-            }
-            txlog.store_new_tx(track, "tx-notrace", 4, pg_info, tx);
-            return ok;
+            return w().txlog.register_tx(blob);
         }
+        break;
     }
     return trader_protocol::KO_29100;
 }

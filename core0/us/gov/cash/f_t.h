@@ -23,10 +23,11 @@
 #pragma once
 #include <vector>
 #include <set>
+
 #include <us/gov/io/seriable_map.h>
 #include <us/gov/dfs/fileattr_t.h>
 
-namespace us { namespace gov { namespace cash {
+namespace us::gov::cash {
 
     using fileattr_t = us::gov::dfs::fileattr_t;
 
@@ -51,5 +52,5 @@ namespace us { namespace gov { namespace cash {
         void del_dup();
     };
 
-}}}
+}
 

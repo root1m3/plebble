@@ -28,7 +28,7 @@
 #include "blob_reader_t.h"
 #include "types.h"
 
-namespace us { namespace gov { namespace io {
+namespace us::gov::io {
 
     struct seriable: blob_reader_t::readable, blob_writer_t::writable {
         using blob_writer_t = us::gov::io::blob_writer_t;
@@ -37,5 +37,5 @@ namespace us { namespace gov { namespace io {
         using blob_writer_t::writable::serial_id;
     };
 
-}}}
+}
 

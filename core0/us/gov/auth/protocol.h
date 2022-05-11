@@ -23,8 +23,8 @@
 #pragma once
 #include <us/gov/id/protocol.h>
 
-namespace us { namespace gov { namespace protocol {
+namespace us::gov::protocol {
 
     #include <us/api/generated/c++/gov/auth/svc>
 
-}}}
+}

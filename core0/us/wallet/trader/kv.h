@@ -33,7 +33,7 @@
 
 #include "types.h"
 
-namespace us { namespace wallet { namespace trader {
+namespace us::wallet::trader {
 
     struct kv final: gov::io::seriable_map<string, string> {
         using b = gov::io::seriable_map<string, string>;
@@ -95,5 +95,5 @@ namespace us { namespace wallet { namespace trader {
 
     };
 
-}}}
+}
 

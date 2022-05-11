@@ -24,12 +24,12 @@
 #include <iostream>
 #include <string>
 
-namespace us { namespace gov { namespace crypto { namespace b64 {
+namespace us::gov::crypto::b64 {
 
     using namespace std;
 
     string encode_string(const string&);
     string decode_string(const string&);
 
-}}}}
+}
 

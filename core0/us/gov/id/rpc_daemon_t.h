@@ -23,10 +23,11 @@
 #pragma once
 #include <us/gov/socket/rpc_daemon_t.h>
 #include <us/gov/crypto/types.h>
+
 #include "peer_t.h"
 #include "daemon0_t.h"
 
-namespace us { namespace gov { namespace id {
+namespace us::gov::id {
 
     struct rpc_daemon_t: base_ns::rpc_daemon_t, daemon0_t {
         using b = base_ns::rpc_daemon_t;
@@ -40,5 +41,5 @@ namespace us { namespace gov { namespace id {
         void dump_all(const string& prefix, ostream&) const override;
     };
 
-}}}
+}
 

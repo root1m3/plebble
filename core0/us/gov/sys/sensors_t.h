@@ -25,12 +25,11 @@
 #include <us/gov/io/seriable_map.h>
 #include "sensor_t.h"
 
-namespace us { namespace gov { namespace sys {
+namespace us::gov::sys {
 
     struct sensors_t: io::seriable_map<hash_t, sensor_t> {
         void dump(const string& prefix, ostream&) const;
     };
 
-}}}
-
+}
 

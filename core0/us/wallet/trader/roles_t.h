@@ -28,7 +28,7 @@
 #include <us/gov/ko.h>
 #include <us/gov/io/seriable_vector.h>
 
-namespace us { namespace wallet { namespace trader {
+namespace us::wallet::trader {
 
     struct trader_t;
 
@@ -38,5 +38,5 @@ namespace us { namespace wallet { namespace trader {
         mutable mutex mx;
     };
 
-}}}
+}
 

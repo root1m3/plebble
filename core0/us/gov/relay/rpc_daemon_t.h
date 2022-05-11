@@ -24,10 +24,9 @@
 #include <us/gov/peer/rpc_daemon_t.h>
 #include "types.h"
 
-namespace us { namespace gov { namespace relay {
+namespace us::gov::relay {
 
     using rpc_daemon_t = base_ns::rpc_daemon_t;
 
-}}}
-
+}
 

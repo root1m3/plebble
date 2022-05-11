@@ -23,7 +23,7 @@
 #pragma once
 #include <us/gov/io/seriable.h>
 
-namespace us { namespace gov { namespace cash { namespace tx {
+namespace us::gov::cash::tx {
 
     struct output_t final: io::seriable {
 
@@ -45,5 +45,5 @@ namespace us { namespace gov { namespace cash { namespace tx {
         cash_t amount;
     };
 
-}}}}
+}
 

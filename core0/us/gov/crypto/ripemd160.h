@@ -32,7 +32,7 @@
 
 #include <us/gov/config.h>
 
-namespace us { namespace gov { namespace crypto {
+namespace us::gov::crypto {
 
     using namespace std;
 
@@ -118,25 +118,25 @@ namespace us { namespace gov { namespace crypto {
         static const unsigned char pad[64];
     };
 
-    inline ostream& operator << (ostream& os, const us::gov::crypto::ripemd160::value_type& v) {
+    inline ostream& operator << (ostream& os, const ripemd160::value_type& v) {
         os << v.to_b58();
         return os;
     }
 
     template<typename T>
-    inline us::gov::crypto::ripemd160& operator << (us::gov::crypto::ripemd160& h, const T& v) {
+    inline us::gov::crypto::ripemd160& operator << (ripemd160& h, const T& v) {
         h.write(v);
         return h;
     }
 
-    inline istream& operator >> (istream& is, us::gov::crypto::ripemd160::value_type& v) {
+    inline istream& operator >> (istream& is, ripemd160::value_type& v) {
         string s;
         is >> s;
         if (!v.set_b58(s)) is.setstate(ios_base::failbit);
         return is;
       }
 
-}}}
+}
 
 namespace std {
 

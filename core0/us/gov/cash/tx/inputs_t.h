@@ -21,10 +21,10 @@
 //===----------------------------------------------------------------------------
 //===-
 #pragma once
-#include "input_t.h"
 #include <us/gov/io/seriable_vector.h>
+#include "input_t.h"
 
-namespace us { namespace gov { namespace cash { namespace tx {
+namespace us::gov::cash::tx {
 
     struct inputs_t final: io::seriable_vector<input_t> {
         using b = io::seriable_vector<input_t>;
@@ -35,5 +35,5 @@ namespace us { namespace gov { namespace cash { namespace tx {
         void write_pretty(const string& prefix, ostream&) const;
     };
 
-}}}}
+}
 

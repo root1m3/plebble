@@ -39,11 +39,12 @@ namespace us::gov::engine {
 
     struct calndx final {
         calndx(evidence* e);
-        bool operator < (const calndx& other) const;
+        inline bool operator < (const calndx& other) const { return e->ts < other.e->ts; }
+
         evidence* e;
     };
 
-    struct calendar_t:set<calndx> {
+    struct calendar_t: set<calndx> {
 
         static constexpr chrono::seconds cycle_period{60};
         static constexpr chrono::seconds relay_interval{15}; //Tx execution is delayed this many seconds to account for propagation.

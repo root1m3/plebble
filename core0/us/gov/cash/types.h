@@ -32,10 +32,10 @@ namespace us {
 
 }
 
-namespace us { namespace gov { namespace cash {
+namespace us::gov::cash {
 
     using namespace us;
     using namespace us::gov;
 
-}}}
+}
 

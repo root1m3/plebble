@@ -22,13 +22,15 @@
 //===-
 #pragma once
 #include "qr_t.h"
-#include <us/gov/crypto/ripemd160.h>
-#include <us/gov/io/seriable.h>
+
 #include <map>
 #include <string>
 #include <iostream>
 
-namespace us { namespace wallet { namespace trader {
+#include <us/gov/crypto/ripemd160.h>
+#include <us/gov/io/seriable.h>
+
+namespace us::wallet::trader {
 
     using namespace us::gov;
     struct traders_t;
@@ -90,6 +92,8 @@ namespace us { namespace wallet { namespace trader {
         ko load(const string& file);
         void save(const string& file) const;
 
+        const_iterator find_protocol_role(const string& prot, const string& role) const;
+
     public: //serialization
         using serid_t = blob_reader_t::serid_t;
         static constexpr serid_t serid{'B'};
@@ -100,13 +104,14 @@ namespace us { namespace wallet { namespace trader {
     };
 
 
-}}}
+}
 
-namespace us { namespace gov { namespace io {
+namespace us::gov::io {
+
     template<> inline ko blob_reader_t::readD(const us::gov::socket::datagram& d, us::wallet::trader::bookmark_t& o) { return o.read(d); }
     template<> inline ko blob_reader_t::readD(const us::gov::socket::datagram& d, us::wallet::trader::bookmarks_t& o) { return o.read(d); }
     template<> inline datagram* blob_writer_t::get_datagram(channel_t channel, svc_t svc, seq_t seq, const us::wallet::trader::bookmark_t& o) { return o.get_datagram(channel, svc, seq); }
     template<> inline datagram* blob_writer_t::get_datagram(channel_t channel, svc_t svc, seq_t seq, const us::wallet::trader::bookmarks_t& o) { return o.get_datagram(channel, svc, seq); }
-}}}
 
+}
 

@@ -23,11 +23,12 @@
 #pragma once
 #include <us/gov/io/seriable.h>
 #include <us/gov/cash/locking_program_input_t.h>
+
 #include "section_t.h"
 #include "inputs_t.h"
 #include "outputs_t.h"
 
-namespace us { namespace gov { namespace cash { namespace tx {
+namespace us::gov::cash::tx {
 
     struct section_t final: io::seriable {
 
@@ -54,5 +55,5 @@ namespace us { namespace gov { namespace cash { namespace tx {
         outputs_t outputs;
     };
 
-}}}}
+}
 

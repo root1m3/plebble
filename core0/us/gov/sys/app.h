@@ -24,14 +24,17 @@
 #include <us/gov/types.h>
 #include <us/gov/engine/evidence.h>
 #include <us/gov/engine/app.h>
+
 #include "db_t.h"
 
-namespace us { namespace gov { namespace engine {
+namespace us::gov::engine {
+
     struct daemon_t;
     struct peer_t;
-}}}
 
-namespace us { namespace gov { namespace sys {
+}
+
+namespace us::gov::sys {
 
     struct install_script_response;
     struct install_script;
@@ -79,6 +82,5 @@ namespace us { namespace gov { namespace sys {
         db_t db;
     };
 
-}}}
-
+}
 

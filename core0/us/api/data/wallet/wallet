@@ -292,26 +292,6 @@ v blob_ev  h job
 -
 -
 
-track
-u8 ts
-async
--
--
-
-track_pay
-v blob_tx
-sync
-v blob_tx s progress
--
--
-
-track_relay
-v blob_tx
-sync
-s progress
--
--
-
 list_protocols
 -
 sync

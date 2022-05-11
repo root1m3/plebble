@@ -95,8 +95,6 @@ ko c::handle_reload_file(string&& filename, string& ans) {
     log("reload_file");
     auto& demon = static_cast<daemon_t&>(daemon);
     demon.traders.reload_file(filename);
-
-//    demon.users.reload_file(filename);
     ans = "ok.";
     return ok;
 }
@@ -181,76 +179,6 @@ Returns:
     o_out.file = sblobhash;
     log("ok blobhash=", o_out.file, "blob", o_out.bin_pkg.size(), "bytes");
     return ok;
-/*
-    us::gov::io::cfg0::ensure_dir(branddir);
-    log("branddir", branddir);
-    hash_t blobhash;
-    {
-        istringstream is(sblobhash);
-        is >> blobhash;
-        if (is.fail()) {
-            log("could not load blobhash.", blobhashfile);
-            blobhash.zero();
-        }
-    }
-    {
-        log("asking gov for blob", blobhash, o_in.brandcode);
-        auto r = demon.gov_rpc_daemon.get_peer().call_file_content(daemon_t::gov_rpc_daemon_t::peer_type::file_content_in_t(demon.trusted_address, blobhash, o_in.brandcode), o_out.bin_pkg);
-        if (is_ko(r)) {
-            o_out.bin_pkg.clear();
-            return r;
-        }
-        if (o_out.bin_pkg.empty()) {
-            o_out.file = "";
-            o_out.bin_pkg.clear();
-            return ok;
-        }
-        hash_t blobhash = hash_t::compute(o_out.bin_pkg);
-        assert(!blobhash.is_zero());
-        {
-            string blobhashfile = branddir + "/blobhash";
-            ofstream ofs(blobhashfile);
-            ofs << blobhash;
-        }
-        {
-            string blobfile = branddir + "/blob";
-            ofstream ofs(blobfile);
-            ofs.write((const char*)o_out.bin_pkg.data(), o_out.bin_pkg.size());
-        }
-    }
-    ostringstream cmd;
-    cmd << "cd " << o_in.brandcode << "; /usr/local/bin/blob_extract_apk blob";
-    system(cmd.str().c_str());
-    string apkname;
-    {
-        string apknamefile = branddir + "/apkname";
-        string apkname;
-        auto r = us::gov::io::read_text_file_(apknamefile, apkname);
-        if (is_ko(r)) {
-            apkname.clear();
-        }
-    }
-    if (apkname.empty()) {
-        auto r = "KO 33029 apkname not found.";
-        log(r);
-        o_out.file = o_in.curver;
-        o_out.bin_pkg.clear();
-        return r;
-    }
-    auto r = us::gov::io::read_file_(branddir + "/apk", o_out.bin_pkg);
-    if (is_ko(r)) {
-        log(r, o_out.file, o_out.bin_pkg.size(), "bytes");
-        o_out.bin_pkg.clear();
-        return r;
-    }
-    if (o_out.bin_pkg.empty()) {
-        auto r = "KO 70974 File could not be read.";
-        log(r, o_out.file, o_out.bin_pkg.size(), "bytes");
-        return r;
-    }
-    o_out.file = apkname;
-    return ok;
-*/
 }
 
 ko c::handle_harvest(harvest_in_dst_t&& o_in, string& ans) {

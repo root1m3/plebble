@@ -27,7 +27,7 @@
 #include <us/gov/ko.h>
 #include <us/gov/io/seriable_vector.h>
 
-namespace us { namespace wallet { namespace trader { namespace bootstrap {
+namespace us::wallet::trader::bootstrap {
 
     struct protocols_t: us::gov::io::seriable_vector<pair<string, string>> {
         using item = pair<string, string>;
@@ -39,6 +39,5 @@ namespace us { namespace wallet { namespace trader { namespace bootstrap {
 
     };
 
-}}}}
-
+}
 

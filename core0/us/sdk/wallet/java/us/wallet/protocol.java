@@ -224,54 +224,46 @@ public class protocol {
         public static final int wallet_patch_os = wallet_begin + 73;  // svc 155
         public static final int wallet_patch_os_response = wallet_begin + 74;  // svc 156
 
-        public static final int wallet_track = wallet_begin + 75;  // svc 157
+        public static final int wallet_list_protocols = wallet_begin + 75;  // svc 157
+        public static final int wallet_list_protocols_response = wallet_begin + 76;  // svc 158
 
-        public static final int wallet_track_pay = wallet_begin + 76;  // svc 158
-        public static final int wallet_track_pay_response = wallet_begin + 77;  // svc 159
+        public static final int wallet_trade = wallet_begin + 77;  // svc 159
+        public static final int wallet_trade_response = wallet_begin + 78;  // svc 160
 
-        public static final int wallet_track_relay = wallet_begin + 78;  // svc 160
-        public static final int wallet_track_relay_response = wallet_begin + 79;  // svc 161
+        public static final int wallet_list_trades = wallet_begin + 79;  // svc 161
+        public static final int wallet_list_trades_response = wallet_begin + 80;  // svc 162
 
-        public static final int wallet_list_protocols = wallet_begin + 80;  // svc 162
-        public static final int wallet_list_protocols_response = wallet_begin + 81;  // svc 163
+        public static final int wallet_kill_trade = wallet_begin + 81;  // svc 163
+        public static final int wallet_kill_trade_response = wallet_begin + 82;  // svc 164
 
-        public static final int wallet_trade = wallet_begin + 82;  // svc 164
-        public static final int wallet_trade_response = wallet_begin + 83;  // svc 165
+        public static final int wallet_exec_trade = wallet_begin + 83;  // svc 165
 
-        public static final int wallet_list_trades = wallet_begin + 84;  // svc 166
-        public static final int wallet_list_trades_response = wallet_begin + 85;  // svc 167
+        public static final int wallet_qr = wallet_begin + 84;  // svc 166
+        public static final int wallet_qr_response = wallet_begin + 85;  // svc 167
 
-        public static final int wallet_kill_trade = wallet_begin + 86;  // svc 168
-        public static final int wallet_kill_trade_response = wallet_begin + 87;  // svc 169
+        public static final int wallet_bookmark_add = wallet_begin + 86;  // svc 168
+        public static final int wallet_bookmark_add_response = wallet_begin + 87;  // svc 169
 
-        public static final int wallet_exec_trade = wallet_begin + 88;  // svc 170
+        public static final int wallet_bookmark_delete = wallet_begin + 88;  // svc 170
+        public static final int wallet_bookmark_delete_response = wallet_begin + 89;  // svc 171
 
-        public static final int wallet_qr = wallet_begin + 89;  // svc 171
-        public static final int wallet_qr_response = wallet_begin + 90;  // svc 172
+        public static final int wallet_bookmark_list = wallet_begin + 90;  // svc 172
+        public static final int wallet_bookmark_list_response = wallet_begin + 91;  // svc 173
 
-        public static final int wallet_bookmark_add = wallet_begin + 91;  // svc 173
-        public static final int wallet_bookmark_add_response = wallet_begin + 92;  // svc 174
+        public static final int wallet_timeseries_list = wallet_begin + 92;  // svc 174
+        public static final int wallet_timeseries_list_response = wallet_begin + 93;  // svc 175
 
-        public static final int wallet_bookmark_delete = wallet_begin + 93;  // svc 175
-        public static final int wallet_bookmark_delete_response = wallet_begin + 94;  // svc 176
+        public static final int wallet_timeseries_show = wallet_begin + 94;  // svc 176
+        public static final int wallet_timeseries_show_response = wallet_begin + 95;  // svc 177
 
-        public static final int wallet_bookmark_list = wallet_begin + 95;  // svc 177
-        public static final int wallet_bookmark_list_response = wallet_begin + 96;  // svc 178
+        public static final int wallet_timeseries_new = wallet_begin + 96;  // svc 178
+        public static final int wallet_timeseries_new_response = wallet_begin + 97;  // svc 179
 
-        public static final int wallet_timeseries_list = wallet_begin + 97;  // svc 179
-        public static final int wallet_timeseries_list_response = wallet_begin + 98;  // svc 180
-
-        public static final int wallet_timeseries_show = wallet_begin + 99;  // svc 181
-        public static final int wallet_timeseries_show_response = wallet_begin + 100;  // svc 182
-
-        public static final int wallet_timeseries_new = wallet_begin + 101;  // svc 183
-        public static final int wallet_timeseries_new_response = wallet_begin + 102;  // svc 184
-
-        public static final int wallet_timeseries_add = wallet_begin + 103;  // svc 185
-        public static final int wallet_timeseries_add_response = wallet_begin + 104;  // svc 186
+        public static final int wallet_timeseries_add = wallet_begin + 98;  // svc 180
+        public static final int wallet_timeseries_add_response = wallet_begin + 99;  // svc 181
 
 
-        public static final int wallet_end = 187; // svc 187
+        public static final int wallet_end = 182; // svc 182
     //-/----------------------------------------------------------___end___------generated by configure, do not edit.
 
 }

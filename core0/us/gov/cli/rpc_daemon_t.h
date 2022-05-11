@@ -22,14 +22,16 @@
 //===-
 #pragma once
 #include <stack>
+
 #include <us/gov/engine/rpc_daemon_t.h>
 #include <us/gov/io/screen.h>
 #include <us/gov/io/seriable.h>
 #include <us/gov/crypto/types.h>
+
 #include "rpc_peer_t.h"
 #include "types.h"
 
-namespace us { namespace gov { namespace cli {
+namespace us::gov::cli {
 
     struct hmi;
 
@@ -74,5 +76,5 @@ namespace us { namespace gov { namespace cli {
         hmi* parent{nullptr};
     };
 
-}}}
+}
 

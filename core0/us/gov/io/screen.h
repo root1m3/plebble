@@ -28,7 +28,7 @@
 #include <us/gov/crypto/types.h>
 #include <us/gov/bgtask.h>
 
-namespace us { namespace gov { namespace io {
+namespace us::gov::io {
 
     struct screen {
 
@@ -101,7 +101,7 @@ private:
         mutex mx;
     };
 
-}}}
+}
 
 template<typename t>
 inline us::gov::io::screen& operator << (us::gov::io::screen& scr, const t& o) {

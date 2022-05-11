@@ -22,10 +22,10 @@
 //===-
 #pragma once
 #include <vector>
-#include "section_t.h"
 #include <us/gov/io/seriable_vector.h>
+#include "section_t.h"
 
-namespace us { namespace gov { namespace cash { namespace tx {
+namespace us::gov::cash::tx {
 
     struct sections_t final: io::seriable_vector<section_t> {
         using b = io::seriable_vector<section_t>;
@@ -38,5 +38,5 @@ namespace us { namespace gov { namespace cash { namespace tx {
 
     };
 
-}}}}
+}
 

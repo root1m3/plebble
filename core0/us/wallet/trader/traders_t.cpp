@@ -300,17 +300,23 @@ int c::set_personality(const string& sk, const string& moniker) {
 
 pair<ko, hash_t> c::initiate(const hash_t parent_tid, const string& datadir, qr_t&& qr, wallet::local_api& w) {
     log("initiate trader", qr.to_string());
-    if (qr.endpoint.chan != daemon.channel) {
+    if (unlikely(qr.endpoint.chan != daemon.channel)) {
         auto r = "KO 20100 Invalid channel";
         log(r);
         return make_pair(r, hash_t(0));
     }
-    if (qr.endpoint.pkh.is_zero()) {
+    if (unlikely(qr.endpoint.pkh.is_zero())) {
         auto r = "KO 83376 Invalid endpoint address";
         log(r);
         return make_pair(r, hash_t(0));
     }
+    if (unlikely(qr.endpoint == w.local_endpoint)) {
+        auto r = "KO 83316 Trading with myself.";
+        log(r);
+        return make_pair(r, hash_t(0));
+    }
     auto tder = new trader_t(*this, daemon, parent_tid, datadir);
+    log("boot with initiator bootstrapper", tder);
     lock_guard<mutex> lock(mx);
     auto tid = tder->boot(daemon.id.pub.hash(), new bootstrap::initiator_t(move(qr), w));
     if (is_ko(tid.first)) {
@@ -391,7 +397,7 @@ ko c::trading_msg(peer_t& peer, svc_t svc, const hash_t& trade_id, blob_t&& blob
                 auto tder = lock_trader_(trade_id);
                 assert(tder != nullptr);
                 {
-                    log("boot with follower bootstrapper", trade_id);
+                    log("boot with follower bootstrapper", trade_id, tder);
                     auto r = tder->boot(peer.pubkey.hash(), new bootstrap::follower_t(trade_id, peer));
                     if (is_ko(r.first)) {
                         log("Oo");

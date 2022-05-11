@@ -24,9 +24,9 @@
 #include <us/gov/crypto/types.h>
 #include <us/gov/io/seriable_vector.h>
 
-namespace us { namespace gov { namespace cash {
+namespace us::gov::cash {
 
     using addresses_t = us::gov::io::seriable_vector<hash_t>;
 
-}}}
+}
 

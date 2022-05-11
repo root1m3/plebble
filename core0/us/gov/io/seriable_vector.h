@@ -24,7 +24,7 @@
 #include "seriable.h"
 #include <vector>
 
-namespace us { namespace gov { namespace io {
+namespace us::gov::io {
 
     template<typename t>
     struct seriable_vector: vector<t>, virtual seriable {
@@ -35,5 +35,5 @@ namespace us { namespace gov { namespace io {
         inline ko from_blob(blob_reader_t& reader) override { return reader.read(static_cast<vector<t>&>(*this)); }
     };
 
-}}}
+}
 

@@ -29,7 +29,7 @@
 #include <us/gov/peer/nodes_t.h>
 #include <us/gov/types.h>
 
-namespace us { namespace gov { namespace traders {
+namespace us::gov::traders {
 
     struct db_t final: io::seriable {
         using account_t = peer::account_t;
@@ -54,5 +54,5 @@ namespace us { namespace gov { namespace traders {
         mutable mutex mx_wallets;
     };
 
-}}}
+}
 

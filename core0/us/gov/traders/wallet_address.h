@@ -29,7 +29,7 @@
 #include <us/gov/socket/datagram.h>
 #include <us/gov/engine/signed_data.h>
 
-namespace us { namespace gov { namespace traders {
+namespace us::gov::traders {
 
     struct wallet_address final: engine::evidence, engine::signed_data {
         using b = engine::evidence;
@@ -37,10 +37,12 @@ namespace us { namespace gov { namespace traders {
 
         static constexpr eid_t eid{0};
 
+    public:
         wallet_address();
         wallet_address(const hash_t& pkh, host_t netaddr, port_t pport);
         ~wallet_address() override;
 
+    public:
         string name() const override { return "traders::wallet_address"; }
         void hash_data_to_sign(sigmsg_hasher_t&) const override;
         void hash_data(hasher_t&) const override;
@@ -60,5 +62,5 @@ namespace us { namespace gov { namespace traders {
         pport_t pport;
     };
 
-}}}
+}
 

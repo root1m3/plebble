@@ -22,10 +22,11 @@
 //===-
 #pragma once
 #include <us/gov/peer/peer_t.h>
+
 #include "api.h"
 #include "types.h"
 
-namespace us { namespace gov { namespace relay {
+namespace us::gov::relay {
 
     struct peer_t: base_ns::peer_t, api  {
         using b = base_ns::peer_t;
@@ -40,5 +41,5 @@ namespace us { namespace gov { namespace relay {
         #endif
     };
 
-}}}
+}
 

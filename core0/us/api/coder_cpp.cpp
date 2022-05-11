@@ -957,7 +957,11 @@ bool c::gen_service_handlers_response(const apifun& f, const string& scope, bool
     }
 
     os << pfx << "{\n";
-    os << pfx << "    auto r = " << fn_name(f, side_caller) << "_response(";
+    string obj = "";
+    if (f.api->delegate) {
+        obj = "delegate.";
+    }
+    os << pfx << "    auto r = " << obj << fn_name(f, side_caller) << "_response(";
         for (auto& i: args) {
             os << i;
             if (&i != &*args.rbegin()) os << ", ";

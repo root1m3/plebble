@@ -22,9 +22,10 @@
 //===-
 #pragma once
 #include <us/gov/io/seriable.h>
+
 #include "kv.h"
 
-namespace us { namespace wallet { namespace trader {
+namespace us::wallet::trader {
 
     using namespace std;
 
@@ -50,5 +51,5 @@ namespace us { namespace wallet { namespace trader {
 
     using remote_params_t = params_t;
 
-}}}
+}
 

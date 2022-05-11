@@ -39,11 +39,13 @@
 #include "bookmarks_t.h"
 #include "bootstrap/protocols_t.h"
 
-namespace us { namespace wallet { namespace wallet {
-    struct local_api;
-}}}
+namespace us::wallet::wallet {
 
-namespace us { namespace wallet { namespace trader {
+    struct local_api;
+
+}
+
+namespace us::wallet::trader {
 
     using namespace us::gov;
     struct trader_protocol;
@@ -80,7 +82,7 @@ namespace us { namespace wallet { namespace trader {
         string r2rhome;
     };
 
-}}}
+}
 
 typedef us::wallet::trader::business_t* business_create_t(const char*, int ifversion);
 typedef void business_destroy_t(us::wallet::trader::business_t*);

@@ -30,7 +30,7 @@
 #include "cfg0.h"
 #include "types.h"
 
-namespace us { namespace gov { namespace io {
+namespace us::gov::io {
 
     struct blob_writer_t {
 
@@ -233,5 +233,5 @@ namespace us { namespace gov { namespace io {
     inline size_t blob_writer_t::blob_size(const char* s) { return blob_size(string_view(s)); }
     inline void blob_writer_t::write(const char* s) { write(string_view(s)); }
 
-}}}
+}
 

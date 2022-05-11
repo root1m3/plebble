@@ -56,7 +56,8 @@ c::local_api(engine::daemon_t& daemon, const string& home, const string& subhome
                 return static_cast<const peer_t&>(peer).wallet->subhomeh == this->subhomeh;
             }),
         w(home + "/keys"),
-        local_endpoint(ep) {
+        local_endpoint(ep),
+        txlog(*this) {
 }
 
 c::~local_api() {
@@ -95,5 +96,28 @@ ko c::refresh_data() {
 }
 
 void c::dump(const string& pfx, ostream& os) const {
+}
+
+datagram* c::get_push_datagram(const hash_t& trade_id, uint16_t pc) const {
+    auto blob = push_payload(pc);
+    auto d = peer_t::push_in_t(trade_id, pc, blob).get_datagram(daemon.channel, 0);
+    log("get_push_datagram", pc, "blob sz", blob.size(), "dgram sz", d->size());
+    return d;
+}
+
+blob_t c::push_payload(uint16_t pc) const {
+    log("push_payload. push code", pc);
+    assert(pc < push_end);
+    blob_t blob;
+    switch (pc) {
+        case push_txlog: {
+            log("computing push_txlog");
+            txlog.index().write(blob);
+            return move(blob);
+        }
+        break;
+    }
+    assert(false);
+    return move(blob);
 }
 

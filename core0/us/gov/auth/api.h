@@ -27,7 +27,7 @@
     #define has_us_gov_auth_api
 #endif
 
-namespace us { namespace gov { namespace auth {
+namespace us::gov::auth {
 
     using namespace gov::io;
 
@@ -51,5 +51,6 @@ namespace us { namespace gov { namespace auth {
         struct api {};
 
     #endif
-}}}
+
+}
 

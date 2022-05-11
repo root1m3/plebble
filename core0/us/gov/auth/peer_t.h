@@ -22,13 +22,15 @@
 //===-
 #pragma once
 #include <array>
+
 #include <us/gov/id/peer_t.h>
 #include <us/gov/config.h>
 #include <us/gov/types.h>
+
 #include "api.h"
 #include "types.h"
 
-namespace us { namespace gov { namespace auth {
+namespace us::gov::auth {
 
     struct peer_t: base_ns::peer_t, api {
         using b = base_ns::peer_t;
@@ -55,28 +57,28 @@ namespace us { namespace gov { namespace auth {
         void dump(const string& prefix, ostream&) const;
 
     public:
-        #ifdef has_us_gov_auth_api
-            #include <us/api/generated/c++/gov/auth/hdlr_override>
-            #include <us/api/generated/c++/gov/auth/hdlr_svc_handler-hdr>
-            #include <us/api/generated/c++/gov/auth/cllr_override>
-        #endif
+    #ifdef has_us_gov_auth_api
+        #include <us/api/generated/c++/gov/auth/hdlr_override>
+        #include <us/api/generated/c++/gov/auth/hdlr_svc_handler-hdr>
+        #include <us/api/generated/c++/gov/auth/cllr_override>
+    #endif
 
     public:
-        #if CFG_COUNTERS == 1
-            struct counters_t {
-               uint32_t successful_verifications{0};
-               uint32_t failed_verifications{0};
-               uint32_t successful_authorizations{0};
-               uint32_t failed_authorizations{0};
+    #if CFG_COUNTERS == 1
+        struct counters_t {
+           uint32_t successful_verifications{0};
+           uint32_t failed_verifications{0};
+           uint32_t successful_authorizations{0};
+           uint32_t failed_authorizations{0};
 
-               void dump(ostream&) const;
-            };
-            static counters_t counters;
-        #endif
+           void dump(ostream&) const;
+        };
+        static counters_t counters;
+    #endif
 
     public:
         stage_t stage{denied};
     };
 
-}}}
+}
 

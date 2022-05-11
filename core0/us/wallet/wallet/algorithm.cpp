@@ -886,28 +886,42 @@ ko c::tx_pay(const asa_t& asa_pay, const asa_t& asa_charge, tx_t& tx, affected_t
         i.locking_program_input = move(generate_locking_program_input(tx, sigcode, i.address, cash::app::locking_program_id));
         i.locking_program_input.sigcode = sigcode;
     }
-    log("tx_pay SUCCESS", "affected", affected.to_string());
+    log("tx_pay SUCCESS", "affected", affected.to_string(""));
     return ok;
 }
 
 c::affected_t::affected_t() {
 }
 
-string c::affected_t::to_string() const {
+string c::affected_t::to_string(string&& prefix) const {
+    ostringstream os;
+    for (auto& i: *this) {
+        os << prefix << i << '\n';
+    }
     return os.str();
 }
 
 void c::affected_t::add_pay(const cash_t& to_pay, const hash_t& coin) {
+    ostringstream os;
     os << '-' << to_pay << ' ';
-    if (coin.is_zero()) os << LGAS;
-    else os << coin;
-    os << '\n';
+    if (coin.is_zero()) {
+        os << LGAS;
+    }
+    else {
+        os << coin;
+    }
+    emplace_back(os.str());
 }
 
 void c::affected_t::add_charge(const cash_t& to_charge, const hash_t& coin) {
+    ostringstream os;
     os << '+' << to_charge << ' ';
-    if (coin.is_zero()) os << LGAS;
-    else os << coin;
-    os << '\n';
+    if (coin.is_zero()) {
+        os << LGAS;
+    }
+    else {
+        os << coin;
+    }
+    emplace_back(os.str());
 }
 

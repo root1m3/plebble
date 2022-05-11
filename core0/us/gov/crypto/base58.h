@@ -17,7 +17,7 @@
 #include <vector>
 #include <array>
 
-namespace us { namespace gov { namespace crypto { namespace b58 {
+namespace us::gov::crypto::b58 {
 
     using namespace std;
 
@@ -36,5 +36,5 @@ namespace us { namespace gov { namespace crypto { namespace b58 {
     vector<uint8_t> from_hex(const string& hex);
     string to_hex(const vector<uint8_t>& bin);
 
-}}}}
+}
 

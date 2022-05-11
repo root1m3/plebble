@@ -24,7 +24,7 @@
 #include <us/gov/io/seriable.h>
 #include "sigcode_t.h"
 
-namespace us { namespace gov { namespace cash {
+namespace us::gov::cash {
 
     struct locking_program_input_t final: io::seriable {
 
@@ -50,5 +50,5 @@ namespace us { namespace gov { namespace cash {
         sig_t sig{0};
     };
 
-}}}
+}
 

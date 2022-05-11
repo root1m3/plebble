@@ -24,12 +24,13 @@
 #include <us/gov/peer/types.h>
 
 namespace us {
+
 }
 
-namespace us { namespace gov { namespace relay {
+namespace us::gov::relay {
 
     using namespace us;
     namespace base_ns = us::gov::peer;
 
-}}}
+}
 

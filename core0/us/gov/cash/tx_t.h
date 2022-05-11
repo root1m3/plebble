@@ -28,7 +28,7 @@
 #include "sigcode_t.h"
 #include "tx/sections_t.h"
 
-namespace us { namespace gov { namespace cash {
+namespace us::gov::cash {
 
     using namespace std;
 
@@ -73,5 +73,5 @@ namespace us { namespace gov { namespace cash {
         return os;
     }
 
-}}}
+}
 

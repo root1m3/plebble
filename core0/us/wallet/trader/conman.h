@@ -36,11 +36,13 @@
 #include "olog_t.h"
 #include "ch_t.h"
 
-namespace us { namespace wallet { namespace engine {
-    struct daemon_t;
-}}}
+namespace us::wallet::engine {
 
-namespace us { namespace wallet { namespace trader {
+    struct daemon_t;
+
+}
+
+namespace us::wallet::trader {
 
     struct conman: us::gov::bgtask, olog_t {
         using b = olog_t;
@@ -119,6 +121,7 @@ namespace us { namespace wallet { namespace trader {
         mutable mutex mx_cmdq;
 
         mutable unique_lock<mutex> data_lock{mx, defer_lock};
+
     protected:
         #if CFG_LOGS == 1
             string logdir;
@@ -126,5 +129,5 @@ namespace us { namespace wallet { namespace trader {
         #endif
     };
 
-}}}
+}
 

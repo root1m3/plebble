@@ -18,7 +18,7 @@
         android:orientation="horizontal">
     <androidx.appcompat.widget.AppCompatImageView
         android:layout_width="90dp"
-        android:layout_height="83dp"
+        android:layout_height="90dp"
         android:layout_gravity="left"
         android:layout_marginRight="18dp"
         android:src="@raw/icoapp"/>

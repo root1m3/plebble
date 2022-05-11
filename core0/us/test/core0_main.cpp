@@ -132,7 +132,7 @@ struct tengine: us::gov::engine::daemon_t, us::test::test_platform {
     }
 
     void acase() { //gov::io::blob_reader_t::current_version
-        cout << "V7 diff sys app" << endl; // proc1 VX where X=prev char
+        cout << "V8 diff sys app\n"; // proc1 VX where X=prev char
         //proc1. leave this value of s, execute test to obtain the new value
 
          string s = /*v8*/ "EopTPw3SmupNkf6Dsaqx6zhnsM59cZVrjRMZhMm7rY8Fvgbpru9KYZF3rRTkaYJF9aTziwz8gJAsgu2GcMtq5pTztcLh1cqskznXPge5pP5jTVoQWXT9SiT42hAVUipesRPo7KUUCJmw6HMxhnP";
@@ -176,7 +176,7 @@ struct tengine: us::gov::engine::daemon_t, us::test::test_platform {
 
         assert(this == &db->sys_app->demon);
         if (s != s2) {
-            cout << "acase V8:\n"; // proc1 VX, X=new char
+            cout << "acase V9:\n"; // proc1 VX, X=new char
             cout << "----------------------proc1 -1-------------------\n";
             cout << "PREV        string s = \"" << s << "\";\n";
             cout << "NEW         string s = \"" << s2 << "\";\n";
@@ -196,16 +196,15 @@ struct tengine: us::gov::engine::daemon_t, us::test::test_platform {
             ld->write(out);
             prev = us::gov::crypto::b58::encode(out);
             cout << "----------------------proc1 -2-------------------\n";
-            cout << "V8 serialization_local_deltas. Line for future V9\n";
-            cout << "        prev=/" << "*v8*" << "/\"" << prev << "\";\n"; //proc1. VX, X=new vchar
+            cout << "V8 serialization_local_deltas. Line for future V10. Search XC5549Xyte \n";
+            cout << "        prev=/" << "*v9*" << "/\"" << prev << "\";\n"; //proc1. VX, X=new vchar
             cout << "-/--------------------proc1 -2-------------------\n";
             delete ld;
         }
 
-        //uncomment on v9
-        //prev=/*v8*/"75grLJGBJemo382RE318pJRkkny6iLGduSRGgP7ez9aJusFao5nLQBCMRSDSrPekk2QFyY7mfUkoaZScWafQQoZrTVEqdCW75SCga8sd64ZpAFHd4ngis4SuSZerujjoGZCqmqamQ9uLRTbrjGMFQReQUy2GCYv4uCxnKNtC5giZjCChZQBnkamRao8tZKNZ7Tu";
-        prev=/*v7*/"Qc4fRa6F55ohCjrtYCKpxpT7gy7XxqKGQ14BBZRHc5aJEYRzxPa75PENmfnJ2Tb2AWBhEXgoYFsZEC1VrhAvYqcFsoECYdyXH5QQ48Vja7NdZidMBHLh9WxfP6AWzRFKgn4nwa4h1j8TCtA9trRdogM12k61k9UZ5uhk77xr23FrFvmJXBkFnXL3Mn5FkgHpjHm9";
-
+        //XC5549Xyte here
+        prev=/*v8*/"75grxngBPUeQBgTtHTPsiofju4Zju3cf2xCu3aMup18NKAZ2iLM1NSeFhp7PL4fYrCzrm2Jf8LSS53MfKpa8BgwuAnNrt8r7QmwAqjboTMcvUaZ9y1SfgtQS8RxchrcRRfnvUUPsXG93Nba9i3RKfta16y1m1Dnpgxvu9S2ij8t6rkUBAKVK2TwoRKqwFausfR9";
+        //prev=/*v7*/"Qc4fRa6F55ohCjrtYCKpxpT7gy7XxqKGQ14BBZRHc5aJEYRzxPa75PENmfnJ2Tb2AWBhEXgoYFsZEC1VrhAvYqcFsoECYdyXH5QQ48Vja7NdZidMBHLh9WxfP6AWzRFKgn4nwa4h1j8TCtA9trRdogM12k61k9UZ5uhk77xr23FrFvmJXBkFnXL3Mn5FkgHpjHm9";
         //prev=/*v6*/"TqgkQxoSWtYCJ3Hbn1tGq63upPMd2zU8bgZGzdqx1jJxFsNRrHqHrMbgaVddAdyP3njjNTRE8fTQSrSuCmK7jtNizES7afuowQZMZBdkkjbMJK1R1QLF3o1cYcZ92VvmB4jy9yGNCrS7AmEKSDfhipyQP4DYxAd8TciNRLT2HJPZ2y3PGWxeNdkAWvNNqAb2Qz95";
         //prev="5 d4yp7kjDKiQN12jbbp4saFotg4eAFJvmjXSHjr8Hz1DM 381yXZRuczk7rgy6MqVZYFHXYHk4ridp3Tv7iBe2uurFfCLqDPH1wmdrctCXtd7qJ93X34MEZbcJEmm5RxmYHyc5cS5P8qVk 0 3 1 tDKRyCNBzMgKQRe12ETU6wMkq7u 20 0 0 30 0 0 ";
         //prev="4 ovECWdFFZDjkc3rCmp2bbnGifWK3b9PsAoxbfG5MqXG7 AN1rKvszW4AKKf33nMzR6RYVssKyo9QqdJ6PqbwixYPP25e28KMWqFWgZt18wRXBnAzdvuMigBaXuomEWhnK5sYd25XbtdsRT 0 3 1 zAFwd5FAHPdTPRw66jBV2i2Vcxo 56 6000 1.26 15046 1828 1729619 5 0 0 0 1 0 0 20 400 0 0 0 0 404 0 0 0 0 408 0 0 0 0 800 0 0 0 0 804 0 0 0 0 808 0 0 0 0 1600 0 0 0 0 1604 0 0 0 0 2002 0 0 0 0 2010 0 0 0 0 2400 0 0 0 0 2404 0 0 0 0 2408 0 0 0 0 2412 0 0 0 0 2416 0 0 0 0 2422 0 0 0 0 2430 0 0 0 0 2438 0 0 0 0 2445 0 0 0 0 2450 0 0 0 0 20 0 0 30 0 0 ";
@@ -308,7 +307,7 @@ struct tengine: us::gov::engine::daemon_t, us::test::test_platform {
 
     using blob_reader_t = us::gov::io::blob_reader_t;
 
-    void blocks_v7(const string& datadir) { //proc1 - blocks_vX, X=prev char
+    void blocks_v8(const string& datadir) { //proc1 - blocks_vX, X=prev char
         vector<string> r;
         for(auto& p: fs::directory_iterator(datadir)) {
             if (!is_regular_file(p.path())) continue;
@@ -338,7 +337,7 @@ struct tengine: us::gov::engine::daemon_t, us::test::test_platform {
     void serialization(const string& datadir) {
         os << "local_deltas" << endl;
         serialization_local_deltas();
-        blocks_v7(datadir + "/blocks_v7"); //proc1 - blocks_vX where X=previous char streams_version
+        blocks_v8(datadir + "/blocks_v8"); //proc1 - blocks_vX where X=previous char streams_version
     }
 
     void dashboard() {
@@ -696,14 +695,6 @@ void test_r2r(const string& homedir, const string& logdir, const string& vardir)
       o.run();
     }
 
-
-/*
-    {
-        bid2ask_t o(n);
-        o.run();
-    }
-*/
-
     auto b = n.bookmarks();
     b.dump("bookmarks>", cout);
 
@@ -872,8 +863,10 @@ int core0_main(int argc, char** argv) {
         }
         else if (command == "--only-r2r") {
             l1_tests = false;
+            l2_tests = true;
         }
         else if (command == "--only-l1") {
+            l1_tests = true;
             l2_tests = false;
         }
         else if (command == "--valgrind") {

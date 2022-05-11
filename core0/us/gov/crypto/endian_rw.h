@@ -7,7 +7,7 @@
 #include <stdint.h>
 #include <endian.h>
 
-namespace us { namespace gov { namespace crypto {
+namespace us::gov::crypto {
 
     uint16_t static inline ReadLE16(const unsigned char* ptr) { return le16toh(*((uint16_t*)ptr));}
     uint32_t static inline ReadLE32(const unsigned char* ptr) { return le32toh(*((uint32_t*)ptr));}
@@ -20,5 +20,5 @@ namespace us { namespace gov { namespace crypto {
     void static inline WriteBE32(unsigned char* ptr, uint32_t x) { *((uint32_t*)ptr) = htobe32(x); }
     void static inline WriteBE64(unsigned char* ptr, uint64_t x) { *((uint64_t*)ptr) = htobe64(x); }
 
-}}}
+}
 

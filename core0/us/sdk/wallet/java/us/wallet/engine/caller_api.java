@@ -118,9 +118,6 @@ public interface caller_api extends dto {
       ko call_encrypt(final encrypt_in_t o_in, bin_t msg_scrambled);
       ko call_decrypt(final decrypt_in_t o_in, bin_t msg);
       ko call_patch_os(final patch_os_in_t o_in, patch_os_out_dst_t o_out);
-      ko call_track(final uint64_t ts);
-      ko call_track_pay(final blob_t blob_tx, track_pay_out_dst_t o_out);
-      ko call_track_relay(final blob_t blob_tx, string progress);
       ko call_list_protocols(string data);
       ko call_trade(final trade_in_t o_in, hash_t tid);
       ko call_list_trades(string data);

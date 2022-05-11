@@ -31,7 +31,7 @@
 #include <us/wallet/trader/ch_t.h>
 #include <us/wallet/trader/kv.h>
 
-namespace us { namespace wallet { namespace trader { namespace workflow {
+namespace us::wallet::trader::workflow {
 
     using namespace us::gov;
 
@@ -110,5 +110,5 @@ namespace us { namespace wallet { namespace trader { namespace workflow {
         type_t type{type_string};
     };
 
-}}}}
+}
 

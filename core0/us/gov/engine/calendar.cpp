@@ -109,7 +109,9 @@ void c::clear_until(ts_t t) {
 calndx::calndx(evidence*e): e(e) {
 }
 
+/*
 bool calndx::operator < (const calndx& other) const {
     return e->ts < other.e->ts;
 }
+*/
 

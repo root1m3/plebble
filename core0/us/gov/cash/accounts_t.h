@@ -21,12 +21,14 @@
 //===----------------------------------------------------------------------------
 //===-
 #pragma once
-#include <us/gov/types.h>
-#include "account_t.h"
-#include <us/gov/io/seriable_map.h>
 #include <unordered_map>
 
-namespace us { namespace gov { namespace cash {
+#include <us/gov/types.h>
+#include <us/gov/io/seriable_map.h>
+
+#include "account_t.h"
+
+namespace us::gov::cash {
 
     struct accounts_t final: io::seriable_map<hash_t, account_t> {
         using b = io::seriable_map<hash_t, account_t>;
@@ -72,5 +74,5 @@ namespace us { namespace gov { namespace cash {
 
     };
 
-}}}
+}
 

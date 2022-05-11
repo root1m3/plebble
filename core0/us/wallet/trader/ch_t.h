@@ -27,7 +27,7 @@
 #include <us/gov/ko.h>
 #include <mutex>
 
-namespace us { namespace wallet { namespace trader {
+namespace us::wallet::trader {
 
     using namespace std;
 
@@ -68,5 +68,5 @@ namespace us { namespace wallet { namespace trader {
         //2 always update devices, even if no params are sent to peer
     };
 
-}}}
+}
 

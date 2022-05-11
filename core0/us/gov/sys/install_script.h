@@ -22,12 +22,13 @@
 //===-
 #pragma once
 #include <string>
+
 #include <us/gov/engine/evidence.h>
 #include <us/gov/socket/datagram.h>
 #include <us/gov/engine/signed_data.h>
 #include <us/gov/config.h>
 
-namespace us { namespace gov { namespace sys {
+namespace us::gov::sys {
 
     struct install_script final: engine::evidence, engine::signed_data {
         using b = engine::evidence;
@@ -54,5 +55,5 @@ namespace us { namespace gov { namespace sys {
         string script;
     };
 
-}}}
+}
 

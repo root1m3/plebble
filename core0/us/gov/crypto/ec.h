@@ -33,7 +33,7 @@
 #include "ripemd160.h"
 #include "sha256.h"
 
-namespace us { namespace gov { namespace crypto {
+namespace us::gov::crypto {
 
     using namespace std;
 
@@ -256,7 +256,7 @@ namespace us { namespace gov { namespace crypto {
         return is;
     }
 
-}}}
+}
 
 namespace std {
     template <>

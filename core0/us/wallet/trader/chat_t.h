@@ -28,7 +28,7 @@
 #include <us/gov/io/seriable_map.h>
 #include <us/gov/io/seriable_vector.h>
 
-namespace us { namespace wallet { namespace trader {
+namespace us::wallet::trader {
 
     using namespace std;
     using paragraph = string;
@@ -94,5 +94,5 @@ namespace us { namespace wallet { namespace trader {
         mutable mutex mx;
     };
 
-}}}
+}
 

@@ -90,6 +90,17 @@ c::~hmi() {
     #endif
 }
 
+void c::print_id() const {
+    auto r = load_cfg(home, true);
+    if (is_ko(r.first)) {
+        log(r.first);
+        return;
+    }
+    auto cfg = r.second;
+    scr << "Wallet public key is " << cfg->keys.pub << " address " << cfg->keys.pub.hash() << '\n';
+    delete cfg;
+}
+
 namespace {
     using us::gov::io::screen;
 
@@ -113,7 +124,7 @@ void c::setup_signals(bool on) {
     }
 }
 
-pair<ko, gov::io::cfg1*> c::load_cfg(const string& home, bool gen) {
+pair<ko, gov::io::cfg1*> c::load_cfg(const string& home, bool gen) const {
     return gov::io::cfg1::load(home, gen);
 }
 
@@ -1167,6 +1178,7 @@ void c::help(const params& p, ostream& os) { //moved
     os << '\n';
     os << "Commands:\n";
     fmt::twocol(ind, "misc:", "----------", os);
+    fmt::twocol(ind____, "id", "Print wallet id and exit.", os);
     fmt::twocol(ind____, "version", "Print software version.", os);
     os << '\n';
     fmt::twocol(ind, "cash: Query", "----------", os);
@@ -1935,6 +1947,10 @@ ko c::exec_online(const string& cmd, shell_args& args) {
 
 ko c::exec_offline(const string& cmd, shell_args& args) {
     log("exec_offline", cmd);
+    if (cmd == "id") {
+        print_id();
+        return ok;
+    }
     if (cmd == "version") {
         scr << us::vcs::version() << '\n';
         return ok;
@@ -1988,7 +2004,7 @@ ko c::exec_offline(const string& cmd, shell_args& args) {
         help(p, lock.os);
         return ok;
     }
-    if (cmd== "show") {
+    if (cmd == "show") {
         string cmd = args.next<string>();
         if (cmd == "c" || cmd == "w") {
             string l;
@@ -2355,9 +2371,9 @@ bool c::dispatcher_t::dispatch(us::gov::socket::datagram* d) {
                         bookmarks.dump("   ", lock.os);
                     }
                     break;
-                    case us::wallet::trader::r2r::w2w::protocol::push_txlog: {
-                        log("us::wallet::trader::r2r::w2w::push_txlog");
-                        us::wallet::trader::r2r::w2w::index_t index;
+                    case us::wallet::wallet::local_api::push_txlog: {
+                        log("push_txlog");
+                        us::wallet::wallet::index_t index;
                         auto r = index.read(o_in.blob);
                         if (is_ko(r)) {
                             screen::lock_t lock(scr, m.interactive);
