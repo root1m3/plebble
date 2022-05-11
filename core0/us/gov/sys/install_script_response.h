@@ -45,6 +45,7 @@ namespace us::gov::sys {
         void hash_data_to_sign(sigmsg_hasher_t&) const override;
         void hash_data(ripemd160&) const override;
         virtual bool verify(ostream&) const override;
+        uint64_t uniq() const override { return *reinterpret_cast<const uint64_t*>(&signature); }
 
     public:
         size_t blob_size() const override;

@@ -183,7 +183,7 @@ ko c::pay_inv(track_t track, blob_t& blob) {
     trade_id_t trade_id;
     {
         lock_guard<mutex> lock(mx);
-        auto i = find(track);
+        i = find(track);
         if (i == end()) {
             auto r = "KO 11091 track_id not found.";
             log(r);
@@ -214,6 +214,7 @@ ko c::pay_inv(track_t track, blob_t& blob) {
         lock_guard<mutex> lock(mx);
         i->second.pay.reset(tx);
         i->second.io_summary = r.second.to_string("");
+        i->second.wallet_track_status = wts_delivered;
         i->second.gov_track_status = gov_track_status;
     }
     log("paid tx", tx->encode());
@@ -257,6 +258,18 @@ ko c::register_tx(const blob_t& blob) {
             return r;
         }
     }
+    log("relay tx + track");
+    gov_track_status_t gov_track_status;
+    {
+        log("Broadcasting tx. track", track, "tx.ts=", tx->ts);
+        blob_t blobev;
+        tx->write(blobev);
+        auto r = w->daemon.gov_rpc_daemon.get_peer().call_ev_track(blobev, gov_track_status);
+        if (is_ko(r)) {
+            gov_track_status.st = us::gov::engine::evt_unknown;
+            gov_track_status.info = r;
+        }
+    }
     log("Received peer's payment. track", track);
     trade_id_t tid;
     {
@@ -270,19 +283,9 @@ ko c::register_tx(const blob_t& blob) {
         }
         i->second.set_tx(tx);
         i->second.io_summary += "\nReceived tx.\n";
+        i->second.wallet_track_status = wts_delivered;
+        i->second.gov_track_status = gov_track_status;
         tid = i->second.trade_id;
-    }
-
-    log("relay tx + track");
-    gov_track_status_t gov_track_status;
-    {
-        log("Broadcasting tx. track", track, "tx.ts=", tx->ts);
-        blob_t blobev;
-        tx->write(blobev);
-        auto r = w->daemon.gov_rpc_daemon.get_peer().call_ev_track(blobev, gov_track_status);
-        if (is_ko(r)) {
-            return r;
-        }
     }
     w->daemon.pm.schedule_push(w->get_push_datagram(tid, local_api::push_txlog), w->device_filter);
     return ok;

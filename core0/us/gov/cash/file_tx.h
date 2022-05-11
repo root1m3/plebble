@@ -34,14 +34,17 @@ namespace us::gov::cash {
 
         static constexpr eid_t eid{2};
 
+    public:
         file_tx();
         ~file_tx() override {}
 
+    public:
         string name() const override { return "cash::file_tx"; }
         sigmsg_hash_t get_hash() const;
         void write_sigmsg(sigmsg_hasher_t&) const;
         void write_pretty_en(ostream&) const override;
         void write_pretty_es(ostream&) const override;
+        uint64_t uniq() const override { return *reinterpret_cast<const uint64_t*>(&locking_program_input.sig); }
 
     public:
         size_t blob_size() const override;

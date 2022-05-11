@@ -50,6 +50,7 @@ namespace us::gov::traders {
         void write_pretty_es(ostream&) const override;
         void write_pretty_en(ostream&) const override;
         void dump(const string& prefix, ostream&) const;
+        uint64_t uniq() const override { return *reinterpret_cast<const uint64_t*>(&signature); }
 
     public:
         size_t blob_size() const override;

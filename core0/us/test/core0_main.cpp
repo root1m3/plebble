@@ -353,10 +353,11 @@ struct tengine: us::gov::engine::daemon_t, us::test::test_platform {
             testev(): us::gov::engine::evidence(0, 0) {
             }
             string name() const override { return "name"; }
+            uint64_t uniq() const override { return 0; }
         };
         us::gov::engine::calendar_t cal;
-        testev* ev1=new testev();
-        testev* ev2=new testev();
+        testev* ev1 = new testev();
+        testev* ev2 = new testev();
         ev1->ts=ev2->ts;
         assert(cal.scheduleX(ev1)==us::ok);
         assert(cal.scheduleX(ev2)==us::gov::engine::calendar_t::WP_50451);

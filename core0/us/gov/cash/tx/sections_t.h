@@ -35,6 +35,7 @@ namespace us::gov::cash::tx {
         bool check_amounts() const;
         const_iterator find(const hash_t& token) const;
         iterator find(const hash_t& token);
+        uint64_t uniq() const { return empty() ? 0 : begin()->uniq(); }
 
     };
 

@@ -42,10 +42,12 @@ namespace us::gov::cash {
         using section_t = tx::section_t;
         using sections_t = tx::sections_t;
 
+    public:
         tx_t();
         tx_t(const tx_t&);
         ~tx_t() override {}
 
+    public:
         sigcode_t get_sigcode_all() const;
         sigcode_t make_sigcode_all() const;
         string name() const override { return "cash::tx"; }
@@ -58,6 +60,7 @@ namespace us::gov::cash {
         bool verify(ostream&) const override;
         section_t& add_section(const hash_t& token);
         string pay_amounts_line() const;
+        uint64_t uniq() const override { return sections.uniq(); }
 
     public:
         size_t blob_size() const override;

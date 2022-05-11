@@ -36,6 +36,7 @@ namespace us::gov::engine::auth {
         void write_pretty_es(ostream&) const override;
         string name() const override { return "auth::app::node_address"; }
         void dump(const string& prefix, ostream&) const;
+        uint64_t uniq() const override { return 0; }
 
     public:
         size_t blob_size() const override;

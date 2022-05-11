@@ -91,7 +91,7 @@ bool c::process(const tx_t& t, const tx::section_t& s, batch_t& batch, cash_t& f
             #endif
             return false;
         }
-        if (!state.box.burn(s.token,i.amount, fee)) {
+        if (!state.box.burn(s.token, i.amount, fee)) {
             return false;
         }
         batch.add(i.address, state);

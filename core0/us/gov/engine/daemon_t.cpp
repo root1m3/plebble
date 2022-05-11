@@ -910,7 +910,7 @@ c::ev_track_t::status_t c::ev_track_t::set_errorx(ts_t from, ts_t to, const stri
         if (i->first >= from && i->first < to) {
             if (i->second.st != evt_error) {
                 i->second.st = evt_error;
-                i->second.info = string(evt_status_str[evt_error]) + " " + err;
+                i->second.info = err;
                 b = true;
             }
             ++i;

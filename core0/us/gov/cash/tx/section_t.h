@@ -35,6 +35,8 @@ namespace us::gov::cash::tx {
         section_t();
         section_t(const hash_t& token);
         section_t(const section_t&);
+
+    public:
         void add_input(const hash_t& addr, const cash_t& amount);
         void add_input(const hash_t& addr, const cash_t& amount, const locking_program_input_t&);
         void add_output(const hash_t& addr, const cash_t& amount);
@@ -43,6 +45,7 @@ namespace us::gov::cash::tx {
         cash_t required_input() const;
         cash_t required_output() const;
         bool check_amounts() const;
+        inline uint64_t uniq() const { return inputs.uniq(); }
 
     public:
         size_t blob_size() const override;

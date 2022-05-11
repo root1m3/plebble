@@ -67,8 +67,9 @@ bool c::has(ts_t ts) const {
             first = ++it;
             count -= step + 1;
         }
-        else
+        else {
             count = step;
+        }
     }
     return first->e->ts == ts;
 }
@@ -77,10 +78,10 @@ ko c::scheduleX(evidence* e) {
     log("schedule", e->ts);
     assert(e != nullptr);
     ts_t front = duration_cast<nanoseconds>((system_clock::now() - relay_interval).time_since_epoch()).count();
-    log("arrived evidence. margin", e->ts-front);
+    log("arrived evidence. margin", e->ts - front);
     lock_guard<mutex> lock(mx);
     if (e->ts <= last_processed) {
-        log(KO_50450, "ts", e->ts, "<=last_processed", last_processed);
+        log(KO_50450, "ts", e->ts, " <= last_processed", last_processed);
         return KO_50450;
     }
     if (!emplace(calndx(e)).second) { //duplicate

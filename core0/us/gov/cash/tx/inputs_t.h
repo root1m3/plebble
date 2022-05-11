@@ -33,6 +33,7 @@ namespace us::gov::cash::tx {
         cash_t total() const;
         cash_t total_unsigned() const;
         void write_pretty(const string& prefix, ostream&) const;
+        inline uint64_t uniq() const { return empty() ? 0 : begin()->uniq(); }
     };
 
 }

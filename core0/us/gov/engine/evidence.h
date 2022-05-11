@@ -46,6 +46,7 @@ namespace us::gov::engine {
         evidence(const evidence&);
         virtual ~evidence();
 
+    public:
         static string formatts(ts_t ts);
         virtual string name() const = 0;
         virtual void hash_data_to_sign(sigmsg_hasher_t&) const;
@@ -64,6 +65,7 @@ namespace us::gov::engine {
         virtual bool check_amounts() const { return true; }
         using s::get_datagram;
         datagram* get_datagram(channel_t, seq_t) const;
+        virtual uint64_t uniq() const = 0; // { return ts; }
 
     public:
         using serid_t = blob_reader_t::serid_t;

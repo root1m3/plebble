@@ -42,6 +42,7 @@ namespace us::gov::cash {
         void write_sigmsg(sigmsg_hasher_t&) const;
         void write_pretty_en(ostream& os) const override;
         void write_pretty_es(ostream& os) const override;
+        uint64_t uniq() const override { return *reinterpret_cast<const uint64_t*>(&locking_program_input.sig); }
 
     public:
         size_t blob_size() const override;

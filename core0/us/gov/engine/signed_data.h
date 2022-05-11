@@ -29,7 +29,7 @@
 
 namespace us::gov::engine {
 
-    using namespace std;
+//    using namespace std;
     using blob_writer_t = us::gov::io::blob_writer_t;
     using blob_reader_t = us::gov::io::blob_reader_t;
     using seriable = us::gov::io::seriable;
@@ -40,6 +40,7 @@ namespace us::gov::engine {
         using privkey_t = keys::priv_t;
         using sigmsg_hasher_t = crypto::ec::sigmsg_hasher_t;
         using sigmsg_hash_t = crypto::ec::sigmsg_hasher_t::value_type;
+        using sig_t = us::gov::crypto::ec::sig_t;
 
     public:
         virtual ~signed_data0() {}
@@ -61,7 +62,7 @@ namespace us::gov::engine {
 
     public:
         pubkey_t pubkey;
-        us::gov::crypto::ec::sig_t signature;
+        sig_t signature;
     };
 
     struct signed_data: signed_data0 {

@@ -35,8 +35,10 @@ namespace us::gov::cash::tx {
         input_t(const hash_t& address, const cash_t& amount, const locking_program_input_t&);
         input_t(const input_t&);
 
+    public:
         void write_sigmsg(sigmsg_hasher_t&) const;
         void write_pretty(const string& prefix, ostream&) const;
+        inline uint64_t uniq() const { return *reinterpret_cast<const uint64_t*>(&locking_program_input.sig); }
 
     public:
         size_t blob_size() const override;

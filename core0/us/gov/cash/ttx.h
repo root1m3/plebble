@@ -42,6 +42,7 @@ namespace us::gov::cash {
         void write_pretty_en(ostream&) const override;
         void write_pretty_es(ostream&) const override;
         bool verify(ostream&) const override;
+        uint64_t uniq() const override { return *reinterpret_cast<const uint64_t*>(&locking_program_input.sig); }
 
     public:
         pair<ko, ttx*> from_b58(const string&);
