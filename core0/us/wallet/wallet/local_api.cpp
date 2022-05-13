@@ -105,6 +105,16 @@ datagram* c::get_push_datagram(const hash_t& trade_id, uint16_t pc) const {
     return d;
 }
 
+vector<datagram*> c::get_push_datagrams(const set<hash_t>& trade_ids, uint16_t pc) const {
+    auto blob = push_payload(pc);
+    vector<datagram*> v;
+    v.reserve(trade_ids.size());
+    for (auto& tid: trade_ids) {
+        v.emplace_back(peer_t::push_in_t(tid, pc, blob).get_datagram(daemon.channel, 0));
+    }
+    return move(v);
+}
+
 blob_t c::push_payload(uint16_t pc) const {
     log("push_payload. push code", pc);
     assert(pc < push_end);
@@ -119,5 +129,9 @@ blob_t c::push_payload(uint16_t pc) const {
     }
     assert(false);
     return move(blob);
+}
+
+void c::on_tx_tracking_status(const track_status_t& status) {
+    txlog.on_tx_tracking_status(status);
 }
 

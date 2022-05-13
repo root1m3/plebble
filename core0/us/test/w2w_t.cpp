@@ -167,7 +167,14 @@ void c::cancel_transfer_by_sender2(node& sender, node& rcpt, track_t track) {
 
 void c::confirm_transfer(node& sender, node& rcpt, track_t track) {
     //transfer gas
-    sender.wallet_cli_dis->expected_code.emplace(us::wallet::wallet::local_api::push_txlog, 1);
+/*
+        evt_mempool,
+        evt_consensus,
+        evt_settled,
+        evt_untracked,
+*/
+
+    sender.wallet_cli_dis->expected_code.emplace(us::wallet::wallet::local_api::push_txlog, 5);
     sender.wallet_cli_dis->expected_code.check.emplace(us::wallet::wallet::local_api::push_txlog,
         [&](const hash_t& tid, uint16_t code, const vector<uint8_t>& blob) {
             assert(tid == trade_id);
@@ -178,36 +185,72 @@ void c::confirm_transfer(node& sender, node& rcpt, track_t track) {
             pfx << "sender-txlog-index-#" << seq << "> ";
             txnd.dump(pfx.str(), cout);
             assert(txnd.size() == 1);
+            assert(txnd.begin()->second.wallet_track_status == us::wallet::wallet::wts_delivered);
+            cout << "sender seq " << seq << endl;
             if (seq == 0) {
                 track = txnd.begin()->first;
                 cout << "track " << track;
-                assert(txnd.begin()->second.wallet_track_status == us::wallet::wallet::wts_delivered);
                 assert(txnd.begin()->second.gov_track_status.st == us::gov::engine::evt_calendar);
                 cout << "Info: " << txnd.begin()->second.gov_track_status.info << endl; 
                 assert(txnd.begin()->second.gov_track_status.info.empty());
             }
             else if (seq == 1) {
                 assert(txnd.begin()->first == track);
-                assert(txnd.begin()->second.wallet_track_status == us::wallet::wallet::wts_wait_signature);
+                assert(txnd.begin()->second.gov_track_status.st == us::gov::engine::evt_mempool);
+            }
+            else if (seq == 2) {
+                assert(txnd.begin()->first == track);
+                assert(txnd.begin()->second.gov_track_status.st == us::gov::engine::evt_craftblock);
+            }
+            else if (seq == 3) {
+                assert(txnd.begin()->first == track);
+                assert(txnd.begin()->second.gov_track_status.st == us::gov::engine::evt_consensus);
+            }
+            else if (seq == 4) {
+                assert(txnd.begin()->first == track);
+                assert(txnd.begin()->second.gov_track_status.st == us::gov::engine::evt_settled);
                 seq = -1;
             }
             ++seq;
         }
     );
 
-    rcpt.wallet_cli_dis->expected_code.emplace(us::wallet::wallet::local_api::push_txlog, 1);
+    rcpt.wallet_cli_dis->expected_code.emplace(us::wallet::wallet::local_api::push_txlog, 5);
     rcpt.wallet_cli_dis->expected_code.check.emplace(us::wallet::wallet::local_api::push_txlog,
         [&](const hash_t& tid, uint16_t code, const vector<uint8_t>& blob) {
             assert(tid == trade_id);
             us::wallet::wallet::index_t txnd;
             assert(is_ok(blob_reader_t::parse(blob, txnd)));
-            txnd.dump("rcpt-txlog-index-#0> ", cout);
+            static int seq = 0;
+            ostringstream pfx;
+            pfx << "rcpt-txlog-index-#" << seq << "> ";
+            txnd.dump(pfx.str(), cout);
             assert(txnd.size() == 1);
-            assert(txnd.begin()->first == track);
             assert(txnd.begin()->second.wallet_track_status == us::wallet::wallet::wts_delivered);
-            assert(txnd.begin()->second.gov_track_status.st == us::gov::engine::evt_calendar);
-            cout << "Info: " << txnd.begin()->second.gov_track_status.info << endl; 
-            assert(txnd.begin()->second.gov_track_status.info.empty());
+            cout << "recv seq " << seq << endl;
+            if (seq == 0) {
+                assert(txnd.begin()->second.gov_track_status.st == us::gov::engine::evt_calendar);
+                cout << "Info: " << txnd.begin()->second.gov_track_status.info << endl; 
+                assert(txnd.begin()->second.gov_track_status.info.empty());
+            }
+            else if (seq == 1) {
+                assert(txnd.begin()->first == track);
+                assert(txnd.begin()->second.gov_track_status.st == us::gov::engine::evt_mempool);
+            }
+            else if (seq == 2) {
+                assert(txnd.begin()->first == track);
+                assert(txnd.begin()->second.gov_track_status.st == us::gov::engine::evt_craftblock);
+            }
+            else if (seq == 3) {
+                assert(txnd.begin()->first == track);
+                assert(txnd.begin()->second.gov_track_status.st == us::gov::engine::evt_consensus);
+            }
+            else if (seq == 4) {
+                assert(txnd.begin()->first == track);
+                assert(txnd.begin()->second.gov_track_status.st == us::gov::engine::evt_settled);
+                seq = -1;
+            }
+            ++seq;
         }
     );
 
@@ -219,7 +262,9 @@ void c::confirm_transfer(node& sender, node& rcpt, track_t track) {
         assert(false);
         exit(1);
     }
-    wait(sender, rcpt);
+        uint64_t step_wait_ms{20000};
+
+    wait(sender, rcpt, 120000);
 }
 
 void c::test(node& w1, node& w2) {
@@ -356,8 +401,6 @@ void c::test(node& w1, node& w2) {
         cout << "Confirming transfer" << endl;
         confirm_transfer(w2, w1, track);
     }
-cout << "HERE" << endl;
-exit(1);
 }
 
 void c::run() {

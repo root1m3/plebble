@@ -33,20 +33,16 @@
 
 namespace us::gov::engine {
 
-    using namespace std;
-
     struct app;
 
     struct calndx final {
-        calndx(evidence* e);
-
+        inline calndx(evidence* e): e(e) {}
         inline bool operator < (const calndx& other) const { 
-            if (unlikely(e->ts == other.e->ts)) {
-                return e->uniq() < other.e->uniq();
+            if (likely(e->ts != other.e->ts)) {
+                return e->ts < other.e->ts;
             }        
-            return e->ts < other.e->ts;
+            return e->uniq() < other.e->uniq();
         }
-
         evidence* e;
     };
 

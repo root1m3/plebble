@@ -27,6 +27,7 @@
 #include <us/gov/cli/rpc_daemon_t.h>
 #include <us/gov/relay/pushman.h>
 #include <us/gov/engine/daemon_t.h>
+#include <us/gov/engine/track_status_t.h>
 
 #include <us/wallet/trader/traders_t.h>
 

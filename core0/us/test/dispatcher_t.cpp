@@ -39,7 +39,7 @@
 #include <us/gov/logs.inc>
 #include "assert.inc"
 
-#define STEP_WAIT_MS 20000
+//#define STEP_WAIT_MS 20000
 
 using namespace std;
 using us::gov::socket::datagram;
@@ -151,6 +151,7 @@ bool c::dispatch(us::gov::socket::datagram* d0) {
 }
 
 c::expected_code_t::expected_code_t(const string& id, ostream& os): id(id), out(os) {
+    default_step_wait();
 }
 
 void c::expected_code_t::arrived(const hash_t& h, uint16_t code, const vector<uint8_t>& s) {
@@ -345,9 +346,9 @@ void c::expected_code_t::check_payload(const hash_t& tid, uint16_t code, const v
 
 void c::expected_code_t::wait_no_clear() {
     if (num_expected() == 0) return; //Nothing to wait for
-    std::chrono::milliseconds s{STEP_WAIT_MS};
+    std::chrono::milliseconds s{step_wait_ms};
     unique_lock<mutex> lock(mx);
-    cv.wait_for(lock, s, [&](){ return num_expected()==0; } );
+    cv.wait_for(lock, s, [&](){ return num_expected() == 0; } );
     check_not_expecting();
 }
 

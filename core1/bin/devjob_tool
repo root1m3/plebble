@@ -593,7 +593,7 @@ function procurl {
                 echo "KO 71666"
                 exit 1
             fi
-            git diff --binary hqrefactor0 hqrefactor1 > ../patch4downstream
+            git diff --binary hqrefactor0 hqrefactor1 -- . :^core2 > ../patch4downstream
             echo ${djid} > ../msg4downstream
             git checkout ${upstream_branch}
             if [[ $? -ne 0 ]]; then
@@ -602,9 +602,6 @@ function procurl {
             fi
             git log --oneline --no-decorate --no-merges ${upstream_hash}..HEAD >> ../msg4downstream
         popd > /dev/null
-
-
-
 
         echo -n "" > hint
 
@@ -662,7 +659,7 @@ function procurl {
                     exit 1
                 fi
                 git add -u
-                GNUPGHOME=$dj_gpgh git commit -q -F ../msg4upstream --author="$dj_author" -S$dj_gpgkey
+                GNUPGHOME=$dj_gpgh git commit -q -e -F ../msg4upstream --author="$dj_author" -S$dj_gpgkey
                 if [[ $? -ne 0 ]]; then
                     echo "KO 87098"
                     exit 1

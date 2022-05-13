@@ -86,6 +86,14 @@ void c::wait(node& n1, node& n2) {
     #endif
 }
 
+void c::wait(node& n1, node& n2, uint64_t timeout_ms) {
+    n1.wallet_cli_dis->expected_code.step_wait_ms = timeout_ms;
+    n2.wallet_cli_dis->expected_code.step_wait_ms = timeout_ms;
+    wait(n1, n2);
+    n2.wallet_cli_dis->expected_code.default_step_wait();
+    n1.wallet_cli_dis->expected_code.default_step_wait();
+}
+
 void c::wait_no_clear(node& n1, node& n2) {
     n1.wallet_cli_dis->expected_code.wait_no_clear();
     n2.wallet_cli_dis->expected_code.wait_no_clear();

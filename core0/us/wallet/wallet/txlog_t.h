@@ -88,6 +88,9 @@ namespace us::wallet::wallet {
 
         void dump(const string& prefix, ostream&) const;
 
+        void on_tx_tracking_status(const gov_track_status_t&);
+
+    public:
         mutable mutex mx;
         local_api* w;
     };

@@ -60,6 +60,7 @@ namespace us::gov::relay {
         void wait();
         void flush_push();
         void schedule_push(socket::datagram*, const filter_t&);
+        void schedule_push(vector<socket::datagram*>&&, const filter_t&);
         ko push_KO(ko msg, const filter_t&);
         ko push_KO(const hash_t& tid, ko msg, const filter_t&);
         ko push_OK(const string& msg, const filter_t&);

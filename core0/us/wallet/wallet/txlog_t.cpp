@@ -377,6 +377,18 @@ pair<ko, us::gov::cash::tx_t*> c::get_invoice(const track_t& track) const {
     return make_pair(ok, new tx_t(*i->second.inv));
 }
 
+void c::on_tx_tracking_status(const gov_track_status_t& status) {
+    log("on_tx_tracking_status", size());
+    set<trade_id_t> notify;
+    {
+        lock_guard<mutex> lock(mx);
+        for (auto& i: *this) {
+            i.second.on_tx_tracking_status(status, notify);
+        }
+    }
+    if (!notify.empty()) w->daemon.pm.schedule_push(w->get_push_datagrams(notify, local_api::push_txlog), w->device_filter);
+}
+
 void index_t::dump(const string& prefix, ostream& os) const {
     auto pfx = prefix + "    ";
     for (auto& i: *this) {

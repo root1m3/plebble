@@ -96,3 +96,11 @@ void c::sync(ostream& os) {
     }
 }
 
+void c::on_tx_tracking_status(const track_status_t& status) {
+    log("on_tx_tracking_status", size());
+    lock_guard<mutex> lock(mx);
+    for (auto i: *this) {
+        i.second->on_tx_tracking_status(status);
+    }
+}
+

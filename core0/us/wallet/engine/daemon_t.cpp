@@ -30,6 +30,8 @@
 #include <us/gov/crypto/ec.h>
 #include <us/gov/io/cfg0.h>
 #include <us/gov/traders/wallet_address.h>
+#include <us/gov/engine/track_status_t.h>
+
 #include <us/wallet/trader/trader_t.h>
 #include <us/wallet/trader/endpoint_t.h>
 #include <us/wallet/wallet/local_api.h>
@@ -60,6 +62,7 @@ namespace {
         }
 
         bool dispatch(datagram* d) override {
+            log("gov dispatch"); 
             if (d->service != us::gov::protocol::engine_track_response) {
                 return false;
             }
@@ -311,8 +314,8 @@ void c::on_peer_wallet(const hash_t& addr, host_t address, pport_t rpport) {
 }
 
 void c::on_tx_tracking_status(const track_status_t& status) {
-    log("on_tx_tracking_status");
-    //traders.on_tx_tracking_status(status);
+    log("on_tx_tracking_status", us::gov::engine::evt_status_str[status.st], status.from, status.to);
+    users.on_tx_tracking_status(status);
 }
 
 /*//////////////////////////////////////
@@ -401,13 +404,13 @@ void c::configure_gov_rpc_daemon(const shost_t& shost) {
     gov_rpc_daemon.stop_on_disconnection = false;
     gov_rpc_daemon.connect_for_recv = true;
     gov_rpc_daemon.encrypt_traffic = true;
-    bool trusted_localhost = true; // disable for systems where IPC is not safe. provably true for machines controlled by the user.
-    if (trusted_localhost) {
+    //bool trusted_localhost = true; // disable for systems where IPC is not safe. provably true for machines controlled by the user.
+    //if (trusted_localhost) {
         if (shost == "localhost" || shost == "127.0.0.1") {
             log("trusted_localhost is set to 1: disabling encryption on IPC calls between wallet and gov as they are in the same machine. govd at", shost);
             gov_rpc_daemon.encrypt_traffic = false;
         }
-    }
+    //}
 }
 
 ko c::lookup_wallet(const hash_t& addr, hostport_t& hostport) {

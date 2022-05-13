@@ -24,11 +24,16 @@
 #include <unordered_map>
 #include <mutex>
 #include <string>
+
 #include <us/gov/config.h>
+#include <us/gov/engine/track_status_t.h>
+
 #include "types.h"
 
 namespace us::wallet::wallet {
+
     struct local_api;
+
 }
 
 namespace us::wallet::engine {
@@ -38,6 +43,7 @@ namespace us::wallet::engine {
 
     struct users_t final: unordered_map<hash_t, wallet::local_api*> {
         using datagram = us::gov::socket::datagram;
+        using track_status_t = us::gov::engine::track_status_t;
 
         users_t(daemon_t&);
         ~users_t();
@@ -46,6 +52,7 @@ namespace us::wallet::engine {
     public:
         void dump(ostream&) const;
         void sync(ostream&);
+        void on_tx_tracking_status(const track_status_t&);
 
     public:
         daemon_t& daemon; //daemon mode, trading enabled

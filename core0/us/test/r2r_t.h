@@ -58,7 +58,9 @@ namespace us { namespace test {
         using blob_reader_t = us::gov::io::blob_reader_t;
 
         r2r_t(network&);
+
         void wait(node&, node&);
+        void wait(node&, node&, uint64_t timeout_ms);
         void wait_no_clear(node&, node&);
         void wait_no_clear1(node&, node&);
         void wait_no_clear2(node&, node&);

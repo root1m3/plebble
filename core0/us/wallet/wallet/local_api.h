@@ -74,6 +74,9 @@ namespace us::wallet::wallet {
     public:
         blob_t push_payload(uint16_t pc) const;
         datagram* get_push_datagram(const hash_t& trade_id, uint16_t pc) const;
+        vector<datagram*> get_push_datagrams(const set<hash_t>& trade_ids, uint16_t pc) const;
+
+        void on_tx_tracking_status(const track_status_t&);
 
     public:
         relay::pushman::filter_t device_filter;

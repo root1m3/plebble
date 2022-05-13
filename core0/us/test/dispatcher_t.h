@@ -44,6 +44,7 @@ namespace us { namespace test {
 
         struct expected_code_t: map<uint16_t, int> { //num ocurrences, mode 0:exact, 1:minimum
             expected_code_t(const string& id, ostream&);
+
             void arrived(const hash_t& h, uint16_t code, const vector<uint8_t>& s);
             void dump(ostream& os) const;
             void arrived(uint16_t code);
@@ -59,6 +60,7 @@ namespace us { namespace test {
             void clear_all();
             void check_not_expecting() const;
             int num_expected() const;
+            void default_step_wait() { step_wait_ms = 20000; }
 
             struct check_t: map<uint16_t, function<void(const hash_t&, uint16_t code, const vector<uint8_t>&)>> {
             };
@@ -71,6 +73,7 @@ namespace us { namespace test {
             condition_variable cv;
             function<void(ostream&)> reftest{[](ostream&){}}; //prints reference to the current test
             set<uint16_t> marked_minimum;
+            uint64_t step_wait_ms;
         };
 
         ostream& out;

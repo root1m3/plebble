@@ -74,6 +74,17 @@ void c::schedule_push(datagram* d, const filter_t& filter) {
     flush_push();
 }
 
+void c::schedule_push(vector<datagram*>&& v, const filter_t& filter) {
+    {
+        unique_lock<mutex> lock(mx);
+        for (auto& d: v) {
+            assert(d != nullptr);
+            vpush->emplace_back(push_item(d, filter));
+        }
+    }
+    flush_push();
+}
+
 void c::push_to_devices() {
     log("push_to_devices");
     vector<push_item>* v;

@@ -490,7 +490,8 @@ void c::run() {
             id = _local_deltas->id;
             from = id-duration_cast<nanoseconds>(calendar_t::cycle_period).count();
             if (likely(pools.add(_local_deltas, true))) {
-                set_tx_status(from, id, evt_mempool);
+                log("");
+                set_tx_status(from, id, evt_craftblock);
                 write_status("collecting deltas");
                 if (unlikely(!wait_for_secs_to(limit_local_deltas, calendar.block_closure))) {
                     log("KO 90594");
@@ -875,6 +876,7 @@ c::ev_track_t::status_t c::ev_track_t::set_statusx(ts_t ts, evt_status_t st) {
 }
 
 c::ev_track_t::status_t c::ev_track_t::set_statusx(ts_t from, ts_t to, evt_status_t st) {
+    log("ev_track_t::set_status", evt_status_str[st]);
     lock_guard<mutex> lock(mx);
     mints = from;
     auto i = begin();
@@ -902,6 +904,7 @@ c::ev_track_t::status_t c::ev_track_t::set_statusx(ts_t from, ts_t to, evt_statu
 }
 
 c::ev_track_t::status_t c::ev_track_t::set_errorx(ts_t from, ts_t to, const string& err) {
+    log("ev_track_t::set_status", evt_status_str[evt_error], err);
     lock_guard<mutex> lock(mx);
     mints = from;
     auto i = begin();

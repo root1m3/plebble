@@ -61,6 +61,17 @@ void c::set_tx(tx_t* tx) {
     //track_status_t(tx->ts, us::gov::engine::evt_wait_rcpt_info, "Waiting for peer info.", tder->id
 }
 
+void c::on_tx_tracking_status(const gov_track_status_t& status, set<trade_id_t>& notify) {
+    log("on_tx_tracking_status 1");
+    auto* tx = pay.get();
+    if (tx == nullptr) return;
+    if (tx->ts < status.from) return;
+    if (tx->ts >= status.to) return;
+    gov_track_status.st = status.st;
+    gov_track_status.info = status.info;
+    notify.emplace(trade_id);
+}
+
 string c::title() const {
     if (t1.get() == nullptr) {
         return "Unknown transaction";

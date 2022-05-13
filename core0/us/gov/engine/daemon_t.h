@@ -111,7 +111,7 @@ namespace us::gov::engine {
                 if (src.is_not_zero()) srcs.emplace(src);
             }
 */
-            evt_data_t(evt_status_t st): st(st), info(evt_status_str[st]) {}
+            evt_data_t(evt_status_t st): st(st) {}
             evt_data_t(evt_status_t st, const string& info): st(st), info(info) {}
             evt_data_t(const evt_data_t& other): st(other.st), info(other.info) {}
 

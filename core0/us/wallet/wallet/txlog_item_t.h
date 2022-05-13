@@ -75,6 +75,8 @@ namespace us::wallet::wallet {
         void set_inv(tx_t*);
         void set_tx(tx_t*);
 
+        void on_tx_tracking_status(const gov_track_status_t&, set<trade_id_t>& notify);
+
     public:
         bool initiator;
         string io_summary;
