@@ -182,7 +182,7 @@ function apply1 {
     fi
 
 #                    ┌──────────┐
-#                    │downstream │
+#                    │downstream│
 #                    └──────────┘
 # 
 #                    alpha-34  patch
@@ -249,7 +249,7 @@ function apply1 {
         fi
     fi
 #                    ┌──────────┐
-#                    │downstream │
+#                    │downstream│
 #                    └──────────┘
 # 
 #                    alpha-34      patch
@@ -347,7 +347,7 @@ function apply1 {
     fi
 
 #                   ┌──────────┐
-#                   │downstream │
+#                   │downstream│
 #                   └──────────┘
 # 
 #                   alpha-34
@@ -544,7 +544,7 @@ function apply_changes_upstream1 {
     fi
 
 #             ┌──────────┐
-#             │ upstream  │
+#             │ upstream │
 #             └──────────┘
 #
 #   branches─►     main   hqrefactor0
@@ -606,7 +606,7 @@ function apply_changes_upstream1 {
     fi
 
 #              ┌──────────┐
-#              │ upstream  │
+#              │ upstream │
 #              └──────────┘
 # 
 #   branches─►     main   hqrefactor0
@@ -660,7 +660,7 @@ function apply_changes_upstream1 {
     fi
 
 #              ┌──────────┐
-#              │ upstream  │
+#              │ upstream │
 #              └──────────┘
 # 
 #                  main                       hqrefactor0
@@ -685,7 +685,7 @@ function apply_changes_upstream1 {
 #                     │                            │
 #                     *(upstream changes)          * ▼adapt
 #                     │                            │
-# upstream_hash(1) 881*refs ─────────────────────*
+# upstream_hash(1) 881*refs ──────────────────────*
 # upstream_hash(0) 452*
 #                     │
 
@@ -710,7 +710,7 @@ function apply_changes_upstream1 {
     fi
 
 #              ┌──────────┐
-#              │ upstream  │
+#              │ upstream │
 #              └──────────┘
 # 
 #                  main
@@ -738,7 +738,7 @@ base_ds_diff=""
 function apply_changes_upstream {
     adapt ${upstream_hash} hqrefactor0 beg ../c2
 #                        ┌──────────┐
-#                        │ upstream  │
+#                        │ upstream │
 #                        └──────────┘
 #   branches─►     main   hqrefactor0
 #                     .        .
@@ -875,7 +875,7 @@ function procurl {
         dsc2=`realpath c2`
 
 # ┌──────────┐                    ┌────────┐
-# │downstream │                    │upstream │
+# │downstream│                    │upstream│
 # └──────────┘                    └────────┘
 # 
 #   alpha-34                        main
@@ -915,7 +915,7 @@ function procurl {
             git log --oneline --no-decorate --no-merges ${downstream_hash}..${branch} > ../msg4upstream0
             transform ../msg4upstream0 ../msg4upstream "downstream refs:"
 #                   ┌────────────┐
-#                   │ downstream  │
+#                   │ downstream │
 #                   └────────────┘
 # 
 #                  alpha-34    hqrefactor0
@@ -924,7 +924,7 @@ function procurl {
 #                      .             .
 # 
 # 
-# downstream_branch 2d3*◄┐           .
+# downstream_branch 2d3* ◄┐          .
 #                      │  └┐
 #                      │   │diff-d
 #                      *   └┐
@@ -981,7 +981,7 @@ function procurl {
         fi
 
 #              ┌──────────┐
-#              │ upstream  │
+#              │ upstream │
 #              └──────────┘
 # 
 #                  main
@@ -1026,7 +1026,7 @@ function procurl {
 # >                        .      .             * ▼ adapt to
 # >                                             │ downstream format
 #                                               │       ▲
-#            upstream_head *──────────────────*     ┌─┘
+#            upstream_head *───────────────────*      ┌─┘
 #       downstream changes │                         ┌┘
 #                          │      *                 ┌┘
 #    prev_upstream_head 125*      *                ┌┘
@@ -1072,7 +1072,7 @@ function procurl {
         fi
 
 #                   ┌──────────┐
-#                   │downstream │
+#                   │downstream│
 #                   └──────────┘
 # 
 #                   alpha-34
