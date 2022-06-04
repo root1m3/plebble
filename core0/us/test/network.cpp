@@ -186,13 +186,14 @@ ko c::android_app_test_automatic_updates() {
 }
 
 ko c::android_app_test() {
-    auto& pat = *find("bid")->second;
-    cout << "In settings, connect to wallet at : " << node::localip << ":" << pat.wallet->p.listening_port << " channel " << 123 << endl;
+    assert(!empty());
+    auto& n = *begin()->second;
+    cout << "In settings, connect to wallet at : " << node::localip << ":" << n.wallet->p.listening_port << " channel " << 123 << endl;
     cout << "Type something to continue" << endl;
     string input;
     cin >> input;
     {
-        auto r = pat.wallet_cli->exec("list_devices");
+        auto r = n.wallet_cli->exec("list_devices");
         if (r != ok) {
             cout << r << endl;
             return r;
@@ -200,7 +201,7 @@ ko c::android_app_test() {
     }
     {
         vector<string> attempts;
-        auto r = pat.wallet_cli->rpc_daemon->get_peer().call_attempts(attempts);
+        auto r = n.wallet_cli->rpc_daemon->get_peer().call_attempts(attempts);
         if (r != ok) {
             cout << r << endl;
             return r;
@@ -221,7 +222,7 @@ ko c::android_app_test() {
         {
             cout << "authorizing " << pubk << endl;
             string ans;
-            auto r = pat.wallet_cli->rpc_daemon->get_peer().call_pair_device(us::wallet::cli::rpc_peer_t::pair_device_in_t(pubk, "", "Tests"), ans);
+            auto r = n.wallet_cli->rpc_daemon->get_peer().call_pair_device(us::wallet::cli::rpc_peer_t::pair_device_in_t(pubk, "", "Tests"), ans);
             if (r != ok) {
                 cout << r << endl;
                 assert(false);
@@ -230,7 +231,7 @@ ko c::android_app_test() {
         }
     }
     {
-        auto r = pat.wallet_cli->exec("list_devices");
+        auto r = n.wallet_cli->exec("list_devices");
         if (r != ok) {
             cout << r << endl;
             return r;
@@ -246,7 +247,7 @@ ko c::android_app_test() {
         cout << "blob-feed - A new blob is produced by cbs." << endl;
         cout << "  blobs/maihealth_alpha-29_9f204a31e38f75cb7e3632aac3542d26fa0d549bafb70be86bb10d7f8962115d.tzst  " << endl;
         cout << "  2.1 upload to blockchain.   " << endl;
-        cout << "  2.2 install on node pat.   " << endl;
+        cout << "  2.2 install on node " << n.id << "." << endl;
         string input;
         cin >> input;
         if (input == "0") {

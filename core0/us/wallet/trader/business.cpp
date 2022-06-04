@@ -79,7 +79,7 @@ ko c::exec(istream& is, traders_t& traders, wallet::local_api& w) {
 pair<c::protocol_selection_t, c::bookmark_info_t> c::bookmark_info() const {
     pair<protocol_selection_t, bookmark_info_t> r;
     protocols_t p;
-    published_protocols(p);
+    published_protocols(p, false);
     assert(!p.empty());
     r.first.first = p.begin()->first;
     r.first.second = p.begin()->second;

@@ -24,7 +24,7 @@
 
 #include <us/test/node.h>
 
-namespace us { namespace trader { namespace test {
+namespace us::trader::test {
 
     using namespace std;
 
@@ -40,5 +40,5 @@ namespace us { namespace trader { namespace test {
 
     };
 
-}}}
+}
 

@@ -41,10 +41,10 @@ using namespace us::trader::r2r::bid2ask;
 using c = us::trader::r2r::bid2ask::ask::business_t;
 
 c::business_t() {
+    name = "seller";
 }
 
 ko c::init(const string& r2rhome) {
-    name = "shop";
     auto r = b::init(r2rhome);
     if (is_ko(r)) {
         return r;
@@ -172,7 +172,22 @@ std::pair<us::ko, us::wallet::trader::trader_protocol*> c::create_protocol(proto
         return make_pair(r, nullptr);
     }
     if (protocol_selection.second != "ask") {
-        auto r = "KO 60594 Invalid role";
+        auto r = "KO 60594 seller: I can only do ask.";
+        log(r, protocol_selection.second);
+        return make_pair(r, nullptr);
+    }
+    return create_protocol();
+}
+
+std::pair<us::ko, us::wallet::trader::trader_protocol*> c::create_opposite_protocol(protocol_selection_t&& protocol_selection) {
+    log("protocol from string", protocol_selection.first, protocol_selection.second);
+    if (protocol_selection.first != c::protocol::name) {
+        auto r = "KO 20012 Invalid protocol";
+        log(r, "protocol", protocol_selection.first, "not for me", c::protocol::name);
+        return make_pair(r, nullptr);
+    }
+    if (protocol_selection.second != "bid") {
+        auto r = "KO 60594 seller: I only match bid.";
         log(r, protocol_selection.second);
         return make_pair(r, nullptr);
     }
@@ -190,12 +205,20 @@ void c::list_protocols(ostream& os) const {
     os << c::protocol::name << " ask\n";
 }
 
-void c::to_stream_protocols(protocols_t& protocols) const {
-    protocols.emplace_back(make_pair(c::protocol::name, "ask"));
+void c::invert(protocols_t& protocols) const {
+    for (auto& i: protocols) {
+        if (i.first != c::protocol::name) continue;
+        if (i.second == "ask") {
+            i.second = "bid";
+        }
+        else {
+            i.second = "ask";
+        }
+    }
 }
 
-void c::published_protocols(protocols_t& protocols) const {
-    protocols.emplace_back(make_pair(c::protocol::name, "bid")); //protocols I can talk to
+void c::published_protocols(protocols_t& protocols, bool inverse) const {
+    protocols.emplace_back(make_pair(c::protocol::name, inverse ? "bid" : "ask")); //protocols I can talk to
 }
 
 c::catalogue_t* c::catalogue(const string& lang) {

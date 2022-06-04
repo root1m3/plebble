@@ -42,7 +42,7 @@
 
 #include "protocol.h"
 
-namespace us { namespace trader { namespace r2r { namespace bid2ask { namespace ask {
+namespace us::trader::r2r::bid2ask::ask {
 
     struct business_t: us::wallet::trader::business_t {
         using b = us::wallet::trader::business_t;
@@ -61,10 +61,11 @@ namespace us { namespace trader { namespace r2r { namespace bid2ask { namespace 
         ko load_coinsx();
         pair<ko, tx_t*> tx_charge_pay(us::wallet::wallet::local_api&, cash_t recv_amount, cash_t send_amount) const;
         pair<ko, us::wallet::trader::trader_protocol*> create_protocol(protocol_selection_t&&) override;
+        pair<ko, us::wallet::trader::trader_protocol*> create_opposite_protocol(protocol_selection_t&&) override;
         pair<ko, us::wallet::trader::trader_protocol*> create_protocol() override;
         void list_protocols(ostream&) const override; //human format
-        void to_stream_protocols(protocols_t&) const override;
-        void published_protocols(protocols_t&) const override;
+        void invert(protocols_t&) const override;
+        void published_protocols(protocols_t&, bool inverse) const override;
         catalogue_t* catalogue(const string& lang);
 
     public:
@@ -74,5 +75,5 @@ namespace us { namespace trader { namespace r2r { namespace bid2ask { namespace 
         hash_t send_coin;
     };
 
-}}}}}
+}
 

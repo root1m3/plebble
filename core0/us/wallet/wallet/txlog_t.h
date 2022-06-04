@@ -40,9 +40,10 @@ namespace us::wallet::wallet {
 
     struct index_item_t: us::gov::io::seriable {
         using gov_track_status_t = us::gov::engine::track_status_t;
+        using gov_evt_status_t = us::gov::engine::evt_status_t;
 
         index_item_t() {}
-        index_item_t(const string& label, gov_track_status_t gov_track_status, wallet_track_status_t wallet_track_status): label(label), gov_track_status(gov_track_status), wallet_track_status(wallet_track_status) {}
+        index_item_t(const string& label, gov_evt_status_t gov_evt_status, const string& gov_evt_status_info, wallet_evt_status_t wallet_evt_status): label(label), gov_evt_status(gov_evt_status), gov_evt_status_info(gov_evt_status_info), wallet_evt_status(wallet_evt_status) {}
 
     public: //serialization
         size_t blob_size() const override;
@@ -54,9 +55,9 @@ namespace us::wallet::wallet {
 
     public:
         string label;
-        gov_track_status_t gov_track_status;
-        wallet_track_status_t wallet_track_status;
-
+        wallet_evt_status_t wallet_evt_status;
+        gov_evt_status_t gov_evt_status;
+        string gov_evt_status_info;
     };
 
     struct index_t: us::gov::io::seriable_vector<pair<track_t, index_item_t>> {
@@ -82,6 +83,7 @@ namespace us::wallet::wallet {
         ko cancel(const track_t&, blob_t&);
         ko cancel(const blob_t&);
 
+        void show(const trade_id_t&) const;
         index_t index() const;
 
         pair<ko, tx_t*> get_invoice(const track_t&) const; //returns a modifiable copy of the invoice that must be deleted by the caller

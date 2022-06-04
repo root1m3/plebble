@@ -18,6 +18,7 @@ Business Patterns:
 
 
 Shortlisted features/fixes:
+    * GFR - File registry. Git.
     * Address include channel to prevents cross-network tx replay attacks
 
     * wallet. front-end to create a coin
@@ -133,8 +134,37 @@ Production releases. beta
 Production releases. alpha
 --------------------------
 
-alpha-29.23 -
-    * Android Pay
+alpha-34 -
+
+
+alpha-33 - vhash 54c9e6e0 <- R a8b70ebc1053172533bcd817005af42ae384e372 alpha-33 dbg-0 logs-0 counters-0 connlog-0 fcgi-0
+    * android app leds repositioning.
+    * android app flattened balance view 
+
+alpha-32 - alpha-32_b5608c9a 2022-05-29_00-42-10 vhash b5608c9a <- R 94a60a4beaeadbd8cb5da63a68f0496aa624ad0d alpha-32 dbg-0 logs-0 counters-0 connlog-0 fcgi-0
+    * aesthetic tweaks on brand app
+
+alpha-31 - alpha-31_08d3513f 2022-05-28_12-57-57 vhash 08d3513f <- R 5bb497922b388518f84b0c30a631dbc213d48993 alpha-31 dbg-0 logs-0 counters-0 connlog-0 fcgi-0
+    * core2 r2r libraries bookmarks actor-journey.
+    * core2 r2r libraries distributed selectively by brand.
+    * brand default bookmarks
+
+alpha-30 - alpha-30_1e6010c3 2022-05-26_17-22-21 vhash 1e6010c3 <- R 2dc1cae4147d2d7bb0608f1836dde4c70337cd3f alpha-30 dbg-0 logs-0 counters-0 connlog-0 fcgi-0
+    * R2R per-brand distribution pipeline for core2 protocols
+    * aarch64 fixes
+    * install_blob make able to manage instal;led r2r libs
+    * core2 r2r libs per brand
+    * brand_bookmarks. bookmarks introduced by brand distributions.
+    * fix. QR always refer to the remote side for the initiator.
+    * fix. start dialogue using peer role (like when using QR)
+
+alpha-30 - alpha-30_3bd02b3d 2022-05-15_21-19-06 vhash 3bd02b3d <- R 17b93b42312e9d22f23aab10e5feedf1bf53cba3 alpha-30 dbg-0 logs-0 counters-0 connlog-0 fcgi-0
+    * Android bug in sw updates asking for storage permissions in worker thread.
+    * updated seeds
+
+alpha-29.23 - 15 May 2022 - alpha-29.23_93059958 vhash 93059958 <- R 5b539c5d12a9a09ca332e6be603b30a2a35fedce
+    * Refactored transaction-tracking circuit all the way down to gov.
+    * console/android 'Pay' is back to life after being down for a time.
     * cbs - symlinked aarch64. Prevent installing on sid distros.
     * bug in files with no line ending at eof (traced to grep) caused devjob_tool to fail syncing devjobs and motivated the rewrite of header-patching from bash to C++ obtaining a faster and satisfying console experience.
     * ser serialization version 7 -> 8. Got rid of ols specific code for v7
@@ -397,7 +427,7 @@ alpha-15 - 5 March 2020
       * Bookmarks
       * Automatic updates can be actioned manually.
 
-alpha 14 - 27 Fed 2020
+alpha 14 - 27 Feb 2020
     * Android app
       * Binaries stored in the blockchain
       * Automatic updates.

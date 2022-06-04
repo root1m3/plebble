@@ -34,24 +34,24 @@ using namespace std;
 using namespace us::wallet::wallet;
 using c = us::wallet::wallet::txlog_item_t;
 
-c::txlog_item_t(t1_t* t1, bool initiator, const trade_id_t& trade_id): t1(t1), gov_track_status(us::gov::engine::evt_unknown), trade_id(trade_id), initiator(initiator) {
+c::txlog_item_t(t1_t* t1, bool initiator, const trade_id_t& trade_id): t1(t1), gov_evt_status(us::gov::engine::evt_unknown), trade_id(trade_id), initiator(initiator) {
 
     using affected_t = us::wallet::wallet::algorithm::affected_t;
     affected_t a;
     if (initiator) {
         a.add_pay(t1->amount, t1->coin);
-        wallet_track_status = wts_wait_rcpt_info;
+        wallet_evt_status = wevt_wait_rcpt_info;
     }
     else {
         a.add_charge(t1->amount, t1->coin);
-        wallet_track_status = wts_wait_signature;
+        wallet_evt_status = wevt_wait_signature;
     }
     io_summary = a.to_string("");
 }
 
 void c::set_inv(tx_t* tx) {
     inv.reset(tx);
-    wallet_track_status = wts_wait_signature;
+    wallet_evt_status = wevt_wait_signature;
     //track_status_t(tx->ts, us::gov::engine::evt_wait_rcpt_info, "Waiting for peer info.", tder->id
 }
 
@@ -67,8 +67,8 @@ void c::on_tx_tracking_status(const gov_track_status_t& status, set<trade_id_t>&
     if (tx == nullptr) return;
     if (tx->ts < status.from) return;
     if (tx->ts >= status.to) return;
-    gov_track_status.st = status.st;
-    gov_track_status.info = status.info;
+    gov_evt_status = status.st;
+    gov_evt_status_info = status.info;
     notify.emplace(trade_id);
 }
 

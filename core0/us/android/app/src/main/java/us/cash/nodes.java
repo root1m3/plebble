@@ -61,6 +61,7 @@ import android.view.MenuItem;                                                   
 import android.view.View.OnFocusChangeListener;                                                // OnFocusChangeListener
 import us.pair;                                                                                // pair
 import us.wallet.protocol;                                                                     // protocol
+import us.wallet.trader.qr_t;                                                                  // qr_t
 import android.widget.RelativeLayout;                                                          // RelativeLayout
 import androidx.annotation.RequiresApi;                                                        // RequiresApi
 import us.string;                                                                              // string
@@ -74,7 +75,7 @@ import android.view.View;                                                       
 public final class nodes extends activity implements datagram_dispatcher_t.handler_t {
 
     static void log(final String line) {         //--strip
-       CFG.log_android("nodes: " + line);     //--strip
+       CFG.log_android("nodes: " + line);        //--strip
     }                                            //--strip
 
     public static class adapter_t extends ArrayAdapter<pair<String, bookmark_t>> {
@@ -370,7 +371,7 @@ public final class nodes extends activity implements datagram_dispatcher_t.handl
 
     void item_click(pair<String, bookmark_t> bm) {
 
-        String[] options = {a.getResources().getString(R.string.start_new_trade), a.getResources().getString(R.string.cancel)};
+        String[] options = {"Banking (move coins)", a.getResources().getString(R.string.start_new_trade), a.getResources().getString(R.string.cancel)};
         final nodes i = nodes.this;
         new AlertDialog.Builder(i).setTitle(bm.second.get_label())
                 .setItems(options, new DialogInterface.OnClickListener() {
@@ -378,6 +379,13 @@ public final class nodes extends activity implements datagram_dispatcher_t.handl
                     public void onClick(DialogInterface dialog, int which) {
                         switch(which) {
                             case 0:
+                                qr_t qr = new qr_t(bm.second.qr);
+                                qr.protocol_selection.first = "w2w";
+                                qr.protocol_selection.second = "w";
+                                log("selected " + qr.to_string()); //--strip
+                                main.new_trade(new hash_t(0), "", qr);
+                                break;
+                            case 1:
                                 main.new_trade(new hash_t(0), "", bm.second.qr);
                                 break;
                         }

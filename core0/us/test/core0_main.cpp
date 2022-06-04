@@ -94,7 +94,7 @@ using cash_t = us::gov::cash_t;
 namespace fs = std::filesystem;
 
 bool batch = false;
-
+bool only_interactive_shell = false;
 
 void check_accounts() {
     using accounts_t = us::gov::cash::accounts_t;
@@ -135,8 +135,9 @@ struct tengine: us::gov::engine::daemon_t, us::test::test_platform {
         cout << "V8 diff sys app\n"; // proc1 VX where X=prev char
         //proc1. leave this value of s, execute test to obtain the new value
 
-         string s = /*v8*/ "EopTPw3SmupNkf6Dsaqx6zhnsM59cZVrjRMZhMm7rY8Fvgbpru9KYZF3rRTkaYJF9aTziwz8gJAsgu2GcMtq5pTztcLh1cqskznXPge5pP5jTVoQWXT9SiT42hAVUipesRPo7KUUCJmw6HMxhnP";
+         string s = /*v9*/ "GULccCrFbqsYqaGQRfwbjoy6fNf8sLQkdxqy7dQo6yetkdeRWkrdTKtteYEeErCDyNqu9gBSqvmJU4hCGaj9AtLa49cy71FQeMga3rfrR8oJsdTSQsq9veC3jvD1Co2Rhhw6rUVNAo1K3ddb4EK";
 //       History:
+//         string s = /*v8*/ "EopTPw3SmupNkf6Dsaqx6zhnsM59cZVrjRMZhMm7rY8Fvgbpru9KYZF3rRTkaYJF9aTziwz8gJAsgu2GcMtq5pTztcLh1cqskznXPge5pP5jTVoQWXT9SiT42hAVUipesRPo7KUUCJmw6HMxhnP";
 //        string s = /*v7*/ "vbdLr3mC5fY6VzR7Edt86y5Uv4bJJkCuQKWPx1ZS1uhpLJpuCBKaT3NZv6c93CqAL2XhxLriHzKtr3HFcAd9VXCa2ccmVU2tZNSs3d7fE5g7P3DpLexxr5s7gsHyJY2sbiAe3biCbSregy6EhxxX";
 //        Never released        string s = "6 ocu5W22cciHEZoDCmfmtvVc7Z1y1p2Y1uDZxQ5yEkND8 AN1rKvtaooWV4rY9FvXB8Rr6b2m9oSuiQz5wEGxtyuYAQMd7zvUSSVLDEwnRjDcMvuzDqmiMqqJWn4sF4xKDLWkwVAPLsmweD 1545565800000000000 3 1 2p5DodGLZg6wbYRnAHPn8CfARWpc 20 4 3gaEPErNicpAyBxqrpMRoXcZFou9 1822982076 16672 17888 8Pg6QViJtuxBuFpdXcdfzxGeDGr 2661973948 16672 17888 GutkKVYN1Q6n75XHdhtX4pvCWFi 953821266 16672 17888 4XbkvPxxMQjC3g9Z8o119H3oLeJ7 3961463889 16672 17888 30 1 2pCcSDYA1Zt5gY4UD25vRZnhmJ2G 11111111111111112UzHM 567 2 a b a2 b2 2 2pCcSDYA1Zt5gY4UD25vRZnhmJ2G / 101 cdCSmHMvyYemaAw5Sm3u7Aw7z75 / 202 0 123 ";
 //        string s="5 ocu5W22cciHEZoDCmfmtvVc7Z1y1p2Y1uDZxQ5yEkND8 AN1rKvtaooWV4rY9FvXB8Rr6b2m9oSuiQz5wEGxtyuYAQMd7zvUSSVLDEwnRjDcMvuzDqmiMqqJWn4sF4xKDLWkwVAPLsmweD 1545565800000000000 3 1 2p5DodGLZg6wbYRnAHPn8CfARWpc 20 4 3gaEPErNicpAyBxqrpMRoXcZFou9 1822982076 16672 17888 8Pg6QViJtuxBuFpdXcdfzxGeDGr 2661973948 16672 17888 GutkKVYN1Q6n75XHdhtX4pvCWFi 953821266 16672 17888 4XbkvPxxMQjC3g9Z8o119H3oLeJ7 3961463889 16672 17888 0 30 1 2pCcSDYA1Zt5gY4UD25vRZnhmJ2G 11111111111111112UzHM 567 2 a b a2 b2 2 2pCcSDYA1Zt5gY4UD25vRZnhmJ2G / 101 cdCSmHMvyYemaAw5Sm3u7Aw7z75 / 202 0 123 ";
@@ -178,8 +179,8 @@ struct tengine: us::gov::engine::daemon_t, us::test::test_platform {
         if (s != s2) {
             cout << "acase V9:\n"; // proc1 VX, X=new char
             cout << "----------------------proc1 -1-------------------\n";
-            cout << "PREV        string s = \"" << s << "\";\n";
-            cout << "NEW         string s = \"" << s2 << "\";\n";
+            cout << "PREV        string s = /*v8*/ \"" << s << "\";\n";
+            cout << "NEW         string s = /*v9*/ \"" << s2 << "\";\n";
             cout << "-/--------------------proc1 -1-------------------\n";
             cout << "you updated gov::io::blob_reader_t::current_version to " << +gov::io::blob_reader_t::current_version << ", replace the previous definition of 's' above in this function.\n";
         }
@@ -691,13 +692,14 @@ void test_r2r(const string& homedir, const string& logdir, const string& vardir)
 
     us::test::r2r_t::wait_from_seq = 0;
 
-    {
-      w2w_t o(n);
-      o.run();
+    if (!only_interactive_shell) {
+        {
+          w2w_t o(n);
+          o.run();
+        }
+        auto b = n.bookmarks();
+        b.dump("bookmarks>", cout);
     }
-
-    auto b = n.bookmarks();
-    b.dump("bookmarks>", cout);
 
     if (!batch) {
         n.menu();
@@ -848,6 +850,7 @@ void test_l1() {
 
 void help() {
     cout << "--batch        Unattended/not interactive" << endl;
+    cout << "--shell        Bootstrap network and start interactive shell." << endl;
     cout << "--only-r2r     Skip L1 tests." << endl;
     cout << "--only-l1      Skip L2 tests." << endl;
     cout << "--valgrind     Omit heavy tests." << endl;
@@ -861,6 +864,7 @@ int core0_main(int argc, char** argv) {
         string command = args.next<string>();
         if (command == "--batch") {
             batch = true;
+            only_interactive_shell = false;
         }
         else if (command == "--only-r2r") {
             l1_tests = false;
@@ -872,6 +876,12 @@ int core0_main(int argc, char** argv) {
         }
         else if (command == "--valgrind") {
             valgrind = true;
+        }
+        else if (command == "--shell") {
+            l1_tests = false;
+            l2_tests = true;
+            only_interactive_shell = true;
+            batch = false;
         }
         else if (command.empty()) {
             break;

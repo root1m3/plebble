@@ -438,6 +438,7 @@ public class hmi_t extends us.wallet.cli.hmi {
     }
 
     void set_status(ColorDrawable led, String msg) {
+        app.assert_worker_thread(); //--strip
         log("set_status " + led + " " + msg); //--strip
         if (led != leds_t.led_red) {
             freeze = false;
@@ -466,6 +467,7 @@ public class hmi_t extends us.wallet.cli.hmi {
     }
 
     public void report_status() {
+        app.assert_worker_thread(); //--strip
         log("reporting status: " + cur_msg); //--strip
         status_handler.on_status(cur_led, cur_msg);
         if (secondary_status_handler != null) {
@@ -474,13 +476,26 @@ public class hmi_t extends us.wallet.cli.hmi {
         log("end reporting status"); //--strip
     }
 
+    public void report_status__ui() {
+        app.assert_ui_thread(); //--strip
+        Thread thread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                report_status();
+            }
+        });
+        thread.start();
+    }
+
     void set_status_gov(ColorDrawable led, String msg) {
+        app.assert_worker_thread(); //--strip
         cur_led_gov = led;
         cur_msg_gov = msg;
         report_status_gov();
     }
 
     public void report_status_gov() {
+        app.assert_worker_thread(); //--strip
         log("reporting status gov"); //--strip
         status_handler_gov.on_status(cur_led_gov, cur_msg_gov);
         log("end reporting status gov"); //--strip
@@ -492,6 +507,7 @@ public class hmi_t extends us.wallet.cli.hmi {
     }
 
     public ko restart(endpoint_t ep, pin_t pin) {
+        app.assert_worker_thread(); //--strip
         log("restart hmi pin " + ep.to_string() + " pin>0 " + (pin.value > 0 ? "Yes" : "No")); //--strip
         freeze = false;
         set_status(leds_t.led_amber, "restarting HMI. " + ep.to_string());

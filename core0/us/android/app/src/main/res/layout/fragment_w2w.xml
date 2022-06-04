@@ -53,7 +53,7 @@
             android:layout_weight="1"
             android:gravity="center"
             android:paddingRight="16dp"
-            android:hint="[ ^ select coin ^ ]"
+            android:hint=""
             android:text=""
             android:textSize="28dp" />
     </LinearLayout>

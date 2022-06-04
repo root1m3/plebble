@@ -45,7 +45,6 @@ branch=""
 local_build=0
 while [ true ]; do
     opt=$1
-    echo "read opt=$opt"
     shift
     if [ "_$opt" == "_--local-build" ]; then
         echo " [local build]"
@@ -179,7 +178,7 @@ function move_to_distr {
         arch=`echo $file | tr '/' ' ' | awk '{ print $(NF-2) }'`
         mkdir -p distr/${us}/lib/${arch}/r2r
         mv $file distr/${us}/lib/${arch}/r2r/
-        echo "$file -> distr/${us}/${arch}/r2r/"
+        echo "$file -> distr/${us}/lib/${arch}/r2r/"
     done
     if [ "_$arch" == "_armv7l" ]; then
         pushd "distr/${us}/lib" >/dev/null
@@ -187,6 +186,17 @@ function move_to_distr {
             ln -s armv7l aarch64 #arm64 bits
         popd >/dev/null
     fi
+    echo "Aditional r2r files"
+    for h in `find $lwdir -type d -name "home"`; do
+        echo "found $h"
+        mkdir -p distr/${us}/r2r/home
+        mv $h/* distr/${us}/r2r/home/
+    done
+    for h in `find $lwdir -type d -name "html"`; do
+        echo "found $h"
+        mkdir -p distr/${us}/r2r/html
+        mv $h/* distr/${us}/r2r/html/
+    done
 }
 
 echo "using dir $build_jobs"

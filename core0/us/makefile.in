@@ -137,6 +137,8 @@ distr-common: | targets
 	install etc/motd_hdr ${DISTRDIR}/etc/
 	install etc/${US}_motd ${DISTRDIR}/etc/
 	install etc/config ${DISTRDIR}/etc/config
+	mkdir -p ${DISTRDIR}/etc/wallet
+	install etc/wallet/config ${DISTRDIR}/etc/wallet/config
 	mkdir -p ${DISTRDIR}/etc/cron.daily
 	install etc/cron.daily/${USPORTS} ${DISTRDIR}/etc/cron.daily/
 	install etc/cron.daily/${USSEEDS} ${DISTRDIR}/etc/cron.daily/
@@ -170,6 +172,12 @@ distr-common: | targets
 	for f in `ack -h -o --no-group "api/generated/c\+\+/gov[/a-z0-9_-]*" ${DISTRDIR}/include/us/gov`; do install -D $$f ${DISTRDIR}/include/us/$$f ; done
 	for f in `ack -h -o --no-group "api/generated/c\+\+/wallet[/a-z0-9_-]*" ${DISTRDIR}/include/us/wallet`; do install -D $$f ${DISTRDIR}/include/us/$$f ; done
 	install vcs_git_cpp ${DISTRDIR}/include/us/
+	mkdir -p ${DISTRDIR}/wallet/trader/w2w
+	install wallet/trader/r2r/w2w/home/* ${DISTRDIR}/wallet/trader/w2w/
+	touch var/us/brand_bookmarks
+	install var/us/brand_bookmarks ${DISTRDIR}/wallet/trader/
+
+#	install etc/wallet/r2r/w2w/* ${DISTRDIR}/etc/wallet/r2r/w2w/
 
 install: distr
 	$(MAKE) -C distr install

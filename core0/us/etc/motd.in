@@ -5,10 +5,10 @@
  Please always backup the directory:
  /home/##str11##/.##str3##/wallet
 ----------------------------------------------
- Main commands (user ##str11##):
-    (from root user type 'su ##str11##')
- network governance: ......... ##str12## 
- your privacy wallet: ........ ##str13##
- General help and tricks: .... ##str3##-help
- Terminate this shell session: exit
+ Change to user ##str11##: type 'su - ##str11##')
+ Main commands (as user ##str11##):
+   Network governance: ......... ##str12## -h
+   Your privacy wallet: ........ ##str13## -h
+   General help and tricks: .... ##str3##-help
+   Terminate shell session: 'exit'
 -----------------------------------------------

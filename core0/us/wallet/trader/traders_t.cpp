@@ -104,6 +104,14 @@ std::pair<ko, us::wallet::trader::trader_protocol*> c::create_protocol(protocol_
     return libs.create_protocol(move(protocol_selection));
 }
 
+std::pair<ko, us::wallet::trader::trader_protocol*> c::create_opposite_protocol(protocol_selection_t&& protocol_selection) {
+    log("create_opposite_protocol A", protocol_selection.to_string());
+    if (protocol_selection.first.empty()) {
+        return make_pair(ok, nullptr);
+    }
+    return libs.create_opposite_protocol(move(protocol_selection));
+}
+
 std::pair<ko, us::wallet::trader::trader_protocol*> c::create_protocol(protocol_selection_t&& protocol_selection, params_t&& remote_params) {
     log("create_protocol B", protocol_selection.to_string());
     if (protocol_selection.first.empty()) {
@@ -119,10 +127,25 @@ std::pair<ko, us::wallet::trader::trader_protocol*> c::create_protocol(protocol_
 }
 
 std::pair<ko, us::wallet::trader::trader_protocol*> c::libs_t::create_protocol(protocol_selection_t&& protocol_selection) {
-    log("libs. create protocol", protocol_selection.to_string());
+    log("libs_t::create_protocol", protocol_selection.to_string());
     for (auto& i: *this) {
         log("testing a business");
         auto r = i.second->business->create_protocol(move(protocol_selection));
+        if (r.first == ok) {
+            log("found");
+            return r;
+        }
+    }
+    auto r = "KO 7895 Protocol not available";
+    log(r);
+    return make_pair(r, nullptr);
+}
+
+std::pair<ko, us::wallet::trader::trader_protocol*> c::libs_t::create_opposite_protocol(protocol_selection_t&& protocol_selection) {
+    log("libs_t::create_opposite_protocol", protocol_selection.to_string());
+    for (auto& i: *this) {
+        log("testing a business");
+        auto r = i.second->business->create_opposite_protocol(move(protocol_selection));
         if (r.first == ok) {
             log("found");
             return r;
@@ -468,13 +491,13 @@ void c::lib_t::dump(ostream& os) const {
     business->list_protocols(os);
 }
 
-void c::lib_t::to_stream_protocols(protocols_t& protocols) const {
-    business->to_stream_protocols(protocols);
+void c::lib_t::invert(protocols_t& protocols) const {
+    business->invert(protocols);
 }
 
-void c::lib_t::published_protocols(protocols_t& protocols) const {
+void c::lib_t::published_protocols(protocols_t& protocols, bool inverse) const {
     assert(business != nullptr);
-    business->published_protocols(protocols);
+    business->published_protocols(protocols, inverse);
 }
 
 void c::lib_t::exec_help(const string& prefix, ostream& os) const {
@@ -491,9 +514,15 @@ pair<protocol_selection_t, bookmark_info_t> c::lib_t::bookmark_info() const {
     return move(business->bookmark_info());
 }
 
-void c::libs_t::published_protocols(protocols_t& protocols) const {
+void c::libs_t::published_protocols(protocols_t& protocols, bool inverse) const {
     for (auto& i: *this) {
-        i.second->published_protocols(protocols);
+        i.second->published_protocols(protocols, inverse);
+    }
+}
+
+void c::libs_t::invert(protocols_t& protocols) const {
+    for (auto& i: *this) {
+        i.second->invert(protocols);
     }
 }
 
@@ -502,15 +531,6 @@ void c::libs_t::dump(ostream& os) const {
         i.second->dump(os);
     }
 }
-
-
-void c::libs_t::to_stream_protocols(protocols_t& protocols) const {
-//    os << size() << ' ';
-    for (auto& i: *this) {
-        i.second->to_stream_protocols(protocols);
-    }
-}
-
 
 void c::libs_t::exec_help(const string& prefix, ostream& os) const {
     for (auto& i: *this) {
@@ -544,20 +564,18 @@ void c::api_list_protocols(ostream& os) const {
     libs.dump(os);
 }
 
-c::protocols_t c::protocols() const {
-    protocols_t p;
-    libs.to_stream_protocols(p);
-    return move(p);
+void c::published_protocols(protocols_t& protocols, bool inverse) const {
+    libs.published_protocols(protocols, inverse);
 }
 
-void c::published_protocols(protocols_t& protocols) const {
-    libs.published_protocols(protocols);
+c::protocols_t c::published_protocols(bool inverse) const {
+    protocols_t protocols;
+    libs.published_protocols(protocols, inverse);
+    return move(protocols);
 }
 
-c::protocols_t c::published_protocols() const {
-    protocols_t o;
-    published_protocols(o);
-    return move(o);
+void c::invert(protocols_t& p) const {
+    libs.invert(p);
 }
 
 void c::published_bookmarks(wallet::local_api& w, bookmarks_t& b) const {
@@ -569,7 +587,7 @@ void c::published_bookmarks(wallet::local_api& w, bookmarks_t& b) const {
     ep.wloc = w.subhome;
     for (auto& i: v) {
         ostringstream name;
-        name << "bookmark #" << ++n;
+        name << "bm_" << ++n;
         b.add(name.str(), bookmark_t(qr_t(ep, move(i.first)), move(i.second)));
         log("added", name.str());
     }
@@ -649,6 +667,7 @@ void c::help(const string& ind, ostream& os) {
     os << ind << "Commands:\n";
     fmt::twocol(ind____, "[R2R Trades]", "----------", os);
     fmt::twocol(ind____, "qr", "Display my QRs", os);
+    fmt::twocol(ind____, "save_qr_bookmark <name> <file>", "Save to file (or stdout if no file) a bookmark of me by name", os);
     fmt::twocol(ind____, "list_protocols", "Lists available trading protocols", os);
     fmt::twocol(ind____, "start <node_address> <protocol> <role>", "Initiates a new P2P private trade using endpoint", os);
     fmt::twocol(ind____, "list", "Lists all active trades", os);
@@ -662,7 +681,13 @@ void c::help(const string& ind, ostream& os) {
     os << '\n';
     fmt::twocol(ind____, "[World]", "----------", os);
     fmt::twocol(ind____, "world", "Lists remote wallets", os);
-    fmt::twocol(ind____, "bookmarks", "Display my bookmarks", os);
+    fmt::twocol(ind____, "bookmarks [file]", "Print my bookmarks (or those in input file).", os);
+    fmt::twocol(ind____, "bookmarks_append <dstfile> <srcfile>", "Append bookmarks in srcfile into bookmarks file dstfile.", os);
+    fmt::twocol(ind____, "bookmarks_rename <file> <old-name> <new-name>", "Rename entry in bookmarks file.", os);
+
+
+    fmt::twocol(ind____, "save_bookmark <name> <file>", "Append to file (or stdout) a bookmark by name ", os);
+    fmt::twocol(ind____, "load_bookmark <file> ", "Load ", os);
     os << '\n';
 }
 

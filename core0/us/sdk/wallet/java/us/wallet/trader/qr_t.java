@@ -58,6 +58,11 @@ public class qr_t implements us.gov.io.seriable {
         protocol_selection = new protocol_selection_t();
     }
 
+    public qr_t(qr_t other) {
+        endpoint = new endpoint_t(other.endpoint);
+        protocol_selection = new protocol_selection_t(other.protocol_selection);
+    }
+
 /*
     public int blob_size() {
         return endpoint.blob_size() + protocol_selection.blob_size();

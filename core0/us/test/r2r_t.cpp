@@ -593,7 +593,7 @@ void c::test_trade_start_dialog_b(node& bid, node& ask, hash_t& trade_id, int nu
     ostringstream cmd;
     assert(!bid.wallet_cli->cur.is_zero());
     cout << "tid: " << bid.wallet_cli->cur << endl;
-    cmd << "start bid2ask bid";
+    cmd << "start bid2ask ask";
     cout << cmd.str() << endl;
     exec_cur_trade(bid, cmd.str());
 

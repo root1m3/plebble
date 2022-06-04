@@ -5,6 +5,7 @@ After = ##str3##-gov.service
 [Service]
 Type=simple
 EnvironmentFile=/home/##str11##/.##str3##/config
+EnvironmentFile=/home/##str11##/.##str3##/wallet/config
 ExecStart=
 ExecStart=/usr/local/bin/##str3##-wallet -d -c ${CHANNEL} -lp ${WALLET_PORT} -pp ${WALLET_PPORT} -bp ${PORT} -e ${WALLET_MAXEDGES_PEER} -v ${WALLET_MAXEDGES_DEVICE}
 User=##str11##

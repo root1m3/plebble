@@ -79,6 +79,10 @@ std::pair<ko, us::wallet::trader::trader_protocol*> c::create_protocol(protocol_
     return create_protocol();
 }
 
+std::pair<ko, us::wallet::trader::trader_protocol*> c::create_opposite_protocol(protocol_selection_t&& protocol_selection) {
+    return create_protocol(move(protocol_selection));
+}
+
 std::pair<ko, us::wallet::trader::trader_protocol*> c::create_protocol() {
     log("protocol instatiation");
     auto p = new business_t::protocol(*this);
@@ -91,11 +95,10 @@ void c::list_protocols(ostream& os) const {
     os << c::protocol::name << " w\n";
 }
 
-void c::to_stream_protocols(protocols_t& protocols) const {
-    protocols.emplace_back(make_pair(c::protocol::name, "w"));
+void c::invert(protocols_t&) const { //w2w is symmetric
 }
 
-void c::published_protocols(protocols_t& protocols) const {
+void c::published_protocols(protocols_t& protocols, bool inverse) const {
     protocols.emplace_back(make_pair(c::protocol::name, "w"));
 }
 

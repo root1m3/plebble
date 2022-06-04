@@ -36,6 +36,7 @@ using namespace us::trader::r2r::bid2ask;
 using c = us::trader::r2r::bid2ask::bid::business_t;
 
 c::business_t() {
+    name = "buyer";
 }
 
 c::~business_t() {
@@ -43,7 +44,6 @@ c::~business_t() {
 }
 
 ko c::init(const string& r2rhome) {
-    name = "buyer";
     auto r = b::init(r2rhome);
     if (is_ko(r)) {
         return r;
@@ -68,9 +68,25 @@ std::pair<us::ko,us::wallet::trader::trader_protocol*> c::create_protocol(protoc
         return make_pair(r, nullptr);
     }
     if (protocol_selection.second != "bid") {
-        auto r = "KO 95472 buyer: Unsupported role.";
+        auto r = "KO 95472 buyer: I can only do bid.";
         log(r);
-        return make_pair(r, nullptr );
+        return make_pair(r, nullptr);
+    }
+    return create_protocol();
+}
+
+std::pair<us::ko,us::wallet::trader::trader_protocol*> c::create_opposite_protocol(protocol_selection_t&& protocol_selection) {
+    log ("protocol from string", protocol_selection.first, protocol_selection.second);
+    if (protocol_selection.first != protocol::name) {
+        log("not recognized", protocol_selection.first);
+        auto r = "KO 49867 Unsupported protocol.";
+        log(r);
+        return make_pair(r, nullptr);
+    }
+    if (protocol_selection.second != "ask") {
+        auto r = "KO 95472 buyer: I only match ask.";
+        log(r);
+        return make_pair(r, nullptr);
     }
     return create_protocol();
 }
@@ -86,11 +102,19 @@ void c::list_protocols(ostream& os) const {
     os << c::protocol::name << " bid\n";
 }
 
-void c::to_stream_protocols(protocols_t& protocols) const {
-    protocols.emplace_back(make_pair(c::protocol::name, "bid"));
+void c::invert(protocols_t& protocols) const {
+    for (auto& i: protocols) {
+        if (i.first != c::protocol::name) continue;
+        if (i.second == "ask") {
+            i.second = "bid";
+        }
+        else {
+            i.second = "ask";
+        }
+    }
 }
 
-void c::published_protocols(protocols_t& protocols) const {
-    protocols.emplace_back(make_pair(c::protocol::name, "ask"));
+void c::published_protocols(protocols_t& protocols, bool inverse) const {
+    protocols.emplace_back(make_pair(c::protocol::name, inverse ? "ask" : "bid"));
 }
 

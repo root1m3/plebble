@@ -57,14 +57,21 @@ public class activity extends AppCompatActivity {
         a.set_foreground_activity(this, true);
         log("onResume - A1.5"); //--strip
         resume_leds();
-        log("onResume - A1"); //--strip
         if (a.hmi == null) {
             log("HMI is null"); //--strip
             return;
         }
         log("onResume - A2"); //--strip
-        if (walletd_leds != null) a.hmi.report_status();
-        if (govd_leds != null) a.hmi.report_status_gov();
+        if (walletd_leds != null || govd_leds != null) {
+            Thread worker = new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    if (walletd_leds != null) a.hmi.report_status();
+                    if (govd_leds != null) a.hmi.report_status_gov();
+                }
+            });
+            worker.start();
+        }
         log("onResume - A3"); //--strip
     }
 
@@ -143,13 +150,15 @@ public class activity extends AppCompatActivity {
     }
 
     void resume_walletd_leds() {
-        if (leds_visible_wallet && walletd_leds == null) {
-            walletd_leds = new leds_t(this, findViewById(R.id.walletd_leds));
+        app.assert_ui_thread(); //--strip
+        View v = findViewById(R.id.walletd_leds);
+        if (v != null && leds_visible_wallet && walletd_leds == null) {
+            walletd_leds = new leds_t(this, v);
             walletd_leds.set_visibility(true);
             walletd_leds.view.setOnClickListener(get_on_click_listener());
             return;
         }
-        if (!leds_visible_wallet && walletd_leds!=null) {
+        if (!leds_visible_wallet && walletd_leds != null) {
             walletd_leds.set_visibility(false);
             walletd_leds = null;
             return;
@@ -157,8 +166,10 @@ public class activity extends AppCompatActivity {
     }
 
     void resume_govd_leds() {
-        if (leds_visible_gov && govd_leds == null) {
-            govd_leds = new leds_t(this, findViewById(R.id.govd_leds));
+        app.assert_ui_thread(); //--strip
+        View v = findViewById(R.id.govd_leds);
+        if (v != null && leds_visible_gov && govd_leds == null) {
+            govd_leds = new leds_t(this, v);
             govd_leds.set_visibility(true);
             govd_leds.view.setOnClickListener(get_on_click_listener());
             return;
@@ -185,18 +196,31 @@ public class activity extends AppCompatActivity {
     }
 
     void resume_leds() {
+        app.assert_ui_thread(); //--strip
         resume_govd_leds();
         resume_walletd_leds();
     }
 
     public void set_leds_visibility_gov(boolean b) {
+        app.assert_worker_thread(); //--strip
         leds_visible_gov = b;
-        resume_govd_leds();
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                resume_govd_leds();
+            }
+        });
     }
 
     public void set_leds_visibility_wallet(boolean b) {
-        leds_visible_wallet=b;
-        resume_walletd_leds();
+        app.assert_worker_thread(); //--strip
+        leds_visible_wallet = b;
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                resume_walletd_leds();
+            }
+        });
     }
 
     public static main_activity main = null;

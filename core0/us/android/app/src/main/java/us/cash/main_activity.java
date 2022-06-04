@@ -150,7 +150,7 @@ public final class main_activity extends activity implements datagram_dispatcher
         toolbar = findViewById(R.id.toolbar);
         mainprogressbarcontainer.setVisibility(View.VISIBLE);
         refresh.setVisibility(View.GONE);
-        toolbar.setTitle(R.string.select_menu);
+        toolbar.setTitle(""); //toolbar.setTitle(R.string.select_menu);
         log("toolbar visible");//--strip
         toolbar.setVisibility(View.VISIBLE);
         setSupportActionBar(toolbar);

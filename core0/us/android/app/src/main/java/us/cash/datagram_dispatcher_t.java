@@ -37,9 +37,9 @@ import java.util.concurrent.locks.ReentrantLock;                                
 
 public class datagram_dispatcher_t implements datagram.dispatcher_t, Runnable {
 
-    static void log(final String line) {         //--strip
-       CFG.log_android("datagram_dispatcher_t: " + line);     //--strip
-    }                                            //--strip
+    static void log(final String line) {                        //--strip
+       CFG.log_android("datagram_dispatcher_t: " + line);       //--strip
+    }                                                           //--strip
 
     public static interface handler_t {
         void on_push(final hash_t target_tid, final uint16_t code, final byte[] payload);

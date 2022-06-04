@@ -51,6 +51,11 @@ public class protocol_selection_t extends pair<String, String> implements us.gov
         this.second = r;
     }
 
+    public protocol_selection_t(protocol_selection_t other) {
+        this.first = new String(other.first);
+        this.second = new String(other.second);
+    }
+
     static void to_stream(String o, OutputStream os0) {
         PrintStream os = new PrintStream(os0);
         try {

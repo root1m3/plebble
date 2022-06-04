@@ -703,26 +703,10 @@ ko c::handle_file(hash_t&& digest, vector<uint8_t>& content) {
 
 ko c::handle_exec(string&& cmd0) {
     log("exec", cmd0);
-    {
-        istringstream is(cmd0);
-        string cmd;
-        is >> cmd;
-        if (cmd == "show") {
-            log("show");
-            string cmd;
-            is >> cmd;
-            if (cmd == "txlog") {
-                log("show txlog");
-                daemon.pm.schedule_push(get_push_datagram(hash_t(0), push_txlog), device_filter);
-                return ok;
-            }
-        }
-    }
     auto r = daemon.traders.exec(cmd0, *this);
     if (is_ko(r)) {
         daemon.pm.push_KO(r, device_filter);
     }
-
     return ok;
 }
 
@@ -1073,8 +1057,13 @@ ko c::handle_bookmark_delete(string&& key, string& ans) {
 
 ko c::handle_bookmark_list(bookmarks_t& bookmarks) {
     log("bookmark_list");
-    lock_guard<mutex> lock(daemon.traders.bookmarks_mx);
-    bookmarks = daemon.traders.bookmarks;
+    ostringstream os;
+    os << daemon.traders.bookmarks.home << '/' << "brand_bookmarks";
+    bookmarks.load(os.str());
+    {
+        lock_guard<mutex> lock(daemon.traders.bookmarks_mx);
+        bookmarks += daemon.traders.bookmarks;
+    }
     return ok;
 }
 

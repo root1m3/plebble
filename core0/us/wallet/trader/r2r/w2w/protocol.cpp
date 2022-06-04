@@ -106,11 +106,19 @@ ko c::exec_offline(const string& cmd0, ch_t& ch) {
         auto r = b::exec_offline(cmd0, ch);
         if (r != trader_protocol::WP_29101) return move(r);
     }
-//    istringstream is(cmd0);
-//    string cmd;
-//    is >> cmd;
-//    if (cmd == "show") {
-//    }
+    istringstream is(cmd0);
+    string cmd;
+    is >> cmd;
+    if (cmd == "show") {
+        log("show");
+        string cmd;
+        is >> cmd;
+        if (cmd == "txlog") {
+            log("show txlog");
+            w().txlog.show(tid());
+            return ok;
+        }
+    }
 /*
     if (cmd == "track") { //trackid
         log("track");
@@ -130,7 +138,8 @@ ko c::exec_offline(const string& cmd0, ch_t& ch) {
         track_status.dump(os);
         return tder->push_OK(os.str());
     }
-*/    auto r = WP_29101;
+*/
+    auto r = WP_29101;
     log(r);
     return move(r);
 }

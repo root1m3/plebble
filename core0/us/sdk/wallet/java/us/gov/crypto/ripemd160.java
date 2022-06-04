@@ -49,9 +49,14 @@ public class ripemd160 {
             zero();
         }
 
+        public hash_t(hash_t other) {
+            value = new byte[output_size];
+            for (int i = 0; i < output_size; ++i) value[i] = other.value[i];
+        }
+
         public hash_t(String b58) {
             value = base58.decode(b58);
-            if(value == null) {
+            if (value == null) {
                 value = new byte[output_size];
                 zero();
             }
@@ -62,7 +67,7 @@ public class ripemd160 {
         }
 
         public hash_t(byte[] v) {
-            if(v == null) {
+            if (v == null) {
                 value = new byte[output_size];
                 zero();
             }

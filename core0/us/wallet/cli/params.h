@@ -73,6 +73,7 @@ namespace us::wallet::cli {
         port_t listening_port{CFG_WALLET_PORT};
         port_t published_port{CFG_WALLET_PPORT};
         pin_t pin{0};
+        bool local{false}; //default RPC mode
         string walletd_host{"localhost"};
         port_t walletd_port{CFG_WALLET_PORT};
         string backend_host{"localhost"};

@@ -90,9 +90,9 @@ import android.view.View;                                                       
 
 public final class node_pairing extends activity {
 
-    static void log(final String s) { //--strip
-        System.out.println("node_pairing: " + s); //--strip
-    } //--strip
+    static void log(final String s) {               //--strip
+        System.out.println("node_pairing: " + s);   //--strip
+    }                                               //--strip
 
     public static int instances = 0;
     static int darkgreen = Color.parseColor("#009900");
@@ -367,7 +367,7 @@ public final class node_pairing extends activity {
 
     @Override
     public void onResume() {
-       super.onResume();
+        super.onResume();
         log("onResume"); //--strip
         --instances;
         if (a.hmi == null) {
@@ -710,7 +710,7 @@ public final class node_pairing extends activity {
             log("hmi is down"); //--strip
             mode.setVisibility(View.GONE);
         }
-        a.hmi.report_status();
+        a.hmi.report_status__ui();
     }
 
     void refresh_node_address_n_lookupip() {
@@ -740,8 +740,6 @@ public final class node_pairing extends activity {
 
     void refresh_connect_button() {
         log("refresh_connect_button " + state.lookingup + " " + state.testing); //--strip
-//        connect_btn.setEnabled(!(state.lookingup || state.testing));
-        //connect_btn.setEnabled(!state.testing);
         connect_btn.setEnabled(true);
     }
 
@@ -749,7 +747,6 @@ public final class node_pairing extends activity {
         log("refresh"); //--strip
         refresh_device_widgets();
         refresh_node_address_n_lookupip();
-        a.hmi.report_status();
         refresh_connect_button();
         refresh_mode_widgets();
 
@@ -777,7 +774,6 @@ public final class node_pairing extends activity {
             }
         });
     }
-
 
     private TextView current_endpoint;
     private TextInputEditText addr;

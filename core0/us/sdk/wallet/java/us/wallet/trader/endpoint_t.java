@@ -77,6 +77,12 @@ public class endpoint_t implements Comparable<endpoint_t>, us.gov.io.seriable {
         wloc = "";
     }
 
+    public endpoint_t(endpoint_t other) {
+        chan = new channel_t(other.chan.value);
+        pkh = new hash_t(other.pkh);
+        wloc = new String(other.wloc);
+    }
+
     public endpoint_t(String s) {
         try {
             InputStream is = new ByteArrayInputStream(s.getBytes());

@@ -1,0 +1,33 @@
+Assuming existing shop address SVsSrkBWLmpVVasifpa8r4oCMRa with gas
+
+1 create 2 new addresses
+  wallet address new
+  wallet address new
+
+transfer gas
+  wallet transfer 3KM2vYV6xR1byyJwM5oe9HoCdEzE 100000000 gas
+  wallet transfer 2oxqGk7AQu2CwEYSCg8RwP5cVcqs 100000000 gas
+  wallet balance 1
+
+create coin mints
+  wallet set_supply 3KM2vYV6xR1byyJwM5oe9HoCdEzE 100000000
+  wallet set_supply 2oxqGk7AQu2CwEYSCg8RwP5cVcqs 100000000
+  wallet balance 2
+
+transfer coins to shop address
+  wallet transfer SVsSrkBWLmpVVasifpa8r4oCMRa 10000000 3KM2vYV6xR1byyJwM5oe9HoCdEzE
+  wallet transfer SVsSrkBWLmpVVasifpa8r4oCMRa 10000000 2oxqGk7AQu2CwEYSCg8RwP5cVcqs
+  wallet balance 2
+
+
+SVsSrkBWLmpVVasifpa8r4oCMRa GAS 31317730065; 2 coins
+    Coins:
+        coin 3KM2vYV6xR1byyJwM5oe9HoCdEzE 10000000
+        coin 2oxqGk7AQu2CwEYSCg8RwP5cVcqs 10000000
+3KM2vYV6xR1byyJwM5oe9HoCdEzE GAS 99999969; 1 coins
+    Coins:
+        mint. Supply left 90000000
+2oxqGk7AQu2CwEYSCg8RwP5cVcqs GAS 99999969; 1 coins
+    Coins:
+        mint. Supply left 90000000
+

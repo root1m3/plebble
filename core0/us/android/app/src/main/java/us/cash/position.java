@@ -66,7 +66,7 @@ import androidx.appcompat.widget.Toolbar;                                       
 import android.view.ViewGroup;                                                                 // ViewGroup
 import android.view.View;                                                                      // View
 
-public final class position extends activity { //implements datagram_dispatcher_t.handler_t {
+public final class position extends activity {
 
     static void log(final String line) {         //--strip
        CFG.log_android("position: " + line);     //--strip
@@ -75,8 +75,7 @@ public final class position extends activity { //implements datagram_dispatcher_
     public static class adapter_t extends ArrayAdapter<cryptocurrency> {
 
         private activity activity_;
-        private LayoutInflater inflater=null;
-        //TextView walletdaddress;
+        private LayoutInflater inflater = null;
 
         public adapter_t(activity ac, ArrayList<cryptocurrency> data) {
             super(ac, R.layout.balance_item, data);
@@ -86,41 +85,24 @@ public final class position extends activity { //implements datagram_dispatcher_
 
         @Override
         public View getView(int position, View view, ViewGroup parent) {
-            // LayoutInflater inflater = context.getLayoutInflater();
-            View vi=view;
-            if (vi==null) {
+            View vi = view;
+            if (vi == null) {
                 vi = inflater.inflate(R.layout.balance_item, null, true);
             }
-            //TextView nemonic_tv = vi.findViewById(R.id.nemonic_tv);
             TextView token_address = vi.findViewById(R.id.token_address);
             TextView balance_tv = vi.findViewById(R.id.balance_tv);
-            //ImageView currencyimg = vi.findViewById(R.id.currencyimg);
-            //walletdaddress = vi.findViewById(R.id.walletd_address);
             cryptocurrency cripto = getItem(position);
             token_address.setText(cripto.get_token());
-            //walletdaddress.setText(""); //trader_address()
-            //currencyimg.setImageResource(getContext().getResources().getIdentifier("raw/" + cripto.get_logo(), null, getContext().getPackageName()));
-            //nemonic_tv.setText(cripto.get_mnemonic());
             double finalbalance = cripto.get_amount();
-            NumberFormat nFormat = NumberFormat.getInstance();
+            NumberFormat nFormat = NumberFormat.getInstance(activity.main.getResources().getConfiguration().locale);
             nFormat.setGroupingUsed(true);
-            if(cripto.get_decimals() > 0) {
+            if (cripto.get_decimals() > 0) {
                 nFormat.setMaximumFractionDigits(2);
                 nFormat.setMinimumFractionDigits(2);
-                finalbalance = cripto.get_amount()/Math.pow(10, cripto.get_decimals());
+                finalbalance = cripto.get_amount() / Math.pow(10, cripto.get_decimals());
             }
             balance_tv.setText(nFormat.format(finalbalance));
-/*
-            walletdaddress.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    String feedback =  getContext().getResources().getString(R.string.addresscopied);
-                    setClipboard(getContext(), walletdaddress.getText().toString(), feedback);
-                    Toast.makeText(getContext(), feedback, 6000).show();
-                }
-            });
-*/
-           View.OnClickListener lner=new View.OnClickListener() {
+            View.OnClickListener lner = new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     String[] options = {"Send "+cripto.get_token()};
@@ -138,19 +120,10 @@ public final class position extends activity { //implements datagram_dispatcher_
                     .show();
                 }
             };
-            //currencyimg.setOnClickListener(lner);
             token_address.setOnClickListener(lner);
             balance_tv.setOnClickListener(lner);
-
-
             return vi;
         }
-
-        /*
-        public String trader_address() {
-            return ((app) activity_.getApplication()).hmi.trader_address();
-        }
-        */
 
         private void setClipboard(Context context, String text, String message) {
             if(android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.HONEYCOMB) {
@@ -165,70 +138,31 @@ public final class position extends activity { //implements datagram_dispatcher_
 
     }
 
-    AbsListView lv;
-    private toolbar_button refresh;
-    private toolbar_button cryptos;
-    adapter_t adapter=null;
-    //String[] shit = {};
-    ArrayList<cryptocurrency> shit;
-    RelativeLayout progressbarcontainer;
-    HashMap<String,cryptocurrency> coinbookmarks=null;
-    Toolbar toolbar;
-    ListView listview;
-
-    DrawerLayout drawerLayout;
-    NavigationView navigationView;
-
-    int dispatchid;
-
     @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         try {
             super.onCreate(savedInstanceState);
             setContentView(R.layout.activity_position);
-
             Toolbar toolbar = findViewById(R.id.toolbar);
             setSupportActionBar(findViewById(R.id.toolbar));
-//TODO review
-//            drawerLayout = findViewById(R.id.drawer_layout);
-//            ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(this, drawerLayout, toolbar, R.string.bookmarks, R.string.bookmarks);
-//            drawerLayout.addDrawerListener(toggle);
-//            toggle.syncState();
-//            navigationView = findViewById(R.id.navigation_view);
-//            navigationView.setNavigationItemSelectedListener(this);
-//            Menu nav_menu = navigationView.getMenu();
-//            MenuItem menuItem = nav_menu.findItem(R.id.nav_balance);
-//            menuItem.setChecked(true);
             toolbar.setTitle(R.string.balance);
-
             progressbarcontainer = findViewById(R.id.progressbarcontainer);
-
             listview  = findViewById(R.id.listview);
-
             log("Filling Coin bookmarks - TODO well done"); //--strip
             coinbookmarks = new HashMap<String, cryptocurrency>();
             log("CoinBookmarks size: " + coinbookmarks.size()); //--strip
-
-            shit=new ArrayList<cryptocurrency>();
+            shit = new ArrayList<cryptocurrency>();
             adapter = new adapter_t(this, shit);
-
             lv = findViewById(R.id.listview);
             lv.setAdapter(adapter);
             refresh = findViewById(R.id.refresh);
-            //cryptos = findViewById(R.id.cryptocurrency);
-
             refresh.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
                     fetch();
-                    //new RuntimeException("Test ACRA Crash");
                 }
             });
-
-            //final app a = (app)getApplication();
-            //log("connect network-datagram hose");//--strip
-            //dispatchid=a.datagram_dispatcher.connect_sink(this);
         }
         catch(Exception ex) {
             error_manager.manage(ex, ex.getMessage() + "    " + ex.toString());
@@ -240,9 +174,6 @@ public final class position extends activity { //implements datagram_dispatcher_
     @Override
     public void onDestroy() {
         super.onDestroy();
-        log("onDestroy"); //--strip
-        //log("disconnect network-datagram hose");//--strip
-       // a.datagram_dispatcher.disconnect_sink(dispatchid);
     }
 
     @Override
@@ -255,55 +186,11 @@ public final class position extends activity { //implements datagram_dispatcher_
     @Override
     public void onPause() {
         super.onPause();
-        log("onPause"); //--strip
     }
 
-/*
-    @Override    //entry point. Datagrams from the wire are processed here, called for every arriving datagram
-    public boolean dispatch(datagram d) { //returns true if the datagram has been handled
-        log("dispatch svc "+d.service); //--strip
-        switch(d.service) {
-            case protocol.wallet_balance_response: {
-                log("handling svc "+d.service); //--strip
-                final String b=d.parse_string();
-                setbalances(b);
-                return true;
-            }
-        }
-        log("unhandled svc "+d.service); //--strip
-        return false;
-    }
-*/
-/*
-    @Override
-    public void on_push(hash_t target_tid, uint16_t code, String payload) {
-        switch(code.value) {
-            case us.wallet.trader.trader_t.push_trade: {
-                log("a new trade for me"); //--strip
-                on_new_trade(target_tid);
-                log("OK - Got it"); //--strip
-                return; //block propagation
-            }
-            case us.wallet.trader.trader_t.push_chat: {
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        call_human(1, target_tid.encode());
-                    }
-                });
-            }
-            break;
-        }
-    }
-
-    @Override
-    public void on_push(hash_t target_tid, uint16_t code, byte[] payload) {
-    }
-*/
-    void setbalances(final String b) {
+    void set_balances(final String b) {
         app.assert_worker_thread(); //--strip
-
-        final String[] ashit=b.split("\\r?\\n");
+        final String[] ashit = b.split("\\r?\\n");
 
         runOnUiThread(new Runnable() {
             @Override
@@ -357,7 +244,7 @@ public final class position extends activity { //implements datagram_dispatcher_
                 if (is_ko(r)) {
                     return;
                 }
-                setbalances(s.value);
+                set_balances(s.value);
             }
         });
         thread.start();
@@ -369,5 +256,18 @@ public final class position extends activity { //implements datagram_dispatcher_
         progressbarcontainer.setVisibility(View.GONE);
         listview.setVisibility(View.VISIBLE);
     }
+
+    AbsListView lv;
+    private toolbar_button refresh;
+    private toolbar_button cryptos;
+    adapter_t adapter=null;
+    ArrayList<cryptocurrency> shit;
+    RelativeLayout progressbarcontainer;
+    HashMap<String,cryptocurrency> coinbookmarks = null;
+    Toolbar toolbar;
+    ListView listview;
+    DrawerLayout drawerLayout;
+    NavigationView navigationView;
+    int dispatchid;
 }
 

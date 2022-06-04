@@ -62,6 +62,7 @@ import us.pair;                                                                 
 import us.string;                                                                              // string
 import android.widget.TextView;                                                                // TextView
 import android.widget.Toast;                                                                   // Toast
+import static us.gov.cash.types.track_t;                                                       // track_t
 import android.view.ViewGroup;                                                                 // ViewGroup
 import android.view.View;                                                                      // View
 
@@ -76,12 +77,14 @@ public class txlog_view extends LinearLayout {
         public txlog_entry() {
             track = new track_t(0L);
             label = "";
-            state = new uint16_t(0);
+            wallet_state = new uint8_t((short)0);
+            gov_state = new uint8_t((short)0);
         }
-
         track_t track;
         String label;
-        uint16_t state;
+        uint8_t wallet_state;
+        uint8_t gov_state;
+        String gov_state_info;
     }
 
     public static class adapter_t extends ArrayAdapter<txlog_entry> {
@@ -89,13 +92,15 @@ public class txlog_view extends LinearLayout {
 
         public adapter_t(role_fragment rf_, Activity ac, ArrayList<txlog_entry> data) {
             super(ac, R.layout.txlog_entry, data);
-            log("adapter constructor"); //--strip
+            log("adapter constructor " + data.size()); //--strip
             rf = rf_;
             inflater = (LayoutInflater)ac.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         }
 
         private class view_holder {
             TextView txinfo;
+            TextView wallet_track_status;
+            TextView gov_track_status;
             MaterialButton cancel;
             MaterialButton confirm;
         }
@@ -103,6 +108,22 @@ public class txlog_view extends LinearLayout {
         void on_cancel(track_t track) {
             log("on_cancel. track " + track.value); //--strip
             rf.a.hmi.command_trade(rf.tr.tid, "cancel " + track.value);
+        }
+
+        void on_confirm(track_t track) {
+            log("on_confirm. track " + track.value); //--strip
+            rf.a.hmi.command_trade(rf.tr.tid, "pay " + track.value);
+        }
+
+        String draw_gov_state(uint8_t x) {
+            us.gov.engine.track_status_t.evt_status_t v = us.gov.engine.track_status_t.evt_status_t.from_short(x.value);
+            if (v == us.gov.engine.track_status_t.evt_status_t.evt_wait_arrival) return "[====>.........................]";
+            if (v == us.gov.engine.track_status_t.evt_status_t.evt_calendar) return     "[====>====>....................]";
+            if (v == us.gov.engine.track_status_t.evt_status_t.evt_mempool) return      "[====>====>====>...............]";
+            if (v == us.gov.engine.track_status_t.evt_status_t.evt_craftblock) return   "[====>====>====>====>..........]";
+            if (v == us.gov.engine.track_status_t.evt_status_t.evt_consensus) return    "[====>====>====>====>====>.....]";
+            if (v == us.gov.engine.track_status_t.evt_status_t.evt_settled) return      "[====>====>====>====>====>====>]";
+            return "";
         }
 
         @Override
@@ -114,6 +135,8 @@ public class txlog_view extends LinearLayout {
                 convert_view = inflater.inflate(R.layout.txlog_entry, null, true);
                 holder = new view_holder();
                 holder.txinfo = convert_view.findViewById(R.id.txinfo);
+                holder.wallet_track_status = convert_view.findViewById(R.id.wallet_track_status);
+                holder.gov_track_status = convert_view.findViewById(R.id.gov_track_status);
                 holder.cancel = convert_view.findViewById(R.id.cancel);
                 holder.confirm = convert_view.findViewById(R.id.confirm);
                 convert_view.setTag(holder);
@@ -121,15 +144,31 @@ public class txlog_view extends LinearLayout {
             else {
                 holder = (view_holder) convert_view.getTag();
             }
+
             //log("bm.qr.to_string() " + bm.qr.to_string()); //--strip
-            holder.txinfo.setText("" + sbm.track.value + " " + sbm.label);
-            if (sbm.state.value == 2) {
+            log("" + sbm.wallet_state.value + " " + us.wallet.wallet.local_api.wallet_track_status_str.length); //--strip
+            holder.txinfo.setText(sbm.label);
+            holder.wallet_track_status.setText(us.wallet.wallet.local_api.wallet_track_status_str[sbm.wallet_state.value]);
+            if (sbm.wallet_state.value == us.wallet.wallet.local_api.wallet_track_status_t.wts_delivered.as_short()) {
+                holder.gov_track_status.setText(us.gov.engine.track_status_t.evt_status_str[sbm.gov_state.value] + " " + draw_gov_state(sbm.gov_state) + ' ' + sbm.gov_state_info);
+                holder.gov_track_status.setVisibility(View.VISIBLE);
+            }
+            else {
+                holder.gov_track_status.setVisibility(View.GONE);
+            }
+            if (sbm.wallet_state.value == us.wallet.wallet.local_api.wallet_track_status_t.wts_wait_signature.as_short()) {
                 holder.cancel.setVisibility(View.VISIBLE);
                 final adapter_t v = this;
                 holder.cancel.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View view) {
                             v.on_cancel(sbm.track);
+                        }
+                    });
+                holder.confirm.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
+                            v.on_confirm(sbm.track);
                         }
                     });
                 holder.confirm.setVisibility(View.VISIBLE);
@@ -243,7 +282,6 @@ public class txlog_view extends LinearLayout {
 
     public boolean refresh() {
         log("refresh"); //--strip
-
         return true;
     }
 
@@ -260,30 +298,38 @@ public class txlog_view extends LinearLayout {
         }
 
         @Override public ko from_blob(blob_reader_t reader) {
-            track_t tr = new track_t();
-            {
-                ko r = reader.read(tr);
-                if (ko.is_ko(r)) return r;
-                track = tr;
-            }
             string s = new string();
             {
                 ko r = reader.read(s);
                 if (ko.is_ko(r)) return r;
                 label = s.value;
             }
-            uint16_t st = new uint16_t();
+            uint8_t wst = new uint8_t();
             {
-                ko r = reader.read(st);
+                ko r = reader.read(wst);
                 if (ko.is_ko(r)) return r;
-                state = st;
+                wallet_evt_status = wst;
+            }
+            uint8_t gst = new uint8_t();
+            {
+                ko r = reader.read(gst);
+                if (ko.is_ko(r)) return r;
+                gov_evt_status = gst;
+            }
+            string info = new string();
+            {
+                ko r = reader.read(info);
+                if (ko.is_ko(r)) return r;
+                gov_evt_status_info = info.value;
             }
             return ok;
         }
 
-        track_t track;
         String label;
-        uint16_t state;
+        uint8_t wallet_evt_status;
+        uint8_t gov_evt_status;
+        String gov_evt_status_info;
+
     }
 
     @SuppressWarnings("serial")
@@ -300,14 +346,16 @@ public class txlog_view extends LinearLayout {
         }
 
         @Override public ko from_blob(blob_reader_t reader) {
+
             uint64_t sz = new uint64_t();
             {
                 ko r = reader.read_sizet(sz);
                 if (ko.is_ko(r)) return r;
             }
+            log("from_blob " + sz.value); //--strip
             clear();
             ensureCapacity((int)sz.value);
-            for (int i =0; i< sz.value; ++i) {
+            for (int i = 0; i < sz.value; ++i) {
                 track_t x = new track_t();
                 {
                     ko r = reader.read(x);
@@ -318,6 +366,7 @@ public class txlog_view extends LinearLayout {
                     ko r = reader.read(s);
                     if (ko.is_ko(r)) return r;
                 }
+                log("from_blob index_item: " + x.to_string() + " " + s.label + " " + s.wallet_evt_status.value + " " + s.gov_evt_status.value); //--strip
                 add(new pair<track_t, index_item_t>(x, s));
             }
             return ok;
@@ -329,7 +378,7 @@ public class txlog_view extends LinearLayout {
         index_t x = new index_t();
         ko r = x.from_blob(reader);
         if (is_ko(r)) {
-            log("wrong datagram." + r.msg); //--strip
+            log("Invalid datagram. " + r.msg); //--strip
             return;
         }
         update(x);
@@ -355,12 +404,17 @@ public class txlog_view extends LinearLayout {
             pair<track_t, index_item_t> o = i.previous();
             e.track = o.first;
             e.label = o.second.label;
-            e.state = o.second.state;
+            e.wallet_state = o.second.wallet_evt_status;
+            e.gov_state = o.second.gov_evt_status;
+            e.gov_state_info = o.second.gov_evt_status_info;
             log("==> " + e.track.value + " " + e.label); //--strip
             x.add(e);
         }
         return x;
     }
+
+ 
+
 
 /*
     @Override

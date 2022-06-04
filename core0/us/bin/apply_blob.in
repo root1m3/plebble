@@ -25,13 +25,23 @@
 
 prog=$0
 
+US="##str3##"
 GOVUSER="##str11##"
 ANDROID_BRANDID="##str56##"
+defaultr2r="##str77##"
 
 export USRHOME=/home/$GOVUSER
 
 function help {
-    echo "./$prog [--full-install] [--only-install-deps] [<jaildir>]"
+    echo "./$prog [--full-install] [--only-install-deps] [--jail <jaildir>] <command>"
+    echo "Commands are:"
+    echo "    install"
+    echo "    r2r_lib_list_installed"
+	echo "    r2r_lib_list_default                 "
+	echo "    r2r_lib_install <e.g. bid2ask-bid>    "
+	echo "    r2r_lib_uninstall <prot-rol>  "
+	echo "    r2r_lib_commit                       "
+    echo ""
     echo "default jaildir=\"\""
 }
 
@@ -39,13 +49,17 @@ full_install=1  #a29.18
 echo "This release requires a full install"
 let onlyinstalldeps=0
 
-while [ true ]; do
+while [[ true ]]; do
     opt=$1
     shift
-    if [ "_$opt" == "_--full-install" ]; then
+    if [[ "_$opt" == "_--full-install" ]]; then
         full_install=1
         continue
-    elif [ "_$opt" == "_--only-install-deps" ]; then
+    elif [[ "_$opt" == "_--jail" ]]; then
+        jaildir=$1
+        shift
+        continue
+    elif [[ "_$opt" == "_--only-install-deps" ]]; then
         let onlyinstalldeps=1
         continue
     elif [[ _$opt == _--* ]]; then
@@ -56,7 +70,11 @@ while [ true ]; do
     fi
 done
 
-JAILDIR=$opt
+cmd=$opt
+if [[ "_$cmd" == "_" ]]; then
+    cmd="install"
+fi
+JAILDIR=$jaildir
 
 if [[ "_$JAILDIR" != "_" ]]; then
     JAILDIR=`realpath $JAILDIR`
@@ -71,7 +89,6 @@ if [[ $EUID -ne 0 ]]; then
 fi
 
 tar="tar -I zstd"
-defaultr2r="bid2ask-bid"
 
 pkg=`pwd | sed "s~.*/\(.*\)~\1~"`
 blob_brand=`echo $pkg | sed -n "s#^\([^_]*\)_\([^_]*\)_\([^_]*\).*#\1#p"`
@@ -84,6 +101,7 @@ cat << EOF
     channel $ch
 EOF
 US=$blob_brand
+echo "US=$US"
 
 function init_jail {
     echo "init_jail"
@@ -92,9 +110,18 @@ function init_jail {
 function touch_defaults {
     dst=$1
     US=$2
+    mkdir -p ${JAILDIR}$dst
     for l in `echo $defaultr2r`; do
         touch ${JAILDIR}$dst/lib${US}trader-${l}.so
     done
+}
+
+function touch_lib {
+    dst=$1
+    lib=$2
+    mkdir -p ${JAILDIR}$dst
+    touch ${JAILDIR}$dst/lib${US}trader-${lib}.so
+    echo "touched file ${JAILDIR}$dst/lib${US}trader-${lib}.so"
 }
 
 function symlink_libdir {
@@ -137,56 +164,33 @@ if [[ $onlyinstalldeps -eq 1 ]]; then
     let install_core=0
 fi
 
-function do_upgrade {
-    US=$blob_brand
-    ch=`cat $JAILDIR/var/us_nets | grep " $blob_brand " | awk '{print $1}'`
-    r=$?
-    if [[ $r -ne 0 ]]; then
-        echo "KO 97752 brand $blob_brand is not installed. Run ./$prog --full-install $JAILDIR  "
-        exit 1
-    fi
-    if [ "_$ch" == "_" ]; then
-        echo "KO 97749 brand $blob_brand is not installed."
-        exit 1
-    fi
-    ushome="/home/$GOVUSER/.${US}"
-    if [ "_$ch" != "_0" ]; then
-        ushome="$ushome/$ch"
-    fi
-    whome="$ushome/wallet"
-    thome="$whome/trader"
+function do_upgrade_r2r {
+    thome=$1
     r2rdst="$thome/lib"
     mkdir -p $r2rdst
-
-    #-------------------deps (ec)
-    if [[ $install_deps -eq 1 ]]; then
-        echo "Installing deps (libsecp256k1, fastcgi++)"
-        pushd deps > /dev/null
-            ./install_deps ${JAILDIR}
-        popd > /dev/null
-    fi
-
     #-------------------R2R
     if [[ $install_r2r -eq 1 ]]; then
         echo "Installing R2R"
         if [ -d lib ]; then
+            pwd=`pwd`
             pushd lib > /dev/null
                 arch=`uname -m`
-                if [[ -d $arch/r2r ]]; then
-                    pushd $arch/r2r  > /dev/null
+                if [[ -d ${arch}/r2r ]]; then
+                    pushd ${arch}/r2r  > /dev/null
                         #upgrade name wallet->trader
-                        if [[ -d ${JAILDIR}$r2rdst ]]; then
-                            for f in `find ${JAILDIR}$r2rdst -name "*.so"`; do
-                                n=${f##*/}
-                                n2=`echo $n | sed "s/lib${US}wallet/lib${US}trader/"`
-                                if [[ "_$n2" != "_$n" ]]; then
-                                    mv ${JAILDIR}$r2rdst/$n ${JAILDIR}$r2rdst/$n2
-                                    echo "updated lib name ${JAILDIR}$r2rdst/$n -> ${JAILDIR}$r2rdst/$n2"
-                                fi
-                                echo "${JAILDIR}$r2rdst   --  $n  -- $arch"
-                            done
-                        fi
+                        #if [[ -d ${JAILDIR}$r2rdst ]]; then
+                        #    for f in `find ${JAILDIR}$r2rdst -name "*.so"`; do
+                        #        n=${f##*/}
+                        #        n2=`echo $n | sed "s/lib${US}wallet/lib${US}trader/"`
+                        #        if [[ "_$n2" != "_$n" ]]; then
+                        #            mv ${JAILDIR}$r2rdst/$n ${JAILDIR}$r2rdst/$n2
+                        #            echo "updated lib name ${JAILDIR}$r2rdst/$n -> ${JAILDIR}$r2rdst/$n2"
+                        #        fi
+                        #        echo "${JAILDIR}$r2rdst   --  $n  -- $arch"
+                        #    done
+                        #fi
                         touch_defaults $r2rdst $US
+
                         for f in `find . -name "*.tzst"`; do
                             $tar -xf $f
                         done
@@ -195,13 +199,43 @@ function do_upgrade {
                             for f in `find ${JAILDIR}$r2rdst -name "*.so"`; do
                                 n=${f##*/}
                                 echo "${JAILDIR}$r2rdst   --  $n"
-                                if [ -f $n ]; then
+                                if [[ -f $n ]]; then
                                     cp $n ${JAILDIR}$r2rdst
-                                    echo "Installed $n"
+                                    prot=`echo $n | sed "s#lib.*trader-\(.*\)-.*\.so#\1#"`
+                                    role=`echo $n | sed "s#lib.*trader-.*-\(.*\)\.so#\1#"`
+                                    echo "    Installed $n at ${JAILDIR}$r2rdst"
+                                    if [[ -d $pwd/r2r/home/$prot/$role ]]; then
+                                        mkdir -p ${thome}/$prot/$role
+                                        if [[ ! -f ${thome}/$prot/$role/name ]]; then
+                                            cp $pwd/r2r/home/$prot/$role/name ${thome}/$prot/$role/
+                                            echo "    updated ${thome}/$prot/$role/name"
+                                        else
+                                            echo "    ${thome}/$prot/$role/name already exists."
+                                        fi
+                                        if [[ ! -f ${thome}/$prot/$role/ico.png ]]; then
+                                            cp $pwd/r2r/home/$prot/$role/ico.png ${thome}/$prot/$role/
+                                            echo "    updated ${thome}/$prot/$role/ico.png"
+                                        else
+                                            echo "    ${thome}/$prot/$role/ico.png already exists."
+                                        fi
+                                    else
+                                        echo "    source r2r info dir $pwd/r2r/home/$prot/$role doesn't exists."
+                                    fi
+#                                    if [[ -d $pwd/r2r/html/$prot/$role ]]; then
+#                                        mkdir -p /$prot/$role
+#                                        if [[ ! -f ${thome}/$prot/$role/name ]]; then
+#                                            cp $pwd/r2r/home/$prot/$role/name ${thome}/$prot/$role/
+#                                        fi
+#                                        if [[ ! -f ${thome}/$prot/$role/ico.png ]]; then
+#                                            cp $pwd/r2r/home/$prot/$role/ico.png ${thome}/$prot/$role/
+#                                        fi
+#                                    fi
                                 else
                                     echo "Could not find $n in blob. Not updating this r2r lib."
                                 fi
                             done
+
+
                         fi
                     popd > /dev/null
                 fi
@@ -221,6 +255,30 @@ function do_upgrade {
             popd > /dev/null
         fi
     fi
+}
+
+function do_upgrade {
+    ch=`cat $JAILDIR/var/us_nets | grep " $blob_brand " | awk '{print $1}'`
+    r=$?
+    if [[ $r -ne 0 ]]; then
+        echo "KO 97712 brand $blob_brand is not installed. Run ./$prog --full-install $JAILDIR  "
+        exit 1
+    fi
+    if [ "_$ch" == "_" ]; then
+        echo "KO 97729 brand $blob_brand is not installed. ch=$ch"
+        exit 1
+    fi
+    ushome="/home/$GOVUSER/.${US}"
+    if [ "_$ch" != "_0" ]; then
+        ushome="$ushome/$ch"
+    fi
+    whome="$ushome/wallet"
+    thome="$whome/trader"
+    mkdir -p $thome
+
+    #-------------------R2R libs
+    do_upgrade_r2r $thome
+
     #-------------------Android APK
     if [[ $install_android_apk -eq 1 ]]; then
         echo "Installing android app"
@@ -250,12 +308,27 @@ function do_upgrade {
         $tar -xf core_${blob_branch}_${blob_hash}.tar.zst
         pushd core > /dev/null
             make JAILDIR="${JAILDIR}" install
+            if [[ $? -ne 0 ]]; then
+                echo "KO 30948 do_upgrade finishes with error." 
+                return 1
+            fi
         popd > /dev/null
     fi
     #-----------------------
+    echo "finished do_upgrade" 
+    return 0
 }
 
 function do_install {
+    #-------------------deps (ec)
+    if [[ $install_deps -eq 1 ]]; then
+        echo "Installing deps (libsecp256k1, fastcgi++)"
+        pushd deps > /dev/null
+            ./install_deps ${JAILDIR}
+        popd > /dev/null
+    fi
+
+    #-------------------core - system-base
     corepkg=`find . -type f -name "core*.zst"`
     $tar -xf $corepkg
     pushd core > /dev/null
@@ -268,18 +341,126 @@ if [[ "_${JAILDIR}" != "_" ]]; then
     init_jail
 fi
 
-if [[ $full_install -eq 0 ]]; then
-    if [[ ! -f $JAILDIR/etc/systemd/system/${US}-gov.service ]]; then
-        echo "essential files are missing. Doing full install."
-        full_install=1
+if [[ "_$cmd" == "_install" ]]; then
+    if [[ $full_install -eq 0 ]]; then
+        if [[ ! -f $JAILDIR/etc/systemd/system/${US}-gov.service ]]; then
+            echo "essential files are missing. Doing full install."
+            full_install=1
+        fi
     fi
+
+    if [[ $full_install -eq 1 ]]; then
+        do_install
+        if [[ $? -ne 0 ]]; then
+            echo "KO 50398 Install failed"
+            exit 1
+        fi
+    fi
+
+    do_upgrade
+    if [[ $? -ne 0 ]]; then
+        echo "KO 50399 Upgrade failed"
+        exit 1
+    fi
+    exit 0
 fi
 
-if [[ $full_install -eq 1 ]]; then
-    do_install
+if [[ "_$cmd" == "_r2r_lib_list_default" ]]; then
+    echo "libs installed by default:"
+    echo ${defaultr2r}
+    exit 0
 fi
 
-do_upgrade
+if [[ "_$cmd" == "_r2r_lib_install" ]]; then
+    echo "Installing R2R lib"
+    lib=$1
+    shift
+    arch=`uname -m`
+    #if [[ ! -f lib/$arch/r2r/lib${US}trader-${lib} ]]; then
+    #    echo "KO 76095 file lib/$arch/r2r/$lib not found."
+    #    exit 1
+    #fi
+    ch=`cat $JAILDIR/var/us_nets | grep " $US " | awk '{print $1}'`
+    r=$?
+    if [[ $r -ne 0 ]]; then
+        echo "KO 92752 brand $US is not installed."
+        exit 1
+    fi
+    if [ "_$ch" == "_" ]; then
+        echo "KO 92749 brand $US is not installed. ch=$ch"
+        exit 1
+    fi
+    ushome="/home/$GOVUSER/.${US}"
+    if [ "_$ch" != "_0" ]; then
+        ushome="$ushome/$ch"
+    fi
+    whome="$ushome/wallet"
+    thome="$whome/trader"
+    r2rdst="$thome/lib"
+    mkdir -p $r2rdst
+    touch_lib $r2rdst ${lib}
+    echo "commit is required to complete."
+    exit 0
+fi
 
-exit 0
+if [[ "_$cmd" == "_r2r_lib_uninstall" ]]; then
+    lib=$1
+    shift
+    echo "Uninstalling R2R lib $lib"
+    arch=`uname -m`
+    if [[ ! -f lib/$arch/r2r/$lib ]]; then
+        echo "KO 76095 file lib/$arch/r2r/$lib not found."
+        exit 1
+    fi
+    ch=`cat $JAILDIR/var/us_nets | grep " $US " | awk '{print $1}'`
+    r=$?
+    if [[ $r -ne 0 ]]; then
+        echo "KO 94752 brand $US is not installed."
+        exit 1
+    fi
+    if [ "_$ch" == "_" ]; then
+        echo "KO 94749 brand $US is not installed."
+        exit 1
+    fi
+    ushome="/home/$GOVUSER/.${US}"
+    if [ "_$ch" != "_0" ]; then
+        ushome="$ushome/$ch"
+    fi
+    whome="$ushome/wallet"
+    thome="$whome/trader"
+    r2rdst="$thome/lib"
+    echo "deleted file $r2rdst/lib${US}trader-${lib}.so"
+    rm -f $r2rdst/lib${US}trader-${lib}.so
+    echo "commit is required to complete."
+    exit 0
+fi
+
+if [[ "_$cmd" == "_r2r_lib_commit" ]]; then
+    ch=`cat $JAILDIR/var/us_nets | grep " $blob_brand " | awk '{print $1}'`
+    r=$?
+    if [[ $r -ne 0 ]]; then
+        echo "KO 97752 brand $blob_brand is not installed. Run ./$prog --full-install $JAILDIR  "
+        exit 1
+    fi
+    if [ "_$ch" == "_" ]; then
+        echo "KO 97749 brand $blob_brand is not installed."
+        exit 1
+    fi
+    ushome="/home/$GOVUSER/.${US}"
+    if [ "_$ch" != "_0" ]; then
+        ushome="$ushome/$ch"
+    fi
+    whome="$ushome/wallet"
+    thome="$whome/trader"
+
+    #-------------------R2R libs
+    do_upgrade_r2r $thome
+    echo "REQUIRED: systemctl restart ${US}-wallet"
+    exit 0
+fi
+
+help
+exit 1
+
+
 

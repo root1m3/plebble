@@ -397,6 +397,7 @@ patch bin/apply_blob
 patch bin/ush
 patch bin/upload_blob bin/${str3}-upload_blob
 patch etc/config
+patch etc/wallet/config
 patch gov/config.h
 patch bin/us-ports bin/${str3}-ports
 patch bin/us-seeds bin/${str3}-seeds

@@ -38,6 +38,8 @@ string _ext;
 bool _recursive{false};
 bool _dryrun{false};
 
+#define MAX_HDR_LINES 50
+
 set<string> excludeset {
     "./gov/io/command.h",
     "./gov/crypto/base58.h",
@@ -165,20 +167,21 @@ string get_pfx(string& bangshe, const string& file) {
 bool read_header(const string& filename, const string& pfx, vector<unsigned char>& buf) {
     ifstream is(filename);
     ostringstream os;
+    int nl = 0;
     while (true) {
         string line;
         getline(is, line);
         if (!is.good()) break;
         os << pfx << line << '\n';
+        ++nl;
+    }
+    if (nl >= MAX_HDR_LINES) {
+        cerr << "Header size must be < " << MAX_HDR_LINES << " lines\n";
+        return false;
     }
     string s = os.str();
     buf.resize(s.size());
     memcpy(buf.data(), s.data(), s.size());
-//    copy(s.begin(), s.end(), back_inserter(buf));
-
-//for (int i=0; i<buf.size(); ++i) cout << buf[i];
-//exit (1);
-        
     return true;
 }
 
@@ -341,6 +344,7 @@ int remove_header(const string& file) {
     if (!fileinfo(file, content, comment, hdr_start)) {
         return 1;
     }
+
     //cout << ext(file) << endl;
     //cout << "hdr_start " << hdr_start << endl;
     //cout << "comment " << comment << endl;
@@ -359,6 +363,7 @@ int remove_header(const string& file) {
     memcpy(s.data() + 1, comment.data(), comment.size());
 //    copy(comment.begin(), comment.end(), back_inserter(s));
 
+    
     while(true) {
         //++n;
         auto i = search(n, content.end(), s.begin(), s.end());
@@ -366,6 +371,11 @@ int remove_header(const string& file) {
             //n = search(n, content.end(), s.begin(), s.begin() + 1); //position at next lf
             //++n;
             //cout << "pattern found at offset " << distance(content.begin(), n) << endl;  
+            break;
+        }
+        int nl = count(content.begin(), i, '\n');
+        if (nl > MAX_HDR_LINES) {
+            //if i > MAX_HDR_LINES, knowing header < MAX_HDR_LINES, this match belongs to actual body.
             break;
         }
         n = search(i + 1, content.end(), s.begin(), s.begin() + 1);
@@ -422,7 +432,6 @@ int add_header_dir(const string& hfile, const string& dir) {
     vector<string> files = collect_files(dir);
     int w = 0;
     int b = 0;
-//    vector<string> unprocessed;
     for (auto& file: files) {
         if (++w % 10 == 0) {
             ++b;
@@ -430,50 +439,26 @@ int add_header_dir(const string& hfile, const string& dir) {
             if (b % 60 == 0) cout << '\n';
         }
 
-        if (add_header(hfile, file) != 0) {
-            //unprocessed.emplace_back(file);
-        }
+        add_header(hfile, file);
     }
     cout << '\n';
-//    if (unprocessed.empty()) {
-        return 0;
-//    }
-/*
-    cerr << "unprocessed files:\n";    
-    for (auto& i: unprocessed) {
-        cerr << i << '\n';
-    }
-*/
-//    return 1;
+    return 0;
 }
 
 int remove_header_dir(const string& dir) {
     vector<string> files = collect_files(dir);
     int w = 0;
     int b = 0;
-//    vector<string> unprocessed;
     for (auto& file: files) {
         if (++w % 10 == 0) {
             ++b;
             cout << '.'; cout.flush();
             if (b % 60 == 0) cout << '\n';
         }
-
-        if (remove_header(file) != 0) {
-            //unprocessed.emplace_back(file);
-        }
+        remove_header(file);
     }
     cout << '\n';
-//    if (unprocessed.empty()) {
-        return 0;
-//    }
-/*
-    cerr << "unprocessed files:\n";    
-    for (auto& i: unprocessed) {
-        cerr << i << '\n';
-    }
-    return 1;
-*/
+    return 0;
 }
 
 int main(int argc, char** argv) {
@@ -517,9 +502,6 @@ int main(int argc, char** argv) {
             _dryrun = true;
             continue;
         }
-
-
-
         if (arg == "-i") {
             if (argc < p) {
                 help(cerr);

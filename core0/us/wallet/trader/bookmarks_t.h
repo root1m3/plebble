@@ -82,16 +82,12 @@ namespace us::wallet::trader {
     struct bookmarks_t: map<string, bookmark_t>, virtual gov::io::seriable  {
 
         bookmarks_t& operator += (const bookmarks_t&);
-
         ko add(string name, bookmark_t&&);
         ko add(string name, const bookmark_t&);
+        ko add(const bookmarks_t&);
         ko remove(const string& key);
         ko name_check(string& name) const;
         void dump(const string& pfx, ostream& os) const;
-
-        ko load(const string& file);
-        void save(const string& file) const;
-
         const_iterator find_protocol_role(const string& prot, const string& role) const;
 
     public: //serialization

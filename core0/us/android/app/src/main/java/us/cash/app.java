@@ -328,11 +328,13 @@ CFG.sdk_logs = true; //--strip
     }
 
     void set_led(int daemon, int i, ColorDrawable color) { //0 gov 1 wallet
+        assert_worker_thread(); //--strip
         if (daemon == 0) set_walletd_led(i, color);
         else set_govd_led(i, color);
     }
 
     void set_walletd_led(int i, ColorDrawable color) {
+        assert_worker_thread(); //--strip
         log("set_walletd_led " + i + " " + color); //--strip
         lock_active_ac.lock();
         try {
@@ -352,6 +354,7 @@ CFG.sdk_logs = true; //--strip
     }
 
     void set_govd_led(int i, ColorDrawable color) {
+        assert_worker_thread(); //--strip
         lock_active_ac.lock();
         try {
             if (active_ac == null) return;
@@ -409,6 +412,7 @@ CFG.sdk_logs = true; //--strip
     }
 
     public void led_test__worker(int d) {
+        assert_worker_thread(); //--strip
         log("led_test__worker " + d); //--strip
         boolean prev;
         lock_active_ac.lock();

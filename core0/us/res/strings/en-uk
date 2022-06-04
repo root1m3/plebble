@@ -72,5 +72,6 @@ str72=16653             #bind port
 str73=1                 #TOR_ENABLED
 str74=1                 #HTTP_ENABLED
 str75=0                 #BIND_ENABLED
-
+str76=0                 #core2 R2R
+str77="bid2ask-ask bid2ask-bid"                #default R2R libs
 

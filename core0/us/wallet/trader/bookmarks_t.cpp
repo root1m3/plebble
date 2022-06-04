@@ -207,39 +207,35 @@ void s::dump(const string& pfx, ostream& os) const {
     }
 }
 
-ko s::load(const string& file) {
-    blob_t blob;
-    us::gov::io::read_file_(file, blob);
-    return read(blob);
-}
-
-void s::save(const string& file) const {
-    blob_t v;
-    write(v);
-    ofstream os(file, ios::binary | ios::trunc);
-    if (!v.empty()) {
-        os.write((const char*)v.data(), v.size());
-    }
-}
-
 s& s::operator += (const s& other) {
     for (auto& i: other) {
-        string name = i.first;
-        if (is_ok(name_check(name))) {
-            emplace(i);
-        }
+        add(i.first, i.second);
     }
     return *this;
 }
 
+ko s::add(const bookmarks_t& other) {
+    for (auto& i: other) {
+        auto r = add(i.first, i.second);
+        if (is_ko(r)) return r;
+    }
+    return ok;
+}
+
 ko s::name_check(string& name) const {
     while (find(name) != end()) {
-        name += "_1";
-        if (name.size() > numeric_limits<uint8_t>::max()) {
-            auto r = "KO 50124 name is too long.";
-            log(r);
-            return r;
+        auto i = name.find_last_of('_');
+        if (i == string::npos) {
+            name += "_0";
+            i = name.find_last_of('_');
         }
+        auto g = name.substr(i + 1);
+        auto n = atoi(g.c_str());
+        auto x = name.substr(0, i);
+        ++n;
+        ostringstream y;
+        y << x << '_' << n;
+        name = y.str();
     }
     return ok;
 }

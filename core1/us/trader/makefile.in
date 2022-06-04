@@ -34,15 +34,21 @@ CORE0:=$(shell realpath ../../../core0)
 CORE1:=$(shell realpath ../../../core1)
 INCC0:=-I${CORE0}
 LIBC0:=-L${CORE0}/us/gov -L${CORE0}/us/wallet
-INCC1:=-I${CORE1}
-INC:=${INCC0} ${INCC1}
-LIB:=${LIBC0}
 
-RPATH:=-Wl,-z,defs
+INCC1:=-I${CORE1}
+LIBC1:=-L${CORE1}/us/trader
+
+INC:=${INCC0} ${INCC1}
+LIB:=${LIBC0} ${LIBC1}
+
+LIBUSTESTC1:=lib${US}test-c1
+USTESTC1:=${US}-test-c1
 
 ifeq (${DEFAULTDEBUG},1)
+RPATH:=-Wl,-rpath,${CORE1}/us/trader -Wl,-rpath,${CORE0}/us/wallet -Wl,-rpath,${CORE0}/us/gov
     all: debug
 else
+RPATH:=-Wl,-z,defs
     all: release
 endif
 
@@ -53,26 +59,26 @@ release: export CXXFLAGS:=${RELEASEFLAGS}
 release: targets
 
 ifeq (${WITHTEST},1)
-    targets: testx/${USTEST}
+    targets: testx/${USTESTC1}
 else
     targets: libs
 endif
 
-test/${LIBUSTEST}.so: libs
+test/${LIBUSTESTC1}.so: libs
 	$(MAKE) CXXFLAGS="${CXXFLAGS}" INC="${INC}" LIB0="${LIB}" -C test
 
-testx/${USTEST}: test/${LIBUSTEST}.so
+testx/${USTESTC1}: test/${LIBUSTESTC1}.so
 	$(MAKE) CXXFLAGS="${CXXFLAGS}" INC="${INC}" LIB0="${LIB}" -C testx
 
 libs: lib${US}trader-bid2ask-bid.so lib${US}trader-bid2ask-ask.so
 
-DEPS_bid2ask=workflow/consumer/wf.o workflow/logistics/wf.o
+DEPS_bid2ask=workflow/consumer/wf.o workflow/logistics/wf.o workflow/organization/wf.o
 
 lib${US}trader-bid2ask-bid.so: bid2ask
-	${CXX} -shared -fPIC ${CXXFLAGS} ${RPATH} ${DEPS_bid2ask} r2r/bid2ask/bid2ask-bid.o ${INC} ${LIB} -l${US}wallet -l${US}gov -lstdc++fs -pthread -o lib${US}trader-bid2ask-bid.so
+	${CXX} -shared -fPIC ${CXXFLAGS} ${RPATH} ${DEPS_bid2ask} r2r/bid2ask/bid2ask-bid.o ${LIB} -l${US}wallet -l${US}gov -lstdc++fs -pthread -o lib${US}trader-bid2ask-bid.so
 
 lib${US}trader-bid2ask-ask.so: bid2ask
-	${CXX} -shared -fPIC ${CXXFLAGS} ${RPATH} ${DEPS_bid2ask} r2r/bid2ask/bid2ask-ask.o ${INC} ${LIB} -l${US}wallet -l${US}gov -lstdc++fs -pthread -o lib${US}trader-bid2ask-ask.so
+	${CXX} -shared -fPIC ${CXXFLAGS} ${RPATH} ${DEPS_bid2ask} r2r/bid2ask/bid2ask-ask.o ${LIB} -l${US}wallet -l${US}gov -lstdc++fs -pthread -o lib${US}trader-bid2ask-ask.so
 
 bid2ask: r2r
 

@@ -50,10 +50,11 @@ pushd $arch > /dev/null
     tar -czf /tmp/lib.tgz lib
 popd > /dev/null
 
+mkdir -p $dest
 pushd $dest  > /dev/null
     tar -xzf /tmp/include.tgz
     tar -xzf /tmp/lib.tgz
-    sed -i "s~^prefix=.*~prefix=$dest~" lib/pkgconfig/libsecp256k1.pc
+    sed -i "s~^prefix=.*~prefix=$prefix~" lib/pkgconfig/libsecp256k1.pc
 popd > /dev/null
 echo "successfully installed deps"
 exit 0

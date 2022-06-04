@@ -32,11 +32,11 @@ import android.content.DialogInterface;                                         
 import java.io.File;                                                                           // File
 import java.io.FileOutputStream;                                                               // FileOutputStream
 import androidx.core.content.FileProvider;                                                     // FileProvider
+import static android.Manifest.permission.*;                                                   // *
 import android.content.Intent;                                                                 // Intent
 import static us.ko.is_ko;                                                                     // is_ko
 import us.ko;                                                                                  // ko
 import android.Manifest;                                                                       // Manifest
-import static android.Manifest.permission.*;                                                                       // Manifest
 import static us.ko.ok;                                                                        // ok
 import android.content.pm.PackageManager;                                                      // PackageManager
 import us.pair;                                                                                // pair
@@ -54,13 +54,11 @@ public class sw_updates_t {
     }                                            //--strip
 
     void toast(String m) {
-
         activity.main.runOnUiThread(new Runnable() {
             @Override public void run() {
                 Toast.makeText(activity.main, m, 6000).show();
             }
         });
-
     }
 
     public sw_updates_t(app a_) {
@@ -116,12 +114,8 @@ public class sw_updates_t {
     private static String[] PERMISSIONS_STORAGE = {Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE};
     private static final int REQUEST_EXTERNAL_STORAGE = 1;
 
-//    private static String[] PERMISSIONS_ISTORAGE = {Manifest.permission.READ_INTERNAL_STORAGE, Manifest.permission.WRITE_INTERNAL_STORAGE};
-//    private static final int REQUEST_INNTERNAL_STORAGE = 1;
-
     public static boolean ask_permission(Activity ac) {
         String[] options = {"Install now.", "Remind me later."};
-        //final sw_updates_t i = this;
         new AlertDialog.Builder(ac).setTitle("Info about automatic updates.")
                 .setMessage("Please Grant permissions to access external storage to be able to install software updates.")
                 .setIcon(android.R.drawable.ic_dialog_info).show();
@@ -132,27 +126,24 @@ public class sw_updates_t {
         return permission == PackageManager.PERMISSION_GRANTED;
     }
 
-    public static boolean verify_storage_permissions(Activity ac) {        // Check if we have write permission
+    public static boolean verify_storage_permissions(final Activity ac) {        // Check if we have write permission
         log("verify_storage_permissions"); //--strip
+        app.assert_worker_thread(); //--strip
+        
         int permission = ActivityCompat.checkSelfPermission(ac, Manifest.permission.WRITE_EXTERNAL_STORAGE);
         log("A"); //--strip
         if (permission != PackageManager.PERMISSION_GRANTED) {
-            return ask_permission(ac);
+            activity.main.runOnUiThread(new Runnable() {
+                @Override public void run() {
+                    ask_permission(ac);
+                }
+            });
+            return false;
         }
         else {
             log("Permission already granted"); //--strip
         }
         log("C"); //--strip
-/*
-        log("verify_storage_permissions internal"); //--strip
-        int ipermission = ActivityCompat.checkSelfPermission(activity, Manifest.permission.WRITE_INTERNAL_STORAGE);
-        log("A"); //--strip
-        if (ipermission != PackageManager.PERMISSION_GRANTED) {
-            log("B"); //--strip
-            ActivityCompat.requestPermissions(activity, PERMISSIONS_STORAGE, REQUEST_INTERNAL_STORAGE);
-        }
-        log("C"); //--strip
-*/
         return true;
     }
 
@@ -301,6 +292,7 @@ public class sw_updates_t {
     }
 
     public void ask_install() {
+        a.assert_ui_thread(); //--strip
         String[] options = {"Install now.", "Remind me later."};
         final sw_updates_t i = this;
         new AlertDialog.Builder(a.active_ac).setTitle("An update of the app " + CFG.app_name + " is ready to install...")
@@ -373,6 +365,7 @@ public class sw_updates_t {
 
     public void do_inst_ask_permission(activity ac) {
         log("do_inst_ask_permission");  //--strip
+        a.assert_ui_thread(); //--strip
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             log("A");  //--strip
             if (!a.getPackageManager().canRequestPackageInstalls()) {

@@ -51,10 +51,11 @@ namespace us::wallet::trader::r2r::w2w {
         string homedir() const override;
 
         pair<ko, trader::trader_protocol*> create_protocol(protocol_selection_t&&) override;
+        pair<ko, trader::trader_protocol*> create_opposite_protocol(protocol_selection_t&&) override;
         pair<ko, trader::trader_protocol*> create_protocol() override;
         void list_protocols(ostream&) const override; //human format
-        void to_stream_protocols(protocols_t&) const override; //serialization format
-        void published_protocols(protocols_t&) const override; //serialization format
+        void invert(protocols_t&) const override;
+        void published_protocols(protocols_t&, bool inverse) const override;
         void exec_help(const string& prefix, ostream&) const override;
         ko exec(istream&, traders_t&, wallet::local_api&) override;
     };

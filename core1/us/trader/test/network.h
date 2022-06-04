@@ -24,9 +24,9 @@
 
 #include <us/test/network.h>
 
-namespace us { namespace trader { namespace test {
+namespace us::trader::test {
 
-    using namespace std;
+    //using namespace std;
 
     struct network: us::test::network {
         using b = us::test::network;
@@ -39,5 +39,5 @@ namespace us { namespace trader { namespace test {
 
     };
 
-}}}
+}
 

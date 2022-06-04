@@ -24,12 +24,54 @@
 
 JAILDIR=""
 
+CHANNEL=0
+US=""
+BLOB_ADDR=""
+BLOB_ID=""
+GOVUSER=""
+UPSTREAM_URL=""
+SEEDS=""
+
+function cfg_vars0 {
+    STATIC_US="##str3##"
+    let STATIC_FCGI=##str45##
+
+    STATIC_CHANNEL=##str6##
+    STATIC_BLOB_ADDR="##str39##"
+    STATIC_BLOB_ID="##str40##"
+    STATIC_GOVUSER="##str11##"
+    STATIC_UPSTREAM_URL="##str65##"
+    STATIC_SEEDS="##str67##"
+    if [[ $append -eq 0 ]]; then
+        if [[ -f ${JAILDIR}/etc/$STATIC_US/config ]]; then
+            echo "Loading static config from ${JAILDIR}/etc/$STATIC_US/config"
+            . ${JAILDIR}/etc/$STATIC_US/config
+            STATIC_CHANNEL=$str6
+            STATIC_BLOB_ADDR="$str39"
+            STATIC_BLOB_ID="$str40"
+            STATIC_GOVUSER="$str11"
+            STATIC_UPSTREAM_URL="$str65"
+            STATIC_SEEDS="$str67"
+        fi
+    fi
+    CHANNEL=${STATIC_CHANNEL}
+    US=${STATIC_US}
+    BLOB_ADDR=${STATIC_BLOB_ADDR}
+    BLOB_ID=${STATIC_BLOB_ID}
+    GOVUSER=${STATIC_GOVUSER}
+    UPSTREAM_URL=${STATIC_UPSTREAM_URL}
+    SEEDS="${STATIC_SEEDS}"
+}
+
+cfg_vars0
+
 function do_help {
     echo "##str3## installation script."
     echo "./$prog [flags] [command]"
     echo ""
     echo "flags:"
     echo "  --blob <file>        Blob file is given manually. /var/${US}/installed_blob__pinned is created."
+    echo "  --rebrand            Replace the brand."
 #    echo "  --append             Give permission to append a new entry in /var/us_nets."
     echo "  --skip-seeds         In case the blob needs to be fetched, it is done trying only the BDE (brand distribution end),"
     echo "                           skipping going through a number of random nodes."
@@ -45,6 +87,7 @@ function do_help {
     echo "  install/{nothing}        Fetchs the latest blob and installs it."
     echo "  uninstall                removes the software from the system, leaving user data intact."
     echo "  bootstrap_home <homedir> Installs wallet-rpc for a new system user."
+    echo "  make                     Blob makefile."
     echo "  extract_r2r_sdk          Obtains the R2R SDK from the blob."
     echo "  extract_src              Obtains the source code."
     echo "  fetch                    fetch blob from nodes."
@@ -68,12 +111,15 @@ function do_help {
 
 blob=""
 let append=0
+let rebrand=0
 let skip_seeds=0
 jaildir=""
 let forcepublish=0
 let full_install=0
 let force=0
 let maxpeers=100
+cmdargs=""
+
 function parse_input {
     while [[ true ]]; do
         opt=$1
@@ -87,6 +133,9 @@ function parse_input {
             echo "Broken feature. Node can run only 1 brand 1 channel until it is fixed."
             exit 1
             let append=1
+            continue
+        elif [[ "_$opt" == "_--rebrand" ]]; then
+            let rebrand=1
             continue
         elif [[ "_$opt" == "_--skip-seeds" ]]; then
             let skip_seeds=1
@@ -114,7 +163,6 @@ function parse_input {
             let force=1
             continue
         elif [[ _$opt == _-* ]]; then
-            cfg_vars
             do_help
             echo "KO 86755 Invalid option $opt"
             exit 1
@@ -126,8 +174,68 @@ function parse_input {
     if [[ "_$cmd" == "_" ]]; then
         cmd="install"
     fi
+    cmdargs="$@"
     #echo "cmd=$cmd"
 }
+
+function cfg_vars {
+    if [[ $append -eq 0 ]]; then
+        if [[ -f /var/us_nets ]]; then
+            let n=`cat /var/us_nets | grep "^[0-9]* .*" | wc -l`
+            if [[ $n -gt 1 ]]; then
+                echo "Found more than one entry in /us/nets"
+                cat /var/us_nets | grep "^[0-9]* .*" | grep " ${US} " > /tmp/x918274
+                mv /tmp/x918274 /var/us_nets
+                let n=`cat /var/us_nets | grep "^[0-9]* .*" | wc -l`
+                if [[ $n -eq 1 ]]; then
+                    echo "KO 78674 Unexpected content in /var/us_nets"
+                    exit 1
+                fi
+            fi
+            CHANNEL=`cat /var/us_nets | grep "^[0-9]* .*" | awk {'print $1'}`
+            US=`cat /var/us_nets | grep "^[0-9]* .*" | awk {'print $2'}`
+            BLOB_ADDR=`cat /var/us_nets | grep "^[0-9]* .*" | awk {'print $3'}`
+            BLOB_ID=`cat /var/us_nets | grep "^[0-9]* .*" | awk {'print $4'}`
+            if [[ "_${US}" != "_${STATIC_US}" ]]; then
+                if [[ $rebrand -eq 1 ]]; then
+                    echo "rebranding. Aborted. TODO"
+                    exit 1
+                else
+                    UPSTREAM_URL=""
+                    SEEDS=""
+                fi
+            fi
+        fi
+        datadir=/home/${GOVUSER}/.${US}
+        if [[ "_$CHANNEL" != "_0" ]]; then
+            datadir=${datadir0}/$CHANNEL
+        fi
+        cat ${datadir}/gov/nodes.* 2>/dev/null > /tmp/x5833677
+        echo ${SEEDS} | xargs -n1 >> /tmp/x5833677
+        ns=`cat /tmp/x5833677 | wc -l`
+        SEEDS="`cat /tmp/x5833677 | sed 's/72$/80/' | sort | uniq  | grep -v '^$' | shuf | xargs`"
+        rm -f /tmp/x5833677
+        if [[ $maxpeers -gt 0 ]]; then
+            #echo "limit of $maxpeers seeds applied"
+            SEEDS="`echo "$SEEDS" | xargs -n1 | head -n$maxpeers | xargs`"
+        fi
+    else
+        echo "KO 69078 append is disabled."
+        exit 1
+    fi
+    cat << EOF
+    CHANNEL=${CHANNEL}
+    US=${US}
+    BLOB_ADDR=${BLOB_ADDR}
+    BLOB_ID=${BLOB_ID}
+    GOVUSER=${GOVUSER}
+    UPSTREAM_URL=${UPSTREAM_URL}
+    ${ns} SEEDS (limit $maxpeers)
+EOF
+
+}
+
+cfg_vars
 
 function set_jail0 {
     if [[ "_$jaildir" != "_" ]]; then
@@ -217,6 +325,61 @@ function do_extract_r2r_sdk {
     blob=`realpath $blob`
     extract_r2r_sdk_from_blob $blob
     exit 0
+}
+
+#    rm -rf tmp
+#    mkdir tmp
+#    pushd tmp > /dev/null
+#        $tar -xf ${blob_local_file}
+#        if [[ $r -ne 0 ]]; then
+#            echo "KO 76037"
+#            return 1
+#        fi
+#        dir=`find . -mindepth 1 -maxdepth 1 -type d`
+#        pushd $dir > /dev/null
+#            dname=$(basename `pwd`)
+#            bname=`echo $dname | tr '_' ' ' | awk '{ print $1 }'`
+#            if [[ "_$bname" != "_${US}" ]]; then
+#                echo "KO 43096 Blob brand $bname doesn't match ${US}. Aborting."
+#                return 1
+#            fi
+#            bin/apply_blob $opts ${JAILDIR}
+#            if [[ $r -ne 0 ]]; then
+#                echo "KO 65099"
+#                return 1
+#            fi
+#        popd > /dev/null
+#    popd > /dev/null
+#    rm -rf tmp
+
+function do_make {
+    rm -rf tmp
+    mkdir tmp
+    if [[ $? -ne 0 ]]; then
+        echo "KO 59423 directory tmp exists."
+        exit 1
+    fi
+    pushd tmp > /dev/null
+        tar -I zstd -xf ${blob_local_file}
+        dir=`ls -1`
+        pushd $dir > /dev/null
+            dname=$(basename `pwd`)
+            bname=`echo $dname | tr '_' ' ' | awk '{ print $1 }'`
+            if [[ "_$bname" != "_${US}" ]]; then
+                echo "KO 43096 Blob brand $bname doesn't match ${US}. Aborting."
+                return 1
+            fi
+            opts=""
+            if [[ "_${JAILDIR}" != "_" ]]; then
+                opts+="--jail ${JAILDIR} "
+            fi
+            echo "Invoking blob make.sh $opts $@"
+            ./make.sh $opts $@
+        popd > /dev/null
+        rm -rf $dir
+    popd > /dev/null
+    rm tmp -r
+    return 0
 }
 
 function do_scan {
@@ -371,100 +534,6 @@ function init_jail {
     fi
     find ${JAILDIR} -type f
 }
-
-CHANNEL=0
-US=""
-BLOB_ADDR=""
-BLOB_ID=""
-GOVUSER=""
-UPSTREAM_URL=""
-SEEDS=""
-
-function cfg_vars0 {
-    STATIC_US="##str3##"
-    let STATIC_FCGI=##str45##
-
-    STATIC_CHANNEL=##str6##
-    STATIC_BLOB_ADDR="##str39##"
-    STATIC_BLOB_ID="##str40##"
-    STATIC_GOVUSER="##str11##"
-    STATIC_UPSTREAM_URL="##str65##"
-    STATIC_SEEDS="##str67##"
-    if [[ $append -eq 0 ]]; then
-        if [[ -f ${JAILDIR}/etc/$STATIC_US/config ]]; then
-            echo "Loading static config from ${JAILDIR}/etc/$STATIC_US/config"
-            . ${JAILDIR}/etc/$STATIC_US/config
-            STATIC_CHANNEL=$str6
-            STATIC_BLOB_ADDR="$str39"
-            STATIC_BLOB_ID="$str40"
-            STATIC_GOVUSER="$str11"
-            STATIC_UPSTREAM_URL="$str65"
-            STATIC_SEEDS="$str67"
-        fi
-    fi
-    CHANNEL=${STATIC_CHANNEL}
-    US=${STATIC_US}
-    BLOB_ADDR=${STATIC_BLOB_ADDR}
-    BLOB_ID=${STATIC_BLOB_ID}
-    GOVUSER=${STATIC_GOVUSER}
-    UPSTREAM_URL=${STATIC_UPSTREAM_URL}
-    SEEDS="${STATIC_SEEDS}"
-}
-
-function cfg_vars {
-    cfg_vars0
-    if [[ $append -eq 0 ]]; then
-        if [[ -f /var/us_nets ]]; then
-            let n=`cat /var/us_nets | grep "^[0-9]* .*" | wc -l`
-            if [[ $n -gt 1 ]]; then
-                echo "Found more than one entry in /us/nets"
-                cat /var/us_nets | grep "^[0-9]* .*" | grep " ${US} " > /tmp/x918274
-                mv /tmp/x918274 /var/us_nets
-                let n=`cat /var/us_nets | grep "^[0-9]* .*" | wc -l`
-                if [[ $n -eq 1 ]]; then
-                    echo "KO 78674 Unexpected content in /var/us_nets"
-                    exit 1
-                fi
-            fi
-            CHANNEL=`cat /var/us_nets | grep "^[0-9]* .*" | awk {'print $1'}`
-            US=`cat /var/us_nets | grep "^[0-9]* .*" | awk {'print $2'}`
-            BLOB_ADDR=`cat /var/us_nets | grep "^[0-9]* .*" | awk {'print $3'}`
-            BLOB_ID=`cat /var/us_nets | grep "^[0-9]* .*" | awk {'print $4'}`
-            if [[ "_${US}" != "_${STATIC_US}" ]]; then
-                UPSTREAM_URL=""
-                SEEDS=""
-            fi
-        fi
-        datadir=/home/${GOVUSER}/.${US}
-        if [[ "_$CHANNEL" != "_0" ]]; then
-            datadir=${datadir0}/$CHANNEL
-        fi
-        cat ${datadir}/gov/nodes.* 2>/dev/null > /tmp/x5833677
-        echo ${SEEDS} | xargs -n1 >> /tmp/x5833677
-        ns=`cat /tmp/x5833677 | wc -l`
-        SEEDS="`cat /tmp/x5833677 | sed 's/72$/80/' | sort | uniq  | grep -v '^$' | shuf | xargs`"
-        rm -f /tmp/x5833677
-        if [[ $maxpeers -gt 0 ]]; then
-            #echo "limit of $maxpeers seeds applied"
-            SEEDS="`echo "$SEEDS" | xargs -n1 | head -n$maxpeers | xargs`"
-        fi
-    else
-        echo "KO 69078 append is disabled."
-        exit 1
-    fi
-    cat << EOF
-    CHANNEL=${CHANNEL}
-    US=${US}
-    BLOB_ADDR=${BLOB_ADDR}
-    BLOB_ID=${BLOB_ID}
-    GOVUSER=${GOVUSER}
-    UPSTREAM_URL=${UPSTREAM_URL}
-    ${ns} SEEDS (limit $maxpeers)
-EOF
-
-}
-
-cfg_vars
 
 if [[ "_${JAILDIR}" != "_" ]]; then
     init_jail ${US}
@@ -679,6 +748,23 @@ function read_addr_key {
 let pinned=0
 blob_local_file=""
 
+function resolve_blob_curblob {
+    if [[ "_$blob_local_file" != "_" ]]; then
+        return 0 #already resolved
+    fi
+    if [[ "_$blob" != "_" ]]; then
+        blob_local_file=`realpath $blob`
+        return 0
+    fi
+    if [[ ! -f ${JAILDIR}/home/$GOVUSER/downloads/blob/${US}/cur ]]; then
+        echo "KO 87025 cur blob not found at ${JAILDIR}/home/$GOVUSER/downloads/blob/${US}/cur"
+        exit 1
+    fi
+    blob_local_file=${JAILDIR}/home/$GOVUSER/downloads/blob/${US}/cur
+    blob_local_file=`realpath $blob_local_file`
+    return 0
+}
+
 function resolve_blob {
     echo "resolve blob"
     if [[ "_$blob_local_file" != "_" ]]; then
@@ -736,7 +822,9 @@ function resolve_blob {
     if [[ $ffs -eq 1 ]]; then
         echo "Trying to fetch the $US blob using the seed list."
         fetch_from_seeds $US
-        [[ $? -ne 0 ]] && return 1
+        if [[ $? -ne 0 ]]; then
+            return 1
+        fi
         fsroot=$(dirname "$blob")
         blob=$(basename "$blob")
         echo "fetched $US from seeds. fsroot=$fsroot blob=$blob"
@@ -762,28 +850,39 @@ function update {
         fi
     fi
     opts=""
-    [[ $full_install -eq 1 ]] && opts="$opts --full-install"
-    tar="tar -I zstd "
+    if [[ $full_install -eq 1 ]]; then
+        opts="$opts --full-install "
+    fi
+#    tar="tar -I zstd "
     echo "Installing $US blob ${blob_local_file} channel $CHANNEL"
     echo "opts=$opts"
-    rm -rf tmp
-    mkdir tmp
-    pushd tmp > /dev/null
-        $tar -xf ${blob_local_file}
-        [[ $r -ne 0 ]] && return 1
-        dir=`find . -mindepth 1 -maxdepth 1 -type d`
-        pushd $dir > /dev/null
-            dname=$(basename `pwd`)
-            bname=`echo $dname | tr '_' ' ' | awk '{ print $1 }'`
-            if [[ "_$bname" != "_${US}" ]]; then
-                echo "Blob brand $bname doesn't match ${US}. Aborting."
-                return 1
-            fi
-            bin/apply_blob $opts ${JAILDIR}
-            [[ $r -ne 0 ]] && return 1
-        popd > /dev/null
-    popd > /dev/null
-    rm -rf tmp
+
+    do_make apply_blob $opts 
+
+#    rm -rf tmp
+#    mkdir tmp
+#    pushd tmp > /dev/null
+#        $tar -xf ${blob_local_file}
+#        if [[ $r -ne 0 ]]; then
+#            echo "KO 76037"
+#            return 1
+#        fi
+#        dir=`find . -mindepth 1 -maxdepth 1 -type d`
+#        pushd $dir > /dev/null
+#            dname=$(basename `pwd`)
+#            bname=`echo $dname | tr '_' ' ' | awk '{ print $1 }'`
+#            if [[ "_$bname" != "_${US}" ]]; then
+#                echo "KO 43096 Blob brand $bname doesn't match ${US}. Aborting."
+#                return 1
+#            fi
+#            bin/apply_blob $opts ${JAILDIR}
+#            if [[ $r -ne 0 ]]; then
+#                echo "KO 65099"
+#                return 1
+#            fi
+#        popd > /dev/null
+#    popd > /dev/null
+#    rm -rf tmp
     echo "touched ${JAILDIR}/var/${US}/installed_blob"
     echo $blob > ${JAILDIR}/var/${US}/installed_blob
     if [[ $pinned -eq 1 ]]; then
@@ -836,8 +935,11 @@ function do_publish2 {
 function do_publish {
     read_addr_key
     resolve_blob
-    [[ $? -ne 0 ]] && return 1
+    if [[ $? -ne 0 ]]; then
+        return 1
+    fi
     do_publish2
+    return $?
 }
 
 function post_install {
@@ -849,7 +951,7 @@ function post_install {
     date
     echo "Installed $US blob $blob at ${JAILDIR}/"
     echo ""
-    echo "systemctl restart ${US}-wallet" >> ${JAILDIR}/tmp/post-install_blob
+    #echo "systemctl restart ${US}-wallet" >> ${JAILDIR}/tmp/post-install_blob
     fetch_from_seeds_cleanup
     date
     if [[ -f ${JAILDIR}/var/${US}/installed_blob__pinned ]]; then
@@ -867,21 +969,22 @@ function post_install {
         echo "Executing post-install"
         cat /tmp/post-install_blob
         /tmp/post-install_blob
+        rm /tmp/post-install_blob
     fi
     exit 0    #unreachable when invoked from gov ch 0
 }
 
 function cleanup_oldstuff {
     echo "clean up deprecated files"
-    rm -f ${JAILDIR}/etc/apt/sources.list.d/us.list
-    rm -f ${JAILDIR}/etc/apt/sources.list.d/raspi.list
-    rm -f ${JAILDIR}/var/www/us_html/index.html
-    rm -f ${JAILDIR}/var/www/us_html/geonodes.jpg
-    rm -f ${JAILDIR}/var/www/us_html/us-c.png
-    rm -f ${JAILDIR}/var/www/us_anon/geonodes.jpg
-    rm -f ${JAILDIR}/var/www/us_anon/us-c.png
-    rm -f ${JAILDIR}/home/${GOVUSER}/.${US}/wallet/trader/lib${US}trader-pat*.so
-    chown root.root /home
+    #rm -f ${JAILDIR}/etc/apt/sources.list.d/us.list
+    #rm -f ${JAILDIR}/etc/apt/sources.list.d/raspi.list
+    #rm -f ${JAILDIR}/var/www/us_html/index.html
+    #rm -f ${JAILDIR}/var/www/us_html/geonodes.jpg
+    #rm -f ${JAILDIR}/var/www/us_html/us-c.png
+    #rm -f ${JAILDIR}/var/www/us_anon/geonodes.jpg
+    #rm -f ${JAILDIR}/var/www/us_anon/us-c.png
+    #rm -f ${JAILDIR}/home/${GOVUSER}/.${US}/wallet/trader/lib${US}trader-pat*.so
+    #chown root.root /home
 }
 
 function do_install {
@@ -900,40 +1003,35 @@ function do_install {
     read_addr_key
 
     resolve_blob
-    [[ $? -ne 0 ]] && return 1
-
-
+    if [[ $? -ne 0 ]]; then
+        echo "KO 76987"
+        return 1
+    fi
+    echo "update"
     update
-    [[ $? -ne 0 ]] && return 1
-    
+    if [[ $? -ne 0 ]]; then
+        echo "KO 76986"
+        return 1
+    fi    
+
+    echo "do_publish2"
     do_publish2
 
+    echo "post_install"
     post_install
+
     cleanup_oldstuff
     echo "FINISHED"
 }
 
 function do_install_core0_deps {
-    read_addr_key
-    resolve_blob
     if [[ $? -ne 0 ]]; then
         return 1
     fi
-    opts="--only-install-deps"
-    tar="tar -I zstd "
-    echo "Installing deps $US blob $blob"
-    rm -rf tmp
-    mkdir tmp
-    pushd tmp > /dev/null
-        $tar -xf ${blob_local_file}
-        dir=`find . -mindepth 1 -maxdepth 1 -type d`
-        pushd $dir > /dev/null
-            bin/apply_blob $opts ${JAILDIR}
-            [[ $? -ne 0 ]] && return 1
-        popd > /dev/null
-    popd > /dev/null
-    rm -rf tmp
-    return 0
+    opts="--only-install-deps "
+    echo "Installing deps $US blob $blob_local_file"
+    do_make apply_blob $opts
+    return $?            
 }
 
 function do_uninstall {
@@ -954,6 +1052,8 @@ function exec_cmd20 {
     if [[ "_$cmd" == "_install" ]]; then
         do_install
     elif [[ "_$cmd" == "_install_core0_deps" ]]; then
+        read_addr_key
+        resolve_blob
         do_install_core0_deps
     elif [[ "_$cmd" == "_uninstall" ]]; then
         do_uninstall
@@ -963,6 +1063,9 @@ function exec_cmd20 {
         do_bootstrap_home "$where"
     elif [[ "_$cmd" == "_extract_r2r_sdk" ]]; then
         do_extract_r2r_sdk
+    elif [[ "_$cmd" == "_make" ]]; then
+        resolve_blob_curblob
+        do_make $cmdargs
     elif [[ "_$cmd" == "_extract_src" ]]; then
         do_extract_src
     elif [[ "_$cmd" == "_resolve_blob" ]]; then

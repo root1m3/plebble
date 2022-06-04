@@ -25,7 +25,8 @@
 #include <vector>
 #include "main.h"
 
-namespace us { namespace test {
+namespace us::test {
+
     using namespace std;
 
     struct dispatcher_t;
@@ -75,5 +76,4 @@ namespace us { namespace test {
         hash_t wallet_pkh;
     };
 
-}}
-
+}

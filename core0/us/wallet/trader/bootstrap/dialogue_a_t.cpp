@@ -78,7 +78,7 @@ ko c::initiate(peer_t& peer, const string& wloc) { //exec by initiator
     {
         {
         lock_guard<mutex> lock(parent.trader->mx);
-        a1_t o(parent.trader->w->local_endpoint, wloc, parent.trader->parent.published_protocols(), parent.trader->my_challenge);
+        a1_t o(parent.trader->w->local_endpoint, wloc, parent.trader->parent.published_protocols(false), parent.trader->my_challenge);
         o.write(blob);
         }
     }
@@ -222,7 +222,7 @@ ko c::update_peer2(peer_t& peer, ch_t&& ch) {
         lock_guard<mutex> lock(parent.trader->mx);
         auto proof = parent.trader->my_personality.gen_proof(parent.trader->peer_challenge);
         assert(parent.trader->w != nullptr);
-        a2_t x(parent.trader->w->local_endpoint, parent.trader->parent.published_protocols(), move(proof), parent.trader->my_challenge);
+        a2_t x(parent.trader->w->local_endpoint, parent.trader->parent.published_protocols(false), move(proof), parent.trader->my_challenge);
         blob_t blob;
         x.write(blob);
         return peer.call_trading_msg(peer_t::trading_msg_in_t(parent.trader->id, trader_t::svc_handshake_a2, blob));

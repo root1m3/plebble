@@ -117,11 +117,9 @@ public class fragment_w2w extends role_fragment  {
             return;
         }
         switch(code.value) {
-            case us.wallet.trader.r2r.w2w.protocol.push_txlog:
+            case us.wallet.wallet.local_api.push_txlog:
+                log("arrived us.wallet.wallet.local_api.push_txlog"); //--strip
                 txlog.update(payload);
-                break;
-            case us.gov.protocol.engine_ev_track_response:
-                log("============================================== us.gov.protocol.engine_ev_track_response > " + us.gov.protocol.engine_ev_track_response); //--strip
                 break;
         }
     }
@@ -141,12 +139,13 @@ public class fragment_w2w extends role_fragment  {
     }
 
     void on_transfer() {
-        log("on_select_coin"); //--strip
+        log("on_transfer"); //--strip
         app.assert_ui_thread(); //--strip
         final String am = amount.getText().toString();
         final String co = coin.getText().toString();
         if (co.isEmpty()) {
-            Toast.makeText(getActivity().getApplicationContext(), "Select coin.", 6000).show();
+            on_select_coin();
+//            Toast.makeText(getActivity().getApplicationContext(), "Select coin.", 6000).show();
             return;
         }
         shell_args args = new shell_args(am + " " + co);
@@ -162,7 +161,7 @@ public class fragment_w2w extends role_fragment  {
             Toast.makeText(getActivity().getApplicationContext(), "Commanded '" + cmd + "'to remote wallet...", 6000).show();
         }
         amount.setText("");
-        coin.setText("");
+//        coin.setText("");
     }
 
     void on_select_coin() {

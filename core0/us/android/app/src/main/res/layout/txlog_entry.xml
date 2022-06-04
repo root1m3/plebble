@@ -15,8 +15,24 @@
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
             android:text=""
+            android:textSize="18dp"
             android:singleLine="false"
-            
+             />
+        <TextView
+            android:id="@+id/wallet_track_status"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:text=""
+            android:fontFamily="monospace"
+            android:singleLine="true"
+             />
+        <TextView
+            android:id="@+id/gov_track_status"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:text=""
+            android:fontFamily="monospace"
+            android:singleLine="true"
              />
 
     <LinearLayout

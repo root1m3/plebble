@@ -76,18 +76,18 @@ tf=$(mktemp /tmp/distr_make.XXXXXX)
 
 function clean_deprecated {
     echo "clean_deprecated" #alpha-29
-    rm -f /home/gov/id
-    rm -f /home/.ssh/id_rsa_git.pub
-    rm -f /home/.ssh/id_rsa_git
-    rm -f /etc/rc.local.d/${DISTCHANNEL}_rclocal #remove in alpha-30
-    rm -f /etc/rc.local.d/999999999_rclocal #remove in alpha-30
-    rm -rf ${GOVHOME}/.bash_aliases.d  #delete in alpha-30
-    rm -f /var/us_networks
-    rm -f /usr/local/bin/proc_1.1
-    rm -f /usr/local/lib/libfastcgipp*
-    rm -f /usr/local/lib/libjsoncpp*
-    rm -f /etc/tor/torrc.d/us-hidden #delete in alpha 30
-    sed -i 's/ *Port 16671$//' /etc/ssh/sshd_config
+    #rm -f /home/gov/id
+    #rm -f /home/.ssh/id_rsa_git.pub
+    #rm -f /home/.ssh/id_rsa_git
+    #rm -f /etc/rc.local.d/${DISTCHANNEL}_rclocal #remove in alpha-30
+    #rm -f /etc/rc.local.d/999999999_rclocal #remove in alpha-30
+    #rm -rf ${GOVHOME}/.bash_aliases.d  #delete in alpha-30
+    #rm -f /var/us_networks
+    #rm -f /usr/local/bin/proc_1.1
+    #rm -f /usr/local/lib/libfastcgipp*
+    #rm -f /usr/local/lib/libjsoncpp*
+    #rm -f /etc/tor/torrc.d/us-hidden #delete in alpha 30
+    #sed -i 's/ *Port 16671$//' /etc/ssh/sshd_config
 }
 
 function regenerate_motd {
@@ -186,6 +186,8 @@ if [ "_$target" == "_install" ]; then
             echo "executing pre-install"
             /tmp/pre-install
             rm /tmp/pre-install
+        else
+            echo "Skipping execution of ${JAILDIR}/tmp/pre-install"
         fi
 
         mkdir -p ${PREFIX}/lib
@@ -251,6 +253,12 @@ if [ "_$target" == "_install" ]; then
         bin/override_env etc/config ${JAILDIR}${DATADIR0}/config > $tf
         mv $tf ${JAILDIR}${DATADIR0}/config
         echo "written ${JAILDIR}${DATADIR0}/config"
+
+        mkdir -p ${JAILDIR}${DATADIR0}/wallet
+        bin/override_env etc/wallet/config ${JAILDIR}${DATADIR0}/wallet/config > $tf
+        mv $tf ${JAILDIR}${DATADIR0}/wallet/config
+        echo "written ${JAILDIR}${DATADIR0}/wallet/config"
+
         . ${JAILDIR}${DATADIR0}/config  #User selected channel now in env
         if [ $CHANNEL -ne 0 ]; then
             DATADIR=${DATADIR0}/${CHANNEL}
@@ -267,6 +275,7 @@ if [ "_$target" == "_install" ]; then
             cp etc/nodes.distr${CHANNEL} ${JAILDIR}${DATADIR}/gov/nodes.distr
         fi
 
+        echo "directory ${JAILDIR}${GOVHOME}/downloads"
         mkdir -p ${JAILDIR}${GOVHOME}/downloads
         install bin/install_blob ${JAILDIR}${GOVHOME}/downloads/${US}_setup
 
@@ -275,8 +284,25 @@ if [ "_$target" == "_install" ]; then
         #(crontab -u ${GOVUSER} -l | grep -v "#${US}-housekeeping"; echo '0 * * * * cd ${GOVHOME}; PATH=$PATH:/usr/local/bin gen_pub   #${US}-housekeeping') | crontab -u ${GOVUSER} -
 
         # /etc/motd
+        echo "directory ${JAILDIR}${GOVHOME}/downloads"
         regenerate_motd
 
+        #trader
+        echo "trader home directory ${JAILDIR}${DATADIR}/trader"
+        mkdir -p ${JAILDIR}${DATADIR}/trader
+        if [[ -f wallet/trader/brand_bookmarks ]]; then
+            install wallet/trader/brand_bookmarks ${JAILDIR}${DATADIR}/wallet/trader/brand_bookmarks
+        fi
+
+        #r2r
+        echo "r2r home directory ${JAILDIR}${DATADIR}/trader/w2w"
+        mkdir -p ${JAILDIR}${DATADIR}/wallet/trader/w2w
+        if [[ ! -f ${JAILDIR}${DATADIR}/wallet/trader/w2w/name ]]; then
+            install wallet/trader/w2w/name ${JAILDIR}${DATADIR}/wallet/trader/w2w/
+        fi
+        if [[ ! -f ${JAILDIR}${DATADIR}/wallet/trader/w2w/ico.png ]]; then
+            install wallet/trader/w2w/ico.png ${JAILDIR}${DATADIR}/wallet/trader/w2w/
+        fi
 
         # post-install
         cat << EOF >> ${JAILDIR}/tmp/post-install
@@ -290,6 +316,8 @@ EOF
             echo "executing post-install"
             /tmp/post-install
             rm /tmp/post-install
+        else
+            echo "skipping execution of ${JAILDIR}/tmp/post-install"
         fi
 
     popd > /dev/null
@@ -323,6 +351,8 @@ if [ "_$target" == "_install-system-base" ]; then
             echo "executing pre-install-system-base"
             /tmp/pre-install-system-base
             rm /tmp/pre-install-system-base
+        else
+            echo "skipping execution of ${JAILDIR}/tmp/pre-install-system-base"
         fi
 
         #
@@ -402,6 +432,7 @@ EOF
         echo "PasswordAuthentication yes #${US}-distr_make" >> $tf
         mv $tf ${JAILDIR}$file
         echo "chmod 644 $file" >> ${JAILDIR}/tmp/post-install-system-base
+        echo "systemctl restart ssh" >> ${JAILDIR}/tmp/post-install-system-base
 
         #
         # /etc/systemd
@@ -593,6 +624,8 @@ EOF
             echo "executing post-install-system-base"
             /tmp/post-install-system-base
             rm /tmp/post-install-system-base
+        else
+            echo "skipping execution of ${JAILDIR}/tmp/post-install-system-base"
         fi
     popd > /dev/null
 fi
@@ -612,3 +645,4 @@ if [ "_$target" == "_install-dev" ]; then
 fi
 
 exit 0
+

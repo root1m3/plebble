@@ -57,10 +57,11 @@ namespace us { namespace trader { namespace r2r { namespace bid2ask { namespace 
 
     public:
         pair<ko, trader_protocol*> create_protocol(protocol_selection_t&&) override;
+        pair<ko, trader_protocol*> create_opposite_protocol(protocol_selection_t&&) override;
         pair<ko, trader_protocol*> create_protocol() override;
         void list_protocols(ostream&) const override; //human format
-        void to_stream_protocols(protocols_t&) const override;
-        void published_protocols(protocols_t&) const override;
+        void invert(protocols_t&) const override;
+        void published_protocols(protocols_t&, bool inverse) const override;
 
     };
 

@@ -11,114 +11,114 @@
         <androidx.appcompat.widget.LinearLayoutCompat
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_gravity="end"
-            android:orientation="vertical">
+            android:layout_gravity="right"
+            android:orientation="horizontal">
 
-            <androidx.appcompat.widget.LinearLayoutCompat
+            <us.cash.toolbar_button
+                android:id="@+id/save_btn"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:custom_id="pay"
+                app:custom_src="drawable/ic_save_56dp"
+                app:custom_text="@string/save"
+                android:layout_gravity="right"
+                android:visibility="gone"
+                >
+            </us.cash.toolbar_button>
+
+            <us.cash.toolbar_button
+                android:id="@+id/action"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:custom_id="@string/send"
+                app:custom_src="drawable/ic_pay_48dp"
+                app:custom_text="@string/send"
+                android:layout_gravity="right"
+                android:visibility="gone"
+                >
+            </us.cash.toolbar_button>
+
+            <us.cash.toolbar_button
+                android:id="@+id/crypto"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:custom_id="crypto"
+                app:custom_src="drawable/ic_crypto"
+                app:custom_text="crypto"
+                android:gravity="end"
+                android:visibility="gone"
+                >
+            </us.cash.toolbar_button>
+
+            <us.cash.toolbar_button
+                android:id="@+id/button_chat"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:custom_id="button_chat"
+                app:custom_src="drawable/ic_chat"
+                app:custom_text="@string/chat"
+                android:layout_gravity="right"
+                android:visibility="gone"
+                >
+            </us.cash.toolbar_button>
+
+            <us.cash.toolbar_button
+                android:id="@+id/scan"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="right"
+                android:visibility="gone"
+                app:custom_id="scan"
+                app:custom_src="drawable/ic_qr"
+                app:custom_text="scan">
+            </us.cash.toolbar_button>
+
+            <us.cash.toolbar_button
+                android:id="@+id/done"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="start"
+                android:visibility="gone"
+                app:custom_id="done"
+                app:custom_src="drawable/ic_done"
+                app:custom_text="done">
+            </us.cash.toolbar_button>
+
+            <us.cash.toolbar_button
+                android:id="@+id/newtrade_btn"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:custom_id="new"
+                app:custom_src="drawable/ic_new"
+                app:custom_text="new"
+                android:layout_gravity="right"
+                android:visibility="gone"
+                >
+            </us.cash.toolbar_button>
+
+            <us.cash.toolbar_button
+                android:id="@+id/refresh"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:custom_id="refresh"
+                app:custom_src="drawable/ic_refresh"
+                app:custom_text="refresh"
+                android:gravity="end"
+                >
+            </us.cash.toolbar_button>
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_gravity="right"
+                android:gravity="center_vertical"
                 android:orientation="horizontal">
-
-                <us.cash.toolbar_button
-                    android:id="@+id/save_btn"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    app:custom_id="pay"
-                    app:custom_src="drawable/ic_save_56dp"
-                    app:custom_text="@string/save"
-                    android:layout_gravity="right"
-                    android:visibility="gone"
-                    >
-                </us.cash.toolbar_button>
-
-                <us.cash.toolbar_button
-                    android:id="@+id/action"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    app:custom_id="@string/send"
-                    app:custom_src="drawable/ic_pay_48dp"
-                    app:custom_text="@string/send"
-                    android:layout_gravity="right"
-                    android:visibility="gone"
-                    >
-                </us.cash.toolbar_button>
-
-                <us.cash.toolbar_button
-                    android:id="@+id/crypto"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    app:custom_id="crypto"
-                    app:custom_src="drawable/ic_crypto"
-                    app:custom_text="crypto"
-                    android:gravity="end"
-                    android:visibility="gone"
-                    >
-                </us.cash.toolbar_button>
-
-                <us.cash.toolbar_button
-                    android:id="@+id/button_chat"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    app:custom_id="button_chat"
-                    app:custom_src="drawable/ic_chat"
-                    app:custom_text="@string/chat"
-                    android:layout_gravity="right"
-                    android:visibility="gone"
-                    >
-                </us.cash.toolbar_button>
-
-                <us.cash.toolbar_button
-                    android:id="@+id/scan"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="right"
-                    android:visibility="gone"
-                    app:custom_id="scan"
-                    app:custom_src="drawable/ic_qr"
-                    app:custom_text="scan">
-                </us.cash.toolbar_button>
-
-                <us.cash.toolbar_button
-                    android:id="@+id/done"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="start"
-                    android:visibility="gone"
-                    app:custom_id="done"
-                    app:custom_src="drawable/ic_done"
-                    app:custom_text="done">
-                </us.cash.toolbar_button>
-
-                <us.cash.toolbar_button
-                    android:id="@+id/newtrade_btn"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    app:custom_id="new"
-                    app:custom_src="drawable/ic_new"
-                    app:custom_text="new"
-                    android:layout_gravity="right"
-                    android:visibility="gone"
-                    >
-                </us.cash.toolbar_button>
-
-                <us.cash.toolbar_button
-                    android:id="@+id/refresh"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    app:custom_id="refresh"
-                    app:custom_src="drawable/ic_refresh"
-                    app:custom_text="refresh"
-                    android:gravity="end"
-                    >
-                </us.cash.toolbar_button>
-
-            <include layout="@layout/connection_leds" android:id="@+id/govd_leds"/>
-            <include layout="@layout/connection_leds" android:id="@+id/walletd_leds"/>
-
-            </androidx.appcompat.widget.LinearLayoutCompat>
+                <include layout="@layout/connection_leds" android:id="@+id/govd_leds"/>
+                <include layout="@layout/connection_leds" android:id="@+id/walletd_leds"/>
+            </LinearLayout>
 
         </androidx.appcompat.widget.LinearLayoutCompat>
+
 
     </androidx.appcompat.widget.Toolbar>
 
@@ -148,3 +148,4 @@
 
     </RelativeLayout>
 </merge>
+

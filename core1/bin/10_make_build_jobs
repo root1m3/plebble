@@ -242,12 +242,29 @@ function make_build_job {
         rephash=`git rev-parse HEAD`
         echo "Licensing core0"
         echo "rephash $rephash"
+        pushd core0/us/srctool > /dev/null
+            make
+            if [[ $? -ne 0 ]]; then
+                echo "KO 44665"
+                exit 1
+            fi
+        popd > /dev/null
+        mv core0/us/srctool/srctool .
         pushd core0/us > /dev/null
-            bin/patch_src -a $brands/$brand/source_code_header || exit 1
+            ../../srctool --dir -a $brands/$brand/source_code_header .
+            if [[ $? -ne 0 ]]; then
+                echo "KO 71180 patch_src failed"
+                exit 1
+            fi
         popd > /dev/null
         echo "licensing core1"
         pushd core1 > /dev/null
-            bin/patch_src -a $brands/$brand/source_code_header || exit 1
+            ../srctool --dir -a $brands/$brand/source_code_header .
+            if [[ $? -ne 0 ]]; then
+                echo "KO 79681 patch_src failed"
+                exit 1
+            fi
+#            bin/patch_src -a $brands/$brand/source_code_header || exit 1
         popd > /dev/null
         pushd core0/us > /dev/null
             bin/apply_brand $brands/$brand $branch
@@ -319,6 +336,29 @@ function make_build_job {
             #echo "adding headers to r2r sources "
             #bin/patch_src -a ../core0/us/doc/header || exit 1 
         popd > /dev/null
+        if [[ $str76 -eq 1 ]]; then
+            echo "licensing core2"
+            pushd core2 > /dev/null
+                ../srctool --dir -a $brands/$brand/source_code_header .
+                if [[ $? -ne 0 ]]; then
+                    echo "KO 79682 patch_src failed"
+                    exit 1
+                fi
+    #            bin/patch_src -a $brands/$brand/source_code_header || exit 1
+            popd > /dev/null
+            cp core2 $brand/ -R
+            pushd "$brand/core2/us/trader" > /dev/null
+                echo "configuring core2 r2r"
+                fgs=""
+                echo "bin/configure $fgs"
+                bin/configure $fgs
+                find . -name "*.in" -delete
+                rm bin/configure
+                #echo "adding headers to r2r sources "
+                #bin/patch_src -a ../core0/us/doc/header || exit 1 
+            popd > /dev/null
+        fi
+        rm srctool
         mv $brand ..
         echo $brand >> /tmp/done_brands
     popd > /dev/null

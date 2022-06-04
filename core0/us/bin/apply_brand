@@ -124,6 +124,9 @@ function patch_core {
             copyhash $branddir/nodes.distr etc/nodes.distr
             copyhash $branddir/source_code_header doc/header
             copyhash $branddir/LICENSE var/us/LICENSE
+            if [[ -f $branddir/bookmarks ]]; then
+                copyhash $branddir/bookmarks var/us/brand_bookmarks
+            fi
         popd > /dev/null
     popd > /dev/null
 }

@@ -166,10 +166,14 @@ EOF
                 if [ "_$arch" == "_armv7l" ]; then #Raspberry Pi Zero. Raspi 3 is backwards compatible.
                     ln -s armv7l armv6l
                     ln -s armv7l-dev armv6l-dev
-                    tar -czf armv7l.tgz armv7l armv6l
-                    tar -czf armv7l-dev.tgz armv7l-dev armv6l-dev
+                    ln -s armv7l aarch64
+                    ln -s armv7l-dev aarch64-dev
+                    tar -czf armv7l.tgz armv7l armv6l aarch64-dev
+                    tar -czf armv7l-dev.tgz armv7l-dev armv6l-dev aarch64-dev
                     ln -s armv7l.tgz armv6l.tgz
                     ln -s armv7l-dev.tgz armv6l-dev.tgz
+                    ln -s armv7l.tgz aarch64.tgz
+                    ln -s armv7l-dev.tgz aarch64-dev.tgz
                 else
                     tar -czf $arch.tgz $arch
                     tar -czf ${arch}-dev.tgz ${arch}-dev
@@ -186,14 +190,21 @@ EOF
                 rm -f armv6l-dev.tgz
                 mv core0/us/armv6l.tgz .
                 mv core0/us/armv6l-dev.tgz .
+
+                rm -f aarch64.tgz
+                rm -f aarch64-dev.tgz
+                mv core0/us/aarch64.tgz .
+                mv core0/us/aarch64-dev.tgz .
             fi
             rm -rf core0
             rm -rf core1
+            rm -rf core2
             echo -n "Produced files at "
             pwd
             ls $arch.tgz ${arch}-dev.tgz apply_blob install_blob
             if [ "_$arch" == "_armv7l" ]; then
                 ls armv6l.tgz armv6l-dev.tgz
+                ls aarch64.tgz aarch64-dev.tgz
             fi
         popd >/dev/null
     done
@@ -276,7 +287,6 @@ EOF
                 if [ $str33 -eq 1 ]; then
                     logstag="_logs"
                 fi
-                pwd
                 for f in `find . -maxdepth 1 -type f -name "*.so"`; do
                     echo $f
                     file=`echo $(basename $f)`
@@ -291,10 +301,78 @@ EOF
                 done
                 if [ "_$arch" == "_armv7l" ]; then
                     ln -s armv7l armv6l    #Raspberry Pi Zero. Raspi 3 is backwards compatible.
+                    ln -s armv7l aarch64   #arm64 bits
                 fi
+                echo "pwd: $pwd"
+                echo "Core 1: Protocols with home data:"
+                find r2r -type d -name "home" | sed "s#r2r/\(.*\)/home#\1#"
+                for homsubdir in `find r2r -type d -name "home" | sed "s#r2r/\(.*\)/home#\1#"`; do
+                    echo "mv r2r/${homsubdir}/home/* ${pwd}/r2r/home/${homsubdir}"
+                    mkdir -p ${pwd}/r2r/home/${homsubdir}
+                    mv r2r/${homsubdir}/home/* ${pwd}/r2r/home/${homsubdir}
+                done
+                echo "Protocols with html:"
+                find r2r -type d -name "html" | sed "s#r2r/\(.*\)/html#\1#"
+                for homsubdir in `find r2r -type d -name "html" | sed "s#r2r/\(.*\)/html#\1#"`; do
+                    echo "mv r2r/${homsubdir}/html/* ${pwd}/r2r/html/${homsubdir}"
+                    mkdir -p ${pwd}/r2r/html/${homsubdir}
+                    mv r2r/${homsubdir}/html/* ${pwd}/r2r/html/${homsubdir}
+                done
             popd >/dev/null
+            if [[ -d core2 ]]; then
+                c2="`realpath core2`"
+                pushd core2/us/trader > /dev/null
+                    echo "making distr for arch $arch brand $brand"
+                    dbgtag=""
+                    if [ $str29 -eq 1 ]; then
+                        dbgtag="_dbg"
+                    fi
+                    make -j$jobs CXX="${CXX}" INCC0="$incc0" LIBC0="$libc0" CORE1="$c1" CORE2="$c2"
+                    if [[ $? -ne 0 ]]; then
+                        echo "make failed"
+                        exit 1
+                    fi
+                    logstag=""
+                    if [ $str33 -eq 1 ]; then
+                        logstag="_logs"
+                    fi
+                    pwd
+                    for f in `find . -maxdepth 1 -type f -name "*.so"`; do
+                        echo $f
+                        file=`echo $(basename $f)`
+                        dir=`echo $(dirname $f)`
+                        echo "dir $dir file $file"
+                        pushd $dir >/dev/null
+                            prot=`echo $file | sed "s#lib\(.*\).so#\1#"`
+                            echo "prot=$prot"
+                            mkdir -p ${dstarchpwd}/r2r
+                            tar -I zstd -cf ${dstarchpwd}/r2r/lib${prot}${dbgtag}${logstag}_${branch}_${hash}.tzst $file
+                        popd >/dev/null
+                    done
+                    if [ "_$arch" == "_armv7l" ]; then
+                        ln -s armv7l armv6l    #Raspberry Pi Zero. Raspi 3 is backwards compatible.
+                        ln -s armv7l aarch64   #arm64 bits
+                    fi
+                    echo "pwd: $pwd"
+                    echo "Core 2: Protocols with home data:"
+                    find r2r -type d -name "home" | sed "s#r2r/\(.*\)/home#\1#"
+                    for homsubdir in `find r2r -type d -name "home" | sed "s#r2r/\(.*\)/home#\1#"`; do
+                        echo "mv r2r/${homsubdir}/home/* ${pwd}/r2r/home/${homsubdir}"
+                        mkdir -p ${pwd}/r2r/home/${homsubdir}
+                        mv r2r/${homsubdir}/home/* ${pwd}/r2r/home/${homsubdir}
+                    done
+                    echo "Protocols with html:"
+                    find r2r -type d -name "html" | sed "s#r2r/\(.*\)/html#\1#"
+                    for homsubdir in `find r2r -type d -name "html" | sed "s#r2r/\(.*\)/html#\1#"`; do
+                        echo "mv r2r/${homsubdir}/html/* ${pwd}/r2r/html/${homsubdir}"
+                        mkdir -p ${pwd}/r2r/html/${homsubdir}
+                        mv r2r/${homsubdir}/html/* ${pwd}/r2r/html/${homsubdir}
+                    done
+                popd >/dev/null
+            fi
             rm -rf core0
             rm -rf core1
+            rm -rf core2
             rm -rf usr
             echo "Produced files"
             find -type f -name "*.tzst"
@@ -408,6 +486,7 @@ EOF
             popd >/dev/null
             rm core0 -rf
             rm core1 -rf
+            rm core2 -rf
             rm -f makefile_distr
         popd >/dev/null
     done

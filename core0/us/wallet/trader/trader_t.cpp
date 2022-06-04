@@ -74,7 +74,6 @@ c::trader_t(traders_t& parent, engine::daemon_t& demon, const hash_t& parent_tid
     log("my_challenge", my_challenge);
 }
 
-
 c::~trader_t() {
     log("destructor", this);
     join();
@@ -508,27 +507,27 @@ ko c::trading_msg_trader(peer_t& peer, svc_t svc, blob_t&& blob) {
         case svc_roles_request: {
             log("Received protocols request.");
             protocols_t p;
-            parent.published_protocols(p);
+            parent.published_protocols(p, false);
             log("Sending over requested protocols");
             blob_t payload;
             p.write(payload);
             return peer.call_trading_msg(peer_t::trading_msg_in_t(id, svc_roles, payload));
         }
         case svc_roles: {
-            log("Received wanted protocols.");
+            log("Received peer protocols.");
             {
                 blob_reader_t reader(blob);
                 lock_guard<mutex> lock(mx);
-                auto r = reader.read(peer_protocols); //.from_stream(is);
+                auto r = reader.read(peer_protocols);
                 if (is_ko(r)) {
                     return r;
                 }
                 if (peer_protocols.empty()) {
                     olog("empty set!");
                 }
-                else {
-                    peer_protocols.dump(*logos);
-                }
+//                else {
+//                    peer_protocols.dump(*logos);
+//                }
             }
             log("push roles");
             schedule_push(push_roles, peer.get_lang()); //something changed for the user
@@ -724,7 +723,7 @@ blob_t c::push_payload(uint16_t pc, const string& lang) const {
         break;
         case push_roles_mine: {
             log("pushing roles mine");
-            protocols_t my_protocols = parent.protocols();
+            protocols_t my_protocols = parent.published_protocols(false);
             my_protocols.write(blob);
         }
         break;
@@ -736,7 +735,8 @@ blob_t c::push_payload(uint16_t pc, const string& lang) const {
         break;
         case push_roles: {
             log("pushing roles");
-            protocols_t my_protocols = parent.protocols();
+            protocols_t my_protocols = parent.published_protocols(true);
+            parent.invert(my_protocols);
             protocols_t p;
             {
                 lock_guard<mutex> lock(mx);

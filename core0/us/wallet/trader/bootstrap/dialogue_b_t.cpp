@@ -69,7 +69,7 @@ ko c::initiate(peer_t& peer, protocol_selection_t&& protocol_selection, ch_t& ch
         reset();
     }
     state = new state_t();
-    auto p = parent.trader->parent.create_protocol(move(protocol_selection));
+    auto p = parent.trader->parent.create_opposite_protocol(protocol_selection_t(protocol_selection));
     if (p.first != ok) {
         log(p.first);
         assert(p.second == nullptr);
@@ -85,7 +85,7 @@ ko c::initiate(peer_t& peer, protocol_selection_t&& protocol_selection, ch_t& ch
     blob_t blob;
     {
         lock_guard<mutex> lock(parent.trader->mx);
-        b1_t x(parent.trader->opposite_protocol_selection(), parent.trader->shared_params());
+        b1_t x(protocol_selection, parent.trader->shared_params());
         x.write(blob);
     }
     return peer.call_trading_msg(peer_t::trading_msg_in_t(parent.trader->id, trader_t::svc_handshake_b1, blob));

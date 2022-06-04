@@ -33,18 +33,18 @@ namespace us::wallet::wallet {
     using track_t = ts_t;
     using trade_id_t = hash_t;
 
-    enum wallet_track_status_t: uint8_t {
-        wts_unknown,
-        wts_error,
-        wts_wait_rcpt_info,
-        wts_wait_signature,
-        wts_cancelled,
-        wts_delivered,
+    enum wallet_evt_status_t: uint8_t {
+        wevt_unknown,
+        wevt_error,
+        wevt_wait_rcpt_info,
+        wevt_wait_signature,
+        wevt_cancelled,
+        wevt_delivered,
 
-        wts_num
+        wevt_num
     };
        
-    static constexpr const char* wallet_track_status_str[wts_num] = {"unknown", "error", "wait_rcpt_info", "wait_signature", "cancelled", "delivered"};
+    static constexpr const char* wallet_evt_status_str[wevt_num] = {"unknown", "error", "wait_rcpt_info", "wait_signature", "cancelled", "delivered"};
 
     struct t1_t: us::gov::io::seriable {
         t1_t() {}
@@ -65,6 +65,7 @@ namespace us::wallet::wallet {
 
     struct txlog_item_t {
         using gov_track_status_t = us::gov::engine::track_status_t;
+        using gov_evt_status_t = us::gov::engine::evt_status_t;
 
     public:
         txlog_item_t(t1_t*, bool initiator, const trade_id_t&);
@@ -80,8 +81,9 @@ namespace us::wallet::wallet {
     public:
         bool initiator;
         string io_summary;
-        wallet_track_status_t wallet_track_status{wts_unknown};
-        gov_track_status_t gov_track_status;
+        wallet_evt_status_t wallet_evt_status{wevt_unknown};
+        gov_evt_status_t gov_evt_status;
+        string gov_evt_status_info;
 
         unique_ptr<t1_t> t1;
         unique_ptr<tx_t> inv;

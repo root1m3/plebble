@@ -24,29 +24,6 @@
 #include <us/gov/crypto/types.h>
 #include <us/gov/crypto/ec.h>
 #include <us/gov/engine/evidence.h>
-/*
-#include <iostream>
-#include <fstream>
-#include <unistd.h>
-#include <deque>
-#include <fcntl.h>
-
-#include <us/gov/io/cfg0.h>
-#include <us/gov/bgtask.h>
-#include <us/gov/config.h>
-#include <us/gov/engine/daemon_t.h>
-#include <us/gov/engine/net_daemon_t.h>
-#include <us/gov/engine/peer_t.h>
-#include <us/gov/relay/protocol.h>
-#include <us/gov/engine/evidence.h>
-#include <us/gov/engine/protocol.h>
-#include <us/gov/crypto/ripemd160.h>
-
-#include <us/wallet/wallet/local_api.h>
-#include <us/wallet/cli/hmi.h>
-
-#include "../test_platform.h"
-*/
 
 namespace us { namespace test {
 
@@ -63,6 +40,7 @@ namespace us { namespace test {
         size_t blob_size() const override;
         void to_blob(blob_writer_t& writer) const override;
         ko from_blob(blob_reader_t& reader) override;
+        uint64_t uniq() const override { return ts; }
 
         vector<uint8_t> payload;
         uint16_t src_port;

@@ -53,18 +53,6 @@ namespace us::wallet::trader::r2r::w2w {
 
         static constexpr const char* name{"w2w"};
 
-        enum progress_t: uint8_t { //values coupled in fragment_w2w.java (android app)
-            pg_idle,
-            pg_error,
-            pg_wait_4_outputs,
-            pg_wait_4_inputs,
-            pg_delivered,
-
-            pg_numstates
-        };
-
-        static constexpr const char* pgstr[pg_numstates] = { "idle", "error", "wait_4_outputs", "wait_4_inputs", "delivered" };
-
         enum push_code_t: uint16_t { //communications node-HMI
             push_begin = trader_protocol::push_r2r_begin,
             push_tx = push_begin,
@@ -78,7 +66,6 @@ namespace us::wallet::trader::r2r::w2w {
             svc_invoice,
             svc_cancel,
             svc_tx,
-            //svc_reset,
 
             svc_end
         };
@@ -105,13 +92,6 @@ namespace us::wallet::trader::r2r::w2w {
         uint32_t trade_state_() const;
         void judge(const string& lang) override;
 
-
-//        progress_t pg{pg_idle};
-//        string pg_info;
-//        us::gov::engine::daemon_t::evt_status_t gov_st{us::gov::engine::daemon_t::evt_unknown};
-
-//        t1_t t1;
-//        us::gov::cash::tx_t* tx{nullptr};
         mutable mutex mx;
     };
 

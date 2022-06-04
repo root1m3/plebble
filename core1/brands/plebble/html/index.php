@@ -82,9 +82,14 @@ margin-right: auto;
 .active:after {
   content: "\2796"; /* Unicode character for "minus" sign (-) */
 }
+
+* {
+    scroll-behavior: smooth;
+    scrollbar-color: red black;
+}
 	</style>
   </head>
-<body style="min-width:678px;">
+<body style="min-width:678px;" background="bg_sand.gif">
 
 <center>
 <table bgcolor="#000000" cellspacing="25" width="90%">
@@ -141,7 +146,7 @@ software version: <b><?=$swver?></b> [<a class="hdl" href="pub/release_notes.txt
 
 
 <br/>
-<button type="button" class="collapsible">Introduction</button>
+<button type="button" class="collapsible">Introduction.</button>
 <div class="content">
 <p>Plebble is a L1 (Level 1) multi-coin cryptocurrency system.</p>
 <p>You can think of it as a heavy remake of <a href="https://bitcoin.org" target="_blank">Bitcoin</a> built 100% from scrach with the following differences:</p>
@@ -160,26 +165,40 @@ software version: <b><?=$swver?></b> [<a class="hdl" href="pub/release_notes.txt
 
 
 <br/>
-<button type="button" class="collapsible">Run a node</button>
+<button type="button" class="collapsible">Hardware.</button>
 <div class="content">
 
-<h3>Hardware requirements.</h3>
-<p>The aim of plebble is to achieve the lowest entry barrier for running a node by means of witing efficient code and algorithms.</p>
+<p>The aim of plebble is to achieve the lowest entry barrier for running a node, by means of algorithm design and efficient coding that run in low-cost hardware.</p>
+<p>Options:</p>
 <ul>
-<li><b>Raspberry Pi</b></li>
+<li><b>Raspberry PI 4</b></li>
   <img src="pi4.png" alt="pi4" width="200"/>
   <p>A practical and stable option, meeting the highest standards on privacy and network distribution.</p>
   <p>hardware <a href="shopping_list.txt">shopping_list</a></p>
   <p>Install <a href="https://www.raspberrypi.com/software/" target="_blank">raspberry pi OS</a> (formerly known as raspbian) [<a href="https://www.youtube.com/watch?v=ntaXWS8Lk34" target="_blank">short video</a>]</p>
   <p>In step 2 Choose Operating System "Raspberry PI OS (32-bits)" in Raspberry Pi Imager</p>
-<li><b>VM</b></li>
+
+<li><b>Raspberry PI Zero</b></li>
+  <img src="raspizero.jpg" alt="pi4" width="200"/>
+  <p>An extremely low cost node, it proved to work as a plebble node. simply fantastic! : ).</p>
+
+<li><b>Hosted VM (Virtual Machine)</b></li>
   <img src="cloud.png" alt="cloud" width="200"/>
 <p>
 Privacy seeking individuals don't like services in the cloud and will run a node in their own hardware.<br/>
-However, people who trust 3rd parties can find it easier to run a plebble node in a custodial/hosted VM (Virtual machine) e.g. hiring a debian 11 droplet at <a href="https://www.digitalocean.com/" target="_blank">Digital Ocean</a> for $5/mo. Watch the easy process (implying a few clicks and pasting a command in the console) on <a href="https://www.youtube.com/watch?v=5drAx5EYK7s" target="_blank">this recording</a>.
+However, people who trust 3rd parties can find it easier to run a plebble node in a custodial/hosted VM e.g. hiring a debian 11 droplet at <a href="https://www.digitalocean.com/" target="_blank">Digital Ocean</a> for $5/mo. Watch the easy process (implying a few clicks and pasting a command in the console) on <a href="https://www.youtube.com/watch?v=5drAx5EYK7s" target="_blank">this recording</a>.
 </p>
+
+<li><b>Any computer based on X86_64 or armv7l</b></li>
+  <img src="oldcomp.jpeg" alt="any computer" width="200"/>
+<p><a href="https://www.zdnet.com/article/best-raspberry-pi-alternative/" target="blank_">here</a> are alternative -but untested- low-cost hardware. If you successfully run a node on any let me know about it. :)</p>
 </ul>
 <br/>
+</div>
+
+<br/>
+<button type="button" class="collapsible">Run a node. Node setup.</button>
+<div class="content">
 <h3>Run a node</h3>
 <p>On a fresh Debian 11 operating system (or Ubuntu 21.10, or Raspberri PI OS) type:</p>
 <pre style="background-color:#000000; color:#ffffff;display: inline-block"">
@@ -270,11 +289,13 @@ Once downloaded the blob it will install it performing the following actions in 
 </div>
 
 <br/>
-<button type="button" class="collapsible">Documentation</button>
+<button type="button" class="collapsible">Documentation.</button>
 <div class="content">
 <p>Related existing research papers</p>
 <ul>
 <li><a href="https://plebble.net/bitcoin.pdf">Bitcoin</a> - A Peer-to-Peer Electronic Cash System.</li>
+<li><a href="http://lamport.azurewebsites.net/pubs/reaching.pdf">M. Pwase, R, Shostak, L. Lamport</a> - Reaching Agreement in the Presence of Faults.</li>
+<li><a href="http://lamport.azurewebsites.net/pubs/time-clocks.pdf">Leslie Lamport</a> - Time, Clocks, and the Ordering of Events in a Distributed System</li>
 <li><a href="https://pmg.csail.mit.edu/papers/osdi99.pdf">PBFT</a> - Practical Byzantine Fault Tolerance.</li>
 <li><a href="https://arxiv.org/pdf/1804.01626.pdf">SBFT</a> - A Scalable and Decentralized Trust Infrastructure.</li>
 <li><a href="https://rowstron.azurewebsites.net/PAST/pastry.pdf">Pastry</a> - Scalable, decentralized object location and routing for large-scale peer-to-peer systems.</li>
@@ -291,7 +312,14 @@ Once downloaded the blob it will install it performing the following actions in 
 
 
 <br/>
-<button type="button" class="collapsible">Community</button>
+<button type="button" class="collapsible">Community. 
+<img src="community/reddit.png" width="20">
+<img src="community/github.png" width="20">
+<img src="community/twitter.png" width="20">
+<img src="community/discord.png" width="20">
+<img src="community/telegram.png" width="20">
+<img src="community/signal.png" width="20">
+</button>
 <div class="content">
 <p>Join plebble enthusiasts/contributors on</p>
 
@@ -309,15 +337,11 @@ Once downloaded the blob it will install it performing the following actions in 
 <img src="community/twitter.png" width="40"></td><td valign="middle">Follow root1m3 on <a href="https://twitter.com/KatlasC">Twitter</a>.
 </td>
 
-<td>
-<img src="community/discord.png" width="40"></td><td valign="middle">Join the <a href="https://discord.gg/Netgdpgy">discord</a> server.
-</td>
-
 </tr>
 <tr>
 
 <td>
-<img src="community/signal.png" width="40"></td><td valign="middle">Join the plebble <a href="https://signal.group/#CjQKIN6_JG7cD-rpf17jwoe8fndbJ5-6GHbUjyVzkko71FF2EhAOecC_FiASSjzMxK48kIsn">Signal</a> group.
+<img src="community/discord.png" width="40"></td><td valign="middle">Join the <a href="https://discord.gg/jBwqcg8P67">discord</a> server.
 </td>
 
 <td>
@@ -325,12 +349,9 @@ Once downloaded the blob it will install it performing the following actions in 
 </td>
 
 <td>
-<img src="community/patreon.png" width="40"></td><td valign="middle">Support Plebble development at <a href="https://www.patreon.com/plebble">Patreon</a>.
+<img src="community/signal.png" width="40"></td><td valign="middle">Join the plebble <a href="https://signal.group/#CjQKIN6_JG7cD-rpf17jwoe8fndbJ5-6GHbUjyVzkko71FF2EhAOecC_FiASSjzMxK48kIsn">Signal</a> group.
 </td>
 
-<td>
-<img src="community/patreon.png" width="40"></td><td valign="middle">Support Plebble development at <a href="https://www.patreon.com/plebble">Patreon</a>.
-</td>
 </tr>
 </table>
 
@@ -340,26 +361,35 @@ Once downloaded the blob it will install it performing the following actions in 
 
 <br/>
 
-<button type="button" class="collapsible">Support Plebble</button>
+<button type="button" class="collapsible">Support Plebble.</button>
 
 <div class="content" id="cdon">
 <p>Please consider donating to help the development of this project.</p>
+<p>Options:</p>
+<ul>
+<li>
+<img src="community/patreon.png" width="40"/>Become a patron at <a href="https://www.patreon.com/plebble" target="_blank">Patreon</a>
+</li>
 
-<table>
-<tr>
-<td colspan="2"><a href="bitcoin:BC1QSR4HLJZCXHCUU6JMGCR2Y3HNWMDKQMDEDSMZFP">bitcoin:BC1QSR4HLJZCXHCUU6JMGCR2Y3HNWMDKQMDEDSMZFP</a></td>
-</tr>
-<tr>
-<td>
-<img src="btc.png" height="30">
-</td>
-<td>
-<!-- <a href="#donate"><span id="qrl" onclick="document.getElementById('qr').style.display='inline'; document.getElementById('qrl').style.display='none';">Show QR</span><img style="display: none" src="./qr-of-public-key.png" id="qr" />
-</a> -->
+<li>
+<img src="community/github.png" width="40"/>Sponsor plebble at <a href="https://github.com/root1m3/plebble">Github</a>
+</li>
+
+<li>
+<img src="btc.png" height="30"/>
+Donate Bitcoin or Fiat via <a href="https://tallyco.in/s/88u9wf" target="_blank">tallycoin</a><br/>
+</li>
+
+<li>
+<img src="btc.png" height="30"/>
+Donate Bitcoin!.<br/>
+Transfer some sats to address <a href="bitcoin:BC1QSR4HLJZCXHCUU6JMGCR2Y3HNWMDKQMDEDSMZFP">bitcoin:BC1QSR4HLJZCXHCUU6JMGCR2Y3HNWMDKQMDEDSMZFP</a>
 <img src="./qr-of-public-key.png" id="qr" />
-</td>
-</tr>
-</table>
+</li>
+
+
+
+</ul>
 
 </div>
 

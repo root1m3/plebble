@@ -214,8 +214,9 @@ ko c::pay_inv(track_t track, blob_t& blob) {
         lock_guard<mutex> lock(mx);
         i->second.pay.reset(tx);
         i->second.io_summary = r.second.to_string("");
-        i->second.wallet_track_status = wts_delivered;
-        i->second.gov_track_status = gov_track_status;
+        i->second.wallet_evt_status = wevt_delivered;
+        i->second.gov_evt_status = gov_track_status.st;
+        i->second.gov_evt_status_info = gov_track_status.info;
     }
     log("paid tx", tx->encode());
     {
@@ -283,8 +284,9 @@ ko c::register_tx(const blob_t& blob) {
         }
         i->second.set_tx(tx);
         i->second.io_summary += "\nReceived tx.\n";
-        i->second.wallet_track_status = wts_delivered;
-        i->second.gov_track_status = gov_track_status;
+        i->second.wallet_evt_status = wevt_delivered;
+        i->second.gov_evt_status = gov_track_status.st;
+        i->second.gov_evt_status_info = gov_track_status.info;
         tid = i->second.trade_id;
     }
     w->daemon.pm.schedule_push(w->get_push_datagram(tid, local_api::push_txlog), w->device_filter);
@@ -296,7 +298,7 @@ index_t c::index() const {
     index_t r;
     r.reserve(size());
     for (auto& i: *this) {
-        r.emplace_back(make_pair(i.first, index_item_t(i.second.title(), i.second.gov_track_status, i.second.wallet_track_status)));
+        r.emplace_back(make_pair(i.first, index_item_t(i.second.title(), i.second.gov_evt_status, i.second.gov_evt_status_info, i.second.wallet_evt_status)));
     }
     return move(r);
 }
@@ -318,17 +320,17 @@ ko c::cancel(const track_t& track) {
             log(r);
             return r;
         }
-        if (i->second.wallet_track_status == wts_delivered) {
+        if (i->second.wallet_evt_status == wevt_delivered) {
             auto r = "KO 63051 Already delivered.";
             log(r);
             return r;
         }
         trade_id = i->second.trade_id;
-        if (i->second.wallet_track_status == wts_cancelled) {
+        if (i->second.wallet_evt_status == wevt_cancelled) {
             erase(i);
         }
         else {
-            i->second.wallet_track_status = wts_cancelled;
+            i->second.wallet_evt_status = wevt_cancelled;
         }
     }
     w->daemon.pm.schedule_push(w->get_push_datagram(trade_id, local_api::push_txlog), w->device_filter);
@@ -389,6 +391,10 @@ void c::on_tx_tracking_status(const gov_track_status_t& status) {
     if (!notify.empty()) w->daemon.pm.schedule_push(w->get_push_datagrams(notify, local_api::push_txlog), w->device_filter);
 }
 
+void c::show(const trade_id_t& trade_id) const {
+    w->daemon.pm.schedule_push(w->get_push_datagram(trade_id, local_api::push_txlog), w->device_filter);
+}
+
 void index_t::dump(const string& prefix, ostream& os) const {
     auto pfx = prefix + "    ";
     for (auto& i: *this) {
@@ -399,22 +405,26 @@ void index_t::dump(const string& prefix, ostream& os) const {
 
 void index_item_t::dump(const string& prefix, ostream& os) const {
     os << label << '\n';
-    os << prefix << "wallet-status " << +wallet_track_status << ' ' << wallet_track_status_str[wallet_track_status] << '\n';
-    if (wallet_track_status == wts_delivered) {
-        os << prefix << "gov-status " << +gov_track_status.st << ' ' << us::gov::engine::evt_status_str[gov_track_status.st] << '\n';   
+    os << prefix << "wallet-status " << +wallet_evt_status << ' ' << wallet_evt_status_str[wallet_evt_status] << '\n';
+    if (wallet_evt_status == wevt_delivered) {
+        os << prefix << "gov-status " << +gov_evt_status << ' ' << us::gov::engine::evt_status_str[gov_evt_status];
+        if (!gov_evt_status_info.empty()) os << ' ' << gov_evt_status_info;
+        os << '\n';
     }
 }
 
 size_t index_item_t::blob_size() const {
     return blob_writer_t::blob_size(label) +
-        blob_writer_t::blob_size(gov_track_status) +
-        blob_writer_t::blob_size((uint8_t)wallet_track_status);
+        blob_writer_t::blob_size((uint8_t)wallet_evt_status) +
+        blob_writer_t::blob_size((uint8_t)gov_evt_status) +
+        blob_writer_t::blob_size(gov_evt_status_info);
 }
 
 void index_item_t::to_blob(blob_writer_t& writer) const {
     writer.write(label);
-    writer.write(gov_track_status);
-    writer.write((uint8_t)wallet_track_status);
+    writer.write((uint8_t)wallet_evt_status);
+    writer.write((uint8_t)gov_evt_status);
+    writer.write(gov_evt_status_info);
 }
 
 ko index_item_t::from_blob(blob_reader_t& reader) {
@@ -423,11 +433,15 @@ ko index_item_t::from_blob(blob_reader_t& reader) {
         if (is_ko(r)) return r;
     }
     {
-        auto r = reader.read(gov_track_status);
+        auto r = reader.read((uint8_t&)wallet_evt_status);
         if (is_ko(r)) return r;
     }
     {
-        auto r = reader.read((uint8_t&)wallet_track_status);
+        auto r = reader.read((uint8_t&)gov_evt_status);
+        if (is_ko(r)) return r;
+    }
+    {
+        auto r = reader.read(gov_evt_status_info);
         if (is_ko(r)) return r;
     }
     return ok;

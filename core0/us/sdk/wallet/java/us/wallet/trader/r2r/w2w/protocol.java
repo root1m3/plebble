@@ -27,8 +27,7 @@ public class protocol {
         public static final int push_begin = us.wallet.trader.trader_protocol.push_r2r_begin;
 
         public static final int push_tx = push_begin + 0;
-        public static final int push_txlog = push_begin + 1;
 
-        public static final int push_end = push_txlog + 1;
+        public static final int push_end = push_begin + 1;
 }
 

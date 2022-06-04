@@ -81,6 +81,9 @@ c::params(const shell_args& a): args(a) {
         else if (command == "-n") {
             names = false;
         }
+        else if (command == "-local") {
+            local = true;
+        }
 //        else if (cmd=="-nc") {
 //            p.ncurses=true;
 //        }

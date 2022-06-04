@@ -72,8 +72,7 @@ ko c::initiate(peer_t& peer, const string& wloc, const protocol_selection_t& pro
         reset();
     }
     state = new state_t();
-    auto ps = protocol_selection;
-    auto p = parent.trader->parent.create_protocol(move(ps));
+    auto p = parent.trader->parent.create_opposite_protocol(protocol_selection_t(protocol_selection));
     if (p.first != ok) {
         log(p.first);
         assert(p.second == nullptr);
@@ -91,7 +90,7 @@ ko c::initiate(peer_t& peer, const string& wloc, const protocol_selection_t& pro
     {
         assert(parent.trader->w != nullptr);
         lock_guard<mutex> lock(parent.trader->mx);
-        c1_t x(parent.trader->w->local_endpoint, wloc, parent.trader->opposite_protocol_selection(), parent.trader->shared_params(), parent.trader->my_challenge);
+        c1_t x(parent.trader->w->local_endpoint, wloc, protocol_selection_t(protocol_selection), parent.trader->shared_params(), parent.trader->my_challenge);
         x.write(blob);
     }
     return peer.call_trading_msg(peer_t::trading_msg_in_t(parent.trader->id, trader_t::svc_handshake_c1, blob));

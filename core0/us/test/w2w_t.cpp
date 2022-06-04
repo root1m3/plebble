@@ -53,11 +53,11 @@ c::track_t c::init_transfer(node& sender, node& rcpt) {
             if (seq == 0) {
                 track = txnd.begin()->first;
                 cout << "track " << track;
-                assert(txnd.begin()->second.wallet_track_status == us::wallet::wallet::wts_wait_rcpt_info);
+                assert(txnd.begin()->second.wallet_evt_status == us::wallet::wallet::wevt_wait_rcpt_info);
             }
             else if (seq == 1) {
                 assert(txnd.begin()->first == track);
-                assert(txnd.begin()->second.wallet_track_status == us::wallet::wallet::wts_wait_signature);
+                assert(txnd.begin()->second.wallet_evt_status == us::wallet::wallet::wevt_wait_signature);
                 seq = -1;
             }
             ++seq;
@@ -73,7 +73,7 @@ c::track_t c::init_transfer(node& sender, node& rcpt) {
             txnd.dump("rcpt-txlog-index-#0> ", cout);
             assert(txnd.size() == 1);
             assert(txnd.begin()->first == track);
-            assert(txnd.begin()->second.wallet_track_status == us::wallet::wallet::wts_wait_signature);
+            assert(txnd.begin()->second.wallet_evt_status == us::wallet::wallet::wevt_wait_signature);
         }
     );
 
@@ -99,7 +99,7 @@ void c::cancel_transfer_by_sender1(node& sender, node& rcpt, track_t track) {
             txnd.dump("sender-txlog-index-#0> ", cout);
             assert(txnd.size() == 1);
             assert(txnd.begin()->first == track);
-            assert(txnd.begin()->second.wallet_track_status == us::wallet::wallet::wts_cancelled);
+            assert(txnd.begin()->second.wallet_evt_status == us::wallet::wallet::wevt_cancelled);
         }
     );
 
@@ -112,7 +112,7 @@ void c::cancel_transfer_by_sender1(node& sender, node& rcpt, track_t track) {
             txnd.dump("rcpt-txlog-index-#0> ", cout);
             assert(txnd.size() == 1);
             assert(txnd.begin()->first == track);
-            assert(txnd.begin()->second.wallet_track_status == us::wallet::wallet::wts_cancelled);
+            assert(txnd.begin()->second.wallet_evt_status == us::wallet::wallet::wevt_cancelled);
         }
     );
 
@@ -185,30 +185,30 @@ void c::confirm_transfer(node& sender, node& rcpt, track_t track) {
             pfx << "sender-txlog-index-#" << seq << "> ";
             txnd.dump(pfx.str(), cout);
             assert(txnd.size() == 1);
-            assert(txnd.begin()->second.wallet_track_status == us::wallet::wallet::wts_delivered);
+            assert(txnd.begin()->second.wallet_evt_status == us::wallet::wallet::wevt_delivered);
             cout << "sender seq " << seq << endl;
             if (seq == 0) {
                 track = txnd.begin()->first;
                 cout << "track " << track;
-                assert(txnd.begin()->second.gov_track_status.st == us::gov::engine::evt_calendar);
-                cout << "Info: " << txnd.begin()->second.gov_track_status.info << endl; 
-                assert(txnd.begin()->second.gov_track_status.info.empty());
+                assert(txnd.begin()->second.gov_evt_status == us::gov::engine::evt_calendar);
+                cout << "Info: " << txnd.begin()->second.gov_evt_status_info << endl; 
+                assert(txnd.begin()->second.gov_evt_status_info.empty());
             }
             else if (seq == 1) {
                 assert(txnd.begin()->first == track);
-                assert(txnd.begin()->second.gov_track_status.st == us::gov::engine::evt_mempool);
+                assert(txnd.begin()->second.gov_evt_status == us::gov::engine::evt_mempool);
             }
             else if (seq == 2) {
                 assert(txnd.begin()->first == track);
-                assert(txnd.begin()->second.gov_track_status.st == us::gov::engine::evt_craftblock);
+                assert(txnd.begin()->second.gov_evt_status == us::gov::engine::evt_craftblock);
             }
             else if (seq == 3) {
                 assert(txnd.begin()->first == track);
-                assert(txnd.begin()->second.gov_track_status.st == us::gov::engine::evt_consensus);
+                assert(txnd.begin()->second.gov_evt_status == us::gov::engine::evt_consensus);
             }
             else if (seq == 4) {
                 assert(txnd.begin()->first == track);
-                assert(txnd.begin()->second.gov_track_status.st == us::gov::engine::evt_settled);
+                assert(txnd.begin()->second.gov_evt_status == us::gov::engine::evt_settled);
                 seq = -1;
             }
             ++seq;
@@ -226,28 +226,28 @@ void c::confirm_transfer(node& sender, node& rcpt, track_t track) {
             pfx << "rcpt-txlog-index-#" << seq << "> ";
             txnd.dump(pfx.str(), cout);
             assert(txnd.size() == 1);
-            assert(txnd.begin()->second.wallet_track_status == us::wallet::wallet::wts_delivered);
+            assert(txnd.begin()->second.wallet_evt_status == us::wallet::wallet::wevt_delivered);
             cout << "recv seq " << seq << endl;
             if (seq == 0) {
-                assert(txnd.begin()->second.gov_track_status.st == us::gov::engine::evt_calendar);
-                cout << "Info: " << txnd.begin()->second.gov_track_status.info << endl; 
-                assert(txnd.begin()->second.gov_track_status.info.empty());
+                assert(txnd.begin()->second.gov_evt_status == us::gov::engine::evt_calendar);
+//                cout << "Info: " << txnd.begin()->second.gov_track_status.info << endl; 
+                assert(txnd.begin()->second.gov_evt_status_info.empty());
             }
             else if (seq == 1) {
                 assert(txnd.begin()->first == track);
-                assert(txnd.begin()->second.gov_track_status.st == us::gov::engine::evt_mempool);
+                assert(txnd.begin()->second.gov_evt_status == us::gov::engine::evt_mempool);
             }
             else if (seq == 2) {
                 assert(txnd.begin()->first == track);
-                assert(txnd.begin()->second.gov_track_status.st == us::gov::engine::evt_craftblock);
+                assert(txnd.begin()->second.gov_evt_status == us::gov::engine::evt_craftblock);
             }
             else if (seq == 3) {
                 assert(txnd.begin()->first == track);
-                assert(txnd.begin()->second.gov_track_status.st == us::gov::engine::evt_consensus);
+                assert(txnd.begin()->second.gov_evt_status == us::gov::engine::evt_consensus);
             }
             else if (seq == 4) {
                 assert(txnd.begin()->first == track);
-                assert(txnd.begin()->second.gov_track_status.st == us::gov::engine::evt_settled);
+                assert(txnd.begin()->second.gov_evt_status == us::gov::engine::evt_settled);
                 seq = -1;
             }
             ++seq;

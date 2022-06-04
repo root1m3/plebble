@@ -31,13 +31,13 @@
 #include <us/gov/config.h>
 
 #include <us/wallet/engine/daemon_t.h>
+#include <us/wallet/wallet/algorithm.h>
 #include <us/wallet/wallet/local_api.h>
 #include <us/wallet/trader/trader_t.h>
 #include <us/wallet/trader/traders_t.h>
 #include <us/wallet/trader/trader_protocol.h>
 #include <us/wallet/trader/workflow/trader_protocol.h>
 #include <us/wallet/trader/qr_t.h>
-#include <us/wallet/trader/r2r/w2w/txlog_t.h>
 #include <us/wallet/trader/r2r/w2w/protocol.h>
 
 #include <us/wallet/protocol.h>
@@ -505,15 +505,168 @@ bool c::exec_trade_global(const string& command, shell_args& args) {
         scr << tid << '\n';
         return true;
     }
-    if (command == "bookmarks") {
+    if (command == "save_qr_bookmark") {
+        string name = args.next<string>();
+        if (name.empty()) {
+            auto r = "KO 93772 Bookmark name.";
+            log(r);
+            scr << r << '\n';
+            return true;
+        }
         bookmarks_t bm;
-        auto r = rpc_daemon->get_peer().call_bookmark_list(bm);
+        auto r = rpc_daemon->get_peer().call_qr(bm);
         if (is_ko(r)) {
             scr << r << '\n';
             return true;
         }
+        auto i = bm.find(name);
+        if (i == bm.end()) {
+            auto r = "KO 93722 not found.";
+            log(r);
+            scr << r << '\n';
+            return true;
+        }
+        string file = args.next<string>();
+        if (file.empty()) {
+            screen::lock_t lock(scr, interactive);
+            lock.os << i->second.encode() << '\n'; 
+            return true;
+        }
+        bookmarks_t bm2;
+        bm2.load(file);
+        bm2.add("bookmark", i->second);
+        {
+            auto r = bm2.save(file);
+            if (is_ko(r)) {
+                scr << r << '\n';
+                return true;
+            }
+        }
+        return true;
+    }
+    if (command == "bookmarks") {
+        bookmarks_t bm;
+        string file = args.next<string>();
+        if (file.empty()) {
+            auto r = rpc_daemon->get_peer().call_bookmark_list(bm);
+            if (is_ko(r)) {
+                scr << r << '\n';
+                return true;
+            }
+        }
+        else {
+            auto r = bm.load(file);
+            if (is_ko(r)) {
+                scr << r << '\n';
+                return true;
+            }
+        }
         screen::lock_t lock(scr, interactive);
         bm.dump("", lock.os);
+        return true;
+    }
+    if (command == "save_bookmark") {
+        string name = args.next<string>();
+        if (name.empty()) {
+            auto r = "KO 93772 Bookmark name.";
+            log(r);
+            scr << r << '\n';
+            return true;
+        }
+        bookmarks_t bm;
+        {
+            auto r = rpc_daemon->get_peer().call_bookmark_list(bm);
+            if (is_ko(r)) {
+                scr << r << '\n';
+                return true;
+            }
+        }
+        auto i = bm.find(name);
+        if (i == bm.end()) {
+            auto r = "KO 93721 not found.";
+            log(r);
+            screen::lock_t lock(scr, interactive);
+            bm.dump("> ", lock.os); 
+            lock.os << r << " >" << name << "<\n";
+            return true;
+        }
+        string file = args.next<string>();
+        if (file.empty()) {
+            screen::lock_t lock(scr, interactive);
+            lock.os << i->second.encode() << '\n'; 
+            return true;
+        }
+        bookmarks_t bm2;
+        {
+            auto r = bm2.load(file);
+        }
+        bm2.add("bookmark", i->second);
+        {
+            auto r = bm2.save(file);
+            if (is_ko(r)) {
+                scr << r << '\n';
+                return true;
+            }
+        }
+        return true;
+    }
+    if (command == "bookmarks_append") {
+        string dstfile = args.next<string>();
+        string srcfile = args.next<string>();
+        bookmarks_t dst;
+        {
+            auto r = dst.load(dstfile);
+            if (is_ko(r)) {
+                scr << r << '\n';
+                return true;
+            }
+        }
+        bookmarks_t src;
+        {
+            auto r = src.load(srcfile);
+            if (is_ko(r)) {
+                scr << r << '\n';
+                return true;
+            }
+        }
+        dst.add(src);
+        {
+            auto r = dst.save(dstfile);
+            if (is_ko(r)) {
+                scr << r << '\n';
+                return true;
+            }
+        }
+        return true;
+    }
+    if (command == "bookmarks_rename") {
+        string dstfile = args.next<string>();
+        string oldname = args.next<string>();
+        string newname = args.next<string>();
+        bookmarks_t dst;
+        {
+            auto r = dst.load(dstfile);
+            if (is_ko(r)) {
+                scr << r << '\n';
+                return true;
+            }
+        }
+        auto i = dst.find(oldname);
+        if (i == dst.end()) {
+            auto r = "KO 87998 not found";
+            scr << r << '\n';
+            return true;
+        }
+        auto b = i->second;
+        dst.erase(i);
+        dst.add(newname, b);
+        {
+            auto r = dst.save(dstfile);
+            if (is_ko(r)) {
+                scr << r << '\n';
+                return true;
+            }
+        }
         return true;
     }
     if (command == "list") {
@@ -1139,6 +1292,7 @@ void c::help(const params& p, ostream& os) { //moved
         fmt::twocol(ind____, "-b", "Basic mode", os);
     }
     if (p.advanced) {
+        fmt::twocol(ind____, "-local", "Instantiate a wallet instead of connecting to a daemon.", tostr(p.local), os);
         fmt::twocol(ind____, "-home <homedir>", "homedir", tostr(p.get_home()), os);
         fmt::twocol(ind____, "-d", "Runs daemon (backend) instead of an rpc-client.", tostr(p.listening_port), os);
         fmt::twocol(ind____, "-e <edges>", "Max num walletd neightbours", tostr((int)p.max_trade_edges), os);
@@ -2120,6 +2274,16 @@ string c::run_() {
 }
 
 string c::run() {
+    if (p.local) {
+        string keyfile = p.get_home() + "/wallet/keys";
+        scr << "keyfile " << keyfile << '\n';
+        us::wallet::wallet::algorithm algo(keyfile);
+        ostringstream os;
+        algo.list(1, os);
+        scr << os.str() << '\n';
+        return "";
+    }
+
     auto r = run_();
     if (!r.empty()) {
         screen::lock_t lock(scr, false);
