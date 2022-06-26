@@ -6,6 +6,7 @@
     margin: 0;
     padding: 0;
     box-sizing: inherit;
+
 }
 
 :root {
@@ -39,6 +40,7 @@ nav {
     padding: 3rem;
     height: 10%;
     width: 100vw;
+    backface-visibility: hidden;
 }
 
 nav ul {
@@ -157,11 +159,12 @@ nav img {
 
 .header__content {
     text-align: center;
-    font-size: 2.5rem;
+    font-size: 3.5rem;
     font-family: 'Nunito', sans-serif;
     font-weight: 700;
     justify-self: center;
     color: var(--color-text);
+    animation: slideIn 2s both;
 }
 
 .header__text {
@@ -170,6 +173,7 @@ nav img {
     justify-self: center;
     padding-bottom: 3rem;
     color: var(--color-text);
+    animation: slideUp 5s both;
 }
 
 .buttons {
@@ -182,7 +186,7 @@ nav img {
 
 .buttons button {
     border: none;
-    padding: 1rem 5rem;
+    padding: 2rem 5rem;
     display: flex;
     align-items: center;
     gap: 1rem;
@@ -190,6 +194,7 @@ nav img {
     background-color: var(--color-text);
     transition: all .5s ease-in-out;
     cursor: pointer;
+    font-size: 2rem;
 }
 
 .buttons button:active {
@@ -205,6 +210,7 @@ nav img {
     text-decoration: none;
     text-transform: capitalize;
     color: #000;
+
 }
 
 .introduction {
@@ -317,9 +323,6 @@ a {
     color: #E52A2A;
 }
 
-/* span {
-    color: #E52A2A;
-} */
 
 .card__content {
     padding: 2rem;
@@ -530,6 +533,27 @@ a {
 .fixedposition {
     position: fixed;
     transition: all .4s ease-in;
+    z-index: 999;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateY(-100rem);
+    }
+
+    to {
+        transform: translateY(0rem);
+    }
+}
+
+@keyframes slideUp {
+    from {
+        opacity: .4;
+    }
+
+    to {
+        opacity: 1;
+    }
 }
 
 @media screen and (max-width:800px) {
