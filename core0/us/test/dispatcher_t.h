@@ -31,7 +31,7 @@
 #include <us/wallet/cli/hmi.h>
 #include "main.h"
 
-namespace us { namespace test {
+namespace us::test {
     using namespace std;
 
     struct dispatcher_t: us::wallet::cli::hmi::dispatcher_t {
@@ -94,5 +94,5 @@ namespace us { namespace test {
 
     };
 
-}}
+}
 

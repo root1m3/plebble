@@ -304,12 +304,14 @@ ko c::command(istream& is, const string& cmd, ostream& os) {
         return ok;
     }
     if (cmd == "g" || cmd == "grid") {
-        d.peerd.grid.dump(os);
+//        d.peerd.grid.dump(os);
+        d.peerd.clique.dump(os);
         return ok;
     }
     if (cmd == "gw") {
         os << "neighbours:\n";
-        d.peerd.grid.watch(os);
+//        d.peerd.grid.watch(os);
+        d.peerd.watch(os);
         os << "devices:\n";
         d.peerd.grid_dev.watch(os);
         return ok;

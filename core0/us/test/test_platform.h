@@ -24,7 +24,7 @@
 #include <iostream>
 #include <vector>
 
-namespace us{ namespace test {
+namespace us::test {
 
     using namespace std;
 
@@ -65,8 +65,5 @@ namespace us{ namespace test {
     };
 
 
-}}
-
-
-
+}
 

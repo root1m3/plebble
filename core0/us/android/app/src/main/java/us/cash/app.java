@@ -102,21 +102,21 @@ public final class app extends Application {
        CFG.log_android("app: " + line);          //--strip
     }                                            //--strip
 
-    public static void assert_ui_thread() { //--strip
-        if (!Looper.getMainLooper().isCurrentThread()) { //--strip
-            log(Arrays.toString(Thread.currentThread().getStackTrace())); //--strip
-            log("ASSERT UI THREAD FAILED"); //--strip
-            throw new AssertionError("not UI Thread"); //--strip
-        } //--strip
-    } //--strip
+    public static void assert_ui_thread() {                                 //--strip
+        if (!Looper.getMainLooper().isCurrentThread()) {                    //--strip
+            log(Arrays.toString(Thread.currentThread().getStackTrace()));   //--strip
+            log("ASSERT UI THREAD FAILED");                                 //--strip
+            throw new AssertionError("not UI Thread");                      //--strip
+        }                                                                   //--strip
+    }                                                                       //--strip
 
-    public static void assert_worker_thread() { //--strip
-        if (Looper.getMainLooper().isCurrentThread()) { //--strip
-            log(Arrays.toString(Thread.currentThread().getStackTrace())); //--strip
-            log("ASSERT WORKER THREAD FAILED"); //--strip
-            throw new AssertionError("UI Thread"); //--strip
-        } //--strip
-    } //--strip
+    public static void assert_worker_thread() {                             //--strip
+        if (Looper.getMainLooper().isCurrentThread()) {                     //--strip
+            log(Arrays.toString(Thread.currentThread().getStackTrace()));   //--strip
+            log("ASSERT WORKER THREAD FAILED");                             //--strip
+            throw new AssertionError("UI Thread");                          //--strip
+        }                                                                   //--strip
+    }                                                                       //--strip
 
     public interface progress_t {
         void on_progress(final String line);
@@ -134,13 +134,13 @@ public final class app extends Application {
     }
 
     public app() {
-        assert_ui_thread(); //--strip
-        log("----------------------APP CONSTRUCTOR--------------------"); //--strip
-        log("Stack Trace at begining"); //--strip
-        log(Arrays.toString(Thread.currentThread().getStackTrace())); //--strip
-CFG.sdk_logs = true; //--strip
-        log("SDK logs: " + CFG.sdk_logs); //--strip
-        us.CFG.logs.set(CFG.sdk_logs); //--strip
+        assert_ui_thread();                                                 //--strip
+        log("----------------------APP CONSTRUCTOR--------------------");   //--strip
+        log("Stack Trace at begining");                                     //--strip
+        log(Arrays.toString(Thread.currentThread().getStackTrace()));       //--strip
+//CFG.sdk_logs = true; //--strip
+        log("SDK logs: " + CFG.sdk_logs);                                   //--strip
+        us.CFG.logs.set(CFG.sdk_logs);                                      //--strip
     }
 
     void abort(String reason) {
@@ -265,8 +265,7 @@ CFG.sdk_logs = true; //--strip
         return i18n_t.sid.unknown;
     }
 
-    @Override
-    public void onCreate() {
+    @Override public void onCreate() {
         super.onCreate();
         log("onCreate"); //--strip
         activity.a = (app) this;
@@ -295,13 +294,6 @@ CFG.sdk_logs = true; //--strip
         log("Private storage  " + homedir); //--strip
         sw_updates = new sw_updates_t(this);
         tone = new ToneGenerator(AudioManager.STREAM_MUSIC, 100);
-    }
-
-    @Override
-    public void onTerminate() {
-        super.onTerminate();
-        log("onTerminate"); //--strip
-        log("disconnect hose"); //--strip
     }
 
     public endpoint_t get_endpoint() {
@@ -386,6 +378,7 @@ CFG.sdk_logs = true; //--strip
         int i;
         app a;
     }
+
     static class govd_led_handler implements busyled_t.handler_t {
 
         govd_led_handler(app a_, int i_) {
@@ -393,13 +386,11 @@ CFG.sdk_logs = true; //--strip
             i = i_;
         }
 
-        @Override
-        public void on_busy() {
+        @Override public void on_busy() {
             a.set_govd_led(i, leds_t.led_green);
         }
 
-        @Override
-        public void on_idle() {
+        @Override public void on_idle() {
             a.set_govd_led(i, leds_t.led_off);
         }
 
@@ -662,8 +653,7 @@ CFG.sdk_logs = true; //--strip
                     o.put("verified", "1");
                     found = true;
                 }
-                else {
-                    //Update others
+                else { //Update others
                     o.remove("default");
                     o.put("default", "0");
                 }
@@ -675,7 +665,7 @@ CFG.sdk_logs = true; //--strip
                 settnew.put("lanip", ep.shost.value);
                 settnew.put("wanport", ep.port.value);
                 settnew.put("lanport", ep.port.value);
-                settnew.put("channel", ep.channel.value);  //test renew ip
+                settnew.put("channel", ep.channel.value);
                 settnew.put("default", "1");
                 settnew.put("verified", "1");
                 data.put(settnew);

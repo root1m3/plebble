@@ -47,8 +47,8 @@ namespace us::gov::relay {
         daemon_t& operator = (const daemon_t&) = delete;
 
         void dump(const string& prefix, ostream&) const;
-        int send(int num, const peer_t* exclude, const datagram&);
-        int send(int num, const peer_t* exclude, datagram*);
+        int clique_send(int num, const peer_t* exclude, const datagram&);
+        int clique_send(int num, const peer_t* exclude, datagram*);
         int grid_devices_send(const datagram&);
         virtual bool check_relay_permission(const hash_t& addr) const;
         socket::client* create_client(sock_t sock) override { assert(false); return nullptr; }

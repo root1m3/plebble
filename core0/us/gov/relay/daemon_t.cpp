@@ -34,7 +34,7 @@ using c = us::gov::relay::daemon_t;
 c::daemon_t(channel_t channel): b(channel) {
 }
 
-c::daemon_t(channel_t channel, port_t port, pport_t pport, uint8_t edges, uint8_t devices, int workers): b(channel, port, pport, edges, devices, workers) {
+c::daemon_t(channel_t channel, port_t port, pport_t pport, uint8_t edges, uint8_t devices, int workers): b(channel, port, pport, 1, edges, devices, workers) {
 }
 
 c::~daemon_t() {
@@ -44,19 +44,21 @@ void c::dump(const string& prefix, ostream& os) const {
     os << prefix << "Hello from relay::daemon.\n";
 }
 
-int c::send(int num, const peer_t* exclude, datagram* d) {
-    int n = send(num, exclude, *d);
-    delete d;
-    return n;
-}
-
 bool c::check_relay_permission(const hash_t&) const {
     return true;
 }
 
-int c::send(int num, const peer_t* exclude, const datagram& d) {
+int c::clique_send(int num, const peer_t* exclude, datagram* d) {
+    auto n = clique_send(num, exclude, *d);
+    delete d;
+    return n;
+}
+
+int c::clique_send(int num, const peer_t* exclude, const datagram& d) {
+    int igrid = 0;
     if (num == 0) num = numeric_limits<int>::max();
-    log("send neighbours", num);
+    log("send neighbours", num, "grid", igrid);
+    auto& grid = *clique[igrid];
     int succ = 0;
     unordered_set<const peer::peer_t*> visited;
     if (exclude != nullptr) visited.emplace(exclude);

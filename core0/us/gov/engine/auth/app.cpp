@@ -21,22 +21,15 @@
 //===----------------------------------------------------------------------------
 //===-
 #include "app.h"
-#include <functional>
-#include <random>
-#include <chrono>
-#include <tuple>
 
-#include <us/gov/config.h>
 #include <us/gov/engine/daemon_t.h>
 #include <us/gov/engine/db_t.h>
-#include <us/gov/auth/peer_t.h>
 
-#include "acl_tx.h"
-#include "db_t.h"
 #include "local_delta.h"
-#include "delta.h"
 #include "node_address_tx.h"
-#include "counters_t.h"
+#include "db_t.h"
+#include "delta.h"
+#include "acl_tx.h"
 #include "types.h"
 
 #define loglevel "gov/engine/auth"
@@ -50,13 +43,16 @@ const char* c::KO_78101 = "KO 78101 Node not found.";
 const char* c::KO_73291 = "KO 73291 Failed payload validation.";
 const char* c::KO_31092 = "KO 31092 Unable to parse datagram.";
 
+#if CFG_TEST == 1
+    size_t c::cfg_shard_size{CFG_SHARD_SIZE};
+#endif
+
 #if CFG_COUNTERS == 1
     counters_t c::counters;
 #endif
 
 c::app(engine::daemon_t& d): b(d), node_pubkey(d.id.pub), db(d.peerd.nodes, d.peerd.mx_nodes, d.peerd.hall, d.peerd.mx_hall), lock_nodes(d.peerd.mx_nodes, defer_lock), lock_hall(d.peerd.mx_hall, defer_lock) {
     pool = new engine::auth::local_delta();
-
 }
 
 c::~app() {
@@ -200,224 +196,6 @@ bool c::process(const evidence& e) {
     return false;
 }
 
-#ifdef CFG_PERMISSIONED_NETWORK
-    pub_t c::node_master_pubkey(NODEMASTER_PUBKEY);
-
-    bool c::account_state(const nodes_t& s, const hash_t& pubkeyh, host_t& netaddr, port_t& port) const {
-        log("account_state from container");
-        auto p = s.find(pubkeyh);
-        if (likely(p == s.end())) return false;
-        netaddr = p->second.net_address;
-        port = p->second.port;
-        log("found.", "netaddr", netaddr, "port", port);
-        return true;
-    }
-
-    bool c::account_state(const auth::local_delta& w, const hash_t& pubkeyh, host_t& netaddr, port_t& port, peer_t::stage_t& stage) const {
-        log("account_state from local_delta. nodes?");
-        if (account_state(w.online, pubkeyh, netaddr, port)) {
-            stage = peer_t::node;
-            log("yes", "netaddr", netaddr, "port", port);
-            return true;
-        }
-        log("account_state not found");
-        return false;
-    }
-
-    bool c::account_state(const hash_t& pubkeyh, host_t& netaddr, port_t& port, peer_t::stage_t& stage) const {
-        log("account_state from pubkeyh");
-        log("acc state", "pool?");
-        if (account_state(*pool, pubkeyh, netaddr, port, stage)) return true;
-        log("acc state", "nodes?"); //TODO check if we need lock db
-        if (account_state(db.nodes, pubkeyh, netaddr, port)) {
-            stage = peer_t::node;
-            log("yes", "netaddr", netaddr, "port", port);
-            return true;
-        }
-        log("acc state", 3);
-        log("acc state", "hall?");
-        if (account_state(db.hall, pubkeyh, netaddr, port)) {
-            stage = peer_t::hall;
-            log("yes", "netaddr", netaddr, "port", port);
-            return true;
-        }
-        log("acc state", "not found");
-        return false;
-    }
-
-    bool c::process(const acl_tx& t) {
-        log("process acl_tx evidence", t.addr, t.allow);
-        if (t.pubkey != node_master_pubkey) {
-            log("KO 40931 acl_tx: Invalid access.");
-            return false;
-        }
-        ostream nullos(0);
-        if (!t.verify(nullos)) {
-            log("KO 40932 acl_tx: Invalid access. Failed verification");
-            return false;
-        }
-        if (unlikely(t.addr.is_zero())) {
-            log("KO 40933 acl_tx: Invalid address.");
-            return false;
-        }
-        log("proc acl_tx", 1);
-        account_t acc;
-        peer_t::stage_t stage;
-        peer_t::stage_t tstage = t.allow ? peer_t::node : peer_t::out;
-        lock_guard<mutex> lock(mx_pool);
-        if (account_state(t.addr, acc.net_address, acc.port, stage)) {
-            log ("got account_state", acc.net_address, acc.port, peer_t::stagestr[stage]);
-            if (stage == peer_t::node && tstage == peer_t::out) {
-                log("proc acl_tx", 2);
-                auto i = pool->online.find(t.addr);
-                if (i != pool->online.end()) {
-                    log("proc acl_tx", 3);
-                    i->second.net_address = 0;
-                }
-                else {
-                    log("proc acl_tx", 4);
-                    acc.net_address = 0;
-                    pool->online.emplace(t.addr, acc);
-                }
-                return true;
-            }
-            else if (stage == peer_t::hall && tstage == peer_t::out) {
-                log("proc acl_tx", 5);
-                return true;
-            }
-            else if (stage == peer_t::hall && tstage == peer_t::node) {
-                log("proc acl_tx", 8);
-                auto i = pool->online.find(t.addr);
-                if (i != pool->online.end()) {
-                    log("unexpected acl_tx", 10);
-                    i->second = acc;
-                }
-                else {
-                    log("proc acl_tx", 11);
-                    pool->online.emplace(t.addr, acc);
-                }
-                return true;
-            }
-            else {
-                log("proc acl_tx", 13);
-                return false;
-            }
-        }
-        else {
-            log("proc acl_tx", 14);
-            return false;
-        }
-    }
-#endif
-
-#ifdef CFG_PERMISSIONLESS_NETWORK
-    void c::layoff(nodes_t& n, uint16_t cut) {
-        log("layoff", cut);
-        for (auto i = n.begin(); i != n.end(); ) {
-            if (i->second.seen <= cut) {
-                log("laid off ", i->first, i->second.seen, "<=", cut);
-                i = n.erase(i);
-            }
-            else {
-                ++i;
-            }
-        }
-    }
-
-    void c::layoff() {
-        using namespace chrono;
-        auto block_ts = demon.db->last_delta_imported_id;
-        if (block_ts == 0) {
-            block_ts = duration_cast<nanoseconds>(duration_cast<minutes>(system_clock::now().time_since_epoch())).count();
-        }
-        uint16_t cut = duration_cast<hours>(chrono::nanoseconds(block_ts)).count() / 24 - layoff_days;
-        log("cut", cut);
-        {
-            log("lay off hall");
-            lock_guard<mutex> lock(db.mx_hall);
-            layoff(db.hall, cut);
-        }
-        {
-            log("lay off nodes");
-            lock_guard<mutex> lock(db.mx_nodes);
-            layoff(db.nodes, cut);
-        }
-    }
-
-    void c::add_growth_transactions(unsigned int seed) {
-        log("add growth tx. seed", seed, "growth", growth, "min_growth", min_growth);
-        if (abs(growth) < 1e-8) {
-            log("growth is nearly 0", growth);
-            return;
-        }
-        default_random_engine generator(seed);
-        nodes_t* src;
-        nodes_t* dst;
-        size_t maxr;
-        int s;
-        if (growth >= 0) {
-            size_t nh;
-            {
-                lock_guard<mutex> lock(db.mx_hall);
-                nh = db.hall.size();
-                if (nh == 0) {
-                    log("empty hall");
-                    return;
-                }
-            }
-            s = floor((double) nh * growth);
-            src = &db.hall;
-            dst = &db.nodes;
-            if (s < min_growth) s = min_growth;
-            if (s > nh) s = nh;
-            maxr = nh - 1;
-            log("src=hall", "dst=nodes", "nh=", nh, "s=", s, "maxr=", maxr);
-            lock_guard<mutex> lock(db.mx_nodes);
-            if (db.nodes.size() >= CFG_MAX_NODES) {
-                log("Reached limit of", db.nodes.size(), "/", CFG_MAX_NODES, "nodes. Keeping", nh, "nodes in hall.");
-                return;
-            }
-        }
-        else {
-            size_t nn;
-            {
-                lock_guard<mutex> lock(db.mx_nodes);
-                nn = db.nodes.size();
-                if (nn == 0) {
-                    return;
-                }
-            }
-            s = -floor((double) nn * growth);
-            src = &db.nodes;
-            dst = &db.hall;
-            maxr = nn - 1;
-            log("src=nodes", "dst=hall", "nn=", nn, "s=", s, "maxr=", maxr);
-        }
-        uniform_int_distribution<size_t> distribution(0, maxr);
-        lock(lock_nodes, lock_hall);
-        logdump("GT before src>", *src);
-        logdump("GT before dst>", *dst);
-        for (size_t i = 0; i < s; ++i) {
-            log("i", i, "src sz", src->size());
-            auto p = src->begin();
-            size_t r;
-            while (true) {
-                r = distribution(generator);
-                if (r >= src->size()) continue;
-                break;
-            }
-            advance(p, r);
-            log("moving ", p->first);
-            dst->emplace(*p);
-            src->erase(p);
-        }
-        logdump("GT after src>", *src);
-        logdump("GT after dst>", *dst);
-        lock_nodes.unlock();
-        lock_hall.unlock();        
-    }
-#endif
-
 void c::process(const node_address_tx& t) {
     log("process node_address evidence.", t.pkh);
     logdump("  node_address::", t);
@@ -447,7 +225,6 @@ void c::import(const nodes_t& online) {
     }
     auto seen = duration_cast<chrono::hours>(chrono::nanoseconds(block_ts)).count() / 24;
     log("block_ts", block_ts, "seen", seen);
-    //unique_lock<mutex> lock1(db.mx_hall, defer_lock), lock2(db.mx_nodes, defer_lock);
     lock(lock_nodes, lock_hall);
     log("nn", db.nodes.size(), "nh", db.hall.size());
     for (auto& i: online) {
@@ -521,6 +298,9 @@ void c::import(const engine::app::delta& gg, const engine::pow_t&) {
         #ifdef CFG_PERMISSIONLESS_NETWORK
             layoff();
             add_growth_transactions(demon.rng_seed());
+            #if CFG_ENABLE_SHARDING == 1
+                shard();
+            #endif
         #endif
     #endif
     cache_my_stage = peer_t::unknown;
@@ -529,7 +309,6 @@ void c::import(const engine::app::delta& gg, const engine::pow_t&) {
 bool c::report_node(const hash_t& pkh) {
     #ifdef CFG_TOPOLOGY_MESH
         log("report_node");
-        //peer_t::stage_t st=peer_t::out;
         host_t net_address;
         port_t port;
         while(true) {

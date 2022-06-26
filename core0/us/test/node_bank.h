@@ -24,7 +24,7 @@
 
 #include "node.h"
 
-namespace us { namespace test {
+namespace us::test {
 
     using namespace std;
 
@@ -40,5 +40,5 @@ namespace us { namespace test {
 
     };
 
-}}
+}
 

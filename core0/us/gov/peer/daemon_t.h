@@ -23,6 +23,8 @@
 #pragma once
 #include <chrono>
 #include <cassert>
+#include <deque>
+#include <mutex>
 
 #include <us/gov/config.h>
 #include <us/gov/types.h>
@@ -30,6 +32,7 @@
 
 #include "nodes_t.h"
 #include "grid_t.h"
+#include "clique_t.h"
 #include "types.h"
 
 namespace us::gov::peer {
@@ -47,10 +50,9 @@ namespace us::gov::peer {
         using t = peer::mezzanine;
 
         daemon_t(channel_t);
-        daemon_t(channel_t, port_t port, pport_t pport, uint8_t edges, uint8_t devices, uint8_t workers);
+        daemon_t(channel_t, port_t port, pport_t pport, uint8_t dimensions, uint8_t edges, uint8_t devices, uint8_t workers);
         ~daemon_t() override;
 
-        void dump(const string& prefix, ostream&) const;
         void visit(const function<void(peer_t&)>& visitor);
         vector<hostport_t> list_neighbours() const;
         vector<hostport_t> list_dev_neighbours() const;
@@ -80,7 +82,9 @@ namespace us::gov::peer {
         #endif
 
         //------ ring/mesh implementations
-        void grid_rotate(nodes_t&, mutex&);
+        void grid_rotate(nodes_t&, mutex&, grid_t&);
+        void clique_rotate(nodes_t&, mutex&);
+
         void run();
         void on_t_wakeup();
         //-/---- ring/mesh implementations
@@ -89,10 +93,12 @@ namespace us::gov::peer {
         ko add_seed_node(const hostport_t&);
         void set_nodes(const vector<pair<hash_t, hostport_t>>&);
         void grid_setcur();
-        void disconnect_one();
+//        void disconnect_one();
         ko grid_connect(const hostport_t& ipport, function<void(peer::peer_t*)> pre_connect, function<void(peer::peer_t*)> pre_attach);
         bool grid_connect_test(peer::peer_t*, const hostport_t&, ostream&);
         socket::client* create_client(sock_t sock) override { assert(false); return nullptr; }
+        void dump(const string& prefix, ostream&) const;
+        void watch(ostream&) const;
 
     private:
         ko add_seed_node__(const hostport_t&);
@@ -102,22 +108,33 @@ namespace us::gov::peer {
         nodes_t seed_nodes;
         mutable mutex mx_seed_nodes;
 
+    public:
         nodes_t nodes;
         mutable mutex mx_nodes;
 
+    public:
         nodes_t hall;
         mutable mutex mx_hall;
 
-        uint8_t edges;
-        grid_t grid;
+    public:
 
+        clique_t clique; //connections to replicas
+
+        grid_t grid_dev; //rpc connections - devices
+
+        struct faillog_t: deque<string> {
+            mutable mutex mx;
+            void add(const hostport_t&);
+            void dump(ostream&) const;
+        };
+
+        faillog_t faillog;
 
     public:
         condition_variable cv;
         hash_t myself;
         chrono::system_clock::time_point tlo;
         bool force_seeds{false};
-        grid_t grid_dev;
     };
 
 }

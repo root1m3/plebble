@@ -59,9 +59,7 @@
 #include "auth/app.h"
 
 namespace us::gov::io {
-
     struct cfg;
-
 }
 
 namespace us::gov::engine {
@@ -99,22 +97,9 @@ namespace us::gov::engine {
 
         struct evt_data_t {
             evt_data_t() {}
-/*
-            void reset(evt_status_t ist, const hash_t& src) {
-                st = ist;
-                if (src.is_not_zero()) srcs.emplace(src);
-            }
-
-            void reset(evt_status_t ist, const string& iinfo, const hash_t& src) {
-                st = ist;
-                info = iinfo;
-                if (src.is_not_zero()) srcs.emplace(src);
-            }
-*/
             evt_data_t(evt_status_t st): st(st) {}
             evt_data_t(evt_status_t st, const string& info): st(st), info(info) {}
             evt_data_t(const evt_data_t& other): st(other.st), info(other.info) {}
-
             track_status_t get_status(ts_t) const;
 
         public:

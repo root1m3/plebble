@@ -129,7 +129,8 @@ public final class position extends activity {
             if(android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.HONEYCOMB) {
                 android.text.ClipboardManager clipboard = (android.text.ClipboardManager) context.getSystemService(Context.CLIPBOARD_SERVICE);
                 clipboard.setText(text);
-            } else {
+            }
+            else {
                 android.content.ClipboardManager clipboard = (android.content.ClipboardManager) context.getSystemService(Context.CLIPBOARD_SERVICE);
                 android.content.ClipData clip = android.content.ClipData.newPlainText(message, text);
                 clipboard.setPrimaryClip(clip);
@@ -158,8 +159,7 @@ public final class position extends activity {
             lv.setAdapter(adapter);
             refresh = findViewById(R.id.refresh);
             refresh.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
+                @Override public void onClick(View view) {
                     fetch();
                 }
             });
@@ -171,20 +171,17 @@ public final class position extends activity {
         }
     }
 
-    @Override
-    public void onDestroy() {
+    @Override public void onDestroy() {
         super.onDestroy();
     }
 
-    @Override
-    public void onResume() {
+    @Override public void onResume() {
         super.onResume();
         log("onResume"); //--strip
         fetch();
     }
 
-    @Override
-    public void onPause() {
+    @Override public void onPause() {
         super.onPause();
     }
 

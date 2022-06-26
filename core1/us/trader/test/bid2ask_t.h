@@ -24,12 +24,11 @@
 #include <us/test/r2r_t.h>
 #include "network.h"
 
-namespace us { namespace trader { namespace test {
+namespace us::test {
     using namespace std;
 
-    struct bid2ask_t: us::test::r2r_t {
-        using b = us::test::r2r_t;
-        using node = us::test::node;
+    struct bid2ask_t: r2r_t {
+        using b = r2r_t;
 
         bid2ask_t(network& n): b(n) {}
 
@@ -81,5 +80,5 @@ namespace us { namespace trader { namespace test {
 
     };
 
-}}}
+}
 

@@ -36,7 +36,7 @@
 
 #include "../assert.inc"
 
-namespace us { namespace test {
+namespace us::test {
 
 using namespace us;
 using namespace chrono_literals;
@@ -68,8 +68,10 @@ void test_fuzzy() {
 }
 
 struct n {  //a node
+
     n() : keys(us::gov::crypto::ec::keys::generate()) {
     }
+
     ~n() {
         delete o;
 
@@ -87,25 +89,13 @@ void watch(int frame, const vector<n>& svrs) {
         cout << "####### node#" << i << " listening port " << svrs[i].o->myport << " id " << svrs[i].o->id.pub.hash()  << /*"recv_evs " <<  svrs[i].o->recv_evs <<*/ " uniqevs " << svrs[i].o->uniqevs << "; ";
         svrs[i].o->pool.watch(cout);
         cout << '\n';
-        svrs[i].o->grid.watch(cout);
+        svrs[i].o->watch(cout);
         cout << "node peerd sendq:\n";
-        //svrs[i].o->sendq.dump("  ", cout);
         #if CFG_COUNTERS == 1
-        cout << "recv: bytes_received " << us::gov::socket::datagram::counters.bytes_received << '\n';
+            cout << "recv: bytes_received " << us::gov::socket::datagram::counters.bytes_received << '\n';
         #endif
         cout << "daemon::local_api endpoint sendq:\n";
         assert(svrs[i].o != nullptr);
-        //if(svrs[i].o->damn_api != nullptr) {
-            //if(svrs[i].o->damn_api->endpoint.sendq!=nullptr) {
-        //        svrs[i].o->damn_api->dump("  ", cout);
-            //}
-            //else {
-            //    cout << "test_load not ready yet" << endl;
-            //}
-        //}
-        //else {
-        //    cout << "test_load not ready yet" << endl;
-        //}
     }
     cout << "evidences sent fail ";
     for (int i = 0; i < svrs.size(); ++i) {
@@ -273,15 +263,10 @@ void test_network(const string& logdir) {
     dump(seeds, cout);
     int workers = 2;
     evc_t evc(svrs.size());
-cout << "XX4=========================================1" << endl;
     for (int i = 0; i < svrs.size(); ++i) {
-cout << "XX4=========================================1.1 " << i << endl;
         svrs[i].o = new networking(svrs[i].keys, networking::govport + i, seeds, workers, cout);
-cout << "XX4=========================================1.2 " << i << endl;
         svrs[i].o->nodendx = i;
-cout << "XX4=========================================1.3 " << i << endl;
         svrs[i].o->evc = &evc;
-cout << "XX4=========================================1.4 " << i << endl;
         {
             ostringstream os;
             os << logdir << "/node-" << i;
@@ -289,20 +274,16 @@ cout << "XX4=========================================1.4 " << i << endl;
                 svrs[i].o->logdir = os.str();
             #endif
         }
-cout << "XX4=========================================1.5 " << i << endl;
         assert(svrs[i].o->start() == ok);
-cout << "XX4=========================================1.6 " << i << endl;
     }
-cout << "XX4=========================================2" << endl;
     cout << "bringing up threads" << endl;
     this_thread::sleep_for(1s);
-
     log("wait until all nodes are connected");
     while(true) {
         bool ok = true;
         watch(0, svrs);
         for (int i = 0; i < svrs.size(); ++i) {
-            int n = svrs[i].o->grid.num_edges_minage(10);
+            int n = svrs[i].o->clique[0]->num_edges_minage(10);
             cout << "  node " << i << " has " << n << " stable edges" << endl;
             if (n == 0) {
                 ok = false;
@@ -356,7 +337,6 @@ struct tqsend: us::test::test_platform {
         using namespace us::gov::io;
         cout << "============================test2" << endl;
         qt qsend;
-        //thread th(&queue_t::run,&qsend);
         #if CFG_LOGS == 1
             qsend.logdir = logdir + "/test2";
         #endif
@@ -473,14 +453,14 @@ void test_qsend() {
 }
 
 #if CFG_LOGS == 0
-#undef log_dir
-namespace {
-    string log_dir() {
-        ostringstream os;
-        os << "logs/us-trader_" << getpid() << '/' << "net";
-        return os.str();
+    #undef log_dir
+    namespace {
+        string log_dir() {
+            ostringstream os;
+            os << "logs/us-trader_" << getpid() << '/' << "net";
+            return os.str();
+        }
     }
-}
 #endif
 
 void test_peerd_main() {
@@ -505,5 +485,5 @@ void test_peerd() {
     tee("=========== end testing peerd ==============");
 }
 
-}}
+}
 

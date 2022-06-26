@@ -61,7 +61,7 @@ namespace us::wallet::trader {
 
         static const char* KO_50100; //exec ignored
 
-        static constexpr int interface_version{7};
+        static constexpr int interface_version{8};
         business_t();
         virtual ~business_t() {}
         virtual ko init(const string& r2rhome);

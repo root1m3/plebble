@@ -126,10 +126,8 @@ public class txlog_view extends LinearLayout {
             return "";
         }
 
-        @Override
-        public View getView(int position, View convert_view, ViewGroup parent) {
+        @Override public View getView(int position, View convert_view, ViewGroup parent) {
             view_holder holder = null;
-            //View vi = convert_view;
             txlog_entry sbm = getItem(position);
             if (convert_view == null) {
                 convert_view = inflater.inflate(R.layout.txlog_entry, null, true);
@@ -144,8 +142,6 @@ public class txlog_view extends LinearLayout {
             else {
                 holder = (view_holder) convert_view.getTag();
             }
-
-            //log("bm.qr.to_string() " + bm.qr.to_string()); //--strip
             log("" + sbm.wallet_state.value + " " + us.wallet.wallet.local_api.wallet_track_status_str.length); //--strip
             holder.txinfo.setText(sbm.label);
             holder.wallet_track_status.setText(us.wallet.wallet.local_api.wallet_track_status_str[sbm.wallet_state.value]);
@@ -160,14 +156,12 @@ public class txlog_view extends LinearLayout {
                 holder.cancel.setVisibility(View.VISIBLE);
                 final adapter_t v = this;
                 holder.cancel.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View view) {
+                        @Override public void onClick(View view) {
                             v.on_cancel(sbm.track);
                         }
                     });
                 holder.confirm.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View view) {
+                        @Override public void onClick(View view) {
                             v.on_confirm(sbm.track);
                         }
                     });
@@ -183,11 +177,9 @@ public class txlog_view extends LinearLayout {
         role_fragment rf;
     }
 
-
     public txlog_view(Context context, AttributeSet attrs) {
         super(context, attrs);
     }
-
 
     public void init(role_fragment rf_, Activity ac) {
         rf = rf_;
@@ -199,85 +191,19 @@ public class txlog_view extends LinearLayout {
         adapter = new adapter_t(rf_, ac, entries);
         lv.setAdapter(adapter);
         lv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView parentView, View childView, int position, long id) {
-//                progressbarcontainer.setVisibility(View.VISIBLE);
-
-               // item_click2(redirects.get(position), position);
+            @Override public void onItemClick(AdapterView parentView, View childView, int position, long id) {
             }
         });
 
         lv.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
-            @Override
-            public boolean onItemLongClick(AdapterView parentView, View childView, int position, long id) {
+            @Override public boolean onItemLongClick(AdapterView parentView, View childView, int position, long id) {
                 return true;
             }
         });
-/*
-                if (main._nodes_mode_custom != null) {
-                    return true;
-                }
-                if (!main._nodes_mode_all) return true;
-                final EditText input = new EditText(parentView.getContext());
-                input.setOnFocusChangeListener(new OnFocusChangeListener() {
-                        @Override
-                        public void onFocusChange(View v, boolean hasFocus) {
-                            input.post(new Runnable() {
-                                @Override
-                                public void run() {
-                                    InputMethodManager inputMethodManager= (InputMethodManager) nodes.this.getSystemService(Context.INPUT_METHOD_SERVICE);
-                                    inputMethodManager.showSoftInput(input, InputMethodManager.SHOW_IMPLICIT);
-                                }
-                            });
-                        }
-                    });
-                input.requestFocus();
-                input.setSingleLine();
-                AlertDialog dialog = new AlertDialog.Builder(new ContextThemeWrapper(nodes.this, R.style.myDialog))
-                    .setTitle("Bookmark")
-                    .setMessage("Enter label for qr " + world.get(position).second.qr.to_string())
-                    .setView(input)
-                    .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                pair<String, bookmark_t> bm = world.get(position);
-                                //byte[] ico = new byte[0];
-                                bm.second.label = String.valueOf(input.getText()).trim();
-                                us.wallet.engine.rpc_peer_t.bookmark_add_in_t o = new us.wallet.engine.rpc_peer_t.bookmark_add_in_t(new string(bm.first), bm.second);
-                                string s = new string();
-                                ko r = a.hmi.rpc_peer.call_bookmark_add(o, s);
-                                if (is_ko(r)) { //--strip
-                                    log(r.msg);  //--strip
-                                }//--strip
-                                else {//--strip
-                                    log("added bookmark"); //--strip
-                                }//--strip
-                             }
-                        })
-                    .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                            }
-                        })
-                    .create();
-                dialog.show();
-                return true;
-            }
-        }
-        );
-*/
-
-        //set_redirects(new bookmarks_t());
     }
 
     public void add_entry(final txlog_entry entry) {
         adapter.add(entry);
-//        activity.main.runOnUiThread(new Runnable() {
-//            public void run() {
-//                refresh();
-//            }
-//        });
-//    }
     }
 
     public boolean refresh() {
@@ -413,27 +339,11 @@ public class txlog_view extends LinearLayout {
         return x;
     }
 
- 
-
-
-/*
-    @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle saved_instance) {
-        view parent = super.onCreateView(inflater, container, saved_instance);
-        v = inflater.inflate(R.layout.tip, container, false);
-        if (parent != null) {
-            parent.addView(v);
-            return parent;
-        }
-        return v;
-    }
-*/
     ArrayList<txlog_entry> entries = null;
     no_scroll_list_view lv;
     adapter_t adapter = null;
     MaterialCardView card;
     role_fragment rf;
-//    public uint32_t id = new uint32_t(0);
 
 }
 

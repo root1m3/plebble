@@ -20,16 +20,20 @@
 //===-
 //===----------------------------------------------------------------------------
 //===-
+buildscript {
+
     repositories {
         google()
         jcenter()
     }
+
     repositories {
         mavenCentral()
         maven {
             url "https://dl.bintray.com/journeyapps/maven"
         }
     }
+
     dependencies {
         classpath 'com.android.tools.build:gradle:3.6.2'
         classpath 'com.google.gms:google-services:4.3.3'
@@ -38,15 +42,25 @@
         classpath "com.android.support:support-compat:28.0.0"
         //classpath 'com.android.support:design:23.3.0'
         classpath 'com.google.firebase:firebase-crashlytics-gradle:2.2.0'
+        classpath 'com.jakewharton:butterknife-gradle-plugin:10.2.3'
     }
 }
 
 allprojects {
+
     repositories {
         google()
         jcenter()
         mavenCentral()
         maven { url "https://jitpack.io" }
+    }
+
+    tasks.withType(Javadoc) {
+        options{
+            encoding "UTF-8"
+            charSet 'UTF-8'
+            links "http://docs.oracle.com/javase/7/docs/api"
+        }
     }
 }
 

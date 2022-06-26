@@ -44,7 +44,7 @@
 #endif
 
 using namespace std;
-using namespace us::trader::test;
+using namespace us::test;
 using us::ko;
 using us::ok;
 
@@ -54,7 +54,7 @@ void test_r2r(const string& homedir, const string& logdir, const string& vardir)
     us::gov::engine::auth::collusion_control_t::max_nodes_per_ip = 255;
     ostream& os = cout;
 
-    network n(homedir, logdir, vardir, "test-c1_r2r_stage1", os);
+    network_c1 n(homedir, logdir, vardir, "test-c1_r2r_stage1", os);
 
     cout << "stage1" << endl;
     n.stage1();

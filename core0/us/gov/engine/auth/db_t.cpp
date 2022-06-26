@@ -25,6 +25,7 @@
 #include <us/gov/config.h>
 #include <us/gov/engine/peer_t.h>
 
+#include "maskcoord_t.h"
 #include "types.h"
 
 #define loglevel "gov/engine/auth"
@@ -156,4 +157,22 @@ pair<ko, account_t> c::lookup(const hash_t& h) const {
     lock_guard<mutex> lock(mx_hall);
     return hall.lookup(h);
 }
+
+void c::filter(nodes_t& n, const maskcoord_t& maskcoord) {
+    auto i = n.begin();
+    while (i != n.end()) {
+        if ((i->first.lsdw() & maskcoord.mask) == maskcoord.coord) {
+            i = n.erase(i);
+        }
+        else {
+            ++i;
+        }
+    }
+}
+
+void c::filter(const maskcoord_t& maskcoord) {
+    filter(nodes, maskcoord);
+    filter(hall, maskcoord);
+}
+
 

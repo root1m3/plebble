@@ -37,22 +37,24 @@ using c = us::gov::peer::daemon_t;
 us::gov::peer::mezzanine::mezzanine(daemon_t* d): d(d), b(bind(&c::run, d), bind(&c::on_t_wakeup, d)) {
 }
 
-c::daemon_t(channel_t channel): b(channel, 0, 0, 0), edges(0), myself(0), t(this) {
+c::daemon_t(channel_t channel): b(channel, 0, 0, 0), myself(0), t(this) {
 }
 
-c::daemon_t(channel_t channel, port_t port, pport_t pport, uint8_t edges, uint8_t devices, uint8_t workers): edges(edges), b(channel, port, pport, workers), myself(0), t(this) {
-    {
-        lock_guard<mutex> lock(grid.mx_);
-        assert(grid.empty());
-        grid.resize(edges, 0);
-        grid.bi = grid.begin();
-    }
-    log("grid-peer size", grid.size());
+c::daemon_t(channel_t channel, port_t port, pport_t pport, uint8_t dimensions, uint8_t edges, uint8_t devices, uint8_t workers): b(channel, port, pport, workers), myself(0), t(this) {
+//    {
+//        lock_guard<mutex> lock(grid.mx_);
+//        assert(grid.empty());
+//        grid.resize(edges, 0);
+    assert(dimensions > 0);
+    clique.resize(dimensions, edges);
+        //grid.bi = grid.begin();
+//    }
+    log("grid-peer clique size. dimensions", dimensions, "edges", (*clique.begin())->size());
     {
         lock_guard<mutex> lock(grid_dev.mx_);
         assert(grid_dev.empty());
-        grid_dev.resize(devices, 0);
-        grid_dev.bi = grid_dev.begin();
+        grid_dev.resize(devices, nullptr);
+        //grid_dev.bi = grid_dev.begin();
     }
     log("grid-devices size", grid_dev.size());
 }
@@ -114,14 +116,7 @@ void c::on_t_wakeup() {
 }
 
 vector<hostport_t> c::list_neighbours() const {
-    vector<hostport_t> v;
-    unique_lock<mutex> lock(grid.mx_);
-    for (auto& i: grid) {
-        if (i != nullptr) {
-            v.emplace_back(i->hostport);
-        }
-    }
-    return move(v);
+    return clique.list();
 }
 
 vector<hostport_t> c::list_dev_neighbours() const {
@@ -137,8 +132,8 @@ vector<hostport_t> c::list_dev_neighbours() const {
 
 void c::on_destroy_(socket::client& cli) {
     auto& peer = static_cast<peer_t&>(cli);
-    if (grid.ended(&peer)) {
-        log("slot destroyed in grid", &peer);
+    if (clique.ended(&peer)) {
+        log("slot destroyed in clique", &peer);
         t::reset_resume();
         cv.notify_all();
         return;
@@ -163,7 +158,6 @@ bool c::grid_connect_test(peer_t* p, const hostport_t& hostport, ostream& os) {
 ko c::grid_connect(const hostport_t& hostport, function<void(peer_t*)> pre_connect, function<void(peer_t*)> pre_attach) {
     auto* p = static_cast<peer_t*>(create_client(-1));
     pre_connect(p);
-    //assert(p->sendq != nullptr);
     auto r = p->connect(hostport, pport, 0, peer_t::role_peer, true);
     if (likely(r == ok)) {
         log("grid-connect", peer_t::endpoint(hostport), "pport", pport, p);
@@ -172,32 +166,12 @@ ko c::grid_connect(const hostport_t& hostport, function<void(peer_t*)> pre_conne
         log("Attached to grid", peer_t::endpoint(hostport), "pport", pport, p);
         return ok;
     }
-    grid.faillog.add(hostport);
+    faillog.add(hostport);
     log("grid-connect failed", peer_t::endpoint(hostport), "pport", pport, r);
     delete p;
     auto rf = "KO 80191 Connection failed.";
     log(rf);
     return rf;
-}
-
-void c::disconnect_one() {
-    static const chrono::seconds mutation_period{CFG_MUTATION_PERIOD_SECS};
-    auto n = chrono::system_clock::now();
-    if ((n - tlo) < mutation_period) return;
-    log("mutate-disconnect_one");
-    tlo = chrono::system_clock::now();
-    auto i = grid.bi;
-    while (*i == nullptr) {
-        ++i;
-        if (i == grid.end()) i = grid.begin();
-        if (i == grid.bi) break;
-    }
-    if (*i != nullptr) {
-        log("disconnect-mutate", *i, (*i)->endpoint());
-        (*i)->disconnect(0, "Mutation");
-        ++grid.bi;
-        if (grid.bi == grid.end()) grid.bi = grid.begin();
-    }
 }
 
 void c::wait() {
@@ -284,7 +258,7 @@ void c::visit(const function<void(peer_t&)>& visitor) {
 }
 
 void c::dump(const string& prefix, ostream& os) const {
-    os << prefix << "max edges: " << grid.size() << '\n';
+    os << prefix << "max edges: " <<  (*clique.begin())->size() << '\n';
 }
 
 void c::dump_random_nodes(size_t num, ostream& os) const {
@@ -303,9 +277,32 @@ void c::dump_random_nodes(size_t num, ostream& os) const {
 
 void c::test_connectivity() {
     log("test connectivity");
-    lock_guard<mutex> lock(grid.mx_);
-    for (auto i = grid.begin(); i != grid.end(); ++i) {
-        if ((*i) != nullptr) (*i)->ping();
+    clique.test_connectivity();
+}
+
+void c::watch(ostream& os) const {
+    os << "peers\n";
+    clique.watch(os);
+    faillog.dump(os);
+    os << "devices\n";
+    grid_dev.watch(os);
+}
+
+void c::faillog_t::add(const hostport_t& hostport) {
+    ostringstream os;
+    os << peer_t::endpoint(hostport);
+    lock_guard<mutex> lock(mx);
+    push_back(os.str());
+    while(size() > 10) {
+        pop_front();
+    }
+}
+
+void c::faillog_t::dump(ostream& os) const {
+    lock_guard<mutex> lock(mx);
+    if (!empty()) os << "last failed attempts:\n";
+    for (auto& i: *this) {
+        os << i << '\n';
     }
 }
 

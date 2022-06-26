@@ -33,10 +33,11 @@ public class files extends activity {
         setContentView(R.layout.activity_files);
         toolbar_button fab = findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
+            @Override public void onClick(View view) {
                 Snackbar.make(view, getResources().getString(R.string.replacewithyourownaction), Snackbar.LENGTH_LONG).setAction("Action", null).show();
             }
         });
     }
+
 }
+

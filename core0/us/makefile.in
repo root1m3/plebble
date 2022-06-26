@@ -119,7 +119,6 @@ distr-common: | targets
 	install bin/${US}_distr_make ${DISTRDIR}/bin/
 	install bin/blob_extract_apk ${DISTRDIR}/bin/
 	install bin/${US}-uninstall ${DISTRDIR}/bin/
-	#install bin/${US}_setup_debian ${DISTRDIR}/bin/
 	mkdir -p ${DISTRDIR}/logtool
 	install logtool/logtool ${DISTRDIR}/logtool/
 	mkdir -p ${DISTRDIR}/etc/systemd/system
@@ -177,8 +176,6 @@ distr-common: | targets
 	touch var/us/brand_bookmarks
 	install var/us/brand_bookmarks ${DISTRDIR}/wallet/trader/
 
-#	install etc/wallet/r2r/w2w/* ${DISTRDIR}/etc/wallet/r2r/w2w/
-
 install: distr
 	$(MAKE) -C distr install
 
@@ -189,7 +186,7 @@ install-dev: distr
 	mkdir -p ${PREFIX}
 	$(MAKE) PREFIX="$(shell realpath ${PREFIX})" -C distr install-dev
 
-gov/${LIBUSGOV}.so: api/generated/*
+gov/${LIBUSGOV}.so: api/apitool
 	$(MAKE) CXXFLAGS="${CXXFLAGS}" -C gov
 
 govx/${USGOV}: gov/${LIBUSGOV}.so
@@ -213,7 +210,7 @@ test/${LIBUSTEST}.so: wallet/${LIBUSWALLET}.so
 testx/${USTEST}: test/${LIBUSTEST}.so
 	$(MAKE) CXXFLAGS="${CXXFLAGS}" -C testx
 
-api/apitool: doc/support
+api/apitool:
 	$(MAKE) CXXFLAGS="${CXXFLAGS}" -C api
 
 logtool/logtool: logtool/main.cpp
@@ -248,7 +245,10 @@ clean_test:
 	$(MAKE) clean -C test;
 	$(MAKE) clean -C testx;
 
-clean: clean_gov clean_wallet clean_bz clean_test
+clean_api:
+	$(MAKE) clean -C api;
+
+clean: clean_gov clean_wallet clean_bz clean_test clean_api
 	$(MAKE) clean -C logtool;
 	rm -rf distr
 
@@ -256,5 +256,5 @@ clean_java:
 	$(MAKE) clean -C sdk/wallet/java;
 	$(MAKE) clean -C android;
 
-.PHONY: all wallet gov debug release sdk image res clean distr-common warndistr android sdk-spongy clean_gov clean_wallet clean_bz clean_crypto clean_java clean_test
+.PHONY: all wallet gov debug release sdk image res clean distr-common warndistr android sdk-spongy clean_gov clean_wallet clean_bz clean_crypto clean_java clean_test clean_api
 

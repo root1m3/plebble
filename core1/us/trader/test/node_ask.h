@@ -24,14 +24,13 @@
 
 #include <us/test/node.h>
 
-namespace us { namespace trader { namespace test {
+namespace us::test {
 
     using namespace std;
 
     struct node_ask: us::test::node {
         using b = us::test::node;
 
-        //node_ask(const string& homedir, const string& logdir, const string& vardir);
         node_ask(const string& id, const string& homedir, const string& logdir, const string& vardir, uint16_t gport, uint16_t wport);
         string desc() const override;
         bool load_data(const string& r2rhome);
@@ -46,5 +45,5 @@ namespace us { namespace trader { namespace test {
 
     };
 
-}}}
+}
 

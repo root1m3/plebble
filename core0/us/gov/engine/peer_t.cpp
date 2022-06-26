@@ -156,7 +156,8 @@ void c::verification_completed(pport_t rpport, pin_t pin) {
         }
         log("stage", stagestr[stage]);
         if (stage == node || stage == out || stage == hall || stage == sysop) {
-            if (!static_cast<gov::peer::daemon_t&>(daemon).grid.add(*this, true)) {
+//            if (!static_cast<gov::peer::daemon_t&>(daemon).grid.add(*this, true)) {
+            if (!static_cast<gov::peer::daemon_t&>(daemon).clique.add(*this, true)) {
                 auto r = "KO 10040 All lines are busy.";
                 gov::auth::peer_t::stage = gov::auth::peer_t::denied;
                 log(r, "disconnect-grid doesn't accept", endpoint(), sock);

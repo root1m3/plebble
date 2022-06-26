@@ -66,7 +66,7 @@ ko c::connect(const hostport_t& hostport, pport_t pport, pin_t pin, role_t role,
 
 bool c::authorize(const pub_t& p, pin_t) {
     log("authorize");
-    #ifdef CFG_PERMISSIONED_NETWORK
+    #ifdef CFG_TOPOLOGY_RING
         const daemon_t& d = static_cast<daemon_t&>(daemon);
         if (d.pre == d.nodes.end() || d.cur == d.nodes.end()) {
             log("not ready");

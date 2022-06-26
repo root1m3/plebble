@@ -74,4 +74,9 @@ str74=1                 #HTTP_ENABLED
 str75=0                 #BIND_ENABLED
 str76=0                 #core2 R2R
 str77="bid2ask-ask bid2ask-bid"                #default R2R libs
+str78=16643             #HTTPS port
+str79=0                 #HTTPS server
+str80=1                 #enable sharding
+str81=32                #CFG_SHARD_SIZE
+
 

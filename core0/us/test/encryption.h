@@ -26,7 +26,7 @@
 #include <vector>
 #include <stdio.h>
 
-namespace us { namespace test {
+namespace us::test {
     using namespace std;
     using keys = us::gov::crypto::ec::keys;
 
@@ -34,4 +34,5 @@ namespace us { namespace test {
     void test_encrypt_decrypt(string);
     void test_encrypt_decrypt(string, const keys::priv_t&, const keys::pub_t&, const keys::priv_t&, const keys::pub_t&, bool should_work=true);
 
-}}
+}
+

@@ -28,4 +28,5 @@ str72=16653             #bind port
 str73=1                 #TOR_ENABLED
 str74=1                 #HTTP_ENABLED
 str75=1                 #BIND_ENABLED
+str80=0                 #enable sharding
 

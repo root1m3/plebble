@@ -111,6 +111,8 @@ import android.net.wifi.WifiManager;                                            
 import android.view.Window;                                                                    // Window
 import android.view.WindowManager;                                                             // WindowManager
 import org.xmlpull.v1.XmlPullParser;                                                           // XmlPullParser
+import android.view.MenuInflater;
+import android.view.SubMenu;
 
 public final class main_activity extends activity implements datagram_dispatcher_t.handler_t, NavigationView.OnNavigationItemSelectedListener {
     static final int AC_RESULT = 0;
@@ -120,8 +122,7 @@ public final class main_activity extends activity implements datagram_dispatcher
     }                                               //--strip
 
     BroadcastReceiver wifiReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
+        @Override public void onReceive(Context context, Intent intent) {
             results = wifiManager.getScanResults();
             unregisterReceiver(this);
             for (ScanResult scanResult : results) {
@@ -129,7 +130,6 @@ public final class main_activity extends activity implements datagram_dispatcher
             }
         };
     };
-
 
     @RequiresApi(api = Build.VERSION_CODES.O)
     @Override protected void onCreate(Bundle savedInstanceState) {
@@ -146,7 +146,7 @@ public final class main_activity extends activity implements datagram_dispatcher
         toolbar = findViewById(R.id.toolbar);
         toolbar_button refresh = findViewById(R.id.refresh);
         drawer_layout = findViewById(R.id.drawer_layout);
-        navigation=findViewById(R.id.navigation_view);
+        navigation = findViewById(R.id.navigation_view);
         toolbar = findViewById(R.id.toolbar);
         mainprogressbarcontainer.setVisibility(View.VISIBLE);
         refresh.setVisibility(View.GONE);
@@ -172,112 +172,20 @@ public final class main_activity extends activity implements datagram_dispatcher
         else {
             updateavailable.setVisible(false);
         }
+        boolean showiot = false;
+        //release builds (which don't incluce lines marked '--strip' ) doesn't show the experimental IoT menu.
+        showiot = true; //--strip
+        if (showiot) {
+            nav_menu.add(R.id.group5, 5948, Menu.NONE, "IoT");
+        }
+
         log("Build.VERSION.SDK_INT=" + Build.VERSION.SDK_INT); //--strip
         createNotificationChannel();
         Context ctx = this;
-/* TODO review
-
-        updateavailable.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                String[] options = {getResources().getString(R.string.checkforupdates), getResources().getString(R.string.forgetapknash)+" "+a.w.get_curapk(), getResources().getString(R.string.installupdates), getResources().getString(R.string.cancel)};
-
-                new AlertDialog.Builder(ctx).setTitle(getResources().getString(R.string.appupdates))
-                    .setItems(options,new DialogInterface.OnClickListener() {
-                       @Override
-                       public void onClick(DialogInterface dialog, int which) {
-                           switch(which) {
-                               case 0:
-                                   check4updates();
-                                   break;
-                               case 1:
-                                   forget_curapk();
-                                   break;
-                               case 2:
-                                   do_inst_ask_permission();
-                                   break;
-                               case 3:
-                            }
-                       }
-                   })
-                   .setIcon(android.R.drawable.ic_dialog_alert).show();
-
-           }
-        });
-*/
-
         Window window = getWindow();
         window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
         window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
         window.setStatusBarColor(ContextCompat.getColor(this,R.color.colorPrimary));
-
-/*
-                if (a.download_apk()) {
-                   runOnUiThread(new Runnable() {
-                        public void run() {
-                                Toast.makeText(getApplicationContext(), "Updates available.", Toast.LENGTH_LONG).show();
-                    a.update_and_reboot(ctx);
-                        }
-                   });
-                }
-                else {
-                   runOnUiThread(new Runnable() {
-                        public void run() {
-                                Toast.makeText(getApplicationContext(), "No updates available.", Toast.LENGTH_LONG).show();
-                        }
-                   });
-                }
-*/
- //                                  }
-//                });
-//                thread.start();
-//        }
-
-        /*
-        if (savedInstanceState != null) {
-            balance.setText(savedInstanceState.getString("balancelbl"));
-        } else {
-            balance.setText(balance_button_text);
-        }
-        */
-
-/*
-        files.setOnClickListener(new View.OnClickListener() {
-              @Override
-              public void onClick(View view) {
-                  if (a.w==null) {
-                      Toast.makeText(MainActivity.this, getResources().getString(R.string.walletnotok)+" E=2", 6000).show();
-                      return;
-                  }
-                  Intent intent = new Intent(MainActivity.this, files.class);
-                  startActivity(intent);
-              }
-          }
-        );
-*/
-
-/*
-        reader = new SmartCardReader(this);
-        if (savedInstanceState != null) {
-            //balance.setText(savedInstanceState.getString("balancelbl"));
- //           transition_state(State.values()[savedInstanceState.getInt("state")]);
-        } else {
-            //balance.setText(balance_button_text);
-            //           transition_state(State.NONE);
-        }
-*/
-
-//        updateControls();
-/*
-        if (a.w == null)
-            on_wallet_init_error("w is null");
-        else
-            on_wallet_init_success();
-  */
-        //log("Initializing wallet"); //--strip
-        //a.init_wallet(this); //setml = this;
-//        a.restart_hmi();
-
         log("Connecting to datagram dispatcher");//--strip
         dispatchid = a.datagram_dispatcher.connect_sink(this);
         log("initating hmi in background");//--strip
@@ -308,18 +216,6 @@ public final class main_activity extends activity implements datagram_dispatcher
     void on_hmi(final ko status) {
         if (status == ok) {
             log("HMI is ok. Node is up"); //--strip
-/*
-            TextView myText = findViewById(R.id.help_text);
-            if (myText != null) {
-                log("Calling atention for the menu");//--strip
-                Animation anim = new AlphaAnimation(0.0f, 1.0f);
-                anim.setDuration(1500);
-                anim.setStartOffset(20);
-                anim.setRepeatMode(Animation.REVERSE);
-                anim.setRepeatCount(Animation.INFINITE);
-                myText.startAnimation(anim);
-            }
-*/
             a.sw_updates.start();
         }
         else {
@@ -342,19 +238,7 @@ public final class main_activity extends activity implements datagram_dispatcher
             }
         });
     }
-/*
-    protected boolean is_activity_running(Class activityClass) {
-            ActivityManager activityManager = (ActivityManager) getBaseContext().getSystemService(Context.ACTIVITY_SERVICE);
-            List<ActivityManager.RunningTaskInfo> tasks = activityManager.getRunningTasks(Integer.MAX_VALUE);
 
-            for (ActivityManager.RunningTaskInfo task : tasks) {
-            log(activityClass.getCanonicalName()+" "+task.baseActivity.getClassName()); //--strip
-                if (activityClass.getCanonicalName().equalsIgnoreCase(task.baseActivity.getClassName()))
-                    return true;
-            }
-            return false;
-    }
- */
     public void launch_settings() {
         a.assert_ui_thread(); //--strip
         log("launching settings..."); //--strip
@@ -387,37 +271,20 @@ public final class main_activity extends activity implements datagram_dispatcher
         log("remote_bookmarks"); //--strip
         _nodes_mode_custom = bm;
         _nodes_mode_custom_tid = tid;
-        //title = R.string.world;
         Intent intent = new Intent(main_activity.this, nodes.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NO_HISTORY);
         startActivity(intent);
-        //setTitle(getString(title));
     }
 
     public void world() {
         log("menu world"); //--strip
-        //title = R.string.world;
         Intent intent = new Intent(main_activity.this, nodes.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NO_HISTORY);
         startActivity(intent);
-        //setTitle(getString(title));
     }
-
-/*
-    public void bookmarks() {
-        log("menu bookmarks"); //--strip
-        Intent intent = new Intent(main_activity.this, nodes.class);
-        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NO_HISTORY);
-        intent.putExtra("bookmarksmode", true);
-        startActivity(intent);
-        //startActivityForResult(intent,AC_RESULT);
-        //setTitle(getString(title));
-    }
-*/
 
     @SuppressWarnings("StatementWithEmptyBody")
-    @Override
-    public boolean onNavigationItemSelected(MenuItem menu_item){
+    @Override public boolean onNavigationItemSelected(MenuItem menu_item){
         int title;
         Drawable icon = menu_item.getIcon();
         animated_icon = new animation_t(a.getResources(), icon);
@@ -425,6 +292,7 @@ public final class main_activity extends activity implements datagram_dispatcher
         start_animation();
 
         int item_id = menu_item.getItemId();
+
         if (!a.hmi.is_online) {
             if (item_id != R.id.nav_settings) {
                 log("HMI is down. Opening settings instead"); //--strip
@@ -447,17 +315,11 @@ public final class main_activity extends activity implements datagram_dispatcher
                 world();
                 break;
 
-//            case R.id.nav_bookmarks:
-//                bookmarks();
-//                break;
-
             case R.id.nav_scanendpoint:
-                //title = R.string.scanendpoint;
                 doscan(true);
                 break;
 
             case R.id.nav_showmyendpoint:
-                //title = R.string.showmyendpoint;
                 intent = new Intent(main_activity.this, endpoint.class);
                 intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NO_HISTORY);
                 intent.putExtra("prying_eyes", true);
@@ -465,18 +327,10 @@ public final class main_activity extends activity implements datagram_dispatcher
                 break;
 
             case R.id.nav_activetrades:
-                //title = R.string.activetrades;
-//                go_trades(null, true);
                 go_trades();
                 break;
 
             case R.id.nav_settings:
-                //title = R.string.settings;
-/* TODO review
-                if (a.initsettings) {
-                    intent.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY | Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                }
-*/
                 intent = new Intent(main_activity.this, node_pairing.class);
                 intent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT | Intent.FLAG_ACTIVITY_NO_HISTORY);
                 startActivity(intent);
@@ -484,6 +338,13 @@ public final class main_activity extends activity implements datagram_dispatcher
 
             case R.id.nav_updateavailable:
                 a.sw_updates.show_ui(this);
+                break;
+
+            case 5948:
+                intent = new Intent(main_activity.this, us.wearable_JClife.DeviceScanActivity.class);
+                intent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT | Intent.FLAG_ACTIVITY_NO_HISTORY);
+                startActivity(intent);
+
                 break;
 
             case R.id.nav_exit:
@@ -516,16 +377,12 @@ public final class main_activity extends activity implements datagram_dispatcher
     }
 
     private void show_notification(int code, final String info){
-
         Intent resultIntent = new Intent(this, trader.class);
         resultIntent.putExtra("tid", info);
         resultIntent.putExtra("from_notification", true);
         resultIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-
-        //String notifTitle = "New message from GP - MC Hammer";
         String notifTitle = r_(R.string.newmessagefromtrade)+" " + info;
         String notifBody = r_(R.string.youhavenewmessagefromtrade)+" " + info;
-
         TaskStackBuilder stackBuilder = TaskStackBuilder.create(this);
         stackBuilder.addNextIntentWithParentStack(resultIntent);
         PendingIntent resultPendingIntent = stackBuilder.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT);
@@ -561,8 +418,7 @@ public final class main_activity extends activity implements datagram_dispatcher
     public void onDestroy() {
         super.onDestroy();
         log("onDestroy"); //--strip
-        //Remove all the callbacks otherwise navigation will execute even after activity is killed or closed.
-        wait_handler.removeCallbacksAndMessages(null);
+        wait_handler.removeCallbacksAndMessages(null); //Remove all the callbacks otherwise navigation will execute even after activity is killed or closed.
     }
 
     @Override
@@ -582,12 +438,6 @@ public final class main_activity extends activity implements datagram_dispatcher
         super.onPause();
         log("onPause"); //--strip
     }
-
-/*
-    public String trader_endpoint() {
-        return ((app)getApplication()).trader_endpoint();
-    }
-*/
 
     @Override public void on_push(hash_t target_tid, uint16_t code, byte[] payload) {
         log("on_push " + target_tid.encode() + " code " + code.value + " payload BIN sz: " + payload.length + " bytes"); //--strip
@@ -674,49 +524,13 @@ public final class main_activity extends activity implements datagram_dispatcher
         return mWifi.isConnected();
     }
 
-
-/*
-    @Override    //entry point. Datagrams from the wire are processed here, called for every arriving datagram
-    public boolean dispatch(datagram d) { //returns true if the datagram has been handled
-        log("dispatch svc "+d.service); //--strip
-        switch(d.service) {
-            case protocol.wallet_daemon_trade+(1<<2): {
-                log("handling svc wallet_daemon_new_trade "+d.service); //--strip
-                final String b=d.parse_string();
-                log("received payload: "+b); //--strip
-                runOnUiThread(new Runnable() {
-                    public void run() {
-                        //Toast.makeText(getApplicationContext(), b, 6000).show();
-                        if (b.startsWith("KO")) {
-                            Toast.makeText(getApplicationContext(), b, 6000).show();
-                        }
-                        else {
-                            go_trade(b);
-                        }
-                    }
-                });
-                return true;
-            }
-        }
-        log("unhandled svc "+d.service); //--strip
-        return false;
-    }
-
-*/
-
-
-
     void doscan(boolean frommainmenu) {
         Intent intent = new Intent(main_activity.this, scan.class);
         intent.putExtra("what", 0);
-//        startActivityForResult(intent,SCAN_RESULT);
-        if(frommainmenu){
+        if (frommainmenu) {
             intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NO_HISTORY);
-            startActivity(intent);
         }
-        else {
-            startActivityForResult(intent, AC_RESULT);
-        }
+        startActivityForResult(intent, AC_RESULT);
     }
 
     @Override
@@ -739,12 +553,8 @@ public final class main_activity extends activity implements datagram_dispatcher
         super.onBackPressed();
     }
 
-    @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
-
-        //OJO, BORRAR DESPUES DE TESTEAR SI NO VA EL TEMA
+    @Override public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-
         log("onActivityResult " + requestCode + " " + resultCode); //--strip
         if (requestCode == sw_updates_t.INST_RESULT) {
             if (resultCode == RESULT_CANCELED) {
@@ -765,54 +575,14 @@ public final class main_activity extends activity implements datagram_dispatcher
             log("not ok"); //--strip
             return;
         }
-        //hash_t parent_trade = new hash_t(data.getByteArrayExtra("parent_trade"));
+        log("GO QR: " + data.getStringExtra("go_qr")); //--strip
         qr_t go_qr = new qr_t();
         go_qr.from_string(data.getStringExtra("go_qr"));
-//        if (go_endpoint.wloc==null) {
-//            go_endpoint=null;
-//        }
-//        else {
-//            log("go_endpoint " + go_endpoint.endpoint()); //--strip
-//        }
-//        log("referrertid " + referrertid.encode()); //--strip
-
-//        if (go_endpoint != null) {
-//            log("new trade. endpoint: " + go_endpoint); //--strip
-            new_trade(new hash_t(0), "", go_qr);
-            Toast.makeText(main_activity.this, "A new trade has been added to active_trades.", 6000).show();  //--strip
-            Menu nav_menu = navigation.getMenu();
-            MenuItem menu_item = nav_menu.findItem(R.id.nav_activetrades);
-            onNavigationItemSelected(menu_item);
-            return;
-//        }
-        /*
-        String s=data.getStringExtra("filter_endpoint");
-        trader_endpoint_t filter_endpoint = new trader_endpoint_t(s);
-        log("filter_endpoint " + filter_endpoint.endpoint()); //--strip
-        if (filter_endpoint != null) {
-            log("Open trades filtered by " + filter_endpoint); //--strip
-            go_trades(filter_endpoint, false);
-            return;
-        }
-        */
-
-/*
-        String conf=data.getStringExtra("go_conf");
-        log("conf "+conf); //--strip
-        if (conf!=null) {
-            log("conf: "+conf); //--strip
-            go_conf(conf);
-            return;
-        }
-*/
-/*
-        String ans = data.getDataString();
-        log("DataString " + ans); //--strip
-        if (ans != null && ans.equals("SCAN")) {
-            doscan(false);
-            return;
-        }
- */
+        new_trade(new hash_t(0), "", go_qr);
+        Toast.makeText(main_activity.this, "A new trade has been added to active_trades.", 6000).show();  //--strip
+        Menu nav_menu = navigation.getMenu();
+        MenuItem menu_item = nav_menu.findItem(R.id.nav_activetrades);
+        onNavigationItemSelected(menu_item);
     }
 
     void toast(final String s) {
@@ -822,10 +592,7 @@ public final class main_activity extends activity implements datagram_dispatcher
                 Toast.makeText(getApplicationContext(), s, 6000).show();
             }
         }));
-
     }
-
-    //hash_t stored_referrer_tid;
 
     public void go_trade__worker(final hash_t tid) {
         log("go_trade__worker " + tid.encode()); //--strip
@@ -839,31 +606,10 @@ public final class main_activity extends activity implements datagram_dispatcher
 
     public void go_trade(final hash_t tid) {
         log("go_trade " + tid.encode());  //--strip
-        //getSupportActionBar().hide();
         Intent intent = new Intent(main_activity.this, trader.class);
-
         intent.putExtra("tid", tid.value);
-/*
-        if (referrer_tid!=null) {
-            log("referrer_tid "+referrer_tid.encode());  //--strip
-            intent.putExtra("referrer_tid", referrer_tid.value);
-        }
-*/
-        //intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        //intent.putExtra("trade", shit.get(position));
-        //intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-        //startActivityForResult(intent,TRADE_RESULT);
-        //intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
         startActivity(intent);
-        //startActivityForResult(intent,AC_RESULT);
     }
-
-/*
-    public void go_trade(final hash_t tid) {
-        log("go_trade w/o referrer"); //--strip
-        go_trade(tid, null);
-    }
-*/
 
     public void go_conf(final String conf) {
         Intent intent = new Intent(main_activity.this, node_pairing.class);
@@ -871,41 +617,14 @@ public final class main_activity extends activity implements datagram_dispatcher
         startActivity(intent);
     }
 
-/*
-                  Intent intent = new Intent(MainActivity.this, trades.class);
-                  //intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-//                  startActivityForResult(intent,TRADES_RESULT);
-                  startActivityForResult(intent,AC_RESULT);
-*/
-
-//    public void go_trades(final endpoint_t filter, boolean from_main_menu) {
     public void go_trades() {
         Intent intent = new Intent(main_activity.this, trades.class);
-//        if (filter!=null) {
-//            intent.putExtra("filter_endpoint", filter.endpoint());
-//        }
-        //if (from_main_menu) {
-            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NO_HISTORY);
-        //}
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NO_HISTORY);
         startActivity(intent);
-        //startActivityForResult(intent, AC_RESULT);
     }
 
-    //public void new_trade(final qr_t qr) {
-    //    String datasubdir = "";
-    //    hash
-    //    new_trade(datasubdir, qr);
-    //}
-
     public void new_trade(final hash_t parent_trade, final String datasubdir, final qr_t qr) {
-/*
-        if (endpoint == null) {
-            log("new_trade. KO 50994 enpoint is null"); //--strip
-            return;
-        }
-*/
         log("new_trade " + qr.to_string()); //--strip
-        //stored_referrer_tid = referrer_tid;
         Thread thread = new Thread(new Runnable() {
             @Override
             public void run() {
@@ -917,93 +636,13 @@ public final class main_activity extends activity implements datagram_dispatcher
         Toast.makeText(main_activity.this, r_(R.string.newtrade) + "\n" + qr.to_string(), 600).show();
     }
 
-/*
-    public void new_trade(final qr_t qr) {
-        new_trade(qr, null);
-    }
-*/
-
-/*
-    public void sendDataToNFCService(String data) {
-        Context context = getApplicationContext();
-        Intent intent = new Intent(context, HostCardEmulatorService.class);
-        intent.putExtra("message", data);
-        context.startService(intent);
-    }
-*/
-
-    //void deliver_address_from_NFC(String endpoint) {
-    //    //dopay(invoice);
-    //}
-
     boolean isTxValid(String tx) {
         if (tx.isEmpty()) return false;
         if (tx.startsWith("KO")) {
             return false;
         }
         return true;
-/*
-        Log.d("B58","verifying Tx: "+tx);
-        try {
-            byte[] decoded=base58.decode(tx);
-            Log.d("B58","decoded:"+new String(decoded,"UTF-8"));
-            return decoded.length>0;
-        }
-        catch(base58.AddressFormatException e) {
-            Log.d("B58","NOPES");
-            return false;
-        }
-        catch(UnsupportedEncodingException e) {
-            Log.d("B58","NOPES wrong UTF8 encoding");
-            return false;
-        }
-*/
     }
-
-//    public void updateControls() {
-//        boolean r=state!=State.NONE;
-/*
-        amount.setVisibility(r ? View.INVISIBLE : View.VISIBLE);
-        pay.setVisibility(View.VISIBLE);
-
-        action.setVisibility(r ? View.VISIBLE : View.INVISIBLE);
-        //acquire_addr.setVisibility(r ? View.VISIBLE : View.INVISIBLE);
-//        newaddress.setVisibility(View.INVISIBLE);
-        scanButton.setEnabled(true);
-
-        if (r) {
-            action.setText(getVerb()+" " +cash_human.show(amount.getText().toString()));
-            pay.setText("CANCEL");
-            //pay.setEnabled(true);
-        }
-        else {
-            pay.setText("PAY");
-            //pay.setEnabled(amount.getText().length()!=0);
-        }
-        switch(state) {
-            case NONE:
-                reader.disable();
-                break;
-            case PAY:
-                reader.enable();
-                break;
-            case CHARGE:
-                reader.enable();
-                break;
-        }
-*/
-//    }
-
-    /*
-    String invoice() {
-        return "INV 0 "+ a.w.get_my_full_address()+" "+0+" -";
-    }
-*/
-
-
-//    void publish_myaddress() {
-//        sendDataToNFCService(((app)getApplication()).trader_endpoint());
-//    }
 
     private void scanWifiNetworks() {
 //        arrayList.clear();
@@ -1053,8 +692,6 @@ public final class main_activity extends activity implements datagram_dispatcher
     Button buttonScan;
     int size = 0;
     List<ScanResult> results;
-    //ArrayList<String> arrayList = new ArrayList<>();
-    //ArrayAdapter adapter;
     Toolbar toolbar;
     private MenuItem updateavailable;
     public DrawerLayout drawer_layout;

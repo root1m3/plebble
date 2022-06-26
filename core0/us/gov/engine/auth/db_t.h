@@ -21,17 +21,19 @@
 //===----------------------------------------------------------------------------
 //===-
 #pragma once
+#include <mutex>
+
 #include <us/gov/engine/app.h>
 #include <us/gov/peer/account_t.h>
 #include <us/gov/peer/nodes_t.h>
 #include <us/gov/engine/peer_t.h>
 #include <us/gov/io/seriable.h>
-#include <mutex>
 
 namespace us::gov::engine::auth {
 
     using account_t = peer::account_t;
     using nodes_t = peer::nodes_t;
+    struct maskcoord_t;
 
     struct db_t final: io::seriable {
         db_t(nodes_t& nodes, mutex& mxnodes, nodes_t& hall, mutex& mxhall);
@@ -44,6 +46,8 @@ namespace us::gov::engine::auth {
         void collect(vector<tuple<hash_t, uint32_t, uint16_t>>&) const;
         bool is_node(const hash_t& pkh) const;
         pair<ko, account_t> lookup(const hash_t&) const;
+        void filter(const maskcoord_t&);
+        void filter(nodes_t&, const maskcoord_t&);
 
     public:
         size_t blob_size() const final override;
@@ -53,6 +57,7 @@ namespace us::gov::engine::auth {
     public:
         mutex& mx_nodes;
         nodes_t& nodes;
+
         mutex& mx_hall;
         nodes_t& hall;
     };

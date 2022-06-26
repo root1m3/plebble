@@ -1,0 +1,21 @@
+<resources>
+    <string name="iot">IoT</string>
+    <string name="permission_requierd">Permisos de Aplicacion</string>
+    <string name="permisson_neverask">El permiso %1$s esta no concedido, puede causar que alguna funcion no este disponible, por facor conceda permisos desde configuracion si estos son requeridos.</string>
+    <string name="require_now">Permitir</string>
+    <string name="require_cancel">No permitir</string>
+    <string name="Enable_Access_title">Habilitar Acceso en Configuracion de App</string>
+    <string name="access_content">Parece que no ha dado los permisos requeridos para esta funcionalidad.
+Puede ser habilitado en la configuracion de Android>Apps>Permisos, HABILITAR AHORA?
+</string>
+    <string name="access_now">IR A CONFIGURACION</string>
+    <string name="error_bluetooth_not_supported">Bluetooth no esta soportado.</string>
+    <string name="ble_not_supported">BLE no esta soportado</string>
+    <string name="menu_scan">Escanear</string>
+    <string name="menu_stop">Parar</string>
+    <string name="unknown_device">dispositivo desconocido</string>
+    <string name="connectting">Conectando</string>
+    <string name="pair_device">Por favor conecte dispositivo</string>
+    <string name="cancel">Cancelar</string>
+</resources>
+

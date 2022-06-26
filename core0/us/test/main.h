@@ -27,9 +27,9 @@
 #include <us/gov/cli/hmi.h>
 #include <us/wallet/cli/hmi.h>
 
-int core1_main(int argc, char** argv);
+//int core1_main(int argc, char** argv);
 
-namespace us { namespace test {
+namespace us::test {
 
     int core0_main(int argc, char** argv);
 
@@ -68,5 +68,5 @@ namespace us { namespace test {
 
     using cash_t = int64_t;
 
-}}
+}
 

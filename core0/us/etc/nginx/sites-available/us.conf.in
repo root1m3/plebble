@@ -2,13 +2,14 @@
 server {
     listen ##str16##;
 
-	root /var/www/##str3##_html;
+    root /var/www/##str3##_html;
     #index index.php;
     autoindex on;
-	server_name ##str3##.##str68##;
+    server_name ##str3##.##str68##;
 
-	location / {
-	}
+    location / {
+       autoindex on;
+    }
 
     location /downloads {
        autoindex on;

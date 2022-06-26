@@ -29,7 +29,7 @@
 #include <us/wallet/trader/bookmarks_t.h>
 #include "main.h"
 
-namespace us { namespace test {
+namespace us::test {
     using namespace std;
 
     struct node;
@@ -42,7 +42,6 @@ namespace us { namespace test {
         virtual ~network();
 
         void add_node(const string& id, node*);
-
         void stop();
         void mute_all();
         ko blobfeed_upload();
@@ -92,5 +91,5 @@ namespace us { namespace test {
         ostream& out;
     };
 
-}}
+}
 

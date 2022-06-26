@@ -43,6 +43,7 @@ import android.view.ViewGroup;                                                  
 import android.view.View;                                                                      // View
 
 public class fragment_pat2phy_pat extends fragment_bid2ask_bid {
+
     static final int TX_RESULT = 914;
 
     static void log(final String line) {                    //--strip
@@ -55,3 +56,4 @@ public class fragment_pat2phy_pat extends fragment_bid2ask_bid {
 
     String endpoint;
 }
+

@@ -43,18 +43,18 @@
 #include <us/gov/logs.inc>
 #include <us/test/assert.inc>
 
-using c = us::trader::test::network;
 using namespace std;
 using namespace us;
+using c = us::test::network_c1;
 using us::ko;
 using hash_t = us::gov::crypto::ripemd160::value_type;
 
-c::network(const string& homedir, const string& logdir, const string& vardir, const string& stage1dir, ostream& os): b(homedir, logdir, vardir, stage1dir, os) {
+c::network_c1(const string& homedir, const string& logdir, const string& vardir, const string& stage1dir, ostream& os): b(homedir, logdir, vardir, stage1dir, os) {
     add_node("ask", new node_ask("ask", homedir, logdir, vardir, 22172, 22173));
     add_node("bid", new node_bid("bid", homedir, logdir, vardir, 22272, 22273));
 }
 
-c::~network() {
+c::~network_c1() {
 }
 
 void c::stage1_configure() {
@@ -62,7 +62,7 @@ void c::stage1_configure() {
     cout << "configuring ask node" << endl;
     dynamic_cast<node_ask*>(find("ask")->second)->create_shop("bid2ask/ask");
     {
-        cout << "transfer some coins to pat node" << endl;
+        cout << "transfer some coins to bid node" << endl;
         hash_t coin = dynamic_cast<node_ask&>(*find("ask")->second).recv_coin;
         transfer_wait(*find("ask")->second, *find("bid")->second, coin, 1000000);
     }
@@ -78,7 +78,7 @@ void c::stage1_ff_configure() {
     cout << "configuring ask node" << endl;
     assert(dynamic_cast<node_ask*>(find("ask")->second)->load_data("bid2ask/ask"));
 
-    cout << "configuring pat node" << endl;
-    assert(dynamic_cast<node_bid*>(find("bid")->second)->load_data("journey"));
+    cout << "configuring bid node" << endl;
+    assert(dynamic_cast<node_bid*>(find("bid")->second)->load_data("bid2ask/bid"));
 }
 

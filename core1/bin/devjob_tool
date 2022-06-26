@@ -54,7 +54,7 @@ function help {
     echo "        --id <id>      by id (ids in file .cbs/devjobs_active)"
     echo "        --url <url>    upstream devjob git url"
     echo "        --dryrun       Don't push neither upstream nor downstream."
-    echo "        --dsbranch <name>  Create a branch downstream to allocate changes upstream."
+    echo "        --dsbranch <name>  Use existing/Create a new downstream feature branch."
     echo "active devjobs: id url"
     cat $djactive | grep -v "^#"
 }
@@ -114,7 +114,6 @@ while [[ true ]]; do
 done
 cmd=$opt
 
-
 if [[ ! -f $djactive ]]; then
     echo "created $djactive file"
     echo "#id url" > $djactive
@@ -165,6 +164,7 @@ function apply1 {
         exit 1
     fi
     git apply $patch --quiet
+#    git apply -v $patch 
     if [[ $? -ne 0 ]]; then
         pwd
         echo "KO 88006 $patch didnt apply"
@@ -225,15 +225,6 @@ function apply1 {
         echo "KO 88007 couldn't checkout"
         exit 1
     fi
-    if [[ "_${dsbranch}" != "_" ]]; then
-        echo "creating feature branch $dsbranch"
-        git checkout -b ${dsbranch}
-        if [[ $? -ne 0 ]]; then
-            pwd
-            echo "KO 88008"
-            exit 1
-        fi
-    fi
     if [[ -f ../conflicts ]]; then
         echo "applying conflicted+fixed files"
         let z=1
@@ -292,7 +283,7 @@ function apply1 {
     fi
 
 #                   ┌──────────┐
-#                   │downstream │
+#                   │downstream│
 #                   └──────────┘
 # 
 #                   alpha-34
@@ -737,6 +728,10 @@ base_ds_diff=""
 
 function apply_changes_upstream {
     adapt ${upstream_hash} hqrefactor0 beg ../c2
+
+#echo "cont?"
+#read x
+
 #                        ┌──────────┐
 #                        │ upstream │
 #                        └──────────┘
@@ -756,6 +751,12 @@ function apply_changes_upstream {
 #                     │
 
     pushd upstream > /dev/null
+        if [[ -f /tmp/patchx1 ]]; then
+            echo "Applying manual corrections"
+            git apply /tmp/patchx1
+            git add -u
+            git commit -m xx
+        fi
         base_ds_diff=`git rev-parse HEAD` #on branch hqrefactor0
         echo "annotated base_ds_diff $base_ds_diff"
         apply_changes_upstream1
@@ -841,14 +842,37 @@ function procurl {
             git log --oneline --no-decorate --no-merges ${upstream_hash}..${upstream_branch} >> ../msg4downstream0
             transform ../msg4downstream0 ../msg4downstream "upstream ${devjob_id} refs:"
         popd > /dev/null
+
         echo "#########################"
         echo "## clone downstream... ##"
         echo "#########################"
         echo "cloning downstream branch ${branch}; ${gitrep}"
-        git clone -b $branch --single-branch ${gitrep} downstream
+        git clone -b $branch ${gitrep} downstream
         if [[ $? -ne 0 ]]; then
             echo "KO 71639"
             exit 1
+        fi
+        let newdsbranch=0
+        if [[ "_${dsbranch}" != "_" ]]; then
+            if [[ -n "$(git status --porcelain --untracked-files=no)" ]]; then
+                echo "KO 87913 Cannot switch branch with an unclean workspace. Commit changes first."
+                exit 1
+            fi
+            git checkout ${dsbranch}
+            if [[ $? -ne 0 ]]; then
+                echo "creating feature branch ${dsbranch}"
+                git checkout -b ${dsbranch}
+                if [[ $? -ne 0 ]]; then
+                    pwd
+                    echo "KO 88008"
+                    exit 1
+                fi
+                let newdsbranch=1
+            else
+                echo "checked out feature branch $dsbranch"
+            fi
+            branch=${dsbranch}
+            downstream_branch=${dsbranch}
         fi
         downstream_head=`git rev-parse HEAD`
         echo "downstream_branch $downstream_branch"
@@ -1011,12 +1035,13 @@ function procurl {
             echo "new upstream_head ${upstream_head}"
         popd > /dev/null
         adapt ${upstream_head} hqrefactor1 end ${dsc2}
+
         pushd upstream > /dev/null
-            echo "prepare patch for downstream ${base_ds_diff} --> ${upstream_branch}"
+            echo "prepare patch for downstream ${base_ds_diff} --> hqrefactor1"
             git diff --binary ${base_ds_diff} hqrefactor1 > ../patch4downstream
 
 #                           ┌──────────┐
-#                           │ upstream  │
+#                           │ upstream │
 #                           └──────────┘
 # 
 #                       main  hqrefactor0  hqrefactor1
@@ -1149,7 +1174,7 @@ EOF
                     fi
                 popd  > /dev/null
                 pushd downstream > /dev/null
-                    if [[ "_${dsbranch}" != "_" ]]; then
+                    if [[ ${newdsbranch} -eq 1 ]]; then
                         git push --set-upstream origin ${dsbranch}
                     else
                         git push origin $branch

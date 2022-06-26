@@ -220,5 +220,8 @@
     <string name="nextsubmitEHR">Tip: Submit your EHR.</string>
     <string name="nextsubmitappointmentletter">Tip: Submit an appointment letter.</string>
     <string name="nextsubmitairesults">Tip: Submit A.I. Results.</string>
+    <string name="upgrade2noncustodial">Upgrade to non-custodial</string>
+
+
 </resources>
 

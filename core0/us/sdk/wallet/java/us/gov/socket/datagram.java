@@ -22,7 +22,7 @@
 //===-
 package us.gov.socket;
 import java.util.ArrayList;                                                                    // ArrayList
-import org.spongycastle.util.Arrays;                                                           // Arrays
+import org.bouncycastle.util.Arrays;                                                           // Arrays
 import us.gov.crypto.base58;                                                                   // base58
 import us.gov.io.blob_writer_t;                                                                // blob_writer_t
 import java.io.BufferedReader;                                                                 // BufferedReader

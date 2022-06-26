@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="item_options">
+        <item>Basic Info Set</item>
+        <item>Device Info</item>
+        <item>Detail Data Read</item>
+        <item>Total Data Read</item>
+        <item>Heart Rate Info</item>
+        <item>Automatic measurement</item>
+        <item>Alarm Set</item>
+        <item>Activity Alarm Set</item>
+        <item>ExerciseData</item>
+        <item>HrvData</item>
+        <!--  <item>TempHistoryData</item>-->
+        <item>ExerciseMode</item>
+        <item>Notify</item>
+        <item>Set Goal</item>
+        <item>Blood oxygen</item>
+        <item>Social distance</item>
+        <item>Temperature history</item>
+        <item>Mac</item>
+        <item>Ecg</item>
+        <item>Ecg and PPG</item>
+        <item>Ecg  PPG Status</item>
+        <item>ECG history</item>
+        <item>Measurement</item>
+        <item>QR code</item>
+        <item>Weather</item>
+    </string-array>
+    <string-array name="weekarray">
+        <item>Sunday</item>
+        <item>Monday</item>
+        <item>Tuesday</item>
+        <item>Wednesday</item>
+        <item>Thursday</item>
+        <item>Friday</item>
+        <item>Saturday</item>
+    </string-array>
+
+    <string-array name="nofityarray">
+        <item>Tel</item>
+        <item>Sms</item>
+        <item>Wechat</item>
+        <item>Facebook</item>
+        <item>Instagram</item>
+        <item>Skype</item>
+        <item>Telegram</item>
+        <item>Twitter</item>
+        <item>vkclient</item>
+        <item>WhatApp</item>
+        <item>QQ</item>
+        <item>In</item>
+        <item>Stop_Tel</item>
+    </string-array>
+
+    <string-array name="mode_name">
+        <item>Running</item>
+        <item>Cycling</item>
+        <item>Badminton</item>
+        <item>Football</item>
+        <item>Tennis</item>
+        <item>Yoga</item>
+        <item>Meditation</item>
+        <item>Dance</item>
+        <item>Basketball</item>
+        <item>Walk</item>
+        <item>Workout</item>
+        <item>Cricket</item>
+        <item>Hiking</item>
+        <item>Aerobics</item>
+        <item>Ping-Pong</item>
+        <item>Rope Jump</item>
+        <item>Sit-ups</item>
+        <item>Volleyball</item>
+    </string-array>
+
+
+    <string-array name="sport">
+        <item>Run</item>
+        <item>Cycling</item>
+        <item>Badminton</item>
+        <item>Football</item>
+        <item>Tennis</item>
+        <item>Yoga</item>
+        <item>Dance</item>
+        <item>Basketball</item>
+        <item>Hiking</item>
+        <item>Gym</item>
+    </string-array>
+    <string-array name="week">
+        <item>Sun</item>
+        <item>Mon</item>
+        <item>Tue</item>
+        <item>Wed</item>
+        <item>Thu</item>
+        <item>Fri</item>
+        <item>Sat</item>
+    </string-array>
+</resources>

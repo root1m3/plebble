@@ -27,11 +27,9 @@
 #include <us/gov/logs.inc>
 #include <us/test/assert.inc>
 
-using c = us::trader::test::node_ask;
 using namespace std;
 
-//c::node_ask(const string& homedir, const string& logdir, const string& vardir): b("ask", homedir, logdir, vardir, 22172, 22173) {
-//}
+using c = us::test::node_ask;
 
 c::node_ask(const string& id, const string& homedir, const string& logdir, const string& vardir, uint16_t gport, uint16_t wport): b(id, homedir, logdir, vardir, gport, wport) {
 }

@@ -126,7 +126,6 @@ public class logo_view extends LinearLayout {
         });
     }
 
-
     public void banner_clicked() {
     }
 

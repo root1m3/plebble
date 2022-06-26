@@ -50,7 +50,6 @@ using c = us::test::networking;
 
 constexpr chrono::milliseconds c::latency;
 
-
 namespace {
     string logdir0;
     string homedir;
@@ -120,10 +119,8 @@ namespace {
 
         ko connect() override {
             tee("rpc_daemon wants to connect to daemon");
-//            return p->peer->connect0(govaddr, myport, true);
             shostport_t shostport = make_pair(shost, port);
             return get_peer().connect0(shostport, true);
-
         }
 
         virtual us::gov::socket::client* create_client() {
@@ -142,7 +139,6 @@ namespace {
         assert(p->disconnect_reason == expected_report);
     }
 }
-
 
 c::networking(us::gov::crypto::ec::keys& k, uint16_t port, ostream&os): id(k), b(123, port, port, edges, (uint8_t)1, 2, vector<pair<uint32_t, uint16_t>>()), t(os), myport(port), load(this) {
     constructor();
@@ -203,7 +199,7 @@ us::gov::socket::peer_t* c::create_client(int sock) {
 }
 
 void c::relay_evidence(const datagram &d, peer_t* exclude) {
-    int n = send(0, exclude, d);
+    int n = clique_send(0, exclude, d);
     log("broadcast_evidence", "orig", n);
 }
 
@@ -227,10 +223,9 @@ void c::check_clients_size(size_t expected) {
 }
 
 us::gov::socket::rpc_daemon_t* c::connect2backend() {
-    auto* p = new rpc_cli(123, govaddr, myport); //create_client(0);
+    auto* p = new rpc_cli(123, govaddr, myport);
     cout << "Connecting to backend " << govaddr << ":" << myport << endl;
-
-    ko r = p->start(); //p->peer->connect0(govaddr, myport, true); //was false
+    ko r = p->start();
     if (is_ko(r)) {
         fail(r);
     }
@@ -268,7 +263,6 @@ void c::check_ban_count(int expected) {
 }
 
 void c::check_initial_state() {
-    //check_idle_threads(threadpool_size);
     check_ban_count(0);
     check_clients_size(0);
 }
@@ -289,18 +283,6 @@ void c::connect_disconnect() {
     check_initial_state();
 }
 
-/*
-//cracker attepts to consume the resource
-void c::connect_disconnect2() { // A cracker connects and disconnects
-    auto sz = clients_size();
-    auto p = connect2backend();
-    check_clients_size(sz + 1);
-    delete p;
-    this_thread::sleep_for(latency);
-    check_initial_state();
-}
-*/
-
 void c::connect_banned() {
     log("check banned client can't connect again");
     auto sz = clients_size();
@@ -313,114 +295,16 @@ void c::connect_banned() {
 void c::bore_server() {
     log("bore_server");
     this_thread::sleep_for(us::gov::peer::peer_t::auth_window + latency);
-    //this_thread::sleep_for(1s); //--UTWWTL
     wakeup_handler();
-//        clients.read_sockets();
     this_thread::sleep_for(latency);
 }
-
-/*
-thread* c::recv_datagram(const int& sock, const int& timeout_seconds, datagram*& dest) {
-    using namespace std::chrono;
-    thread* t = new thread([&] {
-        log_start(logdir, "recv_datagram");
-
-
-        auto t0 = chrono::system_clock::now();
-
-        cout << "recv_datagram with timeout " << timeout_seconds << " secs" << endl;
-        datagram* d = new datagram(1);
-        struct timeval timeout;
-        timeout.tv_sec = timeout_seconds;
-        timeout.tv_usec = 0;
-        setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, (char*)&timeout, sizeof(timeout));
-
-        ko r = d->recvfrom(sock);
-        if (r != ok) {
-            cout << (const char*) r << endl;
-            cout << "a datagram protocol::us_gov_finished was supposed to be delivered by the backend" << endl;
-            assert(false);
-        }
-        if (!d->completed()) {
-            delete d;
-            d=nullptr;
-        }
-        dest = d;
-        auto t = chrono::system_clock::now();
-        if (d == nullptr) {
-            cout << "recv_datagram returned 0 after " << duration_cast<milliseconds>(t-t0).count() << " millisecs" << endl;
-        }
-        else {
-            cout << "recv_datagram returned dgram after " << duration_cast<milliseconds>(t-t0).count() << " millisecs. svc " << d->decode_service() << " dend " << d->dend << endl;
-        }
-    });
-    this_thread::yield();
-
-    return t;
-
-}
-*/
-
-/*
-------recv5
-new 4 recv dgram
-------/ recv5 8 9
-sec level------------------------
-curd 0x7fe388000f70
-curd 8/9
-0 seconds from dgram creation.
-123 123
-b
-us::gov::socket::datagram::counters.wrong_channel 0
-
-
- causing stall. sleep for 3100 ms
-
-
-sec level------------------------
-curd 0x7fe388000f70
-curd 8/9
-1 seconds from dgram creation.
-
-
- sleep 1s more
-
-
-
- read
-Fail. Expected 1, got 0
-*/
-
 
 void c::cause_stall() {
     log("wait to cause stall");
     wakeup_handler();
-//        clients.read_sockets();
-//cout << " causing stall. sleep for " << duration_cast<milliseconds>(us::gov::socket::peer_t::stall+latency).count() << " ms" << endl;
     this_thread::sleep_for(us::gov::socket::peer_t::stall);
-
-    //this_thread::sleep_for(latency);
-
-//        this_thread::sleep_for(us::gov::socket::peer_t::stall);
-//       this_thread::sleep_for(1s);
-//       this_thread::sleep_for(1s);
-//       this_thread::sleep_for(1s);
-    //this_thread::sleep_for(latency);
-    //this_thread::sleep_for(latency);
-    //this_thread::sleep_for(latency);
-//cout << " read sockets" << endl;
     wakeup_handler();
-//        clients.read_sockets();
     this_thread::sleep_for(latency);
-//       this_thread::sleep_for(1s);
-/*
-for (int i=0;i<6; ++i) {
-    this_thread::sleep_for(1s);
-cout << "wait1s " << i << "/60" << endl;
-    clients.read_sockets();
-}
-*/
-//        this_thread::sleep_for(latency);
 }
 
 void c::connect_quiet() {
@@ -430,11 +314,8 @@ void c::connect_quiet() {
     auto p = connect2backend();
     check_clients_size(sz + 1);
     bore_server();
-
     p->stop();
-    //p->join();  //destructor calls join
     delete p;
-
     check_clients_size(sz);
     check_ban_count(bc);
     check_initial_state();
@@ -449,47 +330,6 @@ void c::connect_from_invalid_net_address() { //localhost is invalid in channel 0
     delete p;
 }
 
-/*
-    using namespace std::chrono;
-    log_info(cout);
-
-    datagram *d = 0;
-    thread* th = recv_datagram(p->sock, secs + 1, d);
-
-    cout << "sleep " << latency.count() << " millisecs" << endl;
-    this_thread::sleep_for(latency);
-
-    if (secs > 0) {
-        cout << "sleep " << secs << " secs" << endl;
-        this_thread::sleep_for(seconds(secs));
-    }
-    cout << "wakeup" << endl;
-    wakeup();
-    this_thread::yield();
-
-
-    th->join();
-    delete th;
-
-    if (d != nullptr) cout << "recv didn't return a datagram" << endl;
-    assert(d != nullptr);
-    string reason;
-    {
-        us::gov::io::blob_reader_t r(*d);
-        assert(is_ok(r.read(reason))); //:: = d->parse_string();
-    }
-    cout << "==>received reason: \"" << reason;
-
-    cout << "\"; expected: \"" << expected_report << "\" --> ";
-    if (reason == expected_report) cout << "OK";
-    else cout << "KO";
-    cout << endl;
-
-    assert(reason == expected_report);
-    delete d;
-//}
-*/
-
 void c::send_bytes(size_t howmany, uint32_t decl_sz, uint16_t channel, uint16_t svc, bool slowly) {
     log("send_bytes", "howmany", howmany, "decl_sz", decl_sz, "channel", channel, "svc", svc);
     cout << "==>send_bytes. howmany " << howmany << " decl_sz " << decl_sz << " channel " << channel << " svc " << svc << endl;
@@ -500,11 +340,6 @@ void c::send_bytes(size_t howmany, uint32_t decl_sz, uint16_t channel, uint16_t 
         close(fd);
         log("buffer filled with random garbage is ready");
     }
-//        memset(w,0,howmany);
-
-    //log("send_bytes",howmany,decl_sz,channel);
-    //log("system channel",datagram::system_channel);
-    //cout << "send " << howmany << " bytes, encoded sz=" << decl_sz << " channel " << channel << endl;
     auto sz = clients_size();
     auto bc = ban_counter();
     auto pd = connect2backend();
@@ -661,38 +496,15 @@ void c::send_bytes(size_t howmany, uint32_t decl_sz, uint16_t channel, uint16_t 
                                 expected = "service";
                             }
                         }
-//        cout << "SUCESSS MAN. TIME PORTRAIT" << endl;
-//assert(false);
-/*
-                        if (howmany<datagram::h) {
-                            expected="stall";
-                        }
-                        else {
-                            if (decl_sz<datagram::h) {
-                                expected="disconnect";
-                            }
-                            else if (decl_sz>howmany) {
-                                expected="stall";
-                            }
-                        }
-*/
                     }
                 }
             }
         }
     }
-    //cout << "expected=" << expected << endl;
     log("expected", expected);
-
-//        int tx_secs=0;
-//      if (howmany>10000000) {
-//        tx_secs=howmany/10000000;
-  //  }
     int tx_secs = howmany / 10000000;
     cout << "using rx_secs=" << tx_secs << endl;
-
     tee("trace XX72", expected);
-
     if (expected == "disconnect auth-window") {
         check_disconnect_report(this, p, slowly ? 0 : tx_secs + us::gov::peer::peer_t::auth_window.count(), us::gov::peer::peer_t::finished_reason_1);
     }
@@ -730,137 +542,7 @@ void c::send_bytes(size_t howmany, uint32_t decl_sz, uint16_t channel, uint16_t 
     reset_dgram_counters();
     reset_clients();
     check_initial_state();
-
-return;
-
-exit(1);
-cout << "wait 2 secs" << endl;
-this_thread::sleep_for(2s);
-cout << "exit" << endl;
-
-    //p->stop();
-    //p->join();
-exit(1);
-/*
-
-    if (expected=="stall") {
-        cout << "waiting for " << duration_cast<seconds>(us::gov::socket::peer_t::stall).count() << " secs" << endl;
-        this_thread::sleep_for(latency);
-1.- recibida la conexion?
-        check_clients_size(sz+1); //HX7T56            check_clients_size(sz);
-
-
-        this_thread::sleep_for(us::gov::socket::peer_t::stall);
-
-esta stall?
-1.- recibida la conexion
-2.- timeot, si no has mandado el postit entonces, el postit esta stall
-
-esta conectado
-        assert(!p->connected());
-        this_thread::sleep_for(500ms);
-        assert(!p->connected());
-
-    }
-*/
-
-return;
-
-//        bool causes_disconnection=false;
-/*
-    if (channel==datagram::system_channel && decl_sz>=us::gov::socket::datagram::h) {
-//          log("",tot,howmany);
-        causes_disconnection=true;
-    }
-*/
-//        wakeup();
-//        clients.read_sockets();
-
-//        this_thread::sleep_for(latency);
-/*
-if (tot>decl_sz) {
-    log("tot>decl_sz","backend should disconnect");
-    causes_disconnection=true;
-}
-
-if (!causes_disconnection) {
-    log("so far the connection shouln't be dropped");
-    check(tot==howmany,true);
-}
-*/
-
-    if (howmany<us::gov::socket::datagram::h) {
-        log("howmany<us::gov::socket::datagram::h");
-        //check_clients_size(sz+1);
-        cause_stall();
-        cause_stall();
-        check_clients_size(sz); //HX7T56            check_clients_size(sz);
-        check_ban_count(bc); // HX7T56  //check_ban_count(bc+1);
-        check(us::gov::socket::datagram::counters.infraheader_datagram, (uint32_t)1);
-    }
-    else {
-        log("howmany>=us::gov::socket::datagram::h");
-        check(us::gov::socket::datagram::counters.infraheader_datagram, (uint32_t)0);
-        if (channel != 123) {
-            log("channel!=datagram::system_channel");
-            check(us::gov::socket::datagram::counters.wrong_channel, (uint32_t)1);
-            check_clients_size(sz);
-            check_ban_count(bc + 1);
-            connect_banned();
-        }
-        else {
-            log("channel==datagram::system_channel");
-            check(us::gov::socket::datagram::counters.wrong_channel,(uint32_t)0);
-            if (decl_sz<us::gov::socket::datagram::h || decl_sz>us::gov::socket::datagram::maxsize) {
-                log("decl_sz<us::gov::socket::datagram::h || decl_sz>us::gov::socket::datagram::maxsize","true",decl_sz<us::gov::socket::datagram::h, decl_sz>us::gov::socket::datagram::maxsize, decl_sz, us::gov::socket::datagram::h, us::gov::socket::datagram::maxsize);
-                check(us::gov::socket::datagram::counters.wrong_size,(uint32_t)1);
-                check_clients_size(sz);
-                check_ban_count(bc+1);
-            }
-            else {
-                log("decl_sz<us::gov::socket::datagram::h || decl_sz>us::gov::socket::datagram::maxsize","false",decl_sz<us::gov::socket::datagram::h, decl_sz>us::gov::socket::datagram::maxsize, decl_sz, us::gov::socket::datagram::h, us::gov::socket::datagram::maxsize);
-                if (howmany<decl_sz) {
-                    log("howmany<decl_sz",howmany,decl_sz);
-                    cause_stall();
-//                        check_ban_count(bc+1);
-                    check_ban_count(bc); // HX7T56  //check_ban_count(bc+1);
-//                          check_clients_size(sz); //HX7T56 check_clients_size(sz);
-                }
-                else {
-                    log("howmany>=decl_sz", howmany, decl_sz);
-                    static unordered_set<uint16_t> valid_service_id{
-                        us::gov::protocol::socket_error,
-                        us::gov::protocol::socket_ping,
-                        us::gov::protocol::id_request,
-                        us::gov::protocol::id_peer_challenge,
-                        us::gov::protocol::id_challenge_response
-                    };
-                    uint16_t svc=w[datagram::offset_service];
-                    svc |= w[datagram::offset_service + 1] << 8;
-                    if (valid_service_id.find(svc) == valid_service_id.end()) {
-                        log("invalid service",svc);
-                        bore_server();
-                        check_ban_count(bc + 1);
-                        check_clients_size(sz);
-                    }
-                    else {
-                        log("valid service", svc);
-                        check(tot == howmany, true);
-                        bore_server();
-                        check_ban_count(bc);
-                        check_clients_size(sz + 1);
-                    }
-                }
-            }
-        }
-    }
-    log("reset test");
-    delete [] w;
-    delete p;
-    reset_ban();
-    reset_dgram_counters();
-    reset_clients();
-    check_initial_state();
+    return;
 }
 
 void c::test_immediate_disconnect() {
@@ -881,29 +563,20 @@ void c::fuzzy_datagram_fast() {
     channel_t chan = 123;
     tee("chan", chan);
     assert(chan != 0);
-
     auto infrasizes = initializer_list<uint32_t>{1, datagram::h - 1};
     auto sizes = initializer_list<uint32_t>{datagram::h, datagram::h + 1, datagram::maxsize - 1, datagram::maxsize, datagram::maxsize + 1};
-
-
     tee("==> sending nothing after connecting");
     send_bytes(0, 0, chan, 0);
-
     tee("==> sending bytes smaller than the header ");
     for (uint32_t real_sz: infrasizes) {
         cout << "==+> sending bytes smaller than the header. sz=" << real_sz << endl;
         send_bytes(real_sz, 0, 0, 0);
     }
-
     tee("==> sending headers to a different channel (0)");
-//        cout << "different declared sizes" << endl;
     for (uint32_t decl_sz: sizes) {
         cout << "==+> sending headers to a different channel (0) - size" << datagram::h << "decl_sz" << decl_sz << endl;
         send_bytes(datagram::h, decl_sz, 0, 0);
     }
-//ok till here. it might be unstable though, some runs don't work
-
-
     tee("==> sending headers to the right channel (", chan, ")");
     for (uint32_t decl_sz: sizes) { //
         if (decl_sz != datagram::h) {
@@ -912,7 +585,6 @@ void c::fuzzy_datagram_fast() {
 
         }
     }
-
     tee("==> sending decrypted datagrams (svc=socket_error) to the right channel (", chan , ")");
     uint16_t svc = us::gov::protocol::socket_error;
     for (uint32_t real_sz: sizes) {
@@ -921,7 +593,6 @@ void c::fuzzy_datagram_fast() {
             send_bytes(real_sz, decl_sz, chan, svc);
         }
     }
-
     tee("==> sending decrypted datagrams (svc unhandled) to the right channel (", chan ,")");
     svc = numeric_limits<uint16_t>::max();
     for (uint32_t real_sz: sizes) {
@@ -936,13 +607,10 @@ void c::fuzzy_datagram_slow() {
     tee("fuzzy_datagram_slow");
     auto prev = us::gov::peer::peer_t::auth_window;
     us::gov::peer::peer_t::auth_window = 20s;
-
     channel_t chan = 123;
     tee("chan", chan);
-
     tee("auth window:", us::gov::peer::peer_t::auth_window.count(), "secs");
     assert(us::gov::peer::peer_t::auth_window.count() > 1);
-
     {
         tee("==> slowly sending header");
         auto sz = datagram::h;
@@ -963,7 +631,6 @@ void c::fuzzy_datagram_slow() {
     us::gov::peer::peer_t::auth_window = prev;
 }
 
-
 void c::fuzzy_datagram() {
     fuzzy_datagram_fast();
     fuzzy_datagram_slow();
@@ -971,26 +638,12 @@ void c::fuzzy_datagram() {
 
 void c::self_test() {
     check_initial_state();
-
     cout << "==========connect_disconnect" << endl;
     connect_disconnect();
-
-//    cout << "connect_disconnect2" << endl;
-//    connect_disconnect2();
-
     cout << "==========connect_quiet" << endl;
     connect_quiet();
-
-/*
-    check_idle_threads(threadpool_size);
-    connect_disconnect();
-    connect_disconnect2();
-    connect_quiet();
-*/
-    //connect_from_invalid_net_address();
     cout << "==========fuzzy tests" << endl;
     fuzzy_datagram();
-
 }
 
 bool c::is_loading() const {
@@ -1004,7 +657,6 @@ void c::test_load(int num_dgrams, chrono::milliseconds& timebetweendgrams) {
     log("sending evidences");
     auto k = us::gov::crypto::ec::keys::generate();
 
-
     struct cli_t: us::gov::cli::rpc_daemon_t {
         using b = us::gov::cli::rpc_daemon_t;
         using b::rpc_daemon_t;
@@ -1016,9 +668,7 @@ void c::test_load(int num_dgrams, chrono::milliseconds& timebetweendgrams) {
         }
     };
 
-
     shostport_t shostport = make_pair(myaddress, myport);
-
     cli_t cli(123, k, shostport, peer_t::role_device, nullptr);
     #if CFG_LOGS == 1
         cli.logdir = logdir;
@@ -1026,7 +676,6 @@ void c::test_load(int num_dgrams, chrono::milliseconds& timebetweendgrams) {
     assert(cli.start() == ok);
     assert(is_ok(cli.wait_ready(3)));
     assert(cli.sendq_active());
-//    log("trace CVS72w3");
     assert(cli.peer->daemon.is_active());
     int counter = 0;
     while(load::isup() && counter < num_dgrams) {
@@ -1038,21 +687,16 @@ void c::test_load(int num_dgrams, chrono::milliseconds& timebetweendgrams) {
             h = ev.hash_id();
             log("okev +", h);
             d = ev.get_datagram(123, 0);
- //           cout << "send okev dgram sz = " << d->size() << endl;
             {
                 okev ev2;
-                //us::gov::io::blob_reader_t reader(*d);
                 assert(is_ok(ev2.read(*d)));
             }
-
         }
         if (timebetweendgrams.count() > 0) {
             this_thread::sleep_for(timebetweendgrams);
         }
         if (load::isdown()) break;
         evc->newev(h, myport - govport);
-//        tee("sent another", evsent_succ , h);
-//    log("trace CVS72w2");
         assert(cli.peer->daemon.is_active());
         ko r = cli.peer->send1(d);
         if (r != ok) {
@@ -1072,14 +716,8 @@ void c::test_load(int num_dgrams, chrono::milliseconds& timebetweendgrams) {
     cli.join();
 }
 
-
-
-//=_==============
-
-
 bool c::recv_ev(const okev& e) {
-    auto h = e.hash_id(); //d->compute_hash();
-//        tee("arrived_evidence", h, "recv_evs", static_cast<networking&>(daemon).recv_evs);
+    auto h = e.hash_id();
     {
         lock_guard<mutex> lock(evsseen.mx);
         if (evsseen.find(h) != evsseen.end()) {
@@ -1098,10 +736,8 @@ bool c::peer_t::process_work(datagram* d) {
         return b::process_work(d);
     }
     if (d->service == us::gov::protocol::engine_ev) {
-        //cout << "recvd okev dgram sz = " << d->size() << endl;
         okev e;
         assert(is_ok(e.read(*d)));
-        //++static_cast<networking&>(daemon).recv_evs;
         if (static_cast<networking&>(daemon).recv_ev(e)) {
             static_cast<networking&>(daemon).relay_evidence(*d, this);
             delete d;
@@ -1116,26 +752,19 @@ bool c::peer_t::process_work(datagram* d) {
 }
 
 void c::peer_t::verification_completed(pport_t rpport, pin_t pin) {
-    //log("verification_completed",rpport);
     b::verification_completed(rpport, pin);
     if (!verification_is_fine()) {
-        //log("verification_not_fine->disconnect",ip4_decode(address),port);
         disconnect(0, "");
         return;
     }
-
-    if (!static_cast<us::gov::peer::daemon_t&>(daemon).grid.add(*this, true)) {
-        //log ("disconnect-grid doesn't accept", client::ip4_decode(address), port, sock);
+    if (!static_cast<us::gov::peer::daemon_t&>(daemon).clique.add(*this, true)) {
         disconnect(0, "");
         return;
     }
-
-    //log("added to grid");
 }
 
 bool c::peer_t::authorize(const pub_t& p, pin_t pin) {
     cout << "Authorizing incoming peer pub " << p << " pin " << pin << endl;
     return true;
-//    return b::authorize(p, pport);
 }
 

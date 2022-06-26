@@ -24,12 +24,12 @@
 
 #include <us/test/node.h>
 
-namespace us::trader::test {
+namespace us::test {
 
     using namespace std;
 
-    struct node_bid: us::test::node {
-        using b = us::test::node;
+    struct node_bid: node {
+        using b = node;
 
         node_bid(const string& id, const string& homedir, const string& logdir, const string& vardir, uint16_t gport, uint16_t wport);
         bool load_data(const string& r2rhome);

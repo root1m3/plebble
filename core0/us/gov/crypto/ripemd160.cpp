@@ -480,6 +480,32 @@ const unsigned char* c::value_type::read_from(const unsigned char* p, const unsi
     return p + c::output_size;
 }
 
+void c::value_type::fill_random(mt19937& rng) {
+    size_t p = 0;
+    while (true) {
+        *reinterpret_cast<mt19937::result_type*>(&(*this)[p]) = rng();
+        p += sizeof(mt19937::result_type);
+        if (p == output_size) break;
+        if (p > output_size) {
+            p = output_size - sizeof(mt19937::result_type);
+            *reinterpret_cast<mt19937::result_type*>(&(*this)[p]) = rng();
+            break;
+        }
+    }
+}
+
+ko c::value_type::fill_random() {
+    ifstream f("/dev/urandom");
+    if (!f.good()) {
+        auto r = "KO 43021 Opening entropy file /dev/urandom";
+        log(r);
+        zero();
+        return r;
+    }
+    f.read(reinterpret_cast<char*>(data()), c::output_size);
+    return ok;
+}
+
 uint32_t c::value_type::uint32() const {
     return *reinterpret_cast<const uint32_t*>(&(*this)[16]);
 }

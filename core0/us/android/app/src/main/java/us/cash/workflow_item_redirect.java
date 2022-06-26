@@ -35,57 +35,11 @@ class workflow_item_redirect_off { //extends workflow_item {
     } //--strip
 
     public workflow_item_redirect_off(Context ctx, View v, trader tr) {
-/*
-        super(ctx, v, tr);
-        redirect= v.findViewById(R.id.redirection);
-        redirecttext=v.findViewById(R.id.redirectiontext);
-        redirect.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                on_redirect_click();
-            }
-        });
-*/
     }
-
-/*
-    void on_redirect_click() {
-        if (bookmark == null) {
-            log("KO 60596 No redirection available"); //--strip
-            return;
-        }
-        log("redirection "+bookmark.label); //--strip
-        tr.on_redirect(bookmark);
-    }
-
-    @Override
-    void refresh(trader.data_t data) {
-        if (data == null) {
-            redirect.setVisibility(View.GONE);
-            redirecttext.setVisibility(View.GONE);
-            return;
-        }
-        boolean hasthing = false;
-        String raw = data.find("redirect");
-        if (raw != null) {
-            hasthing = true;
-            bookmark = new bookmark_t();
-            bookmark.from_string(raw);
-//            String[] s=raw.split("-",2);
-//            if (s.length==2) {
-            redirecttext.setText(v.getResources().getString(R.string.redirection)+"\n" + bookmark.label);
-//            }
-//            else {
-//                redirecttext.setText(v.getResources().getString(R.string.redirection));
-//            }
-        }
-        redirect.setVisibility(hasthing?View.VISIBLE:View.GONE);
-        redirecttext.setVisibility(hasthing?View.VISIBLE:View.GONE);
-    }
-*/
 
     private MaterialCardView redirect;
     private TextView redirecttext;
     bookmark_t bookmark = null;
+
 }
 

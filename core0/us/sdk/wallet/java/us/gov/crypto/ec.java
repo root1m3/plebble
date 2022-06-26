@@ -22,27 +22,27 @@
 //===-
 package us.gov.crypto;
 import java.util.Arrays;                                                                       // Arrays
-import org.spongycastle.asn1.ASN1Integer;                                                      // ASN1Integer
+import org.bouncycastle.asn1.ASN1Integer;                                                      // ASN1Integer
 import java.math.BigInteger;                                                                   // BigInteger
-import org.spongycastle.util.BigIntegers;                                                      // BigIntegers
-import org.spongycastle.jce.provider.BouncyCastleProvider;                                     // BouncyCastleProvider
+import org.bouncycastle.util.BigIntegers;                                                      // BigIntegers
+import org.bouncycastle.jce.provider.BouncyCastleProvider;                                     // BouncyCastleProvider
 import java.io.ByteArrayOutputStream;                                                          // ByteArrayOutputStream
 import us.CFG;                                                                                 // CFG
-import org.spongycastle.asn1.DERSequenceGenerator;                                             // DERSequenceGenerator
-import org.spongycastle.math.ec.ECCurve;                                                       // ECCurve
-import org.spongycastle.crypto.params.ECDomainParameters;                                      // ECDomainParameters
-import org.spongycastle.jce.spec.ECNamedCurveParameterSpec;                                    // ECNamedCurveParameterSpec
-import org.spongycastle.jce.spec.ECNamedCurveSpec;                                             // ECNamedCurveSpec
-import org.spongycastle.jce.ECNamedCurveTable;                                                 // ECNamedCurveTable
-import org.spongycastle.jce.spec.ECParameterSpec;                                              // ECParameterSpec
-import org.spongycastle.math.ec.ECPoint;                                                       // ECPoint
-import org.spongycastle.jce.ECPointUtil;                                                       // ECPointUtil
-import org.spongycastle.jce.interfaces.ECPrivateKey;                                           // ECPrivateKey
-import org.spongycastle.jce.spec.ECPrivateKeySpec;                                             // ECPrivateKeySpec
-import org.spongycastle.jce.interfaces.ECPublicKey;                                            // ECPublicKey
-import org.spongycastle.jce.spec.ECPublicKeySpec;                                              // ECPublicKeySpec
+import org.bouncycastle.asn1.DERSequenceGenerator;                                             // DERSequenceGenerator
+import org.bouncycastle.math.ec.ECCurve;                                                       // ECCurve
+import org.bouncycastle.crypto.params.ECDomainParameters;                                      // ECDomainParameters
+import org.bouncycastle.jce.spec.ECNamedCurveParameterSpec;                                    // ECNamedCurveParameterSpec
+import org.bouncycastle.jce.spec.ECNamedCurveSpec;                                             // ECNamedCurveSpec
+import org.bouncycastle.jce.ECNamedCurveTable;                                                 // ECNamedCurveTable
+import org.bouncycastle.jce.spec.ECParameterSpec;                                              // ECParameterSpec
+import org.bouncycastle.math.ec.ECPoint;                                                       // ECPoint
+import org.bouncycastle.jce.ECPointUtil;                                                       // ECPointUtil
+import org.bouncycastle.jce.interfaces.ECPrivateKey;                                           // ECPrivateKey
+import org.bouncycastle.jce.spec.ECPrivateKeySpec;                                             // ECPrivateKeySpec
+import org.bouncycastle.jce.interfaces.ECPublicKey;                                            // ECPublicKey
+import org.bouncycastle.jce.spec.ECPublicKeySpec;                                              // ECPublicKeySpec
 import java.security.GeneralSecurityException;                                                 // GeneralSecurityException
-import org.spongycastle.util.encoders.Hex;                                                     // Hex
+import org.bouncycastle.util.encoders.Hex;                                                     // Hex
 import static us.gov.crypto.types.*;                                                           // *
 import java.security.InvalidAlgorithmParameterException;                                       // InvalidAlgorithmParameterException
 import java.security.InvalidKeyException;                                                      // InvalidKeyException
@@ -59,7 +59,7 @@ import java.security.PrivateKey;                                                
 import java.security.Provider;                                                                 // Provider
 import java.security.PublicKey;                                                                // PublicKey
 import java.security.Security;                                                                 // Security
-import org.spongycastle.crypto.digests.SHA256Digest;                                           // SHA256Digest
+import org.bouncycastle.crypto.digests.SHA256Digest;                                           // SHA256Digest
 import java.security.Signature;                                                                // Signature
 
 public class ec {

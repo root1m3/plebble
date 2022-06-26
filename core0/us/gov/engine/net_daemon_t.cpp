@@ -73,25 +73,25 @@ const function<bool(const us::gov::socket::client&)>& c::sysop_filter() const {
 }
 
 void c::send(const local_deltas_t& g) {
-    log("brodcast local_deltas");
-    send(0, 0, g.get_datagram(channel, 0));
+    log("brodcast local_deltas grid[0]");
+    clique_send(0, 0, g.get_datagram(channel, 0));
 }
 
 void c::relay_local_deltas(datagram* d, peer_t* exclude) {
-    log("relay local_deltas");
-    int n = send(0, exclude, d);
+    log("relay local_deltas grid[0]");
+    int n = clique_send(0, exclude, d);
     log("end relay local_deltas", n);
 }
 
 int c::relay_vote(datagram* d, peer_t* exclude) {
-    int n = send(0, exclude, d);
+    int n = clique_send(0, exclude, d);
     log("relay vote", n);
     return n;
 }
 
 void c::send_vote(datagram* d) {
     log("broadcast vote. svc", d->service);
-    send(0, nullptr, d);
+    clique_send(0, nullptr, d);
 }
 
 socket::peer_t* c::create_client(int sock) {
@@ -133,7 +133,7 @@ void c::relay_evidence(datagram *d, peer_t* exclude) {
     assert(d->service == us::gov::protocol::engine_ev || d->service == us::gov::protocol::engine_ev_track);
     d->reset_service(us::gov::protocol::engine_ev);
     assert(d->decode_service() == us::gov::protocol::engine_ev);
-    int n = send(0, exclude, *d);
+    int n = clique_send(0, exclude, *d);
     #ifdef LOG_RELAY_EVIDENCES
         lock_guard<mutex> lock(relay_ev_file_mx);
         ostringstream fnos;

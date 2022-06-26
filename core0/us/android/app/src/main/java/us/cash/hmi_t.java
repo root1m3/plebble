@@ -96,14 +96,8 @@ public class hmi_t extends us.wallet.cli.hmi {
 
         public static File get_download_file(Context ctx, String file) {
             log("file " + file); //--strip
-
-
             log("Environment.getExternalStorageDirectory()=" + Environment.getExternalStorageDirectory()); //--strip
-//            File f = new File(Environment.getExternalStorageDirectory() + "/" + CFG.blob_id + "/downloads/", file);
             File f = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS) + "/" + CFG.blob_id, file);
-//            File f = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), file);
-
-//            File f = new File(Environment.getExternalStorageDirectory(), file);
             try {
                 log("canonicalpath: " + f.getCanonicalPath()); //--strip
                 File parent = f.getParentFile();
@@ -120,37 +114,14 @@ public class hmi_t extends us.wallet.cli.hmi {
             }
             return null;
         }
-/*
-//FileInputStream is = ctx.openFileInput(file);
 
-            File f;
-            File dir = new File(ctx.getFilesDir(), CFG.blob_id);
-            if (!dir.exists()) {
-                dir.mkdir();
-            }
-            try {
-                f = new File(dir, file);
-            }
-            catch (Exception e) {
-                log("Ex. " + e.getMessage()); //--strip
-                return null;
-            }
-            return f;
-//* /
-        }
-
-
-*/
         public static boolean is_external_storage_writable() {
             return Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED);
         }
 
-        // Checks if a volume containing external storage is available to at least read.
-        public static boolean is_external_storage_readable() {
-             return Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED) ||
-                    Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED_READ_ONLY);
+        public static boolean is_external_storage_readable() { // Checks if a volume containing external storage is available to at least read.
+             return Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED) || Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED_READ_ONLY);
         }
-
 
         public static File public_file(Context ctx, String file) {
             try {
@@ -181,8 +152,7 @@ public class hmi_t extends us.wallet.cli.hmi {
             }
         }
 
-
-        public static void logfiles(Context ctx) {                        //--strip
+        public static void logfiles(Context ctx) {      //--strip
             String[] f = ctx.fileList();                //--strip
             log("  Private files: ");                   //--strip
             for (int i = 0; i < f.length; ++i) {        //--strip
@@ -203,16 +173,6 @@ public class hmi_t extends us.wallet.cli.hmi {
                 }
             }
             return e;
-/*
-            try {
-                File f = get_download_file(ctx, file);
-                if (f == null) return false;
-                return f.exists();
-            }
-            catch (Exception e) {
-                return false;
-            }
-*/
         }
 
         public static void delete_private_file(Context ctx, String file) {
@@ -243,12 +203,10 @@ public class hmi_t extends us.wallet.cli.hmi {
             return ctx.getFileStreamPath(file);
         }
 
-
         public static ko write_public_file(Context ctx, String file, byte[] content) {
             log("write_public_file " + file + " sz:" + content.length); //--strip
             try {
                 File f = get_download_file(ctx, file.trim());
-                //String path = f.getAbsoluteFile().getPath();
                 log("A1 + " + f.getCanonicalPath()); //--strip
                 if (!f.createNewFile()) {
                     log("createNewFile didn't create the file"); //--strip
@@ -270,29 +228,6 @@ public class hmi_t extends us.wallet.cli.hmi {
             return ok;
         }
 
-/*
-        public static ko write_private_file(Context ctx, String file, byte[] content) {
-            log("write_public_file " + file + " sz:" + content.length); //--strip
-            try {
-//                File f = get_download_file(ctx, file.trim());
-//                String path = f.getAbsoluteFile().getPath();
-
-//                f.createNewFile();
-                FileOutputStream os = ctx.openFileOutput(file, Context.MODE_WORLD_READABLE); // MODE_PRIVATE); //FileOutputStream(f);
-                os.write(content);
-                log("Writing " + file + " sz=" + content.length); //--strip
-
-                os.flush();
-                os.close();
-            }
-            catch (Exception e) {
-                log(KO_97033.msg + ". " + file + ". " + e.getMessage()); //--strip
-                return KO_97033;
-            }
-            return ok;
-        }
-*/
-
         public static ko c(Context ctx, String file, byte[] content) {
             try {
                 FileOutputStream os= ctx.openFileOutput(file, Context.MODE_PRIVATE);
@@ -305,19 +240,7 @@ public class hmi_t extends us.wallet.cli.hmi {
             }
             return ok;
         }
-/*
-        public static String read_file_string(Context ctx, String file) {
-            log("read_file_string " + file); //--strip
-            try {
-                byte[] bytes = read_file(ctx, file);
-                return new String(bytes, StandardCharsets.UTF_8);
-            }
-            catch(Exception e) {
-                log("KO 50964"); //--strip;
-                return null;
-            }
-        }
-*/
+
         public static String read_private_file_string(Context ctx, String file) {
             log("read_file " + file); //--strip
             try {

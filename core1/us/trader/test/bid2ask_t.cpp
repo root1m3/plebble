@@ -40,7 +40,7 @@
 #include <us/gov/logs.inc>
 #include <us/test/assert.inc>
 
-using c = us::trader::test::bid2ask_t;
+using c = us::test::bid2ask_t;
 
 void c::test_0(node& bid, node& ask) {
     curtest(bid, ask, "trade start", __FILE__, __LINE__);

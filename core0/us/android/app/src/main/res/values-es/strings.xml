@@ -218,5 +218,6 @@
     <string name="nextsubmitEHR">Tip: Envia sus registros medicos (EHR).</string>
     <string name="nextsubmitappointmentletter">Tip: Envie el volante de citación.</string>
     <string name="nextsubmitairesults">Tip: Envie los resultados de la I.A.</string>
+    <string name="upgrade2noncustodial">Actualizar a modo no custodiado</string>
 </resources>
 

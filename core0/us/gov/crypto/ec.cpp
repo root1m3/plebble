@@ -794,7 +794,7 @@ ko c::keys::priv_t::generate() {
         zero();
         return r;
     }
-    f.read(reinterpret_cast<char*>(data()), 32);
+    f.read(reinterpret_cast<char*>(data()), c::keys::priv_mem_size);
     auto r = verifyx();
     if (is_ko(r)) {
         zero();

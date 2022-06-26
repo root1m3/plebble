@@ -163,7 +163,7 @@ void c::verification_completed(pport_t rpport, pin_t pin) {
         }
         if (is_role_peer()) {
             log("role_peer");
-            if (!static_cast<daemon_t&>(daemon).grid.add(*this, false)) {
+            if (!static_cast<daemon_t&>(daemon).clique.add(*this, false)) {
                 log ("disconnect-grid doesn't accept", endpoint(), "sock", sock);
                 disconnect(0, "KO 90547 All lines are busy.");
                 return;

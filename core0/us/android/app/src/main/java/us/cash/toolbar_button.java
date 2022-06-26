@@ -38,8 +38,7 @@ public class toolbar_button extends LinearLayout implements View.OnClickListener
 
     private OnClickListener onClickListener;
 
-    @Override
-    public boolean dispatchKeyEvent(KeyEvent event) {
+    @Override public boolean dispatchKeyEvent(KeyEvent event) {
         if(event.getAction() == KeyEvent.ACTION_UP &&
                 (event.getKeyCode() == KeyEvent.KEYCODE_DPAD_CENTER || event.getKeyCode() == KeyEvent.KEYCODE_ENTER)) {
             if(onClickListener != null) onClickListener.onClick(this);
@@ -47,8 +46,7 @@ public class toolbar_button extends LinearLayout implements View.OnClickListener
         return super.dispatchKeyEvent(event);
     }
 
-    @Override
-    public boolean dispatchTouchEvent(MotionEvent event) {
+    @Override public boolean dispatchTouchEvent(MotionEvent event) {
         if (event.getAction() == MotionEvent.ACTION_DOWN) {
             setPressed(true);
         }
@@ -62,24 +60,18 @@ public class toolbar_button extends LinearLayout implements View.OnClickListener
         return super.dispatchTouchEvent(event);
     }
 
-    @Override
-    public void setOnClickListener(OnClickListener listener) {
+    @Override public void setOnClickListener(OnClickListener listener) {
         this.onClickListener = listener;
     }
 
-    @Override
-    public void onClick(View v) {
+    @Override public void onClick(View v) {
         if (onClickListener != null && onClickListener != this)
             onClickListener.onClick(v);
     }
 
-    @StyleableRes
-    int index0 = 0;
-    @StyleableRes
-    int index1 = 1;
-    @StyleableRes
-    int index2 = 2;
-
+    @StyleableRes int index0 = 0;
+    @StyleableRes int index1 = 1;
+    @StyleableRes int index2 = 2;
     ImageButton button_image;
     TextView button_text;
     Context context;

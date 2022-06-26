@@ -83,5 +83,6 @@ public class cryptocurrency {
     public String get_logo() {
         return logo;
     }
+
 }
 

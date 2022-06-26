@@ -22,9 +22,10 @@
 #===-
 CXXFLAGS=-O0 -g -std=c++20 -DDEBUG -Wno-psabi
 CXX:=g++
-CPPS:=$(wildcard *.cpp) $(wildcard net/*.cpp)
+CPPS:=$(wildcard *.cpp) $(wildcard net/*.cpp) $(wildcard sim/*.cpp) $(wildcard shard/*.cpp)
 OBJS:=$(CPPS:.cpp=.o)
-HS:=$(wildcard *.h) $(wildcard net/*.h)
+DEPENDS := $(patsubst %.cpp,%.d,$(CPPS))
+HS:=$(wildcard *.h) $(wildcard net/*.h) $(wildcard sim/*.h) $(wildcard shard/*.h)
 INC:=-I../..
 USGOV:=##str3##gov
 LIBUSGOV:=lib##str3##gov
@@ -49,15 +50,21 @@ RPATH:=-Wl,-z,defs -Wl,-rpath,../wallet -Wl,-rpath,../gov
 
 all: ${LIBUSTEST}.so
 
-${LIBUSTEST}.so: ${OBJS}
+${LIBUSTEST}.so: ${OBJS} ${HS}
 	$(CXX) -fPIC -shared ${CXXFLAGS} ${RPATH} ${OBJS} ${LIBS} -lstdc++fs -pthread -o ${LIBUSTEST}.so
 
-%.o: %.cpp
-	$(CXX) -fPIC -c ${CXXFLAGS} ${INC} $^ -o $@
+-include $(DEPENDS)
+
+%.o: %.cpp makefile
+	$(CXX) -fPIC ${CXXFLAGS} ${INC} -MMD -MP -c $< -o $@
 
 clean:
 	rm -f ${LIBUSTEST}.so
-	rm *.o -f
+	$(RM) ${OBJS}
+	$(RM) ${DEPENDS}
+#	rm *.o -f
+#	rm net/*.o -f
+#	rm sim/*.o -f
 
 .PHONY: all clean
 

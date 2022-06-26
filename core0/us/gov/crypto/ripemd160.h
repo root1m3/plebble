@@ -29,6 +29,7 @@
 #include <array>
 #include <iostream>
 #include <vector>
+#include <random>
 
 #include <us/gov/config.h>
 
@@ -39,6 +40,7 @@ namespace us::gov::crypto {
     class ripemd160 {
     public:
         static constexpr size_t output_size = 20;
+        static constexpr size_t mem_size = 20;
 
         struct value_type: array<uint8_t, output_size> {
             using b = array<uint8_t, output_size>;
@@ -70,6 +72,9 @@ namespace us::gov::crypto {
             unsigned char* write_to(uint8_t*) const;
             const unsigned char* read_from(const uint8_t* begin, const uint8_t* end);
             ko read(istream&);
+            ko fill_random();
+            void fill_random(mt19937&);
+            uint32_t lsdw() const { return *reinterpret_cast<const uint32_t*>(&data()[mem_size - 4]); } //less significant dword
 
             template<typename T>
             static value_type compute(const T& o) {

@@ -98,6 +98,7 @@ if [ "_$arg" == "_close" ]; then
     unmapport ${UPNPGOV}
     unmapport ${UPNPWALLET}
     unmapport ${UPNPHTTP}
+    unmapport ${UPNPHTTPS}
     unmapport ${UPNPBIND}
     unmapport ${UPNPGROOT}
     exit 0
@@ -107,6 +108,7 @@ if [ "_$UPNP" == "_on" ]; then
     mapport ${PORT} ${UPNPGOV}
     mapport ${WALLET_PORT} ${UPNPWALLET}
     mapport ${HTTP_PORT} ${UPNPHTTP}
+    mapport ${HTTPS_PORT} ${UPNPHTTPS}
     mapport ${BIND_PORT} ${UPNPBIND}
     mapport ${GROOT_PORT} ${UPNPGROOT}
 fi

@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<resources>
+    <string name="iot">IoT</string>
+    <string name="permission_requierd">Application permissions</string>
+    <string name="permisson_neverask">The permission of %1$s from 1860 TEST app is forbidden,it may casued some of function inavailable, please grant permissions from setting if required.</string>
+    <string name="require_now">Grant</string>
+    <string name="require_cancel">Disallow</string>
+    <string name="Enable_Access_title">Enable Access In App Settings</string>
+    <string name="access_content">It looks like you have turned off permission required for this feature.
+It can be enabled under Phone Settings>Apps>Permissions, SET NOW?
+</string>
+    <string name="access_now">GO TO SETTINGS</string>
+    <string name="error_bluetooth_not_supported">Bluetooth not supported.</string>
+    <string name="ble_not_supported">BLE is not supported</string>
+    <string name="menu_scan">Scan</string>
+    <string name="menu_stop">Stop</string>
+    <string name="unknown_device">Unknown device</string>
+    <string name="connectting">Connecting</string>
+    <string name="pair_device">Please Connect Device</string>
+    <string name="cancel">Cancel</string>
+</resources>
+

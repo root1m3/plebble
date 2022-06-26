@@ -32,16 +32,12 @@ import android.graphics.drawable.VectorDrawable;                                
 
 public class animation_t extends DrawableWrapper {
 
-    private float rotation;
-    private Rect bounds;
-
     public animation_t(Resources resources, Drawable drawable) {
         super(rasterize(resources, drawable));
         bounds = new Rect();
     }
 
-    @Override
-    public void draw(Canvas canvas) {
+    @Override public void draw(Canvas canvas) {
         copyBounds(bounds);
         canvas.save();
         canvas.rotate(rotation, bounds.centerX(), bounds.centerY());
@@ -64,5 +60,9 @@ public class animation_t extends DrawableWrapper {
         }
         return drawable;
     }
+
+    private float rotation;
+    private Rect bounds;
+
 }
 

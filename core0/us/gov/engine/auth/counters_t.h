@@ -22,8 +22,8 @@
 //===-
 #pragma once
 #include <us/gov/config.h>
-
 #if CFG_COUNTERS == 1
+
 #include <us/gov/types.h>
 
 namespace us::gov::engine::auth {

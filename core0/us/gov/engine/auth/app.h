@@ -21,30 +21,11 @@
 //===----------------------------------------------------------------------------
 //===-
 #pragma once
-#include <map>
-#include <set>
-#include <tuple>
-#include <mutex>
-#include <unordered_set>
-#include <unordered_map>
-#include <list>
-#include <string>
 
-#include <us/gov/types.h>
-#include <us/gov/config.h>
-#include <us/gov/crypto/hash.h>
-#include <us/gov/crypto/ec.h>
-#include <us/gov/peer/nodes_t.h>
-#include <us/gov/peer/account_t.h>
-#include <us/gov/engine/app.h>
-#include <us/gov/engine/peer_t.h>
-#include <us/gov/engine/policies.h>
-#include <us/gov/engine/app.h>
-#include <us/gov/engine/evidence.h>
-
-#include "counters_t.h"
 #include "collusion_control_t.h"
 #include "db_t.h"
+#include "maskcoord_t.h"
+#include "counters_t.h"
 
 namespace test {
     struct auth_app;
@@ -70,6 +51,12 @@ namespace us::gov::engine::auth {
 
         static constexpr const char* name = {"auth"};
         static constexpr appid_t id() { return 20; }
+
+    #if CFG_TEST == 1
+        static size_t cfg_shard_size;
+    #else
+        static constexpr size_t cfg_shard_size{CFG_SHARD_SIZE};
+    #endif
 
         static const char* KO_78101, *KO_73291, *KO_31092;
 
@@ -112,6 +99,7 @@ namespace us::gov::engine::auth {
             void add_growth_transactions(unsigned int seed);
             void layoff(nodes_t& n, uint16_t cut);
             void layoff();
+            void shard();
         #endif
 
         #ifdef CFG_PERMISSIONED_NETWORK
@@ -138,6 +126,8 @@ namespace us::gov::engine::auth {
         engine::auth::local_delta* pool{nullptr};
         mutex mx_pool;
         mutable peer_t::stage_t cache_my_stage{peer_t::unknown};
+
+        maskcoord_t maskcoord;
 
     private:
         mutable unique_lock<mutex> lock_nodes;

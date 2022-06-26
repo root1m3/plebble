@@ -45,7 +45,7 @@
 #define Check_entry_exists(x, key) check_entry_exists_(x, key, __FILE__, __LINE__)
 
 
-namespace us { namespace test {
+namespace us::test {
     using namespace std;
 
     struct node;
@@ -84,5 +84,5 @@ namespace us { namespace test {
         static int wait_from_seq;
     };
 
-}}
+}
 

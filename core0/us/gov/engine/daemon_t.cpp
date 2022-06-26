@@ -747,7 +747,7 @@ ko c::process_evidence2(evidence* ev) {
 
 int c::call_query_block(const hash_t& hash) {
     log("query_block", hash);
-    return peerd.send(2, 0, blob_writer_t::get_datagram(peerd.channel, protocol::engine_query_block, 0, hash));
+    return peerd.clique_send(2, 0, blob_writer_t::get_datagram(peerd.channel, protocol::engine_query_block, 0, hash));
 }
 
 namespace {
@@ -965,7 +965,8 @@ void c::update_dfs_index() {
 
 void c::report_random_node() {
     using namespace chrono;
-    peer::peer_t* p = peerd.grid.pick_one();
+//    peer::peer_t* p = peerd.grid.pick_one();
+    peer::peer_t* p = peerd.clique.pick_one();
     if (p == nullptr) return;
     if (!p->is_role_peer()) {
         log("not role peer", p->rolestr[p->role]);

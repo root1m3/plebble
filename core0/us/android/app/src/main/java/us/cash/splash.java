@@ -28,29 +28,27 @@ import android.content.Intent;                                                  
 
 public class splash extends Activity {
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    @Override protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         handler.postDelayed(new Runnable() {
-            @Override
-            public void run() {
+            @Override public void run() {
                 try {
                     Intent intent = new Intent(getApplicationContext(), main_activity.class);
                     startActivity(intent);
                     finish();
                 }
                 catch (Exception e) {
-                    error_manager.manage(e,"splash"); //FirebaseCrashlytics.getInstance().recordException(ignored); //--strip
+                    error_manager.manage(e,"splash"); //--strip
                 }
             }
         }, 100);
     }
 
-    @Override
-    public void onDestroy() {
+    @Override public void onDestroy() {
         super.onDestroy();
         handler.removeCallbacksAndMessages(null);
     }
 
     private Handler handler = new Handler();
 }
+

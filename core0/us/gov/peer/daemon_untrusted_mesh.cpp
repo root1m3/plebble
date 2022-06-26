@@ -23,7 +23,9 @@
 #include "daemon_t.h"
 #include <chrono>
 #include <random>
+
 #include <us/gov/io/cfg.h>
+
 #include "protocol.h"
 #include "peer_t.h"
 
@@ -36,9 +38,14 @@ using c = us::gov::peer::daemon_t;
 
 #ifdef CFG_TOPOLOGY_MESH
 
-void c::grid_rotate(nodes_t& nodes, mutex& nodes_mx) {
-    log("rotate");
+void c::clique_rotate(nodes_t& nodes, mutex& nodes_mx) {
+    for (auto grid: clique) {
+        grid_rotate(nodes, nodes_mx, *grid);
+    }
+}
 
+void c::grid_rotate(nodes_t& nodes, mutex& nodes_mx, grid_t& grid) {
+    log("rotate");
     unique_lock<mutex> lock1(grid.mx_);
     bool is_full{false};
     {
@@ -139,15 +146,13 @@ void c::grid_rotate(nodes_t& nodes, mutex& nodes_mx) {
 }
 
 void c::run() {
-    #if CFG_LOGS == 1
-        log_start(logdir, "peer_daemon");
-    #endif
+    log_start(logdir, "peer_daemon");
     log("open-untrusted mesh configuration");
-    if (unlikely(edges) == 0) {
+    if (unlikely((*clique.begin())->size() == 0)) {
         log("End. edges 0");
         return;
     }
-    log("grid size", grid.size(), "grid_dev size", grid_dev.size());
+    log("grid size", (*clique.begin())->size(), "grid_dev size", grid_dev.size());
     if (wait_rnd_before_start()) { //distribute node activity in time
         mt19937_64 rng(random_device{}());
         uniform_int_distribution<> d(0, 60); //todo cycle time
@@ -163,13 +168,13 @@ void c::run() {
         log("switch to db nodes", "force_seeds", force_seeds, "nodes empty?", nodes.empty());
         while(t::isup()) {
             if (nodes.empty() || force_seeds) break;
-            grid_rotate(nodes, mx_nodes);
+            clique_rotate(nodes, mx_nodes);
             wait();
         }
         log("switch to seed nodes");
         while(t::isup()) {
             if (!force_seeds && !nodes.empty()) break;
-            grid_rotate(seed_nodes, mx_seed_nodes);
+            clique_rotate(seed_nodes, mx_seed_nodes);
             wait();
         }
     }

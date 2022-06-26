@@ -50,13 +50,8 @@ echo "logs=$logs"
 if [ "_$1" == "_clean" ]; then
     rm build -rf
     rm app/build -rf
-#    rm -f app/src/main/res/values/settings.xml
-#    rm -f app/src/main/res/values/colors.xml
-#    rm -f app/src/main/res/raw/brand.png
-#    rm -f app/src/main/res/raw/icoapp.png
-#    rm -f app/src/main/res/raw/splash.png
-#    rm -f app/google-services.json
-#    rm -f us-cash*.apk\
+    rm wearable_JClife/build -rf
+    rm blesdk_2025/build -rf
     ANDROID_HOME="`pwd`/android_sdk" ANDROID_SDK_ROOT="$asdk" ./gradlew clean
     exit 0
 fi

@@ -80,6 +80,8 @@ namespace us::gov::crypto {
                 inline void zero() { valid = false; }
                 inline void set_valid() { valid = true; h = false; }
 
+                uint8_t lsb() const { return *reinterpret_cast<const uint8_t*>(&data[mem_size - 1]); }
+
             public:
                 static pub_t from_b58(const string&);
                 static pub_t from_hex(const string&);
@@ -100,8 +102,9 @@ namespace us::gov::crypto {
                 mutable hash_t hash_cached;
             };
 
-            struct priv_t final: array<uint8_t, 32> {
-                static constexpr uint32_t ser_size{32};
+            static constexpr size_t priv_mem_size {32};
+            struct priv_t final: array<uint8_t, priv_mem_size> {
+                static constexpr uint32_t ser_size{priv_mem_size};
 
                 priv_t();
                 priv_t(priv_t&&);

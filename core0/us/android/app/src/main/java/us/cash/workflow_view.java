@@ -64,164 +64,7 @@ public class workflow_view extends LinearLayout {
             order = order_.split(" ");
         }
         click_handler = click_handler_;
-/*
-        addView(inflater.inflate(R.layout.workflow_item, null));
-        addView(inflater.inflate(R.layout.workflow_item, null));
-        addView(inflater.inflate(R.layout.workflow_item, null));
-        addView(inflater.inflate(R.layout.workflow_item, null));
-        addView(inflater.inflate(R.layout.workflow_item, null));
-*/
     }
-
-//    public abstract void add_workflows(ArrayList<workflow_t> workflows);
-//    public abstract void init_workflows(trader.data_t data);
-
-/*
-    @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle saved_instance) {
-        View parent = super.onCreateView(inflater, container, saved_instance);
-        v = inflater.inflate(R.layout.workflows, container, false);
-        if (parent != null) {
-            parent.addView(v);
-            return parent;
-        }
-        return v;
-
-        workflows = new ArrayList<workflow_t>();
-        add_workflows(workflows);
-        if (workflows.isEmpty()) {
-            workflows = null;
-        }
-        if (workflows != null) {
-            init_workflows(tr.get_data());
-        }
-        return v;
-    }
-*/
-
-
-/*
-    @Override
-    public void onActivityCreated(Bundle savedInstanceState) {
-        super.onActivityCreated(savedInstanceState);
-    }
-
-    @Override
-    public void onDestroyView() {
-        super.onDestroyView();
-    }
-*/
-/*
-    @Override
-    public boolean dispatch(datagram d) { //returns true if the datagram has been handled
-        if (super.dispatch(d)) return true;
-        switch(d.service.value) {
-        default:
-        }
-        return false;
-    }
-*/
-/*
-    @Override
-    public void on_push(hash_t target_tid, uint16_t code, String payload) {
-        if (!target_tid.equals(tid)) {
-            log("not for me"); //--strip
-            return;
-        }
-        super.on_push(target_tid, code, payload);
-    }
-
-    @Override
-    public void on_push(hash_t target_tid, uint16_t code, byte[] payload) {
-        if (!target_tid.equals(tid)) {
-            log("not for me"); //--strip
-            return;
-        }
-        super.on_push(target_tid, code, payload);
-    }
-*/
-
-/*
-    @Override
-    public void setUserVisibleHint(boolean isVisibleToUser) {
-        super.setUserVisibleHint(isVisibleToUser);
-    }
-*/
-
-/*
-    public bool update_st(trader.data_t data) {
-        if (getContext()==null) return;
-        app.assert_ui_thread();  //--strip
-        if (data == null) {
-            tr.setmode_wrong("KO 4021");
-            return false;
-        }
-//        String headline="";
-
-        if (app!=null) {
-            int capp=app.dw.st2_proc_me_to_peer(data, "","remote__","appointment","_expiry_ts");
-            switch(capp) {
-                case -1:
-                case 1:
-                    headline=getResources().getString(R.string.nextsubmitappointmentletter);
-                    break;
-                case 2:
-                case 3:
-            }
-            switch(capp) {
-                case -1:
-                case 3:
-                    app.button_send.setVisibility(View.GONE);
-                    break;
-                case 1:
-                case 2:
-                    app.button_send.setVisibility((expired_app)?View.GONE:View.VISIBLE);
-                    break;
-            }
-
-//            log("capp="+capp); //--strip
-//        }
-
-        if (aires!=null) {
-            int caires=aires.dw.st2_proc_me_to_peer(data, "", "remote__","ai_response","_ts");
-            if (headline.isEmpty()) {
-                switch(caires) {
-                    case -1:
-                    case 1:
-                        headline=getResources().getString(R.string.nextsubmitairesults);
-                        break;
-                    case 2:
-                    case 3:
-                }
-            }
-            switch(caires) {
-                case -1:
-                case 3:
-                    aires.button_send.setVisibility(View.GONE);
-                    break;
-                case 1:
-                case 2:
-                    aires.button_send.setVisibility(View.VISIBLE);
-                    break;
-            }
-            log("caires="+caires); //--strip
-        }
-
-
-        if (headline.isEmpty()) {
-            if (pres.dw.is_visible()) {
-                if (expired_pres){
-                    headline=getResources().getString(R.string.tipprescriptionexpiredatphy);
-                }
-                else {
-                    headline=getResources().getString(R.string.nextgotopharmacy);
-                }
-            }
-        }
-
-//        tip_explain.setText(headline + ((tipexplain.equals(""))?"":"\n") +tipexplain);
-    }
-*/
 
     public void add_view_after(final String itm, View v) {
         log("add_view_after " + itm); //--strip;
@@ -240,18 +83,6 @@ public class workflow_view extends LinearLayout {
         if (data == null) {
             return false;
         }
-/*
-        if (workflows == null) {
-            return true;
-        }
-        headline="";
-        tipexplain="";
-        for (workflow_t w:workflows) {
-            w.refresh(data);
-        }
-        tipexplain=tipexplain.trim();
-        tip_explain.setText(headline + (tipexplain.isEmpty()?"":"\n") +tipexplain);
-  */
         log("refresh"); //--strip
         workflow_t wf = new workflow_t(rf.tr.get_data());
         LayoutInflater inflater = ((Activity)rf.getContext()).getLayoutInflater();
@@ -262,13 +93,6 @@ public class workflow_view extends LinearLayout {
             iv.init(rf, n, click_handler);
             addView(iv);
         }
-/*
-        for (Map.Entry<String, pair<workflow_item_t, workflow_item_t>> i: wf.entrySet()) {
-            workflow_item_view iv = (workflow_item_view) inflater.inflate(R.layout.workflow_item, null);
-            iv.init(rf, i.getValue());
-            addView(iv);
-        }
-*/
         return true;
     }
 
@@ -298,7 +122,6 @@ public class workflow_view extends LinearLayout {
         }
     }
 
-//    ArrayList<workflow_t> workflows = null;
     role_fragment rf;
     workflow_t wf;
     String[] order;

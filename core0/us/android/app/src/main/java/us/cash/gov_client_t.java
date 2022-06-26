@@ -49,14 +49,6 @@ public class gov_client_t extends us.gov.cli.rpc_daemon_t {
 
     public gov_client_t(KeyPair k0, endpoint_t ep) {
         super(k0, ep.channel, ep.shostport(), us.gov.id.peer_t.role_t.role_device, null);
-        //channel = ep.channel;
-    }
-
-    @Override
-    public ko start() {
-//        log("set system channel " + channel.value); //--strip
-//        us.gov.socket.datagram.system_channel = channel;
-        return super.start();
     }
 
     pair<ko, hostport_t> lookup_wallet_ip(hash_t wallet_address, app.progress_t progress) {
@@ -143,6 +135,5 @@ public class gov_client_t extends us.gov.cli.rpc_daemon_t {
         return new pair<ko, endpoint_t>(new ko("KO 87962 Not implemented"), null);
     }
 
-    //channel_t channel = new channel_t(0);
-};
+}
 

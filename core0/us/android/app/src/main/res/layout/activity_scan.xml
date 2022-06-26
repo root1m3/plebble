@@ -68,7 +68,6 @@
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/use_endpoint_btn"
                 android:text="@string/use"
-                android:fontFamily="@font/mukta_vaani_extralight"
                 android:layout_width="fill_parent"
                 android:layout_height="fill_parent"
                 android:layout_marginHorizontal="10dp"

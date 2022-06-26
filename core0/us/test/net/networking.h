@@ -32,7 +32,7 @@
 #include "evc_t.h"
 #include "okev.h"
 
-namespace us { namespace test {
+namespace us::test {
 
     struct networking;
 
@@ -65,9 +65,6 @@ namespace us { namespace test {
         networking(us::gov::crypto::ec::keys& k, uint16_t port, ostream& os);
         networking(us::gov::crypto::ec::keys& k, uint16_t port, const vector<pair<uint32_t, uint16_t>>& sn, int workers, ostream&);
         void constructor();
-
-        //us::gov::engine::evidence* parse_custom_evidence(const string& payload) const;
-        //bool process_evidence(us::gov::engine::evidence* ev);
         bool wait_rnd_before_start() const override;
         us::ko start();
         void start_load(const string& logdir);
@@ -76,13 +73,9 @@ namespace us { namespace test {
         void join_load();
         bool isup() const { return b::isup(); }
         bool wait_load_ready() const { return load::wait_ready(3); }
-
-//        void wakeup() override;
         void set_load_function(function<void ()> r);
         static string addr_from_ndx(int ndx);
-        //string homedir() const override;
         us::gov::socket::peer_t* create_client(int sock) override;
-//        bool process_async_api__gov_engine_custom_ev(us::gov::socket::peer_t *c, const us::gov::socket::datagram& d);
         void relay_evidence(const datagram &d, peer_t* exclude);
         const keys& get_keys() const override;
         size_t clients_size();
@@ -98,11 +91,9 @@ namespace us { namespace test {
         void connect_disconnect2();
         void connect_banned();
         void bore_server();
-        //thread* recv_datagram(const int& sock, const int& timeout_seconds, datagram*& dest);
         void cause_stall();
         void connect_quiet();
         void connect_from_invalid_net_address();
-        //void check_disconnect_report(us::gov::socket::client* p, int secs, const char* expected_report);
         void send_bytes(size_t howmany, uint32_t decl_sz, uint16_t channel, uint16_t svc, bool slowly = false);
         void test_immediate_disconnect();
         void fuzzy_datagram();
@@ -116,7 +107,6 @@ namespace us { namespace test {
     public:
         atomic<short> resume{0};
         us::gov::crypto::ec::keys id;
-        //us::wallet::engine::daemon_t* damn_api{nullptr};
         string test_load_logdir;
         mutable int dupevs{0};
         mutable int uniqevs{0};
@@ -129,11 +119,10 @@ namespace us { namespace test {
         uint16_t myport;
         int evsent_succ{0};
         int evsent_fail{0};
-        //mutable int recv_evs{0};
         bool ingrid{false};
         evc_t* evc{0};
-        //keys k;
         int nodendx{0};
     };
 
-}}
+}
+

@@ -16,324 +16,232 @@
         android:fillViewport="true"
         >
 
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:fillViewport="true"
-        android:layout_margin="6dp"
-        android:gravity="bottom|center"
-        android:orientation="vertical">
-
-        <LinearLayout
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="left">
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/select_language"
-            android:textAlignment="gravity" />
-
-        <Spinner
-            android:id="@+id/lang_selector"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:foregroundTint="#000000"
-            android:layout_marginLeft="20dp"
-            android:spinnerMode="dropdown"
-            android:prompt="@string/select_language"
-            android:hint="@string/select_language"
-            android:tooltipText="@string/select_language"/>
-
-        </LinearLayout>
-
-    <androidx.appcompat.widget.LinearLayoutCompat
-        android:id="@+id/layoutnode"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop = "15dip"
-        android:orientation="vertical">
-
-        <com.google.android.material.textfield.TextInputLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            app:startIconDrawable="@drawable/ic_devices"
-            app:helperTextEnabled="true"
-            app:helperText="This app unique cryptographic id."
-            android:hint="@string/thisdevice">
-
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/devicepk"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                />
-
-        </com.google.android.material.textfield.TextInputLayout>
-
-        <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/connection_status_lo"
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
-            app:startIconDrawable="@drawable/conn"
-            app:endIconMode="custom"
-            app:endIconDrawable="@drawable/led"
-            app:endIconTintMode="screen"
-            app:endIconTint="#FFFFFF"
-            app:helperTextEnabled="true"
-            app:helperText="Connection status."
-            android:layout_marginTop = "10dip"
-
-            android:hint="@string/connection">
-<!-- [multiply=14, screen=15, src_atop=9, src_in=5, src_over=3] -->
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/connection_status"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                />
-
-        </com.google.android.material.textfield.TextInputLayout>
-
-
-        <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/imagenode"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            app:startIconDrawable="@drawable/ic_node_idle_32"
-            android:hint="@string/nodehash"
-            android:layout_marginTop = "10dip"
-            app:helperTextEnabled="true"
-            app:helperText="wallet id.">
-
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/nodepkh"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                />
-
-        </com.google.android.material.textfield.TextInputLayout>
-
-<!--
-    <androidx.appcompat.widget.LinearLayoutCompat
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:gravity="center_vertical"
-        android:orientation="horizontal">
-
-        <ImageView
-         android:id="@+id/connection_status_led"
-         android:layout_width="wrap_content"
-         android:layout_height="wrap_content"
-         android:src="@raw/redled"
-         />
-
-        <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/connection_status_lo"
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
-            android:hint="@string/connection">
-
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/connection_status"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                />
-
-        </com.google.android.material.textfield.TextInputLayout>
-    </androidx.appcompat.widget.LinearLayoutCompat>
--->
-
-<!--
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/lookupip"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/renewip"
-        android:layout_gravity="left|center_vertical"
-        android:textColor="@android:color/white" />
--->
-    </androidx.appcompat.widget.LinearLayoutCompat>
-        <!--
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        >
-        android:background="#C0C0C0" 
-
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical">
--->
-
-    <androidx.appcompat.widget.LinearLayoutCompat
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="vertical">
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Initiate a new connection with a node or hardware wallet:"
-            android:textAlignment="center"
-            android:layout_marginTop = "15dip"
-             />
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_horizontal|center_vertical"
-            >
-            <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/walletd_address_lo"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginRight="1dp"
-                android:hint="@string/ipaddress"
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-                app:endIconMode="custom"
-                app:endIconDrawable="@drawable/resolveip"
-
-                >
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/walletd_address"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:fontFamily="@font/mukta_vaani_extralight"
-                    android:text="127.0.0.1" />
-            </com.google.android.material.textfield.TextInputLayout>
-
-            <com.google.android.material.textfield.TextInputLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginRight="1dp"
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-                android:hint="@string/tcpport"
-                >
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/walletd_port"
-                    android:layout_width="80dp"
-                    android:layout_height="wrap_content"
-                    android:text="16673"
-                    />
-            </com.google.android.material.textfield.TextInputLayout>
-
-            <com.google.android.material.textfield.TextInputLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:hint="@string/channel"
-                android:layout_marginRight="1dp"
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-                >
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/channel"
-                    android:layout_width="80dp"
-                    android:layout_height="wrap_content"
-                    android:text="0"
-                    />
-            </com.google.android.material.textfield.TextInputLayout>
-
-        </LinearLayout>
-
-        <TextView
-            android:id="@+id/current_endpoint"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Current values:"
-            android:textAlignment="center"
-            android:layout_marginTop = "15dip"
-             />
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/connect_btn"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/connect"
-            android:textColor="@android:color/white" />
-
-    </androidx.appcompat.widget.LinearLayoutCompat>
-
-<!--
-        <EditText
-            android:id="@+id/testresult"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:layout_marginEnd="8dp"
-            android:gravity="top|left"
-            android:hint="@string/resultsview"
-            android:inputType="textMultiLine"
-            android:scrollHorizontally="false"
-            android:textIsSelectable="true"
-            android:textSize="20dp"
-            android:verticalScrollbarPosition="right" />
-
-        <TextView
-            android:id="@+id/consolelabel"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
-            android:layout_marginTop="8dp"
-            android:layout_marginEnd="8dp"
-            android:text="@string/failingtext" />
-
-        <EditText
-            android:id="@+id/hintpair"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="#003FFF"
-            android:contentDescription="hint"
-            android:fontFamily="monospace"
-            android:inputType="text"
-            android:text="@string/pairnodehelp"
-            android:textColor="#FFEB3B"
-            android:textIsSelectable="true"
-            android:gravity="center_horizontal|bottom"
-            android:textSize="14sp" />
--->
-        <!--
-        </LinearLayout>
-    </LinearLayout>
--->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="fill_parent"
+            android:layout_height="match_parent"
+            android:fillViewport="true"
+            android:layout_margin="6dp"
             android:gravity="bottom|center"
-            android:orientation="horizontal">
+            android:orientation="vertical">
 
             <LinearLayout
-                android:layout_width="match_parent"
+                android:layout_width="fill_parent"
                 android:layout_height="wrap_content"
-                android:gravity="center_horizontal|bottom"
+                android:orientation="horizontal"
+                android:gravity="left">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/select_language"
+                android:textAlignment="gravity" />
+
+            <Spinner
+                android:id="@+id/lang_selector"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:foregroundTint="#000000"
+                android:layout_marginLeft="20dp"
+                android:spinnerMode="dropdown"
+                android:prompt="@string/select_language"
+                android:hint="@string/select_language"
+                android:tooltipText="@string/select_language"/>
+
+        </LinearLayout>
+
+            <androidx.appcompat.widget.LinearLayoutCompat
+                android:id="@+id/layoutnode"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop = "15dip"
+                android:orientation="vertical">
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:startIconDrawable="@drawable/ic_devices"
+                    app:helperTextEnabled="true"
+                    app:helperText="This app unique cryptographic id."
+                    android:hint="@string/thisdevice">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/devicepk"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        />
+
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/connection_status_lo"
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    app:startIconDrawable="@drawable/conn"
+                    app:endIconMode="custom"
+                    app:endIconDrawable="@drawable/led"
+                    app:endIconTintMode="screen"
+                    app:endIconTint="#FFFFFF"
+                    app:helperTextEnabled="true"
+                    app:helperText="Connection status."
+                    android:layout_marginTop = "10dip"
+
+                    android:hint="@string/connection">
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/connection_status"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        />
+
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/imagenode"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:startIconDrawable="@drawable/ic_node_idle_32"
+                    android:hint="@string/nodehash"
+                    android:layout_marginTop = "10dip"
+                    app:helperTextEnabled="true"
+                    app:helperText="wallet id.">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/nodepkh"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        />
+
+                </com.google.android.material.textfield.TextInputLayout>
+
+            </androidx.appcompat.widget.LinearLayoutCompat>
+
+            <androidx.appcompat.widget.LinearLayoutCompat
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
                 android:orientation="vertical">
 
                 <TextView
-                    android:id="@+id/mode"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:gravity="center_horizontal|bottom"
-                    android:text="" />
+                    android:text="Initiate a new connection with a node or hardware wallet:"
+                    android:textAlignment="center"
+                    android:layout_marginTop = "15dip"
+                     />
 
-                <TextView
-                    android:id="@+id/textView4"
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:gravity="center_horizontal|bottom"
-                    android:text="@string/softwareversion" />
+                    android:orientation="horizontal"
+                    android:gravity="center_horizontal|center_vertical"
+                    >
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:id="@+id/walletd_address_lo"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginRight="1dp"
+                        android:hint="@string/ipaddress"
+                        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                        app:endIconMode="custom"
+                        app:endIconDrawable="@drawable/resolveip"
+                        >
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/walletd_address"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="127.0.0.1" />
+                    </com.google.android.material.textfield.TextInputLayout>
 
-                <TextView
-                    android:id="@+id/swv"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:gravity="center_horizontal|bottom"
-                    android:text=""
-                    />
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginRight="1dp"
+                        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                        android:hint="@string/tcpport"
+                        >
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/walletd_port"
+                            android:layout_width="80dp"
+                            android:layout_height="wrap_content"
+                            android:text="16673"
+                            />
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:hint="@string/channel"
+                        android:layout_marginRight="1dp"
+                        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                        >
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/channel"
+                            android:layout_width="80dp"
+                            android:layout_height="wrap_content"
+                            android:text="0"
+                            />
+                    </com.google.android.material.textfield.TextInputLayout>
+
                 </LinearLayout>
-        </LinearLayout>
 
-    </LinearLayout>
+                <TextView
+                    android:id="@+id/current_endpoint"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Current values:"
+                    android:textAlignment="center"
+                    android:layout_marginTop = "15dip"
+                     />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/connect_btn"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/connect"
+                    android:textColor="@android:color/white" />
+
+            </androidx.appcompat.widget.LinearLayoutCompat>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="fill_parent"
+                android:gravity="bottom|center"
+                android:orientation="horizontal">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_horizontal|bottom"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/mode"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_horizontal|bottom"
+                        android:text="" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/upgrade2noncustodial"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/upgrade2noncustodial"
+                        />
+
+                    <TextView
+                        android:id="@+id/textView4"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_horizontal|bottom"
+                        android:text="@string/softwareversion" />
+
+                    <TextView
+                        android:id="@+id/swv"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_horizontal|bottom"
+                        android:text=""
+                        />
+                </LinearLayout>
+            </LinearLayout>
+        </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 </LinearLayout>
 

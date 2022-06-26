@@ -28,8 +28,9 @@
 #include <us/gov/logs.inc>
 #include <us/test/assert.inc>
 
-using c = us::trader::test::node_bid;
 using namespace std;
+
+using c = us::test::node_bid;
 
 c::node_bid(const string& id, const string& homedir, const string& logdir, const string& vardir, uint16_t gport, uint16_t wport): b(id, homedir, logdir, vardir, gport, wport) {
 }

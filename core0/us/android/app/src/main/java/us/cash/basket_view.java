@@ -80,7 +80,6 @@ public class basket_view extends LinearLayout {
         controls = findViewById(R.id.controls);
         items = findViewById(R.id.items);
         icon = findViewById(R.id.icon);
-
     }
 
     public void init(activity ac_, on_click_listener click_handler_) {

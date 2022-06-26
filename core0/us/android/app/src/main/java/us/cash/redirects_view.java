@@ -56,9 +56,9 @@ import android.view.View;                                                       
 
 public class redirects_view extends LinearLayout {
 
-    static void log(final String s) { //--strip
-        System.out.println("tip_view: " + s); //--strip
-    } //--strip
+    static void log(final String s) {           //--strip
+        System.out.println("tip_view: " + s);   //--strip
+    }                                           //--strip
 
     public redirects_view(Context context, AttributeSet attrs) {
         super(context, attrs);
@@ -76,8 +76,6 @@ public class redirects_view extends LinearLayout {
         lv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView parentView, View childView, int position, long id) {
-//                progressbarcontainer.setVisibility(View.VISIBLE);
-
                 item_click2(redirects.get(position), position);
             }
         });
@@ -88,60 +86,6 @@ public class redirects_view extends LinearLayout {
                 return true;
             }
         });
-/*
-                if (main._nodes_mode_custom != null) {
-                    return true;
-                }
-                if (!main._nodes_mode_all) return true;
-                final EditText input = new EditText(parentView.getContext());
-                input.setOnFocusChangeListener(new OnFocusChangeListener() {
-                        @Override
-                        public void onFocusChange(View v, boolean hasFocus) {
-                            input.post(new Runnable() {
-                                @Override
-                                public void run() {
-                                    InputMethodManager inputMethodManager= (InputMethodManager) nodes.this.getSystemService(Context.INPUT_METHOD_SERVICE);
-                                    inputMethodManager.showSoftInput(input, InputMethodManager.SHOW_IMPLICIT);
-                                }
-                            });
-                        }
-                    });
-                input.requestFocus();
-                input.setSingleLine();
-                AlertDialog dialog = new AlertDialog.Builder(new ContextThemeWrapper(nodes.this, R.style.myDialog))
-                    .setTitle("Bookmark")
-                    .setMessage("Enter label for qr " + world.get(position).second.qr.to_string())
-                    .setView(input)
-                    .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                pair<String, bookmark_t> bm = world.get(position);
-                                //byte[] ico = new byte[0];
-                                bm.second.label = String.valueOf(input.getText()).trim();
-                                us.wallet.engine.rpc_peer_t.bookmark_add_in_t o = new us.wallet.engine.rpc_peer_t.bookmark_add_in_t(new string(bm.first), bm.second);
-                                string s = new string();
-                                ko r = a.hmi.rpc_peer.call_bookmark_add(o, s);
-                                if (is_ko(r)) { //--strip
-                                    log(r.msg);  //--strip
-                                }//--strip
-                                else {//--strip
-                                    log("added bookmark"); //--strip
-                                }//--strip
-                             }
-                        })
-                    .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                            }
-                        })
-                    .create();
-                dialog.show();
-                return true;
-            }
-        }
-        );
-*/
-
         set_redirects(new bookmarks_t());
     }
 
@@ -158,7 +102,6 @@ public class redirects_view extends LinearLayout {
         app.assert_ui_thread();  //--strip
         final role_fragment rf0 = rf;
         final app a = rf.a;
-
         String[] options = {a.getResources().getString(R.string.start_new_child_trade), "Copy to my bookmarks", a.getResources().getString(R.string.cancel)};
         new AlertDialog.Builder(rf.tr).setTitle(bm.second.get_label())
                 .setItems(options, new DialogInterface.OnClickListener() {
@@ -195,21 +138,6 @@ public class redirects_view extends LinearLayout {
                 .setIcon(R.drawable.ic_world).show();
     }
 
-/*
-    void toast_info() {
-        String m = "";
-        String s2 = state.getText().toString();
-        if (!s2.isEmpty()) {
-            m += getResources().getString(R.string.status) + ": " + s2 +"\n";
-        }
-
-        String s = tip_explain.getText().toString();
-        if (!s.isEmpty()) {
-            m += getResources().getString(R.string.hint) + ": " + s +"\n";
-        }
-        Toast.makeText(rf.tr.getApplicationContext(), m, 6000).show();
-    }
-*/
     public void set_redirects(final bookmarks_t bookmarks) {
         redirects = convert(bookmarks);
         log("set redirects"); //--strip
@@ -244,25 +172,11 @@ public class redirects_view extends LinearLayout {
         return true;
     }
 
-
-/*
-    @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle saved_instance) {
-        view parent = super.onCreateView(inflater, container, saved_instance);
-        v = inflater.inflate(R.layout.tip, container, false);
-        if (parent != null) {
-            parent.addView(v);
-            return parent;
-        }
-        return v;
-    }
-*/
     ArrayList<pair<String, bookmark_t>> redirects = null;
     no_scroll_list_view lv;
     nodes.adapter_t adapter = null;
     MaterialCardView card;
     role_fragment rf;
-//    public uint32_t id = new uint32_t(0);
 
 }
 

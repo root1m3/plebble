@@ -71,8 +71,7 @@ public class fragment_pat2slt_pat extends role_fragment  {
         }
     }
 
-    @Override
-    public String init_cards() {
+    @Override public String init_cards() {
         init_level();
         String cards;
         if (is_GP()) {

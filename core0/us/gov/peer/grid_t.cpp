@@ -41,25 +41,7 @@
 using namespace us::gov::peer;
 using c = us::gov::peer::grid_t;
 
-void c::grid_t::faillog_t::add(const hostport_t& hostport) {
-    ostringstream os;
-    os << peer_t::endpoint(hostport);
-    lock_guard<mutex> lock(mx);
-    push_back(os.str());
-    while(size() > 10) {
-        pop_front();
-    }
-}
-
-void c::grid_t::faillog_t::dump(ostream& os) const {
-    lock_guard<mutex> lock(mx);
-    if (!empty()) os << "last failed attempts:\n";
-    for (auto& i: *this) {
-        os << i << '\n';
-    }
-}
-
-int c::grid_t::num_edges_minage(int secs_old) const {
+int c::num_edges_minage(int secs_old) const {
     lock_guard<mutex> lock(mx_);
     auto now = chrono::system_clock::now();
     int n = 0;
@@ -72,7 +54,7 @@ int c::grid_t::num_edges_minage(int secs_old) const {
     return n;
 }
 
-bool c::grid_t::find(const hash_t& pk) const {
+bool c::find(const hash_t& pk) const {
     for (auto& i: *this) {
         if (i == nullptr) continue;
         if (static_cast<id::peer_t*>(i)->pubkey.hash() == pk) return true;
@@ -80,7 +62,7 @@ bool c::grid_t::find(const hash_t& pk) const {
     return false;
 }
 
-peer_t* c::grid_t::prepare_worker_send(unordered_set<const peer_t*>& visited) {
+peer_t* c::prepare_worker_send(unordered_set<const peer_t*>& visited) {
     log("prepare_worker_send", "visited", visited.size());
     lock_guard<mutex> lock(mx_);
     iterator ipw = begin();
@@ -112,7 +94,7 @@ peer_t* c::grid_t::prepare_worker_send(unordered_set<const peer_t*>& visited) {
     return nullptr;
 }
 
-peer::peer_t* c::grid_t::pick_one() {
+peer::peer_t* c::pick_one() {
     lock_guard<mutex> lock(mx_);
     auto ipw = cbegin();
     auto n = size();
@@ -160,34 +142,29 @@ namespace {
     }
 }
 
-void c::grid_t::watch(ostream& os) const {
-    {
-        lock_guard<mutex> lock(mx_);
-        int j = 0;
-        for (auto i = begin(); i != end(); ++i) {
-            if (i == bi) os << '>'; else os << ' ';
-            os << "[" << j++ << " ";
-            if ((*i) == 0) {
-                os << "--:--:-- ---.---.-.--:----- -]";
-            }
-            else {
-                os << age((*i)->since);
-                os << ' ' << (*i)->endpoint() << "]";
-            }
-            if (j % 5 == 0) os << '\n';
+void c::watch(ostream& os) const {
+    lock_guard<mutex> lock(mx_);
+    int j = 0;
+    for (auto i = begin(); i != end(); ++i) {
+        os << "[" << j++ << " ";
+        if ((*i) == 0) {
+            os << "--:--:-- ---.---.-.--:----- -]";
         }
-        os << '\n';
+        else {
+            os << age((*i)->since);
+            os << ' ' << (*i)->endpoint() << "]";
+        }
+        if (j % 5 == 0) os << '\n';
     }
-    faillog.dump(os);
+    os << '\n';
 }
 
-void c::grid_t::dump(ostream& os) const {
+void c::dump(ostream& os) const {
     lock_guard<mutex> lock(mx_);
     os << "grid size: " << size() << " slots.\n";
     int j = 0;
     for (auto i = begin(); i != end(); ++i) {
-        if (i == bi) os << '>'; else os << ' ';
-        os << "edge #" << j << " client* " << *i  << '\n';
+        os << " edge #" << j << " client* " << *i  << '\n';
         ostringstream pfx;
         pfx << " #" << j++ << ">";
         if (*i == 0) {
@@ -206,7 +183,7 @@ void c::grid_t::dump(ostream& os) const {
     }
 }
 
-bool c::grid_t::ended(peer_t* p) {
+bool c::ended(peer_t* p) {
     log("rm_from_grid", p, p->endpoint());
     lock_guard<mutex> lock(mx_);
     for (auto i = begin(); i != end(); ++i) {
@@ -219,7 +196,7 @@ bool c::grid_t::ended(peer_t* p) {
     return false;
 }
 
-bool c::grid_t::add(peer_t& p, bool check_unique) {
+bool c::add(peer_t& p, bool check_unique) {
     log("add_to_grid", &p, p.endpoint());
     lock_guard<mutex> lock(mx_);
     if (check_unique) {

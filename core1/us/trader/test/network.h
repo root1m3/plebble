@@ -24,15 +24,13 @@
 
 #include <us/test/network.h>
 
-namespace us::trader::test {
+namespace us::test {
 
-    //using namespace std;
+    struct network_c1: network {
+        using b = network;
 
-    struct network: us::test::network {
-        using b = us::test::network;
-
-        network(const string& homedir, const string& logdir, const string& vardir, const string& stage1dir, ostream&);
-        ~network() override;
+        network_c1(const string& homedir, const string& logdir, const string& vardir, const string& stage1dir, ostream&);
+        ~network_c1() override;
 
         void stage1_configure() override;
         void stage1_ff_configure() override;

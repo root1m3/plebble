@@ -25,7 +25,7 @@
 #include <us/gov/crypto/types.h>
 #include <us/gov/engine/net.h>
 
-namespace us { namespace test {
+namespace us::test {
 
     struct pld {
         pld(const hash_t& h, int numnodes): h(h) { a.resize(numnodes, 0); }
@@ -39,7 +39,6 @@ namespace us { namespace test {
         void purge_();
         void newev( hash_t h, int srcport);
         void recv(const hash_t&h, int ndx);
-        //void recvu(const hash_t&h, int ndx);
         void dump(ostream& os) const;
 
         int numnodes{0};
@@ -52,4 +51,5 @@ namespace us { namespace test {
         mutex mx;
     };
 
-}}
+}
+

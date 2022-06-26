@@ -52,12 +52,11 @@ public class scan extends activity implements ZXingScannerView.ResultHandler {
 
     static final int MY_PERMISSIONS_REQUEST_CAMERA = 1873;
 
-    static void log(final String s) { //--strip
-        System.out.println("scan: " + s); //--strip
-    } //--strip
+    static void log(final String s) {       //--strip
+        System.out.println("scan: " + s);   //--strip
+    }                                       //--strip
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    @Override protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_scan);
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
@@ -73,7 +72,6 @@ public class scan extends activity implements ZXingScannerView.ResultHandler {
         contentFrame.addView(mScannerView);
         mScannerView.setResultHandler(this); // Register ourselves as a handler for scan results.
         Bundle bundle = getIntent().getExtras();
-
         if (getIntent().hasExtra("continuous")) {
             cont = bundle.getBoolean("continuous", false);
             tid = new hash_t(bundle.getByteArray("tid"));
@@ -114,31 +112,28 @@ public class scan extends activity implements ZXingScannerView.ResultHandler {
         progressbarcontainer.setVisibility(View.GONE);
     }
 
-    @Override
-    public void onResume() {
+    @Override public void onResume() {
         super.onResume();
         log("onResume"); //--strip
         log("Starting camera"); //--strip
         mScannerView.setResultHandler(this); // Register ourselves as a handler for scan results.
-        mScannerView.startCamera();          // Start camera on resume
+        mScannerView.startCamera(); // Start camera on resume
     }
 
-   @Override
-    public void onPause() {
+    @Override public void onPause() {
         super.onPause();
         log("onPause"); //--strip
         log("Stopping camera"); //--strip
-        mScannerView.stopCamera();           // Stop camera on pause
+        mScannerView.stopCamera(); // Stop camera on pause
     }
 
-    @Override
-    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+    @Override public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
         switch (requestCode) {
-            case MY_PERMISSIONS_REQUEST_CAMERA: {
-                // If request is cancelled, the result arrays are empty.
+            case MY_PERMISSIONS_REQUEST_CAMERA: { // If request is cancelled, the result arrays are empty.
                 if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     // permission was granted, yay!
-                } else {
+                }
+                else {
                     setResult(RESULT_CANCELED);
                     finish();
                 }
@@ -148,11 +143,11 @@ public class scan extends activity implements ZXingScannerView.ResultHandler {
     }
 
     void submit(final String text) {
-        log("submit" + text); //--strip
+        log("submit " + text); //--strip
         a.tone.startTone(ToneGenerator.TONE_CDMA_PIP, 150);
         Intent data = new Intent();
         if (what == 0) {
-            data.putExtra("go_endpoint", text);
+            data.putExtra("go_qr", text);
         }
         else {
             data.putExtra("selection", text);
@@ -161,14 +156,13 @@ public class scan extends activity implements ZXingScannerView.ResultHandler {
         finish();
     }
 
-    @Override
-    public void handleResult(Result rawResult) {
+    @Override public void handleResult(Result rawResult) {
         final String text = rawResult.getText();
+        log("Result: " + text); //--strip
         submit(text);
     }
 
     private ZXingScannerView mScannerView;
-    //ToneGenerator tone;
     boolean cont = false;
     int what = 0;
     hash_t tid;
@@ -255,15 +249,5 @@ public class scan extends activity implements ZXingScannerView.ResultHandler {
         //startActivity(data);
         finish();
     }
-*/
-
-/*
-    void update_basket_serial() {
-        log("update_basket_serial"); //--strip
-        app.assert_ui_thread(); //--strip
-        final app a = (app) getApplication();
-        a.hmi.command_trade(tid, "basket_serial");
-    }
-
 */
 

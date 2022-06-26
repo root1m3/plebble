@@ -55,10 +55,7 @@ ko c::handle_print_grid(string& data) {
     log("print_grid");
     auto& demon = static_cast<daemon_t&>(daemon);
     ostringstream ans;
-    ans << "peers\n";
-    demon.grid.watch(ans);
-    ans << "devices\n";
-    demon.grid_dev.watch(ans);
+    demon.watch(ans);
     data = ans.str();
     return ok;
 }

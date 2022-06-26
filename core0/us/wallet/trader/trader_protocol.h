@@ -57,8 +57,6 @@ namespace us::wallet::engine {
 
 namespace us::wallet::trader {
 
-//    using namespace us::gov;
-
 /*
     /// Resposible of:
     ///   source bitmap (advertisement),
@@ -94,7 +92,7 @@ namespace us::wallet::trader {
         using blob_reader_t = us::gov::io::blob_reader_t;
         using blob_writer_t = us::gov::io::blob_writer_t;
 
-        static const char *WP_29101, *KO_29100; //WayPoint
+        static const char *WP_29101, *KO_29100; //WP=WayPoint
 
         enum push_code_t: uint16_t { //communications node-HMI
             push_begin = 200,
@@ -172,7 +170,7 @@ namespace us::wallet::trader {
         ko on_remote_(const personality::proof_t::raw_t&, ch_t&);
         virtual ko on_remote_(params_t*, ch_t&); //local, remote params changed
         virtual ko rehome(ch_t&); //Produces ppdir from pdir
-        bool rehome_dir(const string& dir, ch_t&); /// returns if personality changed
+        bool rehome_dir(const string& dir, ch_t&); // returns if personality changed
         bool sig_reset(ostream&);
         bool sig_hard_reset(ostream&);
         void sig_reload(ostream&);

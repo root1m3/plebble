@@ -24,7 +24,7 @@
 #include "r2r_t.h"
 #include <us/wallet/wallet/txlog_t.h>
 
-namespace us { namespace test {
+namespace us::test {
 
     using namespace std;
 
@@ -49,5 +49,5 @@ namespace us { namespace test {
 
     };
 
-}}
+}
 

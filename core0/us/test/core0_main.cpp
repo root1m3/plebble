@@ -73,6 +73,8 @@
 #include "network.h"
 #include "w2w_t.h"
 #include "node_bank.h"
+#include "sim/sim.h"
+#include "shard/shard.h"
 
 #define loglevel "test"
 #define logclass "main"
@@ -80,7 +82,7 @@
 
 #include "assert.inc"
 
-namespace us { namespace test {
+namespace us::test {
 
 using namespace std;
 using namespace chrono;
@@ -704,6 +706,8 @@ void test_r2r(const string& homedir, const string& logdir, const string& vardir)
     if (!batch) {
         n.menu();
     }
+    cout << "ended" << endl;
+}
 
     /*
     cout << "=software updates=====================================================================" << endl;
@@ -746,21 +750,6 @@ void test_r2r(const string& homedir, const string& logdir, const string& vardir)
 
     }
 */
-    cout << "ended" << endl;
-}
-
-/*
-#if CFG_LOGS == 0
-#undef log_dir
-namespace {
-    string log_dir() {
-        ostringstream os;
-        os << "logs/us-trader_" << getpid() << '/' << "test_r2r";
-        return os.str();
-    }
-}
-#endif
-*/
 
 void test_nodes_main() {
     string logdir0 = "test_r2r";
@@ -784,11 +773,21 @@ void test_nodes() {
     tee("=========== end testing nodes ==============");
 }
 
+void test_l1_shard() {
+    tee("=================test_shard========================");
+    log("starting thread");
+    us::test::shard o;
+    thread th(&us::test::shard::main, &o); //start new log file
+    th.join();
+    tee("=========== end testing nodes ==============");
+}
 
 void test_perf_encrypt();
 bool valgrind = false;
 bool l1_tests = true;
+bool l1_shard_tests = true;
 bool l2_tests = false;
+bool runsim = false;
 
 void test_l1() {
     signal(SIGPIPE, SIG_IGN);
@@ -853,6 +852,8 @@ void help() {
     cout << "--shell        Bootstrap network and start interactive shell." << endl;
     cout << "--only-r2r     Skip L1 tests." << endl;
     cout << "--only-l1      Skip L2 tests." << endl;
+    cout << "--only-l1-shard" << endl;
+    cout << "--runsim       Run simulations." << endl;
     cout << "--valgrind     Omit heavy tests." << endl;
 }
 
@@ -874,6 +875,14 @@ int core0_main(int argc, char** argv) {
             l1_tests = true;
             l2_tests = false;
         }
+        else if (command == "--only-l1-shard") {
+            l1_tests = false;
+            l1_shard_tests = true;
+            l2_tests = false;
+        }
+        else if (command == "--runsim") {
+            runsim = true;
+        }
         else if (command == "--valgrind") {
             valgrind = true;
         }
@@ -893,8 +902,17 @@ int core0_main(int argc, char** argv) {
         }
     }
 
+    if (runsim) {
+        us::sim::sim_main();
+    	return 0;
+    }
+
     if (l1_tests) {
         test_l1();
+    }
+
+    if (l1_shard_tests) {
+        test_l1_shard();
     }
 
     log_info(cout);
@@ -927,5 +945,5 @@ int core0_main(int argc, char** argv) {
 }
 
 
-}}
+}
 

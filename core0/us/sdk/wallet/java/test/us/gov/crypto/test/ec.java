@@ -23,10 +23,10 @@
 package us.gov.crypto.test;
 
 import java.security.PrivateKey;
-import org.spongycastle.jce.spec.ECPrivateKeySpec;
-import org.spongycastle.jce.spec.ECPublicKeySpec;
-import org.spongycastle.jce.spec.ECParameterSpec;
-import org.spongycastle.crypto.params.ECPrivateKeyParameters;
+import org.bouncycastle.jce.spec.ECPrivateKeySpec;
+import org.bouncycastle.jce.spec.ECPublicKeySpec;
+import org.bouncycastle.jce.spec.ECParameterSpec;
+import org.bouncycastle.crypto.params.ECPrivateKeyParameters;
 import java.security.PublicKey;
 import java.security.KeyPair;
 import java.security.NoSuchProviderException;

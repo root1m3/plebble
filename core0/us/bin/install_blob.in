@@ -1007,6 +1007,7 @@ function do_install {
         echo "KO 76987"
         return 1
     fi
+
     echo "update"
     update
     if [[ $? -ne 0 ]]; then

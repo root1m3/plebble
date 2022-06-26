@@ -18,9 +18,9 @@
 
         <include layout="@layout/toolbar_app"/>
 
-            <include
-                android:id="@+id/addr"
-                layout="@layout/content_node_pairing" />
+        <include
+            android:id="@+id/addr"
+            layout="@layout/content_node_pairing" />
 
     </LinearLayout>
 

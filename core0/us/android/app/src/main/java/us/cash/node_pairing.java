@@ -169,7 +169,6 @@ public final class node_pairing extends activity {
 
     void set_handlers() {
         log("set button handlers"); //--strip
-
         connection_status.setTextIsSelectable(true);
         connection_status.setKeyListener(null);
         connection_status.setOnClickListener(new View.OnClickListener() {
@@ -177,7 +176,6 @@ public final class node_pairing extends activity {
                state.toast_result();
            }
         });
-
 
         addr.setOnFocusChangeListener(new View.OnFocusChangeListener() {
             @Override
@@ -217,9 +215,7 @@ public final class node_pairing extends activity {
                 }
             }
 
-            @Override
-            public void onNothingSelected(AdapterView<?> parentView) {
-
+            @Override public void onNothingSelected(AdapterView<?> parentView) {
             }
         });
 
@@ -236,11 +232,9 @@ public final class node_pairing extends activity {
         });
     }
 
-
     @RequiresApi(api = Build.VERSION_CODES.O)
     @SuppressLint("ResourceType")
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    @Override protected void onCreate(Bundle savedInstanceState) {
         log("on create"); //--strip
         setContentView(R.layout.activity_node_pairing);
         ++instances;
@@ -259,6 +253,7 @@ public final class node_pairing extends activity {
         connect_btn = findViewById(R.id.connect_btn);
         progressbarcontainer = findViewById(R.id.progressbarcontainer);
         mode = findViewById(R.id.mode);
+        upgrade2noncustodial = findViewById(R.id.upgrade2noncustodial);
         imagenode = findViewById(R.id.imagenode);
         swv = findViewById(R.id.swv);
         current_endpoint = findViewById(R.id.current_endpoint);
@@ -530,14 +525,6 @@ public final class node_pairing extends activity {
                         do_test(pin);
                     }
                 })
-                /*
-            .setNegativeButton("Continue without PIN", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        do_test(new pin_t(0));
-                    }
-                })
-                */
             .create();
         dialog.show();
     }
@@ -697,12 +684,14 @@ public final class node_pairing extends activity {
             if (subhome.isEmpty()) {
                 mode.setText(R.string.mode_non_custodial);
                 mode.setTextColor(darkgreen);
+                upgrade2noncustodial.setVisibility(View.GONE);
             }
             else {
                 String mcs = r_(R.string.mode_custodial);
                 log("mcs=" + mcs); //--strip
                 mode.setText(mcs + "\n(subhome " + subhome + ")");
                 mode.setTextColor(orange);
+                upgrade2noncustodial.setVisibility(View.VISIBLE);
             }
             mode.setVisibility(View.VISIBLE);
         }
@@ -789,6 +778,7 @@ public final class node_pairing extends activity {
     TextInputLayout connection_status_lo;
     TextInputLayout addr_lo;
     private TextView mode;
+    MaterialButton upgrade2noncustodial;
     private TextInputLayout imagenode;
     RelativeLayout progressbarcontainer;
     Drawable redled;

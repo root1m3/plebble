@@ -23,8 +23,8 @@
 #pragma once
 #include <unordered_set>
 #include <vector>
-#include <deque>
 #include <mutex>
+
 #include <us/gov/types.h>
 #include <us/gov/crypto/types.h>
 #include <us/gov/socket/types.h>
@@ -34,7 +34,10 @@ namespace us::gov::peer {
     struct peer_t;
 
     struct grid_t: vector<peer_t*> {
-        grid_t(): bi(end()) {}
+
+        grid_t() {}
+        grid_t(const grid_t&) = delete;
+
         bool add(peer_t&, bool check_unique);
         bool ended(peer_t*);
         void dump(ostream&) const;
@@ -44,16 +47,9 @@ namespace us::gov::peer {
         int num_edges_minage(int secs_old) const;
         peer_t* pick_one();
 
-        iterator bi;
         mutable mutex mx_;
 
-        struct faillog_t: deque<string> {
-            mutable mutex mx;
-            void add(const hostport_t&);
-            void dump(ostream&) const;
-        };
 
-        faillog_t faillog;
     };
 
 }

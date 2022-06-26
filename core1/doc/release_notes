@@ -18,6 +18,7 @@ Business Patterns:
 
 
 Shortlisted features/fixes:
+    * trades are lost on restarting daemons, implemented persistemce.
     * GFR - File registry. Git.
     * Address include channel to prevents cross-network tx replay attacks
 
@@ -38,7 +39,7 @@ Shortlisted features/fixes:
       * can be transmitted from device to device, together with a settings string.
       * settings_string, QR-encoded, for LAN and WAN configurations
     * Hackathon - Contest
-      *Zero inflation coins: wallet close_mine <addr> 
+      *Zero inflation coins: wallet close_mint <addr> 
       
     * Fiat Currencies. Shared mints. root mints with not requiring private_key
       * Declare how much USD, EUR, GBP, ... can coin by coining them. 
@@ -49,7 +50,6 @@ Shortlisted features/fixes:
     * us doc spec - Bootstraped Specs seriers of deeply technical documents. us/doc/spec/USPS-SPEC-10 Datagram
     * us gov socket - Enabled Ban blacklist for nodes deemed evil by the heuristics. 
     * Integrate CUREX [Developed by OA between 2015-2016] as matching engine for the DEX      
-    * trades are lost on restarting daemons, implemented persistemce.
     * Random Public AD - 1 bitmap/cycle. Agree on the hash. Available in DFS
     * Private AD. Negotiate the release of a cell of data.
                   Trader protocol policy. Export Control.
@@ -92,6 +92,10 @@ Shortlisted features/fixes:
     * Roles hi-tech startup: CEO2CEO CEO2CTO CTO2CTO DEV2DEV DEV2CTO DEV2CEO
     * Transferable owner locking_program
     * Account immutability flag. Once set: coins have fixed supply. data cannot be modified/removed. locking_program can still be changed (e.g. transfer ownership)
+    * use case: send file with proof of reception: document containning
+        file hash
+        timestamp pubkey signature sender
+        timestamp pubkey signature recipient
 
 In progress/testing:
     * Continuous build System. Produces final assets or error report for every git commit.
@@ -134,8 +138,21 @@ Production releases. beta
 Production releases. alpha
 --------------------------
 
-alpha-34 -
+alpha-36 - 
+    * 
 
+alpha-35 - 
+    * wallet::trader::business_t::interface_version 8->9
+    * android - upgrade to non-custodial button
+    * scalability. sharding simulation test/sim
+    * maskcoord - shard coordinates 
+    * cliques. multidimensional arrangement of tightly connected nodes working on the same shard.
+
+alpha-34 - alpha-34_803807dc 2022-06-07_08-03-43 vhash 803807dc <- R 8b16242a29b9b805c5bc4e5875b8447efdb00cd7 alpha-34 dbg-0 logs-0 counters-0 connlog-0 fcgi-0
+    * android fix bug scan QR
+    * android code lint
+    * android bluetooth connectivity with smartwatches
+    * upnp added standard HTTPS port 16643
 
 alpha-33 - vhash 54c9e6e0 <- R a8b70ebc1053172533bcd817005af42ae384e372 alpha-33 dbg-0 logs-0 counters-0 connlog-0 fcgi-0
     * android app leds repositioning.

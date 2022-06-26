@@ -20,5 +20,8 @@
 //===-
 //===----------------------------------------------------------------------------
 //===-
+include ':app'
 rootProject.name='us-cash'
 
+include ':blesdk_2025'
+include ':wearable_JClife'

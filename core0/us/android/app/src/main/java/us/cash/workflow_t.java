@@ -76,18 +76,5 @@ public class workflow_t extends HashMap<String, pair<workflow_item_t, workflow_i
 
     }
 
-/*
-    public void refresh(trader.data_t data) {
-        for (Map.Entry<String, workflow_item> set : entrySet()) {
-            set.getValue().refresh(data);
-        }
-    }
-
-    public void add_redirection() {
-        put("redir", new workflow_item_redirect(ctx, v, tr));
-    }
-*/
-//    trader tr;
-
 }
 

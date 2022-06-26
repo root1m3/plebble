@@ -159,8 +159,8 @@ void c::run() {
         }
         seq_t seq = 0;
         for (auto& i: v) {
-            log("send file request", i);
-            send(2, 0, blob_writer_t::get_datagram(channel, protocol::dfs_file_request, seq, i));
+            log("send file request to clique", i);
+            clique_send(2, 0, blob_writer_t::get_datagram(channel, protocol::dfs_file_request, seq, i));
         }
         wait();
     }

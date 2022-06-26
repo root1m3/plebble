@@ -70,8 +70,13 @@
 #define CFG_COUNTERS ##str41##
 #define CFG_CONNECTION_LOG ##str42##
 
-#define CFG_CHANNEL ##str6##
+//Mesh Topology
+#define CFG_MAX_NODES ##str46##
 #define CFG_MAX_NODES_PER_IP ##str55##
+#define CFG_ENABLE_SHARDING ##str80##
+#define CFG_SHARD_SIZE ##str81##
+
+#define CFG_CHANNEL ##str6##
 #define CFG_MAX_SUBSIDY ##str30##
 #define CFG_MAX_SIZE_DATAGRAM ##str31##
 #define CFG_LOGS ##str33##
@@ -79,7 +84,6 @@
 #define CFG_PPORT ##str20##
 #define CFG_WALLET_PORT ##str19##
 #define CFG_WALLET_PPORT ##str34##
-#define CFG_MAX_NODES ##str46##
 #define CFG_HMI_READY_TIMEOUT_SECS ##str49##
 #define CFG_MUTATION_PERIOD_SECS ##str50##
 #define CFG_AUTH_TIMEOUT_SECS ##str51##

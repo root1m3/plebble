@@ -25,7 +25,7 @@
 #include <us/gov/crypto/ec.h>
 #include <us/gov/engine/evidence.h>
 
-namespace us { namespace test {
+namespace us::test {
 
     struct okev: us::gov::engine::evidence {
         using b = us::gov::engine::evidence;
@@ -46,6 +46,5 @@ namespace us { namespace test {
         uint16_t src_port;
     };
 
-}}
-
+}
 

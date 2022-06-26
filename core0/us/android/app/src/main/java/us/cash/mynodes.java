@@ -26,11 +26,13 @@ import android.os.Bundle;                                                       
 import androidx.annotation.RequiresApi;                                                        // RequiresApi
 
 public final class mynodes extends activity {
+
     @RequiresApi(api = Build.VERSION_CODES.O)
 
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
+    @Override public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_mynodes);
     }
+
 }
+

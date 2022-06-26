@@ -50,7 +50,6 @@ public class workflow_item_view extends LinearLayout {
         public void on_show(workflow_item_view v);
     }
 
-
     public workflow_item_view(Context context, AttributeSet attrs) {
         super(context, attrs);
     }
@@ -182,16 +181,9 @@ public class workflow_item_view extends LinearLayout {
         button_action.setEnabled(false);
     }
 
-//    void refresh(trader.data_t data) {
-//    }
-
     static int darkgreen = Color.parseColor("#009900");
 
     public trader tr;
-//    public String cmd_action;
-//    public String cmd_content;
-//    public uint16_t code;
-//    public int icon;
     workflow_item_t local;
     workflow_item_t remote;
     workflow_item_doc doc;
