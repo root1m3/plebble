@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="shortcut icon" href="img/plebble_ico.png" type="image/x-icon">
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script async src="animate.js"></script>
+    <script defer src="index.js"></script>
+    <title>Plebble</title>
+</head>
+
+<body>
+
+    <nav class="navbar">
+
+        <img src="img/icoapp.png" alt="">
+
+        <ul class="list">
+            <li> <a href="#introduction">Introduction</a></li>
+            <li> <a href="#hardware">Hardware</a></li>
+            <li> <a href="#Documentation">Documentation</a></li>
+            <li> <a href="#community">Community</a></li>
+        </ul>
+    </nav>
+    <div class="menu-bars " id="menu-bars">
+        <div class="bar1"></div>
+        <div class="bar2"></div>
+        <div class="bar3"></div>
+        <div class="bar4"></div>
+        <div class="bar5"></div>
+    </div>
+    <div class="menu">
+        <ul>
+            <li><a href="#introduction">Introduction</a></li>
+            <li><a href="#hardware">Hardware</a></li>
+            <li><a href="#Documentation">Documentation</a></li>
+            <li><a href="#community">Community</a></li>
+        </ul>
+    </div>
+    <section class="header">
+
+        <h3 class="header__content"> Welcome To plebble a (level 1) Multi Cryptocurrency Ecosystem</h3>
+        <p class="header__text">P2P ecosystem
+            Featuring cooperative consensus among untrusted nodes</p>
+        <div class="buttons">
+            <a href="https://github.com/root1m3/plebble" target="_blank">
+                <button>
+                    <i class="fa-brands faroad fa-github"></i>
+                    <p>contribute to our Github</p>
+                </button>
+            </a>
+        </div>
+    </section>
+    <section class="introduction" id="introduction">
+        <div class="intro__texts">
+            <h1>Introduction</h1>
+            <p>You can think of it as a heavy remake of Bitcoin built 100% from scratch with the following differences:
+            </p>
+        </div>
+
+        <div class="description__text">
+            <div class="text__1" data-aos="fade-left">
+                <i class="fa-solid fas fa-person-digging"></i>
+                <h3 class="text__content">Miners do not exist: All nodes participate in the production of new
+                    blocks, thanks to a novel algorithm called
+                    cooperative consensus.</h3>
+            </div>
+            <div class="text__1" data-aos="fade-left" data-aos-delay="400">
+                <i class="fa-solid fas fa-circle-nodes"></i>
+                <h3 class="text__content">All nodes compute the same block, and all are receiving their share of the
+                    profit from the very first minute. [Universal
+                    Salary]
+                </h3>
+            </div>
+            <div class="text__1" data-aos="fade-right" data-aos-delay="500">
+                <i class="fa-solid fas fa-bitcoin-sign"></i>
+                <h3 class="text__content">Aside from running a single Coin with fixed cryptoeconomics rules, users
+                    are able to create their coins with their own
+                    inlation/deflation laws.
+                </h3>
+            </div>
+            <div class="text__1" data-aos="fade-right" data-aos-delay="600">
+                <i class="fa-solid fas fa-fire"></i>
+                <h3 class="text__content">Instead of having a pointless hardcap, Plebble.GAS cryptoeconomics
+                    algorithm for the supply law is dynamic, printing
+                    and/or burning money algorithmically in order to optimize social efficiency.
+
+                </h3>
+            </div>
+        </div>
+    </section>
+    <section class="runnode" id="hardware">
+        <div class="pleeble__text">
+            <h2>The aim of plebble is to achieve the lowest entry barrier for running a node Using</h2>
+        </div>
+        <div class="node">
+            <div class="card__container" data-aos="fade-down" data-aos-delay="250">
+                <figure class="images__container">
+                    <img src="img/pi4.png" alt="Rasperry pi4">
+                </figure>
+                <div class="card__content">
+                    <h3>Rasberry pi4</h3>
+                    <p>A practical and stable option, meeting the highest standards on privacy and network distribution.
+
+                        hardware shopping_list</p>
+                    <p>Install raspberry pi OS formerly known as raspbian <span>
+                            <a href="https://www.youtube.com/watch?v=ntaXWS8Lk34" target="_blank">(short video)</a>
+                        </span></p>
+                    <p>In step 2 Choose Operating System "Raspberry PI OS (32-bits)" in Raspberry Pi Imager</p>
+                </div>
+            </div>
+            <div class="card__container" data-aos="fade-up" data-aos-delay="400">
+                <div class="image__container">
+                    <img src="img/rasperry2.jpg" alt="Rasperry pi4">
+                </div>
+
+                <div class="card__content">
+                    <h3>Raspberry PI Zero</h3>
+                    <p>An extremely low cost node, it proved to work as a plebble node. simply fantastic!</p>
+                    <p>In step 2 Choose Operating System "Raspberry PI OS (32-bits)" in Raspberry Pi Imager</p>
+                </div>
+            </div>
+            <div class="card__container" data-aos="fade-down" data-aos-delay="500">
+                <figure class="image__container">
+                    <img src="img/server.jpg" alt="Rasperry pi4">
+                </figure>
+                <div class="card__content">
+                    <h3>Hosted VM (Virtual Machine)</h3>
+                    <p>Privacy seeking individuals don't like services in the cloud and will run a node in their own
+                        hardware.
+                        However, people who trust 3rd parties can find it easier to run a plebble node in a
+                        custodial/hosted VM e.g. hiring a
+                        debian 11 droplet at <span>
+                            <a href="https://www.digitalocean.com/">Digital Ocean for $5/mo.</a>
+                        </span> Watch the easy process (implying a few clicks and
+                        pasting a command in the
+                        console) on this <span><a href="https://www.youtube.com/watch?v=5drAx5EYK7s"
+                                target="_blank">recording.</a></span>
+                        hardware shopping_list</p>
+                </div>
+            </div>
+            <div class="card__container" data-aos="fade-up" data-aos-delay="600">
+                <img src="img/anycomputer.jpg" alt="Rasperry pi4">
+                <div class="card__content">
+                    <h3>Any computer based on X86_64 or armv7l</h3>
+                    <p>
+                        <span><a href="https://www.zdnet.com/article/best-raspberry-pi-alternative/">Here</a></span> are
+                        alternative -but untested- low-cost hardware. If you successfully run a node on any let
+                        me know about it.
+                    </p>
+
+                </div>
+            </div>
+        </div>
+    </section>
+    <section class="nodes" id="Documentation">
+        <div class="documentation">
+            <h2>documentation</h2>
+            <p class="documentation__content">Related existing research papers</p>
+        </div>
+        <div class="articles">
+            <div class="article__1">
+                <i class="fa-brands fabit fa-bitcoin"></i>
+                <h1>Bitcoin</h1>
+                <p>A Peer-to-Peer Electronic Cash System.</p>
+                <button><a href="https://plebble.net/bitcoin.pdf">Read more</a></button>
+            </div>
+            <div class="article__1">
+                <i class="fa-solid fashake fa-handshake-simple"></i>
+                <h1>lamport</h1>
+                <p>Reaching Agreement in the Presence of Faults.</p>
+                <button><a href="http://lamport.azurewebsites.net/pubs/reaching.pdf">Read more</a></button>
+            </div>
+            <div class="article__1">
+                <i class="fa-solid faclock fa-clock"></i>
+                <h1>Time</h1>
+                <p>Time, Clocks, and the Ordering of Events in a Distributed System</p>
+                <button><a href="http://lamport.azurewebsites.net/pubs/time-clocks.pdf">Read more</a></button>
+            </div>
+            <div class="article__1">
+                <i class="fa-solid faroad fa-road"></i>
+                <h1>Tolerance</h1>
+                <p>Practical Byzantine Fault Tolerance.</p>
+                <button><a href="https://pmg.csail.mit.edu/papers/osdi99.pdf">Read more</a></button>
+            </div>
+            <div class="article__1">
+                <i class="fa-solid faroad fa-arrow-right-arrow-left"></i>
+                <h1>Scalable Infrastructure</h1>
+                <p>A Scalable and Decentralized Trust Infrastructure.</p>
+                <button><a href="https://arxiv.org/pdf/1804.01626.pdf">Read more</a></button>
+            </div>
+            <div class="article__1">
+                <i class="fa-solid fabook fa-address-book"></i>
+                <h1>Content-Addressable Network</h1>
+                <p>A Scalable Content-Addressable Network.
+                </p>
+                <button><a href="https://people.eecs.berkeley.edu/~sylvia/papers/cans.pdf">Read more</a></button>
+            </div>
+            <div class="article__1">
+                <i class="fa-brands faclock fa-app-store-ios"></i>
+                <h1>Peer-to-Peer Internet Applications</h1>
+                <p>A Scalable Peer-to-peer Lookup Service for Internet Applications.</p>
+                <button><a href="">Read more</a></button>
+            </div>
+            <div class="article__1">
+                <i class="fa-solid fawalk fa-person-walking-luggage"></i>
+                <h1>Service Deployment</h1>
+                <p>A Resilient Global-Scale Overlay for Service Deployment.</p>
+                <button><a href="https://pdos.csail.mit.edu/~strib/docs/tapestry/tapestry_jsac03.pdf"
+                        target="_blank">Read more</a></button>
+            </div>
+            <div class="article__1">
+                <i class="fa-solid fabit fa-info"></i>
+                <h1>peer-to-peer Information System</h1>
+                <p>A peer-to-peer Information System Based on the XOR Metric.
+                </p>
+                <button><a href="https://rowstron.azurewebsites.net/PAST/pastry.pdf" target="_blank">Read
+                        more</a></button>
+            </div>
+            <div class="article__1">
+                <i class="fa-solid faclock fa-globe"></i>
+                <h1>Onion Router</h1>
+                <p>The Second-Generation Onion Router</p>
+                <button><a href="https://svn-archive.torproject.org/svn/projects/design-paper/tor-design.pdf"
+                        target="_blank">Read more</a></button>
+            </div>
+            <div class="article__1">
+                <i class="fa-solid fabook fa-keyboard"></i>
+                <h1>Tree-Based Vote Aggregation</h1>
+                <p>The quest for scaling BFT Consensus through Tree-Based Vote Aggregation.
+                </p>
+                <button><a href="https://arxiv.org/pdf/2103.12112.pdf" target="_blank">Read more</a></button>
+            </div>
+        </div>
+    </section>
+    <section class="community" id="community">
+        <div class="communities">
+            <h2>Our Community</h2>
+        </div>
+        <div class="social__handles">
+            <div class="anchor social reddit">
+                <i class="fa-brands fared fa-reddit"></i>
+                <p><a href="">reddit</a></p>
+            </div>
+            <div class="anchor social twitter">
+                <i class="fa-brands fashake fa-twitter"></i>
+                <p><a href="">twitter</a></p>
+            </div>
+            <div class="anchor social telegram">
+                <i class="fa-brands faclock fa-telegram"></i>
+                <p><a href="">telegram</a></p>
+            </div>
+            <div class="anchor social github">
+                <i class="fa-brands faroad fa-github"></i>
+                <p><a href=""> github</a></p>
+            </div>
+            <div class="anchor social discord">
+                <i class="fa-brands fawalk  fa-discord"></i>
+                <p><a href="">Discord</a></p>
+            </div>
+        </div>
+    </section>
+    <footer class="support">
+        <div class="support__header">
+            <h2>Please consider donating to help the development of this project</h2>
+        </div>
+        <div class="sponsor">
+            <div class="links anchor  patereon">
+                <i class="fa-brands fa-patreon"></i>
+                <p><a href="">Become a <span>patron</span></a></p>
+            </div>
+            <div class="links anchor patereon">
+                <i class="fa-brands fabit fa-bitcoin"></i>
+                <p><a href="">Donate Bitcoin or Fiat via <span>tallycoin</span> </a></p>
+            </div>
+            <div class="links anchor patereon">
+                <i class="fa-brands faroad fa-github"></i>
+                <p><a href="">Sponsor plebble at Github</a></p>
+            </div>
+        </div>
+        <div class="scan">
+            <img src="img/btc" alt="">
+        </div>
+    </footer>
+    <script src="https://kit.fontawesome.com/eaa63b13b2.js" crossorigin="anonymous"></script>
+</body>
+
+</html>
