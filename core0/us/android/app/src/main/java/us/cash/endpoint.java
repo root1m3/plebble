@@ -54,16 +54,10 @@ import android.view.View;                                                       
 import com.google.zxing.WriterException;                                                       // WriterException
 
 public class endpoint extends activity {
-    private ImageView qrcode;
-    private EditText qrtext;
-    private EditText qrlabel;
-    private EditText page;
-    RelativeLayout progressbarcontainer;
-    private toolbar_button refresh;
 
-    static void log(final String line) {         //--strip
-       CFG.log_android("endpoint: " + line);     //--strip
-    }                                            //--strip
+    static void log(final String line) {          //--strip
+        CFG.log_android("endpoint: " + line);     //--strip
+    }                                             //--strip
 
     public class OnSwipeTouchListener implements OnTouchListener {
 
@@ -88,13 +82,11 @@ public class endpoint extends activity {
             private static final int SWIPE_DISTANCE_THRESHOLD = 100;
             private static final int SWIPE_VELOCITY_THRESHOLD = 100;
 
-            @Override
-            public boolean onDown(MotionEvent e) {
+            @Override public boolean onDown(MotionEvent e) {
                 return true;
             }
 
-            @Override
-            public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
+            @Override public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
                 float distanceX = e2.getX() - e1.getX();
                 float distanceY = e2.getY() - e1.getY();
                 if (Math.abs(distanceX) > Math.abs(distanceY) && Math.abs(distanceX) > SWIPE_DISTANCE_THRESHOLD && Math.abs(velocityX) > SWIPE_VELOCITY_THRESHOLD) {
@@ -109,16 +101,14 @@ public class endpoint extends activity {
         }
     }
 
-
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    @Override protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_endpoint);
-        Toolbar toolbar = findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
+        set_content_layout(R.layout.activity_endpoint);
+//        Toolbar toolbar = findViewById(R.id.toolbar);
+//        setSupportActionBar(toolbar);
         toolbar.setTitle(R.string.myendpoint);
-        progressbarcontainer = findViewById(R.id.progressbarcontainer);
-        progressbarcontainer.setVisibility(View.VISIBLE);
+//        progressbarcontainer = findViewById(R.id.progressbarcontainer);
+//        progressbarcontainer.setVisibility(View.VISIBLE);
         refresh = findViewById(R.id.refresh);
         refresh.setVisibility(View.GONE);
         qrcode = findViewById(R.id.qrcode);
@@ -133,26 +123,22 @@ public class endpoint extends activity {
         page.setInputType(InputType.TYPE_NULL);
         page.setKeyListener(null);
         qrtext.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
+            @Override public void onClick(View view) {
                 copy_clip();
             }
         });
         qrcode.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
+            @Override public void onClick(View view) {
                 copy_clip();
             }
         });
         qrcode.setOnTouchListener(new OnSwipeTouchListener(this) {
-            @Override
-            public void onSwipeRight() {
+            @Override public void onSwipeRight() {
                 --index;
                 if (index < 0) index = bookmarks.size() - 1;
                 paintQR();
             }
-            @Override
-            public void onSwipeLeft() {
+            @Override public void onSwipeLeft() {
                 ++index;
                 if (index >= bookmarks.size()) index = 0;
                 paintQR();
@@ -171,7 +157,7 @@ public class endpoint extends activity {
         }
         index = 0;
         paintQR();
-        progressbarcontainer.setVisibility(View.GONE);
+        //progressbarcontainer.setVisibility(View.GONE);
     }
 
     void copy_clip() {
@@ -185,7 +171,6 @@ public class endpoint extends activity {
     public void paintQR() {
         MultiFormatWriter multiFormatWriter = new MultiFormatWriter();
         try {
-
             bookmark_t b = bookmarks.get("" + bookmarks.keySet().toArray()[index]);
             String txt = b.qr.to_string();
             log("my-bookmark=" + txt); //--strip
@@ -215,5 +200,11 @@ public class endpoint extends activity {
 
     bookmarks_t bookmarks = null;
     int index = -1;
+    private ImageView qrcode;
+    private EditText qrtext;
+    private EditText qrlabel;
+    private EditText page;
+//    RelativeLayout progressbarcontainer;
+    private toolbar_button refresh;
 }
 

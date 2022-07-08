@@ -42,14 +42,13 @@ string c::fn_name(const apifun& f, bool side_caller) {
     return os.str();
 }
 
-
-void c::feedback(const string& file) {
+void c::feedback() {
     if (!feedback_enabled) return;
     static int w = 0;
     cout << '.'; cout.flush();
     if (w++ > 40) {
         w = 4;
-        cout << endl << "    ";
+        cout << "\n    ";
     }
 }
 
@@ -57,8 +56,8 @@ namespace {
 
     void mkdir_tree(string sub, string dir) {
         if (sub.length() == 0) return;
-        int i = 0;
-        for (i; i < sub.length(); i++) {
+        size_t i = 0;
+        for (; i < sub.length(); i++) {
             dir += sub[i];
             if (sub[i] == '/')
             break;
@@ -128,7 +127,7 @@ pair<string, string> c::names_out(const apifun& f, bool caller) const {
     return r;
 }
 void c::gen_purevir(const api_t& a, bool side_caller, ostream& os) const {
-    a.info(os);
+    a.info(line_comment(), os);
     for (auto& f: a) {
         gen_purevir(f, side_caller, os);
     }
@@ -140,11 +139,11 @@ void c::gen_purevir(const api_t& a, bool side_caller) const {
     sides_prefix(side_caller, fn);
     fn << "purevir";
     string file = fn.str();
-    feedback(file);
+    feedback();
     ofstream os(file);
-    a.warn_h(os);
+    a.warn_h(line_comment(), os);
     gen_purevir(a, side_caller, os);
-    a.warn_f(os);
+    a.warn_f(line_comment(), os);
 }
 
 void c::gen_purevir(const api_t& a) const {
@@ -153,7 +152,7 @@ void c::gen_purevir(const api_t& a) const {
 }
 
 void c::gen_override(const api_t& a, bool side_caller, ostream& os) const {
-    a.info(os);
+    a.info(line_comment(), os);
     for (auto& i: a) {
         gen_override(i, side_caller, os);
     }
@@ -165,11 +164,11 @@ void c::gen_override(const api_t& a, bool side_caller) const {
     sides_prefix(side_caller, fn);
     fn << "override";
     string file = fn.str();
-    feedback(file);
+    feedback();
     ofstream os(file);
-    a.warn_h(os);
+    a.warn_h(line_comment(), os);
     gen_override(a, side_caller, os);
-    a.warn_f(os);
+    a.warn_f(line_comment(), os);
 }
 
 void c::gen_override(const api_t& a) const {
@@ -192,11 +191,11 @@ void c::gen_rpc_impl(const api_t& a) const {
     sides_prefix(side_caller, fn);
     fn << "rpc-impl";
     string file = fn.str();
-    feedback(file);
+    feedback();
     ofstream os(file);
-    a.warn_h(os);
+    a.warn_h(line_comment(), os);
     gen_rpc_impl(a, side_caller, os);
-    a.warn_f(os);
+    a.warn_f(line_comment(), os);
 }
 
 void c::gen_local_impl(const api_t& a, ostream& os) const {
@@ -214,15 +213,15 @@ void c::gen_local_impl(const api_t& a) const {
     sides_prefix(side_caller, fn);
     fn << "local-impl";
     string file = fn.str();
-    feedback(file);
+    feedback();
     ofstream os(file);
-    a.templ_h(file, os);
+    a.templ_h(line_comment(), file, os);
     gen_local_impl(a, os);
-    a.templ_f(os);
+    a.templ_f(line_comment(), os);
 }
 
 void c::gen_service_router(const api_t& a, bool side_caller, ostream& os) const {
-    a.info(os);
+    a.info(line_comment(), os);
     for (auto& i: a) {
         gen_service_router(i, side_caller, os);
     }
@@ -235,15 +234,15 @@ void c::gen_service_router(const api_t& a) const {
     sides_prefix(side_caller, fn);
     fn << "svc-router";
     string file = fn.str();
-    feedback(file);
+    feedback();
     ofstream os(file);
-    a.warn_h(os);
+    a.warn_h(line_comment(), os);
     gen_service_router(a, side_caller, os);
-    a.warn_f(os);
+    a.warn_f(line_comment(), os);
 }
 
 void c::gen_dto_hdr(const api_t& a, bool side_caller, ostream& os) const {
-    a.info(os);
+    a.info(line_comment(), os);
     os << '\n';
     for (auto& i: a) {
         gen_dto_in_hdr(i, side_caller, os);
@@ -257,11 +256,11 @@ void c::gen_dto(const api_t& a, bool side_caller) const {
     sides_prefix(side_caller, fn);
     fn << "dto-hdr";
     string file = fn.str();
-    feedback(file);
+    feedback();
     ofstream os(file);
-    a.warn_h(os);
+    a.warn_h(line_comment(), os);
     gen_dto_hdr(a, side_caller, os);
-    a.warn_f(os);
+    a.warn_f(line_comment(), os);
 }
 
 void c::gen_dto(const api_t& a) const {
@@ -282,13 +281,13 @@ void c::gen_protocol(const api_t& a, int base) const {
     ostringstream fn;
     write_file_prefix(a, fn);
     fn << "svc";
-    feedback(fn.str());
+    feedback();
     ofstream os(fn.str());
     gen_protocol(a, base, os);
 }
 
 void c::gen_service_handlers(const api_t& a, const string& scope, bool side_caller, ostream& os) const {
-    a.info(os);
+    a.info(line_comment(), os);
     for (auto& i: a) {
         if (gen_service_handlers(i, scope, side_caller, os)) {
             os << '\n';
@@ -308,11 +307,11 @@ void c::gen_service_handlers(const api_t& a, const string& scope) const {
     sides_prefix(side_caller, fn);
     fn << "svc_handler-impl";
     string file = fn.str();
-    feedback(file);
+    feedback();
     ofstream os(file);
-    a.warn_h(os);
+    a.warn_h(line_comment(), os);
     gen_service_handlers(a, scope, side_caller, os);
-    a.warn_f(os);
+    a.warn_f(line_comment(), os);
 }
 
 void c::do_gov_daemon_api(const api_t& a, int base, ostream& counters_include) const {
@@ -328,13 +327,13 @@ void c::gen_gov_daemon_api() const {
     write_file_prefix(fn);
     fn << "datagram_counters";
     string file = fn.str();
-    feedback(fn.str());
+    feedback();
     ofstream include_os(file);
-    api_t::warn_h(include_os);
+    api_t::warn_h(line_comment(), include_os);
     for (auto& i: m) {
         do_gov_daemon_api(*i.first, i.second, include_os);
     }
-    api_t::warn_f(include_os);
+    api_t::warn_f(line_comment(), include_os);
 }
 
 void c::generate() const {

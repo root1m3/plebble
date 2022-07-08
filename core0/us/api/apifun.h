@@ -28,7 +28,7 @@
 #include <map>
 #include <set>
 
-namespace us { namespace apitool {
+namespace us::apitool {
 
     using namespace std;
 
@@ -71,5 +71,6 @@ namespace us { namespace apitool {
         string _api_stream_write_fn_sfx;
         api_t* api{nullptr};
     };
-}}
+
+}
 

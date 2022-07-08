@@ -45,9 +45,6 @@ void help(ostream& os) {
     os << "apitool [no arguments]  Generates api for all supported languages.\n";
 }
 
-#include "coder_cpp.h"
-#include "coder_java.h"
-
 int main(int argc, char** argv) {
     bool gencode = true;
     bool gendoc = false;
@@ -61,7 +58,6 @@ int main(int argc, char** argv) {
         else if (cmd == "gendoc") {
             gencode = false;
             gendoc = true;
-            return 0;
         }
         else {
             cout << "invalid command " << cmd << endl;

@@ -82,7 +82,6 @@ void c::create_shop(const string& r2rhome) {
         cout << "balance: " << ans << endl;
         assert(!ans.empty());
     }
-    //hash_t addr;
     {
         auto r = hmi.rpc_daemon->get_peer().call_new_address(addr);
         if (r != ok) cout << r << endl;

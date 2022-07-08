@@ -112,7 +112,11 @@ namespace us::wallet::cli {
         bool check_rpc(ostream& os, ko& ret) const;
         virtual void setup_signals(bool on);
         void set_mute(bool);
-        void new_trade(const hash_t tid);
+        void new_trade(const hash_t& tid);
+        void enter_trade(const hash_t& tid);
+        void leave_trade(const hash_t& tid);
+        void leave_trade();
+
         virtual us::gov::socket::datagram::dispatcher_t* create_dispatcher();
         virtual pair<ko, gov::io::cfg1*> load_cfg(const string& home, bool gen) const;
         virtual void on_stop();

@@ -49,7 +49,7 @@ namespace us::wallet::wallet {
         using daemon_t = engine::daemon_t;
         using track_status_t = us::gov::engine::track_status_t;
 
-        static const char* KO_10428;
+        static const char* KO_20183;
 
         local_api(engine::daemon_t&, const string& home, const string& subhome, const hash_t& subhomeh, trader::endpoint_t&&);
         ~local_api() override;
@@ -58,7 +58,6 @@ namespace us::wallet::wallet {
         void dump(const string& pfx, ostream& os) const;
         pair<ko, affected_t> track_pay(const asa_t& asa_pay, const asa_t& asa_charge, tx_t&, const hash_t& tid, track_status_t&);
         pair<ko, affected_t> analyze_pay(const asa_t& asa_pay, const asa_t& asa_charge, const tx_t&);
-        //ko track(const ts_t&, track_status_t&);
 
     public: //wallet
         #include <us/api/generated/c++/wallet/wallet/hdlr_override>

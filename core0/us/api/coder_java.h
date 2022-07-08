@@ -25,12 +25,12 @@
 #include <set>
 #include <functional>
 
-namespace us { namespace apitool {
+namespace us::apitool {
     struct apifun;
     struct api_t;
-}}
+}
 
-namespace us { namespace apitool { namespace java {
+namespace us::apitool::java {
 
     using namespace std;
 
@@ -42,6 +42,8 @@ namespace us { namespace apitool { namespace java {
         static unordered_map<string, string> types;
         string get_type(const string&) const override;
         string lang() const override { return "java"; }
+        string line_comment() const override { return "//"; }
+
         void do_device_api(const api_t&, int base) const;
         void gen_service_handlers(const api_t&, const string& scope, ostream&) const;
         void gen_service_handlers(const api_t&, const string& scope) const;
@@ -67,5 +69,5 @@ namespace us { namespace apitool { namespace java {
         void gen_dto_get_datagram(const apifun&, const apifun::io_types_t&, const string& prot_sfx, ostream&) const;
     };
 
-}}}
+}
 

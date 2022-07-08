@@ -1,47 +1,43 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.drawerlayout.widget.DrawerLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/drawer_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fitsSystemWindows="true"
-    tools:openDrawer="start"
+    android:orientation="vertical"
+    android:clickable="true"
     >
-    <LinearLayout android:id="@+id/home_content" android:layout_width="match_parent" android:layout_height="match_parent" android:orientation="vertical">
+    <androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior"
+        android:clickable="true"
+        >
 
-        <include layout="@layout/toolbar_app"/>
-
-
-        <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-            xmlns:app="http://schemas.android.com/apk/res-auto"
-            xmlns:tools="http://schemas.android.com/tools"
-            android:layout_width="match_parent"
+    <LinearLayout 
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:fitsSystemWindows="true"
+        android:orientation="vertical"
+        tools:context=".doc_viewer"
+        android:clickable="true"
+        >
+        <TextView
+            android:id="@+id/content2"
+            android:layout_width="wrap_content"
             android:layout_height="match_parent"
-            android:fitsSystemWindows="true"
-            android:orientation="vertical"
-            tools:context=".tx"
-            android:clickable="true"
-            >
-            <include layout="@layout/content_tx"/>
-
-        </LinearLayout>
-
+            android:layout_margin="@dimen/text_margin"
+            android:text=""
+            android:layout_gravity="center_horizontal"
+            android:textColor="#000000"
+            android:textSize="14dp" />
 
     </LinearLayout>
 
-    <com.google.android.material.navigation.NavigationView
-        android:id="@+id/navigation_view"
-        android:layout_width="wrap_content"
-        android:layout_height="match_parent"
-        android:layout_gravity="start"
-        android:fitsSystemWindows="true"
-        app:headerLayout="@layout/nav_header"
-        app:menu="@menu/activity_home_navigation"
-        app:itemIconTint="@drawable/drawer_item"
-        app:itemTextColor="@drawable/drawer_item"
+    </androidx.core.widget.NestedScrollView>
 
-        />
+</LinearLayout>
 
-</androidx.drawerlayout.widget.DrawerLayout>

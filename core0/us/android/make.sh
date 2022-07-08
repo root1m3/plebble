@@ -92,7 +92,7 @@ echo "gradlecmd $gradlecmd"
 
 #set +e
 r=0
-ANDROID_HOME="`pwd`/android_sdk" ANDROID_SDK_ROOT="$asdk" ./gradlew --console=verbose $gradlecmd || r=$?
+ANDROID_HOME="`pwd`/android_sdk" ANDROID_SDK_ROOT="$asdk" ./gradlew --console=verbose --warning-mode all $gradlecmd || r=$?
 #&& (exit 1)
 
 #set -e

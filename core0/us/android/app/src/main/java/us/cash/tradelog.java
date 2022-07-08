@@ -47,18 +47,17 @@ import android.view.View;                                                       
 
 public final class tradelog extends activity implements datagram_dispatcher_t.handler_t  {
 
-    static void log(final String line) {         //--strip
-       CFG.log_android("tradelog: " + line);     //--strip
-    }                                            //--strip
+    static void log(final String line) {          //--strip
+        CFG.log_android("tradelog: " + line);     //--strip
+    }                                             //--strip
 
     @RequiresApi(api = Build.VERSION_CODES.O)
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    @Override protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_tradelog);
+        set_content_layout(R.layout.activity_tradelog);
         tvlog = findViewById(R.id.log);
-        Toolbar toolbar = findViewById(R.id.toolbar);
-        setSupportActionBar(findViewById(R.id.toolbar));
+//        Toolbar toolbar = findViewById(R.id.toolbar);
+//        setSupportActionBar(findViewById(R.id.toolbar));
 //TODO review
 //        drawerLayout = findViewById(R.id.drawer_layout);
 //        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(this, drawerLayout, toolbar, R.string.bookmarks, R.string.bookmarks);
@@ -71,7 +70,7 @@ public final class tradelog extends activity implements datagram_dispatcher_t.ha
 //        menuItem.setChecked(true);
 
 //        setTitle(R.string.balance);
-        progressbarcontainer = findViewById(R.id.progressbarcontainer);
+//        progressbarcontainer = findViewById(R.id.progressbarcontainer);
         //progressbarcontainer.setVisibility(View.GONE);
         Bundle bundle = getIntent().getExtras();
         tid = new hash_t(bundle.getByteArray("tid"));
@@ -165,14 +164,14 @@ public final class tradelog extends activity implements datagram_dispatcher_t.ha
                 log("log: " + l); //--strip
                 tvlog.setText(l);
                 log("go away courtain"); //--strip
-                progressbarcontainer.setVisibility(View.GONE);
+                //progressbarcontainer.setVisibility(View.GONE);
             }
         });
     }
 
     void fetch() {
         app.assert_ui_thread(); //--strip
-        progressbarcontainer.setVisibility(View.VISIBLE);
+        //progressbarcontainer.setVisibility(View.VISIBLE);
         if (content_type.equals("log")) {
             tvlog.setText("retrieving log...");
             a.hmi.command_trade(tid, "show log");
@@ -194,7 +193,6 @@ public final class tradelog extends activity implements datagram_dispatcher_t.ha
     private TextView tvlog;
     String content_type = "log";
     int dispatchid;
-    RelativeLayout progressbarcontainer;
-
+//    RelativeLayout progressbarcontainer;
 }
 

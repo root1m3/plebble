@@ -736,7 +736,7 @@ blob_t c::push_payload(uint16_t pc, const string& lang) const {
         case push_roles: {
             log("pushing roles");
             protocols_t my_protocols = parent.published_protocols(true);
-            parent.invert(my_protocols);
+            //parent.invert(my_protocols);
             protocols_t p;
             {
                 lock_guard<mutex> lock(mx);

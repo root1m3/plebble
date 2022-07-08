@@ -32,9 +32,6 @@
 #include <us/gov/engine/track_status_t.h>
 #include <us/gov/cli/rpc_peer_t.h>
 
-
-//#include <us/trader/workflow/consumer/docs.h>
-
 #include "node_bank.h"
 #include "dispatcher_t.h"
 #include "main.h"
@@ -44,10 +41,10 @@
 #include <us/gov/logs.inc>
 #include "assert.inc"
 
-using c = us::test::network;
 using namespace std;
 using namespace us;
 using us::ko;
+using c = us::test::network;
 using hash_t = us::gov::crypto::ripemd160::value_type;
 
 string c::OFAddress = "4NwEEwnQbnwB7p8yCBNkx9uj71ru";
@@ -188,10 +185,11 @@ ko c::android_app_test_automatic_updates() {
 ko c::android_app_test() {
     assert(!empty());
     auto& n = *begin()->second;
-    cout << "In settings, connect to wallet at : " << node::localip << ":" << n.wallet->p.listening_port << " channel " << 123 << endl;
-    cout << "Type something to continue" << endl;
-    string input;
-    cin >> input;
+    cout << "In settings (Android app), connect to wallet at : " << node::localip << ":" << n.wallet->p.listening_port << " channel " << 123 << endl;
+    cout << "First connect without PIN to receive an error not-authorized." << endl;
+    cout << "Then type a name for testing the app using a custodial wallet, or just press enter for testing the non-custodial wallet." << endl;
+    string subhome;
+    cin >> subhome;
     {
         auto r = n.wallet_cli->exec("list_devices");
         if (r != ok) {
@@ -220,9 +218,9 @@ ko c::android_app_test() {
         is >> pubk;
         assert(!is.fail());
         {
-            cout << "authorizing " << pubk << endl;
+            cout << "authorizing " << pubk << " subhome " << subhome << endl;
             string ans;
-            auto r = n.wallet_cli->rpc_daemon->get_peer().call_pair_device(us::wallet::cli::rpc_peer_t::pair_device_in_t(pubk, "", "Tests"), ans);
+            auto r = n.wallet_cli->rpc_daemon->get_peer().call_pair_device(us::wallet::cli::rpc_peer_t::pair_device_in_t(pubk, subhome, "Tests"), ans);
             if (r != ok) {
                 cout << r << endl;
                 assert(false);

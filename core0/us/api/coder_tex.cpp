@@ -21,16 +21,44 @@
 //===----------------------------------------------------------------------------
 //===-
 #include "coder_tex.h"
-#include "api_t.h"
+
 #include <sstream>
 #include <cassert>
 #include <fstream>
+
+#include "api_t.h"
+#include "apifun.h"
 
 using namespace std;
 using namespace us::apitool;
 using c = us::apitool::tex::coder;
 
+void c::do_fn(const apifun&, ostream& os) const {
+    os << "  " << "blab bla" << endl;
+}
+
+
+void c::generate(const api_t& a, int svc0) const {
+    ostringstream fn;
+    write_file_prefix(fn);
+    fn << a.name;
+    string file = fn.str();
+    feedback();
+    ofstream os(file);
+    api_t::warn_h(line_comment(), os);
+    os << "Src file " << a.src << endl;
+    for (auto& i: a) {
+        os << "Function Name " << i.name << endl;
+        do_fn(i, os);
+    }
+    api_t::warn_f(line_comment(), os);
+
+}
+
 void c::generate() const {
+    for (auto& i: m) {
+        generate(*i.first, i.second);
+    }
 /*
     ostringstream fn;
     write_file_prefix(fn);

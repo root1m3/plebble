@@ -100,10 +100,12 @@ public abstract class rpc_daemon_t extends daemon0_t {
         super.task_wakeup();
     }
 
-    public String rewrite(ko r) {
+    @Override public String rewrite(ko r) {
+        log("rewrite"); //--strip
         if (r == rendezvous_t.KO_20190) {
             String x = peer_t.lasterror.get();
             assert x != null;
+            log("rewrite returns lasterror: " + x); //--strip
             return x;
         }
         return super.rewrite(r);

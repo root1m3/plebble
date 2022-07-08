@@ -93,7 +93,6 @@ public class hmi_t extends us.wallet.cli.hmi {
             super(other);
         }
 
-
         public static File get_download_file(Context ctx, String file) {
             log("file " + file); //--strip
             log("Environment.getExternalStorageDirectory()=" + Environment.getExternalStorageDirectory()); //--strip
@@ -612,8 +611,7 @@ public class hmi_t extends us.wallet.cli.hmi {
         activity.main.on_hmi__worker(KO_10001);
     }
 
-    @Override
-    public void on_peer_disconnected(final reason_t reason) {
+    @Override public void on_peer_disconnected(final reason_t reason) {
         log("peer disconnected. Reason: " + reason.value); //--strip
         set_status(leds_t.led_red, KO_10000.msg + " Reason given: " + reason.value);
         is_online = false;
@@ -621,8 +619,7 @@ public class hmi_t extends us.wallet.cli.hmi {
         super.on_peer_disconnected(reason);
     }
 
-    @Override
-    public void verification_completed(boolean verok) { //boolean means if peer pubkey is verified
+    @Override public void verification_completed(boolean verok) { //boolean means if peer pubkey is verified
         log("verification_completed " + verok); //--strip
         super.verification_completed(verok);
         is_online = verok;

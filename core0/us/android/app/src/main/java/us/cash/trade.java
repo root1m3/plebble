@@ -51,7 +51,7 @@ import android.view.View;                                                       
 public class trade implements Comparable<trade> {
 
     static void log(final String line) {                        //--strip
-        System.out.println("trade: " + line);                     //--strip
+        System.out.println("trade: " + line);                   //--strip
     }                                                           //--strip
 
     public trade(String line0) {
@@ -66,29 +66,7 @@ public class trade implements Comparable<trade> {
             ts_creation = Long.parseLong(field[1]);
             ts_activity = Long.parseLong(field[2]); // Long.parseUnsignedLong(field[2]);  reqs. API26
             caption = field[3] + ' ' + field[4] + ' ' + field[5];
-/*
-            try {
-                ep = new trader_endpoint_t(field[3]+' '+field[4]+' '+field[5]);
-            }
-            catch(Exception e) {
-                //log("KO 44039"); //--strip
-                ep = null;
-            }
-*/
-            //pkh=new hash_t();
-            //protocol=;
-            //role=field[5];
         }
-/* tid is null when invalid. This block can hide errors by turning invalid trades valid
-        else {
-            tid=line;
-            ts_creation=ts_activity=0L;
-            pkh=""; //line;
-            port="";
-            protocol="";
-            role="";
-        }
-*/
     }
 
     public String caption(int field) {
@@ -99,40 +77,9 @@ public class trade implements Comparable<trade> {
             return "Idle for " + TimeUnit.SECONDS.toSeconds(n.getTime() - d.getTime()) + " seconds." + ts_activity;
         }
         return caption;
-//        return endpoint();
-/*
-    //TODO Remove this code:
-        String spkh = ep.wloc.first.encode();
-        if (spkh.equals("2i35c5Urfa1PrUFtSzFa3eBgVasS")) {
-            spkh = "Dr Megan Hall - GP";
-        }
-        else if (spkh.equals("6vAWK14ssvmnDGYLxDC4sAyrR9t")) {
-            spkh = "Impact Shopping";
-        }
-        else if (spkh.equals("4Tr81agLbMR43goFwu4SetMqZwDa")) {
-            spkh = "Sothecam NeOS - AI";
-        }
-        else if (spkh.equals("2Mm1Pz3RuKQG4RSU6thuSX5fbdAg")) {
-            spkh = "Dr Joshua Warner - Dermatologist";
-        }
-        else if (spkh.equals("2T1LngV2jcxVZguYY62Kf7tmUvQ3")) {
-            spkh = "Riverside Pharmacy";
-        }
-        else {
-            spkh = endpoint();
-        }
-        return spkh;
-*/
     }
 
-/*
-    public String endpoint() {
-        return ep.endpoint();
-    }
-*/
-
-    @Override
-    public int compareTo(trade other) {
+    @Override public int compareTo(trade other) {
         if (ts_activity < other.ts_activity) return 1;
         if (ts_activity > other.ts_activity) return -1;
         return 0;
@@ -143,14 +90,5 @@ public class trade implements Comparable<trade> {
     public Long ts_activity;
     public String ts_activity2;
     public String caption;
-//    public endpoint_t ep = null;
-/*
-    public hash_t pkh;
-    public String wloc=null;
-    public String protocol;
-    public String role;
-*/
-   // public String ip;
-   // public String port;
 }
 

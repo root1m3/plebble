@@ -44,6 +44,7 @@ namespace us::test {
         void create_node(const string&);
 
         virtual vector<string> r2r_libs(bool filter_not_active);
+        string thome() const;
 
         void install_r2r_libs();
 

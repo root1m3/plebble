@@ -119,26 +119,6 @@ ko c::exec_offline(const string& cmd0, ch_t& ch) {
             return ok;
         }
     }
-/*
-    if (cmd == "track") { //trackid
-        log("track");
-        track_t track;
-        is >> track;
-        if (is.fail()) {
-            auto r = "KO 65899 Invalid track_id.";
-            log(r);
-            return move(r);
-        }
-        track_status_t track_status;
-        auto r = w().track(track, tder->id, track_status);
-        if (is_ko(r)) {
-            return r;
-        }
-        ostringstream os;
-        track_status.dump(os);
-        return tder->push_OK(os.str());
-    }
-*/
     auto r = WP_29101;
     log(r);
     return move(r);

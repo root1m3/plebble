@@ -51,7 +51,7 @@ namespace us::gov::engine {
             assert(e == 0);
         }
 
-        track_status_t(const ts_t& from, const ts_t& to, const evt_status_t& st, const string& info): from(from), to(to), st(st), info(info) { assert(info.empty()); }
+        track_status_t(const ts_t& from, const ts_t& to, const evt_status_t& st, const string& info): from(from), to(to), st(st), info(info) { assert(!info.empty()); }
         track_status_t(const ts_t& from, const ts_t& to, const evt_status_t& st): from(from), to(to), st(st) {}
         track_status_t(const ts_t& ts, const evt_status_t& st): from(ts), to(ts + 1), st(st) {}
         track_status_t(const ts_t& ts, const evt_status_t& st, const string& info): from(ts), to(ts + 1), st(st), info(info) { assert(info.empty()); }

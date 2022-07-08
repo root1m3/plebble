@@ -59,12 +59,9 @@ ${LIBUSTEST}.so: ${OBJS} ${HS}
 	$(CXX) -fPIC ${CXXFLAGS} ${INC} -MMD -MP -c $< -o $@
 
 clean:
-	rm -f ${LIBUSTEST}.so
+	$(RM) ${LIBUSTEST}.so
 	$(RM) ${OBJS}
 	$(RM) ${DEPENDS}
-#	rm *.o -f
-#	rm net/*.o -f
-#	rm sim/*.o -f
 
 .PHONY: all clean
 

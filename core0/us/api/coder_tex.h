@@ -39,7 +39,11 @@ namespace us::apitool::tex {
         coder(model& m): b(m) {}
 
         string lang() const override { return "tex"; }
+        string line_comment() const override { return "%"; }
+
         void generate() const;
+        void generate(const api_t&, int svc0) const;
+        void do_fn(const apifun&, ostream&) const;
 
         string get_type(const string&) const override { return ""; }
         bool gen_service_handlers(const apifun&, const string& scope, bool side_caller, ostream&) const override { return false; }

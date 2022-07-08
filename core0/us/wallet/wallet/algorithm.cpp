@@ -140,6 +140,9 @@ std::pair<ko, hash_t> c::select_receiving_account() const { //the account with b
         log(r);
         return make_pair(r, hash_t());
     }
+    if (data->empty()) {
+
+    }
     cash_t maxv = 0;
     std::pair<ko, hash_t> ans{nullptr, hash_t()};
     for (auto& i: *data) {

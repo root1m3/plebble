@@ -1006,7 +1006,7 @@ ko c::handle_trade(trade_in_dst_t&& o_in, hash_t& tid) {
 }
 
 ko c::handle_list_trades(string& data) {
-    log("list_trades");
+    log("list_trades subhomeh", subhomeh);
     ostringstream os;
     daemon.traders.list_trades(subhomeh, os);
     data = os.str();
@@ -1242,12 +1242,6 @@ ko c::handle_nodes_deny(nodes_deny_in_dst_t&& o_in, blob_t& blob_ev) {
 }
 
 #endif
-
-/*
-ko c::track(const ts_t& ts, track_status_t& track_status) {
-    return daemon.gov_rpc_daemon.get_peer().call_track(ts, track_status);
-}
-*/
 
 pair<ko, c::affected_t> c::track_pay(const asa_t& asa_pay, const asa_t& asa_charge, tx_t& tx, const hash_t& tid, track_status_t& track_status) {
     log("track_pay");

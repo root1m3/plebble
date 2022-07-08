@@ -41,7 +41,7 @@
 
 #include "protocol.h"
 
-namespace us { namespace trader { namespace r2r { namespace bid2ask { namespace bid {
+namespace us::trader::r2r::bid2ask::bid {
 
     struct business_t: us::wallet::trader::business_t {
         using b = us::wallet::trader::business_t;
@@ -65,5 +65,5 @@ namespace us { namespace trader { namespace r2r { namespace bid2ask { namespace 
 
     };
 
-}}}}}
+}
 

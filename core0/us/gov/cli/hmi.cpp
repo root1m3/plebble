@@ -741,6 +741,7 @@ string c::rewrite(ko r) const {
         return string(r) + "; Type -h for help.";
     }
     if (rpc_daemon) return rpc_daemon->rewrite(r);
+    if (r != nullptr) return r;
     return "";
 }
 

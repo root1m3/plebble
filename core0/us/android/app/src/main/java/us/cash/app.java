@@ -98,9 +98,9 @@ public final class app extends Application {
     public static String KO_68874 = "KO 68874 Invalid endpoint";
     static final String SETTINGS_JSON_PRIVATE_FILE = "node_settings.json";
 
-    static void log(final String line) {         //--strip
-       CFG.log_android("app: " + line);          //--strip
-    }                                            //--strip
+    static void log(final String line) {          //--strip
+        CFG.log_android("app: " + line);          //--strip
+    }                                             //--strip
 
     public static void assert_ui_thread() {                                 //--strip
         if (!Looper.getMainLooper().isCurrentThread()) {                    //--strip
@@ -122,14 +122,12 @@ public final class app extends Application {
         void on_progress(final String line);
     }
 
-    @Override
-    protected void attachBaseContext(Context base) {
+    @Override protected void attachBaseContext(Context base) {
         super.attachBaseContext(base);
         error_manager.setup(base, this);
     }
 
-    @Override
-    public void onConfigurationChanged(Configuration newConfig) {
+    @Override public void onConfigurationChanged(Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
     }
 
@@ -138,7 +136,7 @@ public final class app extends Application {
         log("----------------------APP CONSTRUCTOR--------------------");   //--strip
         log("Stack Trace at begining");                                     //--strip
         log(Arrays.toString(Thread.currentThread().getStackTrace()));       //--strip
-//CFG.sdk_logs = true; //--strip
+CFG.sdk_logs = true; //--strip
         log("SDK logs: " + CFG.sdk_logs);                                   //--strip
         us.CFG.logs.set(CFG.sdk_logs);                                      //--strip
     }
@@ -537,11 +535,10 @@ public final class app extends Application {
     }
 
     public void start_protocol(final hash_t tid, final String procol) {
-        log("start_protocol "+tid.encode()+" "+procol); //--strip
+        log("start_protocol " + tid.encode() + " " + procol); //--strip
         Thread thread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                log("starting protocol "+procol); //--strip
+            @Override public void run() {
+                log("starting protocol " + procol); //--strip
                 hmi.command_trade(tid, "start " + procol);
             }
         });
@@ -573,7 +570,7 @@ public final class app extends Application {
             BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
             String receiveString = "";
             StringBuilder stringBuilder = new StringBuilder();
-            while ( (receiveString = bufferedReader.readLine()) != null ) {
+            while ((receiveString = bufferedReader.readLine()) != null) {
                 stringBuilder.append(receiveString);
             }
             inputStream.close();
@@ -691,5 +688,6 @@ public final class app extends Application {
     public ArrayList<String> notification_trades_id =  new ArrayList<String>();
     public i18n_t i18n;
     ToneGenerator tone;
+
 }
 

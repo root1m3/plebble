@@ -46,17 +46,9 @@ import android.view.View;                                                       
 
 public abstract class role_fragment extends Fragment implements datagram_dispatcher_t.handler_t {
 
-    static void log(final String line) {         //--strip
-       CFG.log_android("role_fragment: " + line);   //--strip
-    }                                            //--strip
-
-    //abstract View inflate(LayoutInflater inflater, ViewGroup container);
-
-/*
-    public void init_widgets(View root) {
-        log("init_widgets"); //--strip
-    }
-*/
+    static void log(final String line) {             //--strip
+        CFG.log_android("role_fragment: " + line);   //--strip
+    }                                                //--strip
 
     public role_fragment() {
         logo = true;
@@ -70,25 +62,15 @@ public abstract class role_fragment extends Fragment implements datagram_dispatc
         return "";
     }
 
-    @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle saved_state) {
+    @Override public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle saved_state) {
         log("onCreateView"); //--strip
         View v = inflater.inflate(R.layout.role_fragment, container, false);
         content = v.findViewById(R.id.role_content);
         scroll =  v.findViewById(R.id.scroll);
-//        return v;
-/*
-        View v = inflate(inflater, container);
-        if (v == null) {
-            log("KO 40037"); //--strip
-            return null;
-        }
-*/
         tr = (trader)getActivity();
         assert tr != null;
         a = (app) tr.getApplication();
         assert a != null;
-
         if (tr.getIntent().hasExtra("tid")) {
             Bundle bundle = tr.getIntent().getExtras();
             tid = new hash_t(bundle.getByteArray("tid"));
@@ -98,7 +80,6 @@ public abstract class role_fragment extends Fragment implements datagram_dispatc
             tr.finish();
             return null;
         }
-
         if (logo) {
             _logo_view = (logo_view) inflater.inflate(R.layout.logo, null);
             content.addView(_logo_view);
@@ -115,34 +96,21 @@ public abstract class role_fragment extends Fragment implements datagram_dispatc
         _redirects_view = (redirects_view) inflater.inflate(R.layout.redirects, null);
         content.addView(_redirects_view);
         _redirects_view.init(this, getActivity());
-/*
-        {
-            String st = data.find("local__redirects");
-            if (st != null) {
-                String[] x = st.split(" ", 2);
-                trade_state = Integer.parseInt(x[0]);
-                log("trade_state = " + trade_state + " " + x[1]); //--strip
-            }
-        }
-*/
 
         String cards = init_cards();
         _workflow_view.init(this, cards, new workflow_item_view.on_click_listener() {
-                @Override
-                public void on_send(workflow_item_view v) {
+                @Override public void on_send(workflow_item_view v) {
                     String docname = v.local.name;
                     log("on_send " + docname); //--strip
                     a.hmi.command_trade(tr.tid, "send " + docname);
                 }
-                @Override
-                public void on_show(workflow_item_view v) {
+                @Override public void on_show(workflow_item_view v) {
                     String docname = v.local.name;
                     log("on_show " + docname); //--strip
                     String sendcmd = "";
                     if (v.local.mode == workflow_item_t.mode_t.mode_send) {
                         sendcmd = "send " + docname;
                     }
-
                     launch_doc_viewer(a.i18n.resolve(activity.a.i18n_sid(docname)), docname, "show " + docname + " -p", sendcmd);
                 }
             });
@@ -152,8 +120,7 @@ public abstract class role_fragment extends Fragment implements datagram_dispatc
         return v;
     }
 
-    @Override
-    public void onDestroyView() {
+    @Override public void onDestroyView() {
         super.onDestroyView();
         log("onDestroyView"); //--strip
         assert a != null;
@@ -163,6 +130,7 @@ public abstract class role_fragment extends Fragment implements datagram_dispatc
     }
 
     @Override public void on_push(final hash_t target_tid, final uint16_t code, final byte[] payload) {
+        log("on_push " + tid.encode() + " " + target_tid.encode() + " code " + code.value + " payload BIN sz: " + payload.length + " bytes"); //--strip
         if (!target_tid.equals(tid)) {
             log("not for me"); //--strip
             return;
@@ -195,39 +163,7 @@ public abstract class role_fragment extends Fragment implements datagram_dispatc
                 _redirects_view.set_redirects(bm);
                 return;
             }
-            case us.gov.relay.pushman.push_ko: {
-                string s = new string();
-                blob_reader_t rder = new blob_reader_t(new blob_t(payload));
-                ko r = rder.read(s);
-                if (is_ko(r)) {
-                    toast__worker("error arrived (Unparseable)");
-                    return;
-                }
-                toast__worker(s.value);
-                return;
-            }
-            case us.gov.relay.pushman.push_ok: {
-                string s = new string();
-                blob_reader_t rder = new blob_reader_t(new blob_t(payload));
-                ko r = rder.read(s);
-                if (is_ko(r)) {
-                    toast__worker("Ok arrived (Unparseable)");
-                    return;
-                }
-                toast__worker(s.value);
-                return;
-            }
         }
-    }
-
-    void toast__worker(final String msg) {
-        tr.runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                Toast.makeText(tr.getApplicationContext(), msg, 6000).show();
-            }
-        });
-
     }
 
     static final int DOC_VIEWER_RESULT = 49832;
@@ -239,8 +175,6 @@ public abstract class role_fragment extends Fragment implements datagram_dispatc
         intent.putExtra("fname", "tid_" + tr.tid.encode() + "_" + fname);
         intent.putExtra("fetch_content_cmd", fetch_content_cmd);
         intent.putExtra("action_cmd", action_cmd);
-//        intent.putExtra("doccode",doccode);
-//        intent.putExtra("icon", icon);
         startActivityForResult(intent, DOC_VIEWER_RESULT);
     }
 

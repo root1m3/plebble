@@ -74,7 +74,7 @@ public class trader extends activity implements datagram_dispatcher_t.handler_t 
     static final int PROTOCOLROLE_RESULT = 902;
 
     static void log(final String line) {         //--strip
-       CFG.log_android("trader: " + line);      //--strip
+        CFG.log_android("trader: " + line);      //--strip
     }                                            //--strip
 
     public synchronized data_t get_data() {
@@ -100,11 +100,8 @@ public class trader extends activity implements datagram_dispatcher_t.handler_t 
     @Override protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         log("onCreate"); //--strip
-        setContentView(R.layout.activity_trader);
-        Toolbar toolbar = findViewById(R.id.toolbar);
-        setSupportActionBar(findViewById(R.id.toolbar));
+        set_content_layout(R.layout.activity_trader);
         tradeid = findViewById(R.id.tradeid);
-        progressbarcontainer = findViewById(R.id.progressbarcontainer);
         if (getIntent().hasExtra("tid")) {
             Bundle bundle = getIntent().getExtras();
             tid = new hash_t(bundle.getByteArray("tid"));
@@ -137,6 +134,7 @@ public class trader extends activity implements datagram_dispatcher_t.handler_t 
                 invalidate_data_fetch0();
             }
         });
+        refresh.setVisibility(View.VISIBLE);
         procol.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 log("TOUCHED ROLE VIEW"); //--strip
@@ -191,9 +189,11 @@ public class trader extends activity implements datagram_dispatcher_t.handler_t 
             }
             break;
             case us.wallet.trader.trader_t.push_roles: {
+                log("roles"); //--strip
                 us.wallet.trader.roles_t roles = new us.wallet.trader.roles_t();
                 ko r = us.gov.io.blob_reader_t.parse(new blob_t(payload), roles);
                 if (is_ko(r)) {
+                    log(r.msg); //--strip
                     return;
                 }
                 log("roles for me");  //--strip
@@ -216,8 +216,7 @@ public class trader extends activity implements datagram_dispatcher_t.handler_t 
 
     void chat_handlers() {
         button_chat.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
+            @Override public void onClick(View view) {
                 if (sheetBehavior.getState() == BottomSheetBehavior.STATE_HIDDEN) {
                     sheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
                 }
@@ -249,8 +248,7 @@ public class trader extends activity implements datagram_dispatcher_t.handler_t 
                 }
             }
 
-            @Override
-            public void onSlide(@NonNull View view, float v) {
+            @Override public void onSlide(@NonNull View view, float v) {
 
             }
         });
@@ -259,8 +257,7 @@ public class trader extends activity implements datagram_dispatcher_t.handler_t 
     void openchat_worker(final byte[] chatpayload) {
         app.assert_worker_thread(); //--strip
         runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
+            @Override public void run() {
                 openchat(chatpayload);
             }
         });
@@ -365,10 +362,8 @@ public class trader extends activity implements datagram_dispatcher_t.handler_t 
     boolean setdata__worker(final String sdata) {
         app.assert_worker_thread(); //--strip
         setdata1(sdata);
-
         runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
+            @Override public void run() {
                 log("data has been renewed -> refresh"); //--strip
                 refresh();
             }
@@ -389,12 +384,11 @@ public class trader extends activity implements datagram_dispatcher_t.handler_t 
 
     void get_sourceshit(String key, Context ctx) {
         app.assert_ui_thread(); //--strip
-
         if (command_show_param(key, ctx)) {
             return;
         }
         log("requesting " + key); //--strip
-        request_item(key, ctx); //ask other node
+        request_item(key, ctx);
     }
 
     void on_redirect(final bookmark_t redirect) {
@@ -405,7 +399,6 @@ public class trader extends activity implements datagram_dispatcher_t.handler_t 
     }
 
     public void go_parent_trade() {
-
         if (parent_trade == null) {
             log("KO 01281 Nowhere to go"); //--strip
             return;
@@ -414,25 +407,21 @@ public class trader extends activity implements datagram_dispatcher_t.handler_t 
             log("KO 01282 Nowhere to go"); //--strip
             return;
         }
-
         Intent data = new Intent();
         main.go_trade(parent_trade);
     }
 
     public void setmode_loading() {
         app.assert_ui_thread(); //--strip
-        progressbarcontainer.setVisibility(View.VISIBLE);
     }
 
     public void setmode_ready() {
         app.assert_ui_thread(); //--strip
-        progressbarcontainer.setVisibility(View.GONE);
     }
 
     public void setmode_wrong(final String reason) {
         log("setmode_wrong " + reason); //--strip
         app.assert_ui_thread(); //--strip
-        progressbarcontainer.setVisibility(View.GONE);
     }
 
     public void invalidate_data_fetch0() {
@@ -639,7 +628,6 @@ public class trader extends activity implements datagram_dispatcher_t.handler_t 
 
     boolean command_show_param(final String key, Context ctx) {
         app.assert_ui_thread(); //--strip
-
         boolean rr = require_request(key);
         if (rr) {
             String val = data.find(key);
@@ -709,8 +697,7 @@ public class trader extends activity implements datagram_dispatcher_t.handler_t 
 
     void archive() {
         runOnUiThread(new Thread(new Runnable() {
-            @Override
-            public void run() {
+            @Override public void run() {
                 Toast.makeText(trader.main, "This trade has been archived.", 6000).show();
                 finish();
             }
@@ -721,7 +708,7 @@ public class trader extends activity implements datagram_dispatcher_t.handler_t 
         app.assert_ui_thread(); //--strip
         final pair<ko, String> b = a.hmi.kill_trade(tid);
         if (is_ko(b.first)) {
-            Toast.makeText(trader.this, b.first.msg, 6000).show();
+            Toast.makeText(trader.this, a.hmi.rewrite(b.first), 6000).show();
             return;
         }
         finish();
@@ -732,7 +719,6 @@ public class trader extends activity implements datagram_dispatcher_t.handler_t 
     private TextView tradeid;
     private fragment_trader ft = null;
     private role_fragment specialized_fragment = null;
-    private RelativeLayout progressbarcontainer;
     private int vf; //displayed fragment
     public hash_t tid;
     public hash_t parent_trade = null;

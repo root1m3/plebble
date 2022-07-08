@@ -63,10 +63,10 @@ void c::gen_gov_protocol_counters_init(const api_t& a, int base, ostream& includ
     ostringstream fn;
     write_file_prefix(a, fn);
     fn << "counters_init";
-    feedback(fn.str());
+    feedback();
     ofstream os(fn.str());
-    a.warn_h(os);
-    a.info(os);
+    a.warn_h(line_comment(), os);
+    a.info(line_comment(), os);
     assert(!a.v.empty());
     auto f = a.begin();
     int n = 1;
@@ -74,7 +74,7 @@ void c::gen_gov_protocol_counters_init(const api_t& a, int base, ostream& includ
         os << "emplace(" << protocol_prefix << "" << a.v[n].first << ", new iodata());\n";
         ++n;
     }
-    a.warn_f(os);
+    a.warn_f(line_comment(), os);
     include << "#include \"" << a.name << "/counters_init\"\n";
 }
 
@@ -84,7 +84,7 @@ void c::gen_fcgi_index(const apifun& f, ostream& os) const {
 }
 
 void c::gen_fcgi_index(const api_t& a, ostream& os) const {
-    a.info(os);
+    a.info(line_comment(), os);
     for (auto& i: a) {
         gen_fcgi_index(i, os);
     }
@@ -95,11 +95,11 @@ void c::gen_fcgi_index(const api_t&a) const {
     write_file_prefix(fn);
     fn << "links_" << a.name << "_fcgi_query_strings";
     string file = fn.str();
-    feedback(file);
+    feedback();
     ofstream os(file);
-    a.warn_h(os);
+    a.warn_h(line_comment(), os);
     gen_fcgi_index(a, os);
-    a.warn_f(os);
+    a.warn_f(line_comment(), os);
 }
 
 void c::gen_purevir(const apifun& f, bool side_caller, ostream& os) const {
@@ -651,7 +651,7 @@ void c::gen_dto_get_datagram(const apifun& f, const apifun::io_types_t& iotypes,
 void c::gen_dto_in_dst_constructor(const apifun& f, ostream& os) const {
     string pfx = "    ";
     string pfxb = "        ";
-    const apifun::io_types_t& iotypes = f.in;
+    //const apifun::io_types_t& iotypes = f.in;
     os << pfx << f.name << "_in_dst_t() {}\n";
     os << "\n";
 }
@@ -730,7 +730,7 @@ void c::gen_dto_out_constructor(const apifun& f, ostream& os) const {
 void c::gen_dto_out_dst_constructor(const apifun& f, ostream& os) const {
     string pfx = "    ";
     string pfxb = "        ";
-    const apifun::io_types_t& iotypes = f.out;
+    //const apifun::io_types_t& iotypes = f.out;
     os << pfx << f.name << "_out_dst_t() {}\n";
     os << "\n";
 }
@@ -785,8 +785,8 @@ void c::gen_dto_out_hdr(const apifun& f, bool side_caller, ostream& os) const {
 }
 
 void c::gen_protocol(const api_t& a, int nbase, ostream& os) const {
-    a.warn_h(os);
-    a.info(os);
+    a.warn_h(line_comment(), os);
+    a.info(line_comment(), os);
     assert(!a.v.empty());
     int n = 0;
     const string& base = a.v[0].first;
@@ -805,7 +805,7 @@ void c::gen_protocol(const api_t& a, int nbase, ostream& os) const {
     }
     os << "    static constexpr svc_t " << protocol_prefix << a.v[n].first << "{" << protocol_prefix << base << " + " << s << "}; /" << "/ svc " << (nbase + s) << '\n';
     os << '\n';
-    a.warn_f(os);
+    a.warn_f(line_comment(), os);
 }
 
 bool c::gen_service_handlers(const apifun& f, const string& scope, bool side_caller, ostream& os) const {
@@ -987,7 +987,7 @@ bool c::gen_service_handlers_response(const apifun& f, const string& scope, bool
 }
 
 void c::gen_service_handler_headers(const api_t& a, const string& scope, bool side_caller, ostream& os) const {
-    a.info(os);
+    a.info(line_comment(), os);
     for (auto& f: a) {
         os << "bool process_" << f.sync_type << "_api__" << f.service << "(datagram*);\n";
         if (f.is_sync() && f.out.async_handler) {
@@ -1003,10 +1003,10 @@ void c::gen_service_handler_headers(const api_t&a, const string& scope) const {
     sides_prefix(side_caller, fn);
     fn << "svc_handler-hdr";
     string file = fn.str();
-    feedback(file);
+    feedback();
     ofstream os(file);
-    a.warn_h(os);
+    a.warn_h(line_comment(), os);
     gen_service_handler_headers(a, scope, side_caller, os);
-    a.warn_f(os);
+    a.warn_f(line_comment(), os);
 }
 

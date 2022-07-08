@@ -35,10 +35,10 @@ namespace us {
 
 }
 
-namespace us { namespace trader { namespace r2r { namespace bid2ask {
+namespace us::trader::r2r::bid2ask {
 
     using namespace us;
     using namespace us::gov;
 
-}}}}
+}
 

@@ -41,45 +41,24 @@ import android.net.Uri;                                                         
 import android.view.View;                                                                      // View
 
 public class selitems extends activity {
-    String tradeid;
-    no_scroll_list_view lv;
-    ArrayList<String> shit;
-    private MaterialButton cancel;
-    RelativeLayout progressbarcontainer;
-    Toolbar toolbar;
+//    RelativeLayout progressbarcontainer;
+//    Toolbar toolbar;
 
     static void log(final String line) {         //--strip
-       CFG.log_android("selitems: " + line);   //--strip
+        CFG.log_android("selitems: " + line);    //--strip
     }                                            //--strip
 
-//TODO review
-    void maproc() {
-        //drawerLayout = ma.findViewById(R.id.drawer_layout);
-//        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(main, main.drawerLayout, main.toolbar, R.string.bookmarks, R.string.bookmarks);
-//        main.drawerLayout.addDrawerListener(toggle);
-//        toggle.syncState();
-        //ma.navigationView = findViewById(R.id.navigation_view);
-//        ma.navigationView.setNavigationItemSelectedListener(this);
-//        Toolbar toolbar = findViewById(R.id.toolbar);
-//        setSupportActionBar(findViewById(R.id.toolbar));
-    }
-
-
     @RequiresApi(api = Build.VERSION_CODES.O)
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    @Override protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_selitems);
+        set_content_layout(R.layout.activity_selitems);
 
-
-        maproc();
-
-        toolbar = findViewById(R.id.toolbar);
+//        toolbar = findViewById(R.id.toolbar);
 
 //        Menu nav_menu = navigationView.getMenu();
         //MenuItem menuItem = nav_menu.findItem(R.id.nav_balance);
         //menuItem.setChecked(true);
-        progressbarcontainer = findViewById(R.id.progressbarcontainer);
+//        progressbarcontainer = findViewById(R.id.progressbarcontainer);
 
         cancel = findViewById(R.id.cancel);
         Bundle bundle = getIntent().getExtras();
@@ -115,8 +94,13 @@ public class selitems extends activity {
             }
         });
 
-        progressbarcontainer.setVisibility(View.GONE);
+        //progressbarcontainer.setVisibility(View.GONE);
 
     }
+
+    //String tradeid;
+    no_scroll_list_view lv;
+    ArrayList<String> shit;
+    private MaterialButton cancel;
 }
 

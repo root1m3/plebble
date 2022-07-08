@@ -60,23 +60,23 @@ function procblob {
     set +x
     echo "local_hash $local_hash"
 
-    if [ "_$upstream_hash" == "_$local_hash" ]; then
+    if [[ "_$upstream_hash" == "_$local_hash" ]]; then
         echo "==OK=============>Blob $upstream_hash is already in the matrix."
-        if [ ! -f /home/gov/.${US}/gov/fsroot/$local_hash ]; then
+        if [[ ! -f /home/gov/.${US}/gov/fsroot/$local_hash ]]; then
             echo "/home/gov/.${US}/gov/fsroot/$local_hash doesnt exist. Send againg tx."
         else
             return;
         fi
     fi
-    if [ "_$upstream_hash" != "_" ]; then
-        if [ "_$upstream_hash" == "_$local_hash" ]; then
+    if [[ "_$upstream_hash" != "_" ]]; then
+        if [[ "_$upstream_hash" == "_$local_hash" ]]; then
             echo "==!!=============>Local file is missing"
         else
             echo "==!!=============>Upstream has old version $upstream_hash. Replacing it with $local_hash"
-            sleep 2
-            set -x
-            $wallet rm $address -f $upstream_hash $blobid || exit 1
-            set +x
+#            sleep 2
+#            set -x
+#            $wallet rm $address -f $upstream_hash $blobid || exit 1
+#            set +x
         fi
     else
         echo "Not upstream"
@@ -87,7 +87,7 @@ function procblob {
     set -x
     $wallet store $address -f $local_blob $blobid || exit 1
     set +x
-    if [ ! -f /home/gov/.${US}/gov/fsroot/$local_hash ]; then
+    if [[ ! -f /home/gov/.${US}/gov/fsroot/$local_hash ]]; then
         echo "KO 94483 /home/gov/.${US}/fsroot/$local_hash doesnt exist"
         exit 1
     fi

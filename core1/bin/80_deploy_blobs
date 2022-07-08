@@ -64,8 +64,8 @@ function repeat_step2 {
     done
 }
 
-#repeat_step2
-##exit 0
+repeat_step2
+exit 0
 
 if [[ ! -d blobs ]]; then
    echo "KO 2291 blobs dir doesn't exists"

@@ -26,9 +26,10 @@
 #include <string_view>
 #include <map>
 #include <set>
+
 #include "api_t.h"
 
-namespace us { namespace apitool {
+namespace us::apitool {
 
     using namespace std;
 
@@ -45,5 +46,5 @@ namespace us { namespace apitool {
         string process;
     };
 
-}}
+}
 

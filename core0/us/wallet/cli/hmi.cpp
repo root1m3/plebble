@@ -397,23 +397,61 @@ void c::join() {
     cfg = nullptr;
 }
 
-void c::new_trade(const hash_t tid) {
+void c::new_trade(const hash_t& tid) {
+    if (cur.is_not_zero()) {
+        return;
+    }
+    enter_trade(tid);
+}
+
+void c::enter_trade(const hash_t& tid) {
     if (interactive) {
         screen::lock_t lock(scr, true);
-        lock.os << "New trade " << tid << '\n';
+        lock.os << "Entering trade " << tid << '\n';
     }
-    if (cur.is_zero()) {
-        cur = tid;
-        curpro = "";
+    cur = tid;
+    curpro = "";
+    {
+        lock_guard<mutex> lock(data.mx);
+        data.clear();
     }
+    {
+        lock_guard<mutex> lock(roles.mx);
+        roles.clear();
+    }
+}
+
+void c::leave_trade() {
+    if (interactive) {
+        screen::lock_t lock(scr, true);
+        lock.os << "Leaving trade " << cur << '\n';
+    }
+    cur = hash_t(0);
+    curpro = "";
+    {
+        lock_guard<mutex> lock(data.mx);
+        data.clear();
+    }
+    {
+        lock_guard<mutex> lock(roles.mx);
+        roles.clear();
+    }
+}
+
+void c::leave_trade(const hash_t& tid) {
+    if (cur != tid) return;
+    leave_trade();
 }
 
 bool c::trade_interactive(shell_args& args, const hash_t& tid) { //return: exit parent loop
     log("trade. interactive");
     scr << "Trading shell. Trade " << tid << '\n';
     string line = args.next_line();
-    cur = tid;
-    curpro = "";
+    enter_trade(tid);
+    //cur = tid;
+    //curpro = "";
+    //data = data_t();
+    //roles = roles_t();
     bool ret;
     while (rpc_daemon->is_active()) {
         log("wapi.exec_trade", tid, line);
@@ -431,21 +469,26 @@ bool c::trade_interactive(shell_args& args, const hash_t& tid) { //return: exit 
         }
         scr.flush();
         { /// Set prompt
-            lock_guard<mutex> lock(data.mx);
-            auto i = data.find("protocol");
-            if (i == data.end()) {
-                scr.prompt = "trade";
+            ostringstream os;
+            if (cur.is_zero()) {
+                os << "trade";
             }
             else {
-                ostringstream os;
+                os << cur;
+            }
+            lock_guard<mutex> lock(data.mx);
+            auto i = data.find("protocol");
+            if (i != data.end()) {
                 curpro = i->second;
                 if (curpro == "not set") {
                     curpro = "";
                 }
                 us::gov::io::cfg0::trim(curpro);
-                os << tid << "-" << curpro;
-                scr.prompt = os.str();
+                if (!curpro.empty()) {
+                    os << '-' << curpro;
+                }
             }
+            scr.prompt = os.str();
         }
         line = scr.capture_input(*rpc_daemon);
         if (!rpc_daemon->is_active()) {
@@ -453,8 +496,7 @@ bool c::trade_interactive(shell_args& args, const hash_t& tid) { //return: exit 
             break;
         }
     }
-    cur = hash_t(0);
-    curpro = "";
+    leave_trade();
     return ret;
 }
 
@@ -2331,8 +2373,11 @@ bool c::dispatcher_t::dispatch(us::gov::socket::datagram* d) {
                 break;
                 case trader_t::push_killed: {
                     log("trader_t::kill_trade ", o_in.tid);
-                    screen::lock_t lock(scr, m.interactive);
-                    lock.os << "Trade " << o_in.tid << " has been killed.\n";
+                    {
+                        screen::lock_t lock(scr, m.interactive);
+                        lock.os << "Trade " << o_in.tid << " has been killed.\n";
+                    }
+                    m.leave_trade(o_in.tid);
                 }
                 break;
             }
@@ -2375,8 +2420,8 @@ bool c::dispatcher_t::dispatch(us::gov::socket::datagram* d) {
                             break;
                         }
                         {
-                        lock_guard<mutex> lock(m.assets_mx);
-                        m.data.from(payload);
+                            lock_guard<mutex> lock(m.assets_mx);
+                            m.data.from(payload);
                         }
                         screen::lock_t lock(scr, m.interactive);
                         lock.os << "Data:\n";

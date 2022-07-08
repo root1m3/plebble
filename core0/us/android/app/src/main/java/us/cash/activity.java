@@ -33,50 +33,103 @@ import androidx.annotation.Nullable;                                            
 import java.util.concurrent.locks.ReentrantLock;                                               // ReentrantLock
 import android.widget.Toast;                                                                   // Toast
 import android.view.View;                                                                      // View
+import com.google.android.material.navigation.NavigationView;                                  // NavigationView
+import androidx.appcompat.widget.Toolbar;                                                      // Toolbar
+import android.widget.RelativeLayout;                                                          // RelativeLayout
+import android.view.Menu;                                                                      // Menu
+import android.view.MenuItem;                                                                  // MenuItem
+import android.widget.LinearLayout;                                                            // LinearLayout
+import android.view.LayoutInflater;                                                            // LayoutInflater
+import android.content.Context;                                                                // Context
+import android.view.Window;                                                                    // Window
+import androidx.drawerlayout.widget.DrawerLayout;                                              // DrawerLayout
+import androidx.appcompat.app.ActionBarDrawerToggle;                                           // ActionBarDrawerToggle
+import android.view.ViewGroup.LayoutParams;
 
-public class activity extends AppCompatActivity {
+public class activity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
 
-    static void log(final String line) {        //--strip
-       CFG.log_android("activity: " + line);    //--strip
-    }                                           //--strip
+    static void log(final String line) {         //--strip
+        CFG.log_android("activity: " + line);    //--strip
+    }                                            //--strip
 
     public activity() {
         locale.update(this);
     }
 
-    @Override
-    protected void onCreate(@Nullable Bundle savedInstanceState) {
+    @Override protected void onCreate(@Nullable Bundle savedInstanceState) {
+        log("onCreate"); //--strip
+        log("requestWindowFeature"); //--strip
+        requestWindowFeature(Window.FEATURE_NO_TITLE);
+        log("super.onCreate"); //--strip
         super.onCreate(savedInstanceState);
+        log("setContentView"); //--strip
+        setContentView(R.layout.activity);
     }
 
-    @Override
-    public void onResume() {
+    public void set_content_layout(int res) {
+        log("set_content_layout"); //--strip
+        LinearLayout contentparent = findViewById(R.id.home_content);
+        LinearLayout content = (LinearLayout) View.inflate(this, res, null);
+        content.setLayoutParams(new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.FILL_PARENT));
+        contentparent.addView(content);
+        contentparent.invalidate();
+        toolbar = findViewById(R.id.toolbar);
+        toolbar_button refresh = findViewById(R.id.refresh);
+        drawer_layout = findViewById(R.id.drawer_layout);
+        navigation = findViewById(R.id.navigation_view);
+        toolbar = findViewById(R.id.toolbar);
+        refresh.setVisibility(View.GONE);
+        //toolbar.setTitle("");
+        log("toolbar visible");//--strip
+        toolbar.setVisibility(View.VISIBLE);
+        setSupportActionBar(toolbar);
+        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(this, drawer_layout, toolbar, R.string.bookmarks, R.string.bookmarks);
+        drawer_layout.addDrawerListener(toggle);
+        toggle.syncState();
+        navigation.setNavigationItemSelectedListener(this);
+        //tests to recognize new IPs
+        //if (!wifiManager.isWifiEnabled()) {
+        //    Toast.makeText(this, "WiFi is disabled ... We need to enable it", Toast.LENGTH_LONG).show();
+        //    wifiManager.setWifiEnabled(true);
+        //}
+        //scanWifiNetworks();
+        Menu nav_menu = navigation.getMenu();
+        updateavailable = nav_menu.findItem(R.id.nav_updateavailable);
+        if (a.sw_updates.is_updateavailable){
+            updateavailable.setVisible(true);
+        }
+        else {
+            updateavailable.setVisible(false);
+        }
+        boolean showiot = false;
+        //release builds (which don't incluce lines marked '--strip' ) doesn't show the experimental IoT menu.
+        showiot = true; //--strip
+        if (showiot) {
+            nav_menu.add(R.id.group5, 5948, Menu.NONE, "IoT");
+        }
+    }
+
+    @Override public void onResume() {
         log("onResume"); //--strip
         super.onResume();
-        log("onResume - A"); //--strip
         a.set_foreground_activity(this, true);
-        log("onResume - A1.5"); //--strip
         resume_leds();
         if (a.hmi == null) {
             log("HMI is null"); //--strip
             return;
         }
-        log("onResume - A2"); //--strip
         if (walletd_leds != null || govd_leds != null) {
             Thread worker = new Thread(new Runnable() {
-                @Override
-                public void run() {
+                @Override public void run() {
                     if (walletd_leds != null) a.hmi.report_status();
                     if (govd_leds != null) a.hmi.report_status_gov();
                 }
             });
             worker.start();
         }
-        log("onResume - A3"); //--strip
     }
 
-    @Override
-    public void onPause() {
+    @Override public void onPause() {
         super.onPause();
         a.set_foreground_activity(this, false);
     }
@@ -84,12 +137,17 @@ public class activity extends AppCompatActivity {
     void locale_init() {
         String lang = locale.get_lang(this);
         String country = locale.get_country(this);
-        if (lang==null || country==null){
+        if (lang == null || country == null){
             locale.set(new Locale("en", "GB"));
         }
         else {
             locale.set(new Locale(lang, country));
         }
+    }
+
+    @SuppressWarnings("StatementWithEmptyBody")
+    @Override public boolean onNavigationItemSelected(MenuItem menu_item) {
+        return main.onNavigationItemSelected(menu_item);
     }
 
     public static void wait_main() {
@@ -124,27 +182,23 @@ public class activity extends AppCompatActivity {
     }
 
     View.OnClickListener get_on_click_listener() {
-        activity ac=this;
+        activity ac = this;
         return new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
+            @Override public void onClick(View v) {
                 String[] options = {"Go to network settings...", "Test leds.", a.getResources().getString(R.string.cancel)};
-                new AlertDialog.Builder(ac).setTitle("Quick access to...")
-                    .setItems(options,new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            switch(which) {
-                                case 0:
-                                    activity.main.launch_settings();
-                                    break;
-                                case 1:
-                                    activity.a.led_test();
-                                    break;
-                                case 2:
-                            }
+                new AlertDialog.Builder(ac).setTitle("Quick access to...").setItems(options,new DialogInterface.OnClickListener() {
+                    @Override public void onClick(DialogInterface dialog, int which) {
+                        switch(which) {
+                            case 0:
+                                activity.main.launch_settings();
+                                break;
+                            case 1:
+                                activity.a.led_test();
+                                break;
+                            case 2:
                         }
-                    })
-                    .setIcon(R.drawable.ic_world).show();
+                    }
+                }).setIcon(R.drawable.ic_world).show();
             }
         };
     }
@@ -188,8 +242,7 @@ public class activity extends AppCompatActivity {
 
     public void report_ko__worker(final ko r) {
         runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
+            @Override public void run() {
                 report_ko(r);
             }
         });
@@ -205,8 +258,7 @@ public class activity extends AppCompatActivity {
         app.assert_worker_thread(); //--strip
         leds_visible_gov = b;
         runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
+            @Override public void run() {
                 resume_govd_leds();
             }
         });
@@ -232,5 +284,10 @@ public class activity extends AppCompatActivity {
     static Condition cv = lock.newCondition();
     leds_t walletd_leds = null;
     leds_t govd_leds = null;
+    Toolbar toolbar;
+    public NavigationView navigation;
+    public DrawerLayout drawer_layout;
+    private MenuItem updateavailable;
+
 }
 

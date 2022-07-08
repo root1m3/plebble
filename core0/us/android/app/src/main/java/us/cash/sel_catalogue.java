@@ -52,40 +52,15 @@ import android.view.View;                                                       
 
 public class sel_catalogue extends activity {
 
-    static void log(final String line) {         //--strip
-       CFG.log_android("sel_catalogue: " + line);   //--strip
-    }                                            //--strip
-
-//TODO review
-    void maproc() {
-        //drawerLayout = ma.findViewById(R.id.drawer_layout);
-//        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(main, main.drawerLayout, main.toolbar, R.string.bookmarks, R.string.bookmarks);
-//        main.drawerLayout.addDrawerListener(toggle);
-//        toggle.syncState();
-        //ma.navigationView = findViewById(R.id.navigation_view);
-//        ma.navigationView.setNavigationItemSelectedListener(this);
-//        Toolbar toolbar = findViewById(R.id.toolbar);
-//        setSupportActionBar(findViewById(R.id.toolbar));
-    }
-
+    static void log(final String line) {             //--strip
+        CFG.log_android("sel_catalogue: " + line);   //--strip
+    }                                                //--strip
 
     @RequiresApi(api = Build.VERSION_CODES.O)
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    @Override protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.sel_catalogue);
-
-
-        maproc();
-
-        toolbar = findViewById(R.id.toolbar);
-
-//        Menu nav_menu = navigationView.getMenu();
-        //MenuItem menuItem = nav_menu.findItem(R.id.nav_balance);
-        //menuItem.setChecked(true);
-        progressbarcontainer = findViewById(R.id.progressbarcontainer);
-        LinearLayout content = findViewById(R.id.content);
-
+        set_content_layout(R.layout.sel_catalogue);
+        LinearLayout content = findViewById(R.id.content2);
         cancel = findViewById(R.id.cancel);
         Bundle bundle = getIntent().getExtras();
         toolbar.setTitle(bundle.getString("title"));
@@ -131,16 +106,6 @@ public class sel_catalogue extends activity {
                 }
             }
         );
-        /*
-        String[] x = src.split(" ");
-        if (x.length < 15) return;
-        if (!x[0].equals("cat")) {
-            return;
-        }
-        if (!x[5].equals("compact_form")) {
-            return;
-        }
-        */
         String v = doc.params.get("compact_form");
         if (v == null) {
             log("KO 20913"); //--strip
@@ -162,32 +127,6 @@ public class sel_catalogue extends activity {
         basket.from(cat);
         log("basket from catalogue sz " + basket.size()); //--strip
         _basket_view.refresh(basket);
-
-
-//        shit = new ArrayList<String>();
-
-//        Collections.addAll(shit, sourceshit);
-//        Collections.sort(shit);
-
-//        ArrayAdapter adapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, shit); //R.layout.trades_listitem
-
-//        lv = (no_scroll_list_view) findViewById(R.id.listview);
-//        lv.setAdapter(adapter);
-
-/*
-        lv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            public void onItemClick(AdapterView parentView, View childView, int position, long id) {
-//                String[] items=shit.get(position).split("\\s");
-//                go_trade(items[0],items[1],items[2]);
-                Intent data = new Intent();
-                data.setData(Uri.parse(shit.get(position)));
-                setResult(RESULT_OK, data);
-                finish();
-
-            }
-        });
-*/
-
         cancel.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -195,19 +134,9 @@ public class sel_catalogue extends activity {
                 finish();
             }
         });
-
-        progressbarcontainer.setVisibility(View.GONE);
-
     }
 
-
-
-//    String tradeid;
-//    no_scroll_list_view lv;
-//    ArrayList<String> shit;
     private MaterialButton cancel;
-    RelativeLayout progressbarcontainer;
-    Toolbar toolbar;
     basket_view _basket_view;
 }
 

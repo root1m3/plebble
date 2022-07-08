@@ -116,13 +116,13 @@ function wget_cache {
     url=$1
     out=$2
     hash=`echo "--$url--" | sha256sum | awk '{print $1}'`
-    while [ true ]; do
-            if [ -f $cachedir/$hash ]; then
-        echo "Copying from cached file $cachedir/$hash"
-        cp $cachedir/$hash $out
-        return
-            fi
-            echo "updating cache $cachedir/$hash"
+    while [[ true ]]; do
+        if [[ -f $cachedir/$hash ]]; then
+            echo "Copying from cached file $cachedir/$hash"
+            cp $cachedir/$hash $out
+            return
+        fi
+        echo "updating cache $cachedir/$hash"
         mkdir -p $cachedir
         wget $url -O $cachedir/$hash
     done

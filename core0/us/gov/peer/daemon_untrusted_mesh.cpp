@@ -146,7 +146,9 @@ void c::grid_rotate(nodes_t& nodes, mutex& nodes_mx, grid_t& grid) {
 }
 
 void c::run() {
-    log_start(logdir, "peer_daemon");
+    #if CFG_LOGS == 1
+        log_start(logdir, "peer_daemon");
+    #endif
     log("open-untrusted mesh configuration");
     if (unlikely((*clique.begin())->size() == 0)) {
         log("End. edges 0");

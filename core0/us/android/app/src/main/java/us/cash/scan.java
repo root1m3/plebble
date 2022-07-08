@@ -58,13 +58,13 @@ public class scan extends activity implements ZXingScannerView.ResultHandler {
 
     @Override protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_scan);
+        set_content_layout(R.layout.activity_scan);
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, new String[] {Manifest.permission.CAMERA}, 50);
         }
-        Toolbar toolbar = findViewById(R.id.toolbar);
-        setSupportActionBar(findViewById(R.id.toolbar));
-        progressbarcontainer = findViewById(R.id.progressbarcontainer);
+//        Toolbar toolbar = findViewById(R.id.toolbar);
+//        setSupportActionBar(findViewById(R.id.toolbar));
+//        progressbarcontainer = findViewById(R.id.progressbarcontainer);
         toolbar_button refresh = findViewById(R.id.refresh);
         refresh.setVisibility(View.GONE);
         ViewGroup contentFrame = findViewById(R.id.content_frame);
@@ -109,7 +109,7 @@ public class scan extends activity implements ZXingScannerView.ResultHandler {
             endpoint_paste.setVisibility(View.GONE);
             toolbar.setTitle("Product scanner");
         }
-        progressbarcontainer.setVisibility(View.GONE);
+        //progressbarcontainer.setVisibility(View.GONE);
     }
 
     @Override public void onResume() {
@@ -166,7 +166,7 @@ public class scan extends activity implements ZXingScannerView.ResultHandler {
     boolean cont = false;
     int what = 0;
     hash_t tid;
-    RelativeLayout progressbarcontainer;
+//    RelativeLayout progressbarcontainer;
 
 }
 

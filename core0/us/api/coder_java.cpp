@@ -51,7 +51,6 @@ unordered_map<string, string> c::types {
     {"v{hu4u2}", "vector_tuple_hash_host_port"},
 };
 
-
 string c::get_type(const string& mne) const {
     auto i = types.find(mne);
     if (i != types.end()) return i->second;
@@ -490,7 +489,7 @@ void c::gen_dto_get_datagram(const apifun& f, const apifun::io_types_t& iotypes,
 void c::gen_dto_in_dst_constructor(const apifun& f, ostream& os) const {
     string pfx = "    ";
     string pfxb = "        ";
-    const apifun::io_types_t& iotypes = f.in;
+    //const apifun::io_types_t& iotypes = f.in;
     os << pfx << "public " << f.name << "_in_dst_t() {}\n";
     os << "\n";
 }
@@ -566,7 +565,7 @@ void c::gen_dto_out_constructor(const apifun& f, ostream& os) const {
 void c::gen_dto_out_dst_constructor(const apifun& f, ostream& os) const {
     string pfx = "    ";
     string pfxb = "        ";
-    const apifun::io_types_t& iotypes = f.out;
+    //const apifun::io_types_t& iotypes = f.out;
     os << pfx << "public " << f.name << "_out_dst_t() {}\n";
     os << "\n";
 }
@@ -621,8 +620,8 @@ void c::gen_dto_out_hdr(const apifun& f, bool side_caller, ostream& os) const {
 }
 
 void c::gen_protocol(const api_t& a, int nbase, ostream& os) const {
-    a.warn_h(os);
-    a.info(os);
+    a.warn_h(line_comment(), os);
+    a.info(line_comment(), os);
     assert(!a.v.empty());
     int n = 0;
     const string& base = a.v[0].first;
@@ -641,7 +640,7 @@ void c::gen_protocol(const api_t& a, int nbase, ostream& os) const {
     }
     os << '\n';
     os << "    public static final int " << protocol_prefix << a.v[n].first << " = " << (nbase + s) << "; /" << "/ svc " << (nbase + s) << '\n';
-    a.warn_f(os);
+    a.warn_f(line_comment(), os);
 }
 
 bool c::gen_service_handlers(const apifun& f, const string& scope, bool side_caller, ostream& os) const {

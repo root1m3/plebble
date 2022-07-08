@@ -104,15 +104,6 @@
             android:paddingLeft="8dp"
             android:paddingRight="8dp"
              >
-<!--
-            <TextView
-                android:id="@+id/protocolrolelbl"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="16dp"
-                android:text="@string/protocolandrole"
-                />
--->
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/initiator_selectprotocol"
                 android:text="@string/select_protocol_role"
@@ -122,18 +113,6 @@
                 android:drawablePadding="20dp"
                 android:textAlignment="textStart"
                 android:textColor="@android:color/white"/>
-<!--                    
-                                <Spinner
-                android:id="@+id/initiator_selectprotocol"
-                android:layout_width="fill_parent"
-                android:layout_height="wrap_content"
-                android:foregroundTint="#000000"
-                android:layout_marginLeft="20dp"
-                android:spinnerMode="dropdown"
-                android:prompt="@string/select_protocol_role"
-                android:hint="@string/select_protocol_role"
-                android:tooltipText="@string/select_protocol_role"/>
--->
         </android.widget.LinearLayout>
 
         <androidx.cardview.widget.CardView
@@ -195,8 +174,8 @@
                                 android:layout_marginStart="8dp"
                                 android:layout_marginTop="8dp"
                                 android:text="@string/personality" />
-                        </android.widget.LinearLayout>
 
+                        </android.widget.LinearLayout>
 
                         <TextView
                             android:id="@+id/personality_initiator"
@@ -395,3 +374,4 @@
     </android.widget.LinearLayout>
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
+

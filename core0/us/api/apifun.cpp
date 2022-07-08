@@ -61,7 +61,7 @@ string c::io_types_t::identifierX(const vector<pair<string, string>>& v) {
 string c::io_types_t::identifierX(const string& s0) {
     string s = s0;
     char* p = const_cast<char*>(s.c_str());
-    for (int i = 0; i < s.size(); ++i) {
+    for (size_t i = 0; i < s.size(); ++i) {
         if (*p == '{') { *p = '_'; }
         else if (*p == '}') { *p = '_'; }
         ++p;
@@ -138,7 +138,7 @@ bool c::io_types_t::from_stream(istream& is) {
 
 c c::example1() {
     c r;
-    int n;
+    //int n;
     r.name = "f1";
     r.sync_type = "async";
     return r;
@@ -146,7 +146,7 @@ c c::example1() {
 
 c c::from_stream(istream& is) {
     c r;
-    int n;
+    //int n;
     {
         string spec;
         getline(is, spec);

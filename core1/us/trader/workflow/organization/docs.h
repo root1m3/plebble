@@ -25,7 +25,7 @@
 #include <us/wallet/trader/workflow/signed_doc_t.h>
 #include <us/wallet/trader/workflow/expiry_doc_t.h>
 
-namespace us { namespace trader { namespace workflow { namespace organization {
+namespace us::trader::workflow::organization {
     using magic_t = us::wallet::trader::workflow::doc0_t::magic_t;
 
     struct appointment_traits {
@@ -44,5 +44,5 @@ namespace us { namespace trader { namespace workflow { namespace organization {
     };
     using reference_t = us::wallet::trader::workflow::doc_t<us::wallet::trader::workflow::doc0_t, reference_traits>;
 
-}}}}
+}
 

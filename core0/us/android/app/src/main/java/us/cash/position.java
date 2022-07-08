@@ -68,9 +68,9 @@ import android.view.View;                                                       
 
 public final class position extends activity {
 
-    static void log(final String line) {         //--strip
-       CFG.log_android("position: " + line);     //--strip
-    }                                            //--strip
+    static void log(final String line) {          //--strip
+        CFG.log_android("position: " + line);     //--strip
+    }                                             //--strip
 
     public static class adapter_t extends ArrayAdapter<cryptocurrency> {
 
@@ -83,8 +83,7 @@ public final class position extends activity {
             inflater = (LayoutInflater)activity_.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         }
 
-        @Override
-        public View getView(int position, View view, ViewGroup parent) {
+        @Override public View getView(int position, View view, ViewGroup parent) {
             View vi = view;
             if (vi == null) {
                 vi = inflater.inflate(R.layout.balance_item, null, true);
@@ -140,16 +139,16 @@ public final class position extends activity {
     }
 
     @RequiresApi(api = Build.VERSION_CODES.O)
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    @Override protected void onCreate(Bundle savedInstanceState) {
+        log("OnCreate"); //--strip
         try {
             super.onCreate(savedInstanceState);
-            setContentView(R.layout.activity_position);
-            Toolbar toolbar = findViewById(R.id.toolbar);
-            setSupportActionBar(findViewById(R.id.toolbar));
+            set_content_layout(R.layout.activity_position);
+//            Toolbar toolbar = findViewById(R.id.toolbar);
+//            setSupportActionBar(findViewById(R.id.toolbar));
             toolbar.setTitle(R.string.balance);
-            progressbarcontainer = findViewById(R.id.progressbarcontainer);
-            listview  = findViewById(R.id.listview);
+//            progressbarcontainer = findViewById(R.id.progressbarcontainer);
+            //listview  = findViewById(R.id.listview);
             log("Filling Coin bookmarks - TODO well done"); //--strip
             coinbookmarks = new HashMap<String, cryptocurrency>();
             log("CoinBookmarks size: " + coinbookmarks.size()); //--strip
@@ -158,6 +157,7 @@ public final class position extends activity {
             lv = findViewById(R.id.listview);
             lv.setAdapter(adapter);
             refresh = findViewById(R.id.refresh);
+            refresh.setVisibility(View.VISIBLE);
             refresh.setOnClickListener(new View.OnClickListener() {
                 @Override public void onClick(View view) {
                     fetch();
@@ -185,63 +185,71 @@ public final class position extends activity {
         super.onPause();
     }
 
-    void set_balances(final String b) {
-        app.assert_worker_thread(); //--strip
-        final String[] ashit = b.split("\\r?\\n");
-
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                shit.clear();
-                if (b.startsWith("KO")) {
-                    if (b.startsWith("KO 2018 ")) {
-                        cryptocurrency c = new cryptocurrency();
-                        c.set_mnemonic(getResources().getString(R.string.nocoinsinwallet));
-                        c.set_amount(0);
-                        c.set_decimals(0);
-                        c.set_token("-");
-                        shit.add(c);
-                    }
-                    else {
-                        cryptocurrency c = new cryptocurrency();
-                        c.set_mnemonic(b.substring(0,7));
-                        c.set_amount(0);
-                        c.set_decimals(0);
-                        c.set_token("-");
-                        shit.add(c);
-                    }
-                }
-                else {
-                    for (String itm : ashit) {
-                        String[] txts = itm.split("\\s");
-                        cryptocurrency c = coinbookmarks.get(txts[0]);
-                        if (c == null) {
-                            c = new cryptocurrency(txts[0], txts[0], 0, 0, "default_coin");
-                        }
-                        c.set_amount(Double.parseDouble(txts[1]));
-                        shit.add(c);
-                    }
-                }
-                refresh();
+    void set_balances(final String[] ashit) {
+        app.assert_ui_thread(); //--strip
+        shit.clear();
+/*
+        if (b.startsWith("KO")) {
+            if (b.startsWith("KO 2018 ")) {
+                cryptocurrency c = new cryptocurrency();
+                c.set_mnemonic(getResources().getString(R.string.nocoinsinwallet));
+                c.set_amount(0);
+                c.set_decimals(0);
+                c.set_token("-");
+                shit.add(c);
             }
-        });
+            else {
+                cryptocurrency c = new cryptocurrency();
+                c.set_mnemonic(b.substring(0,7));
+                c.set_amount(0);
+                c.set_decimals(0);
+                c.set_token("-");
+                shit.add(c);
+            }
+        }
+        else {
+*/
+        for (String itm : ashit) {
+            String[] txts = itm.split("\\s");
+            cryptocurrency c = coinbookmarks.get(txts[0]);
+            if (c == null) {
+                c = new cryptocurrency(txts[0], txts[0], 0, 0, "default_coin");
+            }
+            c.set_amount(Double.parseDouble(txts[1]));
+            shit.add(c);
+        }
+//        }
+        refresh();
     }
 
     void fetch() {
         app.assert_ui_thread(); //--strip
-        progressbarcontainer.setVisibility(View.VISIBLE);
-        listview.setVisibility(View.GONE);
+        //progressbarcontainer.setVisibility(View.VISIBLE);
+        lv.setVisibility(View.GONE);
         adapter.clear();
         adapter.notifyDataSetChanged();
         Thread thread = new Thread(new Runnable() {
             public void run() {
                 final app a = (app) getApplication();
-                string s = new string();
-                ko r = a.hmi.rpc_peer.call_balance(new uint16_t(0), s);
+                final string s = new string();
+                final ko r = a.hmi.rpc_peer.call_balance(new uint16_t(0), s);
+                String x = null;
                 if (is_ko(r)) {
-                    return;
+                    x = a.hmi.rewrite(r);
                 }
-                set_balances(s.value);
+                final String y = x;
+                runOnUiThread(new Runnable() {
+                    @Override public void run() {
+                        log("process response"); //--strip
+                        if (is_ko(r)) {
+                            log(r.msg + " " + y); //--strip
+                            Toast.makeText(getApplicationContext(), y, 6000).show();
+                            return;
+                        }
+                        final String[] ashit = s.value.split("\\r?\\n");
+                        set_balances(ashit);
+                    }
+                });
             }
         });
         thread.start();
@@ -250,21 +258,21 @@ public final class position extends activity {
     void refresh() {
         app.assert_ui_thread(); //--strip
         adapter.notifyDataSetChanged();
-        progressbarcontainer.setVisibility(View.GONE);
-        listview.setVisibility(View.VISIBLE);
+        //progressbarcontainer.setVisibility(View.GONE);
+        lv.setVisibility(View.VISIBLE);
     }
 
     AbsListView lv;
     private toolbar_button refresh;
     private toolbar_button cryptos;
-    adapter_t adapter=null;
+    adapter_t adapter = null;
     ArrayList<cryptocurrency> shit;
-    RelativeLayout progressbarcontainer;
+//    RelativeLayout progressbarcontainer;
     HashMap<String,cryptocurrency> coinbookmarks = null;
-    Toolbar toolbar;
-    ListView listview;
-    DrawerLayout drawerLayout;
-    NavigationView navigationView;
+//    Toolbar toolbar;
+//    ListView listview;
+//    DrawerLayout drawerLayout;
+//    NavigationView navigationView;
     int dispatchid;
 }
 

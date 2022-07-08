@@ -1144,10 +1144,15 @@ public class hmi {
     }
 
     public String rewrite(ko r) {
+        log("rewrite"); //--strip
         if (r == KO_11000) {
+            log("rewrite returns help hint."); //--strip
             return r.msg + "; Type -h for help.";
         }
         if (rpc_daemon != null) return rpc_daemon.rewrite(r);
+        log("rewriteX"); //--strip
+        if (r != null) return r.msg;
+        log("rewrite returns empty. AxzS."); //--strip
         return "";
     }
 

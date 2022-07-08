@@ -43,7 +43,7 @@ android {
     }
 
     buildToolsVersion "28.0.3"
-    compileSdkVersion 30
+    compileSdkVersion 31
 
     lintOptions {
         checkReleaseBuilds false
@@ -53,7 +53,7 @@ android {
     defaultConfig {
         applicationId "us.cash"
         minSdkVersion 22
-        targetSdkVersion 30
+        targetSdkVersion 31
         versionCode 6
         versionName "0 28/03/2017"
         resConfigs "en", "es"

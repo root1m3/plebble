@@ -63,24 +63,22 @@ import android.view.View;                                                       
 
 public final class doc_viewer extends activity implements datagram_dispatcher_t.handler_t {
 
-    static void log(final String line) {         //--strip
-       CFG.log_android("doc_viewer: " + line);   //--strip
-    }                                            //--strip
+    static void log(final String line) {          //--strip
+        CFG.log_android("doc_viewer: " + line);   //--strip
+    }                                             //--strip
 
-    static void log_paranoid(final String s) { //--strip
-        //    System.out.println("tx: "+s); //--strip
-    } //--strip
+    static void log_paranoid(final String s) {  //--strip
+        //System.out.println("tx: "+s);         //--strip
+    }                                           //--strip
 
     @RequiresApi(api = Build.VERSION_CODES.O)
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    @Override protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_tx);
-        Toolbar toolbar = findViewById(R.id.toolbar);
-        setSupportActionBar(findViewById(R.id.toolbar));
-        setTitle(R.string.balance);
-        progressbarcontainer = findViewById(R.id.progressbarcontainer);
-        content= findViewById(R.id.content);
+        set_content_layout(R.layout.activity_tx);
+//        Toolbar toolbar = findViewById(R.id.toolbar);
+//        setSupportActionBar(findViewById(R.id.toolbar));
+//        progressbarcontainer = findViewById(R.id.progressbarcontainer);
+        content = findViewById(R.id.content2);
         action = findViewById(R.id.action);
         refresh = findViewById(R.id.refresh);
         save_btn = findViewById(R.id.save_btn);
@@ -104,20 +102,17 @@ public final class doc_viewer extends activity implements datagram_dispatcher_t.
         save_btn.setVisibility(View.VISIBLE);
         action.set_stock_image(icon);
         action.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
+            @Override public void onClick(View view) {
                 doaction();
             }
         });
         refresh.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
+            @Override public void onClick(View view) {
                 fetch_content();
             }
         });
         save_btn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
+            @Override public void onClick(View view) {
                 save(view);
             }
         });
@@ -126,8 +121,7 @@ public final class doc_viewer extends activity implements datagram_dispatcher_t.
         fetch_content();
     }
 
-    @Override
-    public void onDestroy() {
+    @Override public void onDestroy() {
         super.onDestroy();
         log("onDestroy"); //--strip
         final app a = (app)getApplication();
@@ -135,20 +129,17 @@ public final class doc_viewer extends activity implements datagram_dispatcher_t.
         a.datagram_dispatcher.disconnect_sink(dispatchid);
     }
 
-    @Override
-    public void onPause() {
+    @Override public void onPause() {
         super.onPause();
         log("onPause"); //--strip
     }
 
-    @Override
-    public void onResume() {
+    @Override public void onResume() {
         super.onResume();
         log("onResume"); //--strip
     }
 
-    @Override
-    public void onBackPressed() {
+    @Override public void onBackPressed() {
         log("Back pressed"); //--strip
         finish();
     }
@@ -187,7 +178,7 @@ public final class doc_viewer extends activity implements datagram_dispatcher_t.
         log("set_content "); //--strip
         log_paranoid(txt); //--strip
         content.setText(txt);
-        progressbarcontainer.setVisibility(View.GONE);
+        //progressbarcontainer.setVisibility(View.GONE);
     }
 
     void doaction() {
@@ -202,7 +193,7 @@ public final class doc_viewer extends activity implements datagram_dispatcher_t.
 
     void fetch_content() {
         app.assert_ui_thread(); //--strip
-        progressbarcontainer.setVisibility(View.VISIBLE);
+        //progressbarcontainer.setVisibility(View.VISIBLE);
         final app a = (app) getApplication();
         log("contentcommand="+contentcommand); //--strip
         a.hmi.command_trade(tid, contentcommand);
@@ -338,7 +329,7 @@ public final class doc_viewer extends activity implements datagram_dispatcher_t.
     private toolbar_button action;
     private toolbar_button refresh;
     private toolbar_button save_btn;
-    RelativeLayout progressbarcontainer;
+    //RelativeLayout progressbarcontainer;
     String command;
     uint16_t doccode = new uint16_t(0);
     int dispatchid;

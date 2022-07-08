@@ -74,9 +74,9 @@ import android.view.View;                                                       
 
 public final class nodes extends activity implements datagram_dispatcher_t.handler_t {
 
-    static void log(final String line) {         //--strip
-       CFG.log_android("nodes: " + line);        //--strip
-    }                                            //--strip
+    static void log(final String line) {          //--strip
+        CFG.log_android("nodes: " + line);        //--strip
+    }                                             //--strip
 
     public static class adapter_t extends ArrayAdapter<pair<String, bookmark_t>> {
         private LayoutInflater inflater;
@@ -94,8 +94,7 @@ public final class nodes extends activity implements datagram_dispatcher_t.handl
             ImageView image;
         }
 
-        @Override
-        public View getView(int position, View convert_view, ViewGroup parent) {
+        @Override public View getView(int position, View convert_view, ViewGroup parent) {
             view_holder holder = null;
             //View vi = convert_view;
             pair<String, bookmark_t> sbm = getItem(position);
@@ -171,12 +170,6 @@ public final class nodes extends activity implements datagram_dispatcher_t.handl
 //                image_view.setImageResource(R.drawable.ic_node_busy);
 //            }
 
-    @Override
-    protected void onPostCreate(Bundle savedInstanceState) {
-        super.onPostCreate(savedInstanceState);
-        //toolbar.setTitle(R.string.world);
-    }
-
     ArrayList<pair<String, bookmark_t>> convert(bookmarks_t bm) {
         ArrayList<pair<String, bookmark_t>> o = new ArrayList<pair<String, bookmark_t>>();
         o.ensureCapacity(bm.size());
@@ -205,56 +198,18 @@ public final class nodes extends activity implements datagram_dispatcher_t.handl
     @RequiresApi(api = Build.VERSION_CODES.O)
     @Override protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_world);
-        toolbar = findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
+        set_content_layout(R.layout.activity_world);
         mode = (Switch) findViewById(R.id.mode);
         mode_cap = (TextView) findViewById(R.id.mode_cap);
-
-//TODO review
-//        drawerLayout = findViewById(R.id.drawer_layout);
-//        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(this, drawerLayout, toolbar, R.string.bookmarks, R.string.bookmarks);
-//        drawerLayout.addDrawerListener(toggle);
-//        toggle.syncState();
-//        navigationView = findViewById(R.id.navigation_view);
-//        navigationView.setNavigationItemSelectedListener(this);
-//        Menu nav_menu = navigationView.getMenu();
-//        MenuItem menuItem = nav_menu.findItem(R.id.nav_world);
-//        menuItem.setChecked(true);
-//        world_view = !getIntent().hasExtra("bookmarksmode");
-
         bookmarks = new ArrayList<pair<String, bookmark_t>>();
         world = new ArrayList<pair<String, bookmark_t>>();
-        //log("WORLD"); //--strip
-        //toolbar.setTitle(R.string.world);
-/*
-            log("Filling bookmarks"); //--strip
-//TODO wipe off this harcoded deadbeef
-            bookmarks=new HashMap<String, String>();
-            bookmarks.put("0 4Tr81agLbMR43goFwu4SetMqZwDa pat2ai pat", "Soathecam A.I.");
-            bookmarks.put("0 2i35c5Urfa1PrUFtSzFa3eBgVasS pat2slt pat", "Dr. Megan Hall - GP");
-            bookmarks.put("0 2Mm1Pz3RuKQG4RSU6thuSX5fbdAg pat2slt pat", "Dr. Joshua Warner - Dermatologist");
-            bookmarks.put("0 2T1LngV2jcxVZguYY62Kf7tmUvQ3 pat2phy pat", "Riverside Pharmacy");
-            bookmarks.put("0 6vAWK14ssvmnDGYLxDC4sAyrR9t bid2ask bid", "Impact Shopping");
-*/
-//TODO review
-//            menuItem = nav_menu.findItem(R.id.nav_bookmarks);
-//            menuItem.setChecked(true);
-//        }
-        //log("Bomkmarks size: " + bookmarks.size()); //--strip
-
-        progressbarcontainer = findViewById(R.id.progressbarcontainer);
-        progressbarcontainer.setVisibility(View.VISIBLE);
         lv = (no_scroll_list_view) findViewById(R.id.listviewX);
         assert lv != null;
         adapter = new adapter_t(this, bookmarks);
         lv.setAdapter(adapter);
         lv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView parentView, View childView, int position, long id) {
-//                progressbarcontainer.setVisibility(View.VISIBLE);
+            @Override public void onItemClick(AdapterView parentView, View childView, int position, long id) {
                 assert main != null;
-
                 if (main._nodes_mode_custom != null) {
                     item_click2(bookmarks.get(position), position);
                     return;
@@ -267,7 +222,6 @@ public final class nodes extends activity implements datagram_dispatcher_t.handl
                 }
             }
         });
-
         lv.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
             @Override
             public boolean onItemLongClick(AdapterView parentView, View childView, int position, long id) {
@@ -277,8 +231,7 @@ public final class nodes extends activity implements datagram_dispatcher_t.handl
                 if (!main._nodes_mode_all) return true;
                 final EditText input = new EditText(parentView.getContext());
                 input.setOnFocusChangeListener(new OnFocusChangeListener() {
-                        @Override
-                        public void onFocusChange(View v, boolean hasFocus) {
+                        @Override public void onFocusChange(View v, boolean hasFocus) {
                             input.post(new Runnable() {
                                 @Override
                                 public void run() {
@@ -295,10 +248,8 @@ public final class nodes extends activity implements datagram_dispatcher_t.handl
                     .setMessage("Enter label for qr " + world.get(position).second.qr.to_string())
                     .setView(input)
                     .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
+                            @Override public void onClick(DialogInterface dialog, int which) {
                                 pair<String, bookmark_t> bm = world.get(position);
-                                //byte[] ico = new byte[0];
                                 bm.second.label = String.valueOf(input.getText()).trim();
                                 us.wallet.engine.rpc_peer_t.bookmark_add_in_t o = new us.wallet.engine.rpc_peer_t.bookmark_add_in_t(new string(bm.first), bm.second);
                                 string s = new string();
@@ -310,13 +261,10 @@ public final class nodes extends activity implements datagram_dispatcher_t.handl
                                     log("added bookmark"); //--strip
                                 }//--strip
                              }
-                        })
-                    .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
+                        }).setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                            @Override public void onClick(DialogInterface dialog, int which) {
                             }
-                        })
-                    .create();
+                        }).create();
                 dialog.show();
                 return true;
             }
@@ -324,11 +272,11 @@ public final class nodes extends activity implements datagram_dispatcher_t.handl
 
         toolbar_button refresh = findViewById(R.id.refresh);
         refresh.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
+            @Override public void onClick(View view) {
                 dorefresh();
             }
         });
+        refresh.setVisibility(View.VISIBLE);
 
         mode.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
@@ -349,98 +297,76 @@ public final class nodes extends activity implements datagram_dispatcher_t.handl
         dorefresh();
     }
 
-    @Override
-    public void onDestroy() {
+    @Override public void onDestroy() {
         super.onDestroy();
         log("onDestroy"); //--strip
         a.datagram_dispatcher.disconnect_sink(dispatchid);
         main._nodes_mode_custom = null;
     }
 
-    @Override
-    public void onResume() {
-        super.onResume();
-        log("onResume"); //--strip
-    }
-
-    @Override
-    public void onPause() {
-        super.onPause();
-        log("onPause"); //--strip
-    }
-
     void item_click(pair<String, bookmark_t> bm) {
-
         String[] options = {"Banking (move coins)", a.getResources().getString(R.string.start_new_trade), a.getResources().getString(R.string.cancel)};
         final nodes i = nodes.this;
         new AlertDialog.Builder(i).setTitle(bm.second.get_label())
-                .setItems(options, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        switch(which) {
-                            case 0:
-                                qr_t qr = new qr_t(bm.second.qr);
-                                qr.protocol_selection.first = "w2w";
-                                qr.protocol_selection.second = "w";
-                                log("selected " + qr.to_string()); //--strip
-                                main.new_trade(new hash_t(0), "", qr);
-                                break;
-                            case 1:
-                                main.new_trade(new hash_t(0), "", bm.second.qr);
-                                break;
-                        }
+            .setItems(options, new DialogInterface.OnClickListener() {
+                @Override public void onClick(DialogInterface dialog, int which) {
+                    switch(which) {
+                        case 0:
+                            qr_t qr = new qr_t(bm.second.qr);
+                            qr.protocol_selection.first = "w2w";
+                            qr.protocol_selection.second = "w";
+                            log("selected " + qr.to_string()); //--strip
+                            main.new_trade(new hash_t(0), "", qr);
+                            break;
+                        case 1:
+                            main.new_trade(new hash_t(0), "", bm.second.qr);
+                            break;
                     }
-                })
-                .setIcon(R.drawable.ic_world).show();
+                }
+            }).setIcon(R.drawable.ic_world).show();
     }
 
     void item_click1(pair<String, bookmark_t> bm) {
-
         String[] options = {a.getResources().getString(R.string.start_new_trade), "edit bookmark", "delete bookmark", a.getResources().getString(R.string.cancel)};
         final nodes i = nodes.this;
         new AlertDialog.Builder(i).setTitle(bm.second.get_label())
-                .setItems(options, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        switch(which) {
-                            case 0:
-                                main.new_trade(new hash_t(0), "", bm.second.qr);
-                                break;
-                            case 1:
-                                break;
-                            case 2:
-                                string ans = new string();
-                                ko r = a.hmi.rpc_peer.call_bookmark_delete(new string(bm.first), ans);
-                                Toast.makeText(main, ans.value, Toast.LENGTH_LONG).show();
-                                dorefresh();
-                                break;
-                        }
+            .setItems(options, new DialogInterface.OnClickListener() {
+                @Override public void onClick(DialogInterface dialog, int which) {
+                    switch(which) {
+                        case 0:
+                            main.new_trade(new hash_t(0), "", bm.second.qr);
+                            break;
+                        case 1:
+                            break;
+                        case 2:
+                            string ans = new string();
+                            ko r = a.hmi.rpc_peer.call_bookmark_delete(new string(bm.first), ans);
+                            Toast.makeText(main, ans.value, Toast.LENGTH_LONG).show();
+                            dorefresh();
+                            break;
                     }
-                })
-                .setIcon(R.drawable.ic_world).show();
+                }
+            }).setIcon(R.drawable.ic_world).show();
     }
 
     void item_click2(pair<String, bookmark_t> bm, final int pos) {
-
         String[] options = {a.getResources().getString(R.string.start_new_trade), "Copy to my bookmarks", a.getResources().getString(R.string.cancel)};
         final nodes i = nodes.this;
         new AlertDialog.Builder(i).setTitle(bm.second.get_label())
-                .setItems(options, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        switch(which) {
-                            case 0:
-                                main.new_trade(new hash_t(0), "", bm.second.qr);
-                                break;
-                            case 1:
-                                log("Copy to my bookmarks"); //--strip
-                                a.hmi.command_trade(main._nodes_mode_custom_tid, "copybm " + (pos + 1));
+            .setItems(options, new DialogInterface.OnClickListener() {
+                @Override public void onClick(DialogInterface dialog, int which) {
+                    switch(which) {
+                        case 0:
+                            main.new_trade(new hash_t(0), "", bm.second.qr);
+                            break;
+                        case 1:
+                            log("Copy to my bookmarks"); //--strip
+                            a.hmi.command_trade(main._nodes_mode_custom_tid, "copybm " + (pos + 1));
 
-                                break;
-                        }
+                            break;
                     }
-                })
-                .setIcon(R.drawable.ic_world).show();
+                }
+            }).setIcon(R.drawable.ic_world).show();
     }
 
 /*
@@ -485,8 +411,7 @@ public final class nodes extends activity implements datagram_dispatcher_t.handl
     }
 */
 
-    @Override
-    public void on_push(hash_t target_tid, uint16_t code, byte[] payload) {
+    @Override public void on_push(hash_t target_tid, uint16_t code, byte[] payload) {
     }
 
     void redraw() {
@@ -536,8 +461,7 @@ public final class nodes extends activity implements datagram_dispatcher_t.handl
     void load_world() {
         set_busy(true);
         Thread thread1 = new Thread(new Runnable() {
-            @Override
-            public void run() {
+            @Override public void run() {
                 log("load_world-run"); //--strip
                 us.gov.io.types.vector_hash vh = new us.gov.io.types.vector_hash();
                 ko r = a.hmi.rpc_peer.call_world(vh);
@@ -570,7 +494,6 @@ public final class nodes extends activity implements datagram_dispatcher_t.handl
             ++_busy;
             if (_busy == 1) {
                 log("busy=1"); //--strip
-                progressbarcontainer.setVisibility(View.VISIBLE);
             }
             return;
         }
@@ -578,11 +501,12 @@ public final class nodes extends activity implements datagram_dispatcher_t.handl
         if (_busy == 0) {
             log("busy=0"); //--strip
             redraw();
-            progressbarcontainer.setVisibility(View.GONE);
         }
     }
 
     void dorefresh() {
+        a.assert_ui_thread(); //--strip
+        Toast.makeText(this, "refresh", Toast.LENGTH_SHORT).show();
         log("dorefresh. main._nodes_mode_all=" + main._nodes_mode_all); //--strip
         if (main.main._nodes_mode_custom != null) {
             toolbar.setTitle("Listing remote bookmarks");
@@ -596,13 +520,13 @@ public final class nodes extends activity implements datagram_dispatcher_t.handl
         if (main._nodes_mode_all) {
             toolbar.setTitle(R.string.world);
             mode.setChecked(false);
-            mode_cap.setText("Listing all world. turn-right for listing my bookmarks.");
+            mode_cap.setText("Listing all world. turn for listing my bookmarks.");
             load_world();
         }
         else {
-            mode.setChecked(true);
-            mode_cap.setText("Listing my bookmarks. turn-left for listing all world.");
             toolbar.setTitle(R.string.label_bookmarks);
+            mode.setChecked(true);
+            mode_cap.setText("Listing my bookmarks. turn for listing all world.");
             load_bookmarks();
         }
     }
@@ -612,12 +536,9 @@ public final class nodes extends activity implements datagram_dispatcher_t.handl
     ArrayList<pair<String, bookmark_t>> world = null;
     ArrayList<pair<String, bookmark_t>> bookmarks = null;
     adapter_t adapter = null;
-    RelativeLayout progressbarcontainer;
-    Toolbar toolbar;
     int dispatchid;
     private Switch mode;
     private TextView mode_cap;
-//    boolean mode_all = true;
 
 }
 

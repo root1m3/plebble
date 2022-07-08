@@ -67,13 +67,9 @@ import android.net.Uri;                                                         
 import android.view.ViewGroup;                                                                 // ViewGroup
 import android.view.View;                                                                      // View
 
-public final class trades extends activity { //implements  datagram_dispatcher_t.handler_t {
+public final class trades extends activity {
 
     public static class adapter_t extends ArrayAdapter<trade> {
-
-        private Activity ac;
-        private LayoutInflater inflater = null;
-        private TextView badge_balloon;
 
         public adapter_t(Activity ac, ArrayList<trade> data) {
             super(ac, R.layout.trade_list_item, data);
@@ -81,8 +77,7 @@ public final class trades extends activity { //implements  datagram_dispatcher_t
             inflater = (LayoutInflater)ac.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         }
 
-        @Override
-        public View getView(int position, View view, ViewGroup parent) {
+        @Override public View getView(int position, View view, ViewGroup parent) {
             log("adapter. getView"); //--strip;
             View vi = view;
             if (vi == null) {
@@ -127,18 +122,11 @@ public final class trades extends activity { //implements  datagram_dispatcher_t
             log("/ adapter. getView"); //--strip;
             return vi;
         }
+
+        private Activity ac;
+        private LayoutInflater inflater = null;
+        private TextView badge_balloon;
     }
-
-
-    static final int SCAN_RESULT = 911;
-    no_scroll_list_view lv;
-    ArrayList<trade> shit;
-    adapter_t adapter=null;
-    TextView tip_explain;
-    MaterialCardView tip_card;
-    Toolbar toolbar;
-    RelativeLayout progressbarcontainer;
-    ReentrantLock lock=new ReentrantLock();
 
     static void log(final String s) { //--strip
         System.out.println("trades: "+s); //--strip
@@ -148,24 +136,17 @@ public final class trades extends activity { //implements  datagram_dispatcher_t
     @Override protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         log("onCreate"); //--strip
-        setContentView(R.layout.activity_trades);
-        toolbar = findViewById(R.id.toolbar);
-        setSupportActionBar(findViewById(R.id.toolbar));
+        set_content_layout(R.layout.activity_trades);
         tip_card = findViewById(R.id.tip_card);
         tip_explain = findViewById(R.id.tip_explain);
-        toolbar = findViewById(R.id.toolbar);
         toolbar.setTitle(R.string.activetrades);
-        progressbarcontainer = findViewById(R.id.progressbarcontainer);
         lv = findViewById(R.id.listviewX);
-        progressbarcontainer.setVisibility(View.VISIBLE);
         shit = new ArrayList<trade>();
         adapter = new adapter_t(this, shit);
         lv.setAdapter(adapter);
-        setTitle(R.string.allactivetrades);
         tip_card.setVisibility(View.GONE);
         lv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             public void onItemClick(AdapterView parentView, View childView, int position, long id) {
-                progressbarcontainer.setVisibility(View.VISIBLE);
                 trade tr = shit.get(position);
                 log("onItemClick " + position); //--strip
                 Intent data = new Intent();
@@ -175,11 +156,11 @@ public final class trades extends activity { //implements  datagram_dispatcher_t
         });
         toolbar_button refresh = findViewById(R.id.refresh);
         refresh.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
+            @Override public void onClick(View view) {
                 fetch();
             }
         });
+        refresh.setVisibility(View.VISIBLE);
     }
 
     @Override public void onDestroy() {
@@ -202,29 +183,31 @@ public final class trades extends activity { //implements  datagram_dispatcher_t
         log("received payload: "); //--strip
         final ArrayList<trade> al = new ArrayList<trade>();
         if (is_ko(e)) {
-            log(e.msg); //--strip
-            al.add(new trade(e.msg));
+            log(e.msg + " " + a.hmi.rewrite(e)); //--strip
+            Toast.makeText(this, a.hmi.rewrite(e), Toast.LENGTH_LONG).show();
+            //al.add(new trade(e.msg));
         }
         else {
             log(">" + payload + "<");  //--strip
             final String[] lines = payload.split("\\r?\\n");
-            for (String line:lines) {
-                log("line: "+line); //--strip
+            for (String line: lines) {
+                log("line: " + line); //--strip
                 trade t = new trade(line);
                 if (t.tid != null) {
-                    log("t.tid "+t.tid.encode()); //--strip
+                    log("t.tid " + t.tid.encode()); //--strip
                     al.add(t);
                 }
             }
         }
         Collections.sort(al);
+/*
         runOnUiThread(new Runnable() {
             public void run() {
                 log("X");  //--strip
                 lock.lock();
                 try {
                     adapter.clear();
-                    progressbarcontainer.setVisibility(View.GONE);
+                    //progressbarcontainer.setVisibility(View.GONE);
                     adapter.addAll(al);
                 }
                 finally {
@@ -232,11 +215,21 @@ public final class trades extends activity { //implements  datagram_dispatcher_t
                 }
             }
         });
+*/
+        lock.lock();
+        try {
+            //adapter.clear();
+            adapter.addAll(al);
+        }
+        finally {
+            lock.unlock();
+        }
         log("Y"); //--strip
     }
 
     void fetch() {
-        progressbarcontainer.setVisibility(View.VISIBLE);
+        a.assert_ui_thread(); //--strip
+        Toast.makeText(this, "refresh", Toast.LENGTH_SHORT).show();
         lock.lock();
         try {
             adapter.clear();
@@ -245,6 +238,7 @@ public final class trades extends activity { //implements  datagram_dispatcher_t
             lock.unlock();
         }
         log("calling API list_trades"); //--strip
+/*
         Thread thread = new Thread(new Runnable() {
             @Override public void run() {
                 string s = new string();
@@ -253,8 +247,18 @@ public final class trades extends activity { //implements  datagram_dispatcher_t
             }
         });
         thread.start();
-
+*/
+        string s = new string();
+        ko r = a.hmi.rpc_peer.call_list_trades(s);
+        on_trades(r, s.value);
     }
 
+    static final int SCAN_RESULT = 911;
+    no_scroll_list_view lv;
+    ArrayList<trade> shit;
+    adapter_t adapter = null;
+    TextView tip_explain;
+    MaterialCardView tip_card;
+    ReentrantLock lock = new ReentrantLock();
 }
 

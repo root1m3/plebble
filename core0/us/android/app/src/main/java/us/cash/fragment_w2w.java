@@ -52,16 +52,15 @@ import android.view.View;                                                       
 
 public class fragment_w2w extends role_fragment  {
 
-    static void log(final String line) {            //--strip
-       CFG.log_android("fragment_w2w: " + line);    //--strip
-    }                                               //--strip
+    static void log(final String line) {             //--strip
+        CFG.log_android("fragment_w2w: " + line);    //--strip
+    }                                                //--strip
 
     public fragment_w2w() {
         super(false);
     }
 
-    @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+    @Override public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View v = super.onCreateView(inflater, container, savedInstanceState);
         if (v == null) return null;
         layout = (LinearLayout) inflater.inflate(R.layout.fragment_w2w, null);
@@ -76,15 +75,13 @@ public class fragment_w2w extends role_fragment  {
         content.addView(txlog);
         txlog.init(this, tr);
         transfer.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
+            @Override public void onClick(View view) {
                 on_transfer();
             }
         });
         coin.setText("");
         select_coin.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
+            @Override public void onClick(View view) {
                 on_select_coin();
             }
         });
@@ -161,25 +158,30 @@ public class fragment_w2w extends role_fragment  {
             Toast.makeText(getActivity().getApplicationContext(), "Commanded '" + cmd + "'to remote wallet...", 6000).show();
         }
         amount.setText("");
-//        coin.setText("");
     }
 
     void on_select_coin() {
         log("on_select_coin"); //--strip
         app.assert_ui_thread();  //--strip
         Thread thread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                string ans = new string();
+            @Override public void run() {
+                log("call_balance"); //--strip
+                final string ans = new string();
                 final ko r = a.hmi.rpc_peer.call_balance(new uint16_t(0), ans);
-                final String[] ashit = ans.value.split("\\r?\\n");
+                String x = null;
+                if (is_ko(r)) {
+                    x = a.hmi.rewrite(r);
+                }
+                final String y = x;
                 getActivity().runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
+                    @Override public void run() {
+                        log("process response"); //--strip
                         if (is_ko(r)) {
-                            Toast.makeText(getActivity().getApplicationContext(), r.msg, 6000).show();
+                            log(r.msg + " " + y); //--strip
+                            Toast.makeText(getActivity().getApplicationContext(), y, 6000).show();
                             return;
                         }
+                        final String[] ashit = ans.value.split("\\r?\\n");
                         launchselectdialogue(ashit);
                     }
                 });

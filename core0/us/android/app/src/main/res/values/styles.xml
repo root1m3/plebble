@@ -41,10 +41,12 @@
     </style>
 
     <style name="AppTheme.Launcher">
+<!--        <item name="android:background">@color/colorPrimary</item> -->
     <item name="android:windowBackground">@drawable/splash</item>
     <!-- Optional, on Android 5+ you can modify the colorPrimaryDark color to match the windowBackground color for further branding-->
     <!-- <item name="colorPrimaryDark">@android:color/white</item> -->
     </style>
+
     <style name="AppTheme.NoActionBar">
         <item name="windowActionBar">true</item>
         <item name="windowNoTitle">true</item>

@@ -62,10 +62,14 @@ string c::ep() const {
     return "hijk";
 }
 
+string c::thome() const {
+    return homedir + "/123/wallet/trader";
+}
+
 void c::create_node(const string& r2rhome) {
     {
         ostringstream f;
-        f << homedir << "/123/wallet/trader/" << r2rhome;
+        f << thome() << "/" << r2rhome;
         ostringstream cmd;
         cmd << "cp nodes/" << id << "/logo.png  " << f.str() << "/";
         cout << "logotype:" << endl;
@@ -74,7 +78,7 @@ void c::create_node(const string& r2rhome) {
     }
     {
         ostringstream f;
-        f << homedir << "/123/wallet/trader/" << r2rhome;
+        f << thome() << "/" << r2rhome;
         ostringstream cmd;
         cmd << "cp nodes/" << id << "/ico.png  " << f.str() << "/";
         cout << "ico:" << endl;
@@ -83,7 +87,7 @@ void c::create_node(const string& r2rhome) {
     }
     {
         ostringstream f;
-        f << homedir << "/123/wallet/trader/" << r2rhome;
+        f << thome() << "/" << r2rhome;
         ostringstream cmd;
         cmd << "cp nodes/" << id << "/name  " << f.str() << "/";
         cout << "name:" << endl;

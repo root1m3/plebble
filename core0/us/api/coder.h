@@ -26,17 +26,14 @@
 #include <vector>
 #include <iostream>
 #include <unordered_map>
+
 #include "model.h"
 
-namespace us { namespace apitool {
-    struct apifun;
-    struct model;
-}}
-
-namespace us { namespace apitool {
+namespace us::apitool {
 
     using namespace std;
 
+    struct apifun;
     struct model;
 
 /*
@@ -54,10 +51,12 @@ f(in_t&& o_in, out_dst_t& o_out)                                       function(
 
         coder(model& m): m(m) {}
         virtual ~coder() {}
-        static void feedback(const string& file);
+        static void feedback();
         void write_file_prefix(const api_t&, ostream&) const;
         void write_file_prefix(ostream&) const;
         virtual string lang() const = 0;
+        virtual string line_comment() const = 0;
+
         pair<string, string> names_in(const apifun&, bool side_caller) const;
         pair<string, string> names_out(const apifun&, bool side_caller) const;
         static void sides_prefix(bool side_caller, ostream&);
@@ -110,6 +109,6 @@ f(in_t&& o_in, out_dst_t& o_out)                                       function(
         model& m;
     };
 
-}}
+}
 
 

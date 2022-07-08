@@ -5,7 +5,7 @@
         xmlns:app="http://schemas.android.com/apk/res-auto"
         android:id="@+id/toolbar"
         style="@style/AppTheme.Toolbar"
-        app:title="[Activity Title]"
+        app:title=""
         android:layout_height="wrap_content">
 
         <androidx.appcompat.widget.LinearLayoutCompat
@@ -118,34 +118,6 @@
             </LinearLayout>
 
         </androidx.appcompat.widget.LinearLayoutCompat>
-
-
     </androidx.appcompat.widget.Toolbar>
-
-    <RelativeLayout
-        android:id="@+id/progressbarcontainer"
-        android:layout_width="wrap_content"
-        android:layout_height="match_parent">
-
-        <ProgressBar
-            android:id="@+id/progressbar"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_margin="10dp"
-            android:layout_centerHorizontal="true"
-            android:layout_centerVertical="true"
-            style="@style/Widget.AppCompat.ProgressBar.Horizontal"
-            android:indeterminate="true"
-            />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_below="@+id/progressbar"
-            android:layout_centerHorizontal="true"
-            android:layout_marginTop="24dp"
-            android:text="@string/loadingbalances" />
-
-    </RelativeLayout>
 </merge>
 

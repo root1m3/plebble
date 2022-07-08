@@ -40,7 +40,7 @@
 #include <us/trader/r2r/bid2ask/protocol.h>
 #include <us/trader/workflow/consumer/docs.h>
 
-namespace us { namespace trader { namespace r2r { namespace bid2ask { namespace bid {
+namespace us::trader::r2r::bid2ask::bid {
 
     struct business_t;
 
@@ -79,5 +79,5 @@ namespace us { namespace trader { namespace r2r { namespace bid2ask { namespace 
         basket_t remote_stock;
     };
 
-}}}}}
+}
 

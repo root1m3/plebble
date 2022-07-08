@@ -55,10 +55,13 @@ public abstract class daemon0_t extends caller_daemon_t {
     }
 
     public String rewrite(ko r) {
+        log("rewrite"); //--strip
         if (is_ko(r)) {
             assert r.msg != null;
+            log("rewrite returns " + r.msg); //--strip
             return r.msg;
         }
+        log("rewrite returns empty"); //--strip
         return "";
     }
 

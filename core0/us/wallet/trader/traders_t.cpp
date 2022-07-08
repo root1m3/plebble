@@ -475,10 +475,10 @@ void c::dump(const string& prefix, ostream& os) const {
 void c::list_trades(const hash_t& subhomeh, ostream& os) const {
     lock_guard<mutex> lock(mx);
     for (auto& i: *this) {
-        if (!subhomeh.is_zero()) {
-            assert(i.second->w != nullptr);
-            if (subhomeh != i.second->w->subhomeh) continue;
-        }
+//        if (!subhomeh.is_zero()) {
+        assert(i.second->w != nullptr);
+        if (subhomeh != i.second->w->subhomeh) continue;
+//        }
         os << i.second->id << ' ';
         i.second->list_trades(os);
         os << '\n';
@@ -717,7 +717,13 @@ ko c::exec(const hash_t& tid, const string& cmd, wallet::local_api& w) {
     auto i = find(tid);
     if (i == end()) {
         auto r = "KO 15322 Trade not found.";
-        push_KO(r, w);
+        push_KO(tid, r, w);
+        log(r, tid);
+        return r;
+    }
+    if (i->second->w != &w) {
+        auto r = "KO 15323 Trade not found.";
+        push_KO(tid, r, w);
         log(r, tid);
         return r;
     }

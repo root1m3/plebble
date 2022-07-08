@@ -287,13 +287,13 @@ void c::test_0_1_2(node& bid, node& ask) {
                 seq = 2;
             }
             cout << "seq " << seq << endl;
-            if (seq==0) {
+            if (seq == 0) {
                 Check_s_contains(payload, "state req_online");
             }
-            else if (seq==1) {
+            else if (seq == 1) {
                 Check_s_contains(payload, "state online");
             }
-            else if (seq==2) {
+            else if (seq == 2) {
                 Check_s_contains(payload, "state offline");
                 bug_quick_reconnect_expressed = true;
                 cout << "> Bug QUICK_RECONNECT did express on bid." << endl;
@@ -307,8 +307,8 @@ void c::test_0_1_2(node& bid, node& ask) {
         [&](const hash_t& tid, uint16_t code, const vector<uint8_t>& blob) {
             string payload;
             assert(is_ok(blob_reader_t::parse(blob, payload)));
-            assert(tid==ask.wallet_cli->cur);
-            assert(tid==trade_id);
+            assert(tid == ask.wallet_cli->cur);
+            assert(tid == trade_id);
             int seq = 0;
             Check_s_contains(payload, "remote_ip4 ");
             Check_s_not_contains(payload, "ip4_resolver ");
@@ -320,9 +320,8 @@ void c::test_0_1_2(node& bid, node& ask) {
                 seq = 1;
             }
 
-           // <== here is the thing   . connecting so quick after a shutdown produces this call to disconnect:
-           // QUICK_RECONNECT gov/server/daemon.cpp
-
+            // <== here is the thing   . connecting so quick after a shutdown produces this call to disconnect:
+            // QUICK_RECONNECT gov/server/daemon.cpp
             // /   Goes offline misteriously if reconecting  quickly
 
             cout << "seq " << seq << endl;
@@ -331,7 +330,7 @@ void c::test_0_1_2(node& bid, node& ask) {
                 bug_quick_reconnect_expressed = true;
                 cout << "> Bug QUICK_RECONNECT did express on ask." << endl;
             }
-            else if (seq==1) {
+            else if (seq == 1) {
                 Check_s_contains(payload, "state online");
                 bug_quick_reconnect_expressed = false;
                 cout << "> Bug QUICK_RECONNECT didn't express on ask." << endl;
@@ -370,9 +369,7 @@ void c::test_0_1_2(node& bid, node& ask) {
 
 void c::test_1(node& bid, node& ask) {
     curtest(bid, ask, "start bid2ask bid", __FILE__, __LINE__);
-
     test_trade_start_dialog_b(bid, ask, trade_id, 0, 2);
-
 }
 
 void c::test_3(node& bid, node& ask) {
@@ -429,7 +426,7 @@ void c::test_6(node& bid, node& ask) {
     us::gov::crypto::ripemd160::value_type& tid=bid.wallet_cli->cur;
     ostringstream cmd;
     cmd << "trade " << tid << " show data";
-    assert(ask.wallet_cli->exec(cmd.str())==ok);
+    assert(ask.wallet_cli->exec(cmd.str()) == ok);
 
     wait(bid, ask);
 
@@ -453,7 +450,7 @@ void c::test_7(node& bid, node& ask) {
 void c::test_8(node& bid, node& ask) {
     curtest(bid, ask, "show logo", __FILE__, __LINE__);
 
-    bid.wallet_cli_dis->expected_code.emplace(us::wallet::trader::trader_protocol::push_logo, 1); //
+    bid.wallet_cli_dis->expected_code.emplace(us::wallet::trader::trader_protocol::push_logo, 1);
     cout << "\nshow logo" << endl;
     exec_cur_trade(bid, "show logo");
 
@@ -485,8 +482,8 @@ void c::test_10(node& bid, node& ask) {
         [&](const hash_t& tid, uint16_t code, const vector<uint8_t>& blob) {
             string payload;
             assert(is_ok(blob_reader_t::parse(blob, payload)));
-            assert(tid==bid.wallet_cli->cur);
-            assert(tid==trade_id);
+            assert(tid == bid.wallet_cli->cur);
+            assert(tid == trade_id);
             Check_s_contains(payload, "Document requested. I expect it to be delivered...");
         }
     );
@@ -564,7 +561,6 @@ void c::test_10(node& bid, node& ask) {
             static int seq = 0;
             assert(tid == bid.wallet_cli->cur);
             assert(tid == trade_id);
-
             Check_s_contains(payload, "created 1");
             Check_s_contains(payload, "activity 1");
             Check_s_contains(payload, "bootstrapped_by ");
@@ -613,14 +609,12 @@ void c::test_10(node& bid, node& ask) {
             Check_s_contains(payload, "remote__wf_rcpt_mode recv");
             Check_s_contains(payload, "basket ");
             Check_s_contains(payload, "rf N");
-
             Check_s_contains(payload, "remote__wf_cat Y");
             Check_s_contains(payload, "remote__wf_cat_expiry 1");
             Check_s_contains(payload, "remote__wf_cat_mode recv");
             Check_s_contains(payload, "remote__wf_cat_ts 1");
         }
     );
-
 
     cout << "\nrequest cat" << endl;
     exec_cur_trade(bid, "request cat");
@@ -670,8 +664,8 @@ void c::test_12(node& bid, node& ask) {
         [&](const hash_t& tid, uint16_t code, const vector<uint8_t>& blob){
             string payload;
             assert(is_ok(blob_reader_t::parse(blob, payload)));
-            assert(tid==bid.wallet_cli->cur);
-            assert(tid==trade_id);
+            assert(tid == bid.wallet_cli->cur);
+            assert(tid == trade_id);
             cout << payload << endl;
             Check_s_contains(payload, "-- BEGIN OF DOCUMENT --------------------------------------------------------------");
             Check_s_contains(payload, "-- END OF DOCUMENT ----------------------------------------------------------------");
@@ -773,7 +767,6 @@ void c::test_14(node& bid, node& ask) {
                 Check_s_contains(payload, "remote__wf_pay N");
                 Check_s_contains(payload, "remote__wf_rcpt N");
                 Check_s_contains(payload, "basket ");
-                //Fail();
             }
             if (seq == 2) {
                 Check_s_contains(payload, "remote__basket_serial 1");
@@ -1464,7 +1457,6 @@ void c::test_19(node& bid, node& ask) {
                     assert(i->second.second.second = 230);
                 }
             }
-
             if (seq == 0) {
                 Check_s_contains(payload, "local__wf_pay Y");
                 Check_s_contains(payload, "local__wf_pay_mode send");
@@ -1782,8 +1774,8 @@ void c::test_22(node& bid, node& ask) {
     [&](const hash_t& tid, uint16_t code, const vector<uint8_t>& blob) {
         string payload;
         assert(is_ok(blob_reader_t::parse(blob, payload)));
-        assert(tid==bid.wallet_cli->cur);
-        assert(tid==trade_id);
+        assert(tid == bid.wallet_cli->cur);
+        assert(tid == trade_id);
         Check_s_contains(payload, "KO 40219 Payment has been already completed. The basket cannot be changed.");
     });
 
@@ -1799,8 +1791,8 @@ void c::test_23(node& bid, node& ask) {
         [&](const hash_t& tid, uint16_t code, const vector<uint8_t>& blob) {
             string payload;
             assert(is_ok(blob_reader_t::parse(blob, payload)));
-            assert(tid==bid.wallet_cli->cur);
-            assert(tid==trade_id);
+            assert(tid == bid.wallet_cli->cur);
+            assert(tid == trade_id);
             Check_s_contains(payload, "-- BEGIN OF DOCUMENT --------------------------------------------------------------");
             Check_s_contains(payload, "-- END OF DOCUMENT ----------------------------------------------------------------");
             Check_s_not_contains(payload, "refer_personality: 11111111111111111111"); //anon personality doesn't show up in the doc
@@ -1935,8 +1927,8 @@ void c::test_end(node& bid, node& ask) {
         [&](const hash_t& tid, uint16_t code, const vector<uint8_t>& blob) {
             string payload;
             assert(is_ok(blob_reader_t::parse(blob, payload)));
-            assert(tid==bid.wallet_cli->cur);
-            assert(tid==trade_id);
+            assert(tid == bid.wallet_cli->cur);
+            assert(tid == trade_id);
             Check_s_contains(payload, "state offline");
         }
     );
@@ -1946,8 +1938,8 @@ void c::test_end(node& bid, node& ask) {
         [&](const hash_t& tid, uint16_t code, const vector<uint8_t>& blob) {
             string payload;
             assert(is_ok(blob_reader_t::parse(blob, payload)));
-            assert(tid==bid.wallet_cli->cur);
-            assert(tid==trade_id);
+            assert(tid == bid.wallet_cli->cur);
+            assert(tid == trade_id);
             Check_s_contains(payload, "Going offline.");
         }
     );
@@ -1957,8 +1949,8 @@ void c::test_end(node& bid, node& ask) {
         [&](const hash_t& tid, uint16_t code, const vector<uint8_t>& blob) {
             string payload;
             assert(is_ok(blob_reader_t::parse(blob, payload)));
-            assert(tid==bid.wallet_cli->cur);
-            assert(tid==trade_id);
+            assert(tid == bid.wallet_cli->cur);
+            assert(tid == trade_id);
             Check_s_contains(payload, "state offline");
         }
     );
@@ -2017,12 +2009,11 @@ void c::test(node& bid, node& ask) {
     test_25(bid, ask);
     test_26(bid, ask);
     test_end(bid, ask);
-    log("trace BBX456");
 }
 
 void c::run() {
-    auto& n1=*n.find("bid")->second;
-    auto& n2=*n.find("ask")->second;
+    auto& n1 = *n.find("bid")->second;
+    auto& n2 = *n.find("ask")->second;
     test_r2r_cfg(n1, n2, [&](node& n1, node& n2) { test(n1, n2); }, trade_id);
 }
 

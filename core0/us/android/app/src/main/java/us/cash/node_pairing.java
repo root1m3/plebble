@@ -82,7 +82,6 @@ import android.widget.TextView;                                                 
 import java.util.Timer;                                                                        // Timer
 import java.util.TimerTask;                                                                    // TimerTask
 import android.widget.Toast;                                                                   // Toast
-import androidx.appcompat.widget.Toolbar;                                                      // Toolbar
 import android.util.TypedValue;                                                                // TypedValue
 import us.gov.io.types.vector_tuple_hash_host_port;                                            // vector_tuple_hash_host_port
 import android.view.ViewGroup;                                                                 // ViewGroup
@@ -178,14 +177,12 @@ public final class node_pairing extends activity {
         });
 
         addr.setOnFocusChangeListener(new View.OnFocusChangeListener() {
-            @Override
-            public void onFocusChange(View v, boolean hasFocus) {
+            @Override public void onFocusChange(View v, boolean hasFocus) {
             }
         });
 
         connect_btn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
+            @Override public void onClick(View view) {
                 connect_btn.requestFocus();
                 hide_keyboard();
                 show_PIN_dialog(a);
@@ -193,15 +190,13 @@ public final class node_pairing extends activity {
         });
 
         swv.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
+            @Override public void onClick(View view) {
                 a.sw_updates.show_ui(node_pairing.this);
             }
         });
 
         setlang.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> parentView, View selectedItemView, int position, long id) {
+            @Override public void onItemSelected(AdapterView<?> parentView, View selectedItemView, int position, long id) {
                 String selected_string = setlang.getSelectedItem().toString();
                 String[] x = selected_string.split("_");
                 assert x.length == 2;
@@ -236,9 +231,9 @@ public final class node_pairing extends activity {
     @SuppressLint("ResourceType")
     @Override protected void onCreate(Bundle savedInstanceState) {
         log("on create"); //--strip
-        setContentView(R.layout.activity_node_pairing);
         ++instances;
         super.onCreate(savedInstanceState);
+        set_content_layout(R.layout.activity_node_pairing);
         addr = findViewById(R.id.walletd_address);
         addr_lo=findViewById(R.id.walletd_address_lo);
         port = findViewById(R.id.walletd_port);
@@ -251,13 +246,11 @@ public final class node_pairing extends activity {
         refresh = findViewById(R.id.refresh);
         refresh.setVisibility(View.GONE);
         connect_btn = findViewById(R.id.connect_btn);
-        progressbarcontainer = findViewById(R.id.progressbarcontainer);
         mode = findViewById(R.id.mode);
         upgrade2noncustodial = findViewById(R.id.upgrade2noncustodial);
         imagenode = findViewById(R.id.imagenode);
         swv = findViewById(R.id.swv);
         current_endpoint = findViewById(R.id.current_endpoint);
-        toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(findViewById(R.id.toolbar));
         redled = ContextCompat.getDrawable(this, R.drawable.led).mutate();
         amberled = ContextCompat.getDrawable(this, R.drawable.led).mutate();
@@ -275,14 +268,12 @@ public final class node_pairing extends activity {
         addr.setSelectAllOnFocus(true);
         addr.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
         addr_lo.setEndIconOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
+            @Override public void onClick(View v) {
                 String[] options = {"Find IP Address", "Show network seeds.", "Connection log.", a.getResources().getString(R.string.cancel)};
                 final node_pairing i = node_pairing.this;
                 new AlertDialog.Builder(i).setTitle("Asking nodes in the network...")
                     .setItems(options, new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
+                        @Override public void onClick(DialogInterface dialog, int which) {
                             switch(which) {
                                 case 0:
                                     i.find_ip_address();
@@ -296,8 +287,7 @@ public final class node_pairing extends activity {
                                 case 3:
                             }
                         }
-                    })
-                    .setIcon(R.drawable.ic_world).show();
+                    }).setIcon(R.drawable.ic_world).show();
             }
         });
 
@@ -338,30 +328,23 @@ public final class node_pairing extends activity {
         nodepkh.setInputType(InputType.TYPE_NULL);
         nodepkh.setTextIsSelectable(true);
         nodepkh.setKeyListener(null);
-        if (getIntent().hasExtra("prying_eyes")) {
-            prying_eyes = true;
-        }
         set_handlers();
-        progressbarcontainer.setVisibility(View.GONE);
         a.hmi.set_manual_mode(true);
     }
 
-    @Override
-    public void onDestroy() {
+    @Override public void onDestroy() {
         super.onDestroy();
         log("onDestroy"); //--strip
         --instances;
         a.hmi.set_manual_mode(false);
     }
 
-    @Override
-    public void onBackPressed() {
+    @Override public void onBackPressed() {
         log("finish"); //--strip
         finish();
     }
 
-    @Override
-    public void onResume() {
+    @Override public void onResume() {
         super.onResume();
         log("onResume"); //--strip
         --instances;
@@ -380,10 +363,9 @@ public final class node_pairing extends activity {
         refresh();
     }
 
-    @Override
-    public void onPause() {
+    @Override public void onPause() {
        super.onPause();
-        if (a.hmi == null) return;
+       if (a.hmi == null) return;
        a.hmi.add_status_handler(null);
        log("onPause"); //--strip
        ++instances;
@@ -423,8 +405,7 @@ public final class node_pairing extends activity {
         String[] options = {"Connection log. Show.", "Connection log. Clear.", "HMI info.", a.getResources().getString(R.string.cancel)};
         new AlertDialog.Builder(node_pairing.this).setTitle("Connection log:")
             .setItems(options, new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
+                @Override public void onClick(DialogInterface dialog, int which) {
                     switch(which) {
                         case 0:
                             show_connection_log();
@@ -440,8 +421,7 @@ public final class node_pairing extends activity {
                             break;
                     }
                 }
-            })
-        .show();
+            }).show();
     }
 
     void show_seeds() {
@@ -491,11 +471,9 @@ public final class node_pairing extends activity {
         log("show_PIN_dialog"); //--strip
         final EditText input = new EditText(c);
         input.setOnFocusChangeListener(new OnFocusChangeListener() {
-                @Override
-                public void onFocusChange(View v, boolean hasFocus) {
+                @Override public void onFocusChange(View v, boolean hasFocus) {
                     input.post(new Runnable() {
-                        @Override
-                        public void run() {
+                        @Override public void run() {
                             InputMethodManager inputMethodManager= (InputMethodManager) node_pairing.this.getSystemService(Context.INPUT_METHOD_SERVICE);
                             inputMethodManager.showSoftInput(input, InputMethodManager.SHOW_IMPLICIT);
                         }
@@ -510,8 +488,7 @@ public final class node_pairing extends activity {
             .setMessage("Authentication for new devices. If you have a PIN number type it, or leave the field empty for sending default pin 00000. PINS are one-shot. Already authenticated devices don't need to enter any PIN.")
             .setView(input)
             .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
+                    @Override public void onClick(DialogInterface dialog, int which) {
                         String v = String.valueOf(input.getText());
                         pin_t pin;
                         try {
@@ -753,8 +730,7 @@ public final class node_pairing extends activity {
         log("lookup ip"); //--strip
         assert a.hmi != null;
         pair<ko, endpoint_t> r = a.hmi.lookup_ip(new app.progress_t() {
-            @Override
-            public void on_progress(final String txt) {
+            @Override public void on_progress(final String txt) {
                 runOnUiThread(new Thread(new Runnable() {
                     public void run() {
                         Toast.makeText(getApplicationContext(), txt, Toast.LENGTH_LONG).show();
@@ -780,16 +756,13 @@ public final class node_pairing extends activity {
     private TextView mode;
     MaterialButton upgrade2noncustodial;
     private TextInputLayout imagenode;
-    RelativeLayout progressbarcontainer;
     Drawable redled;
     Drawable amberled;
     Drawable greenled;
     Drawable blueled;
-    boolean prying_eyes = false;
     state_t state = new state_t();
     Spinner setlang;
     String lang;
     String country;
-    Toolbar toolbar;
 }
 

@@ -37,7 +37,7 @@
 
 #include <us/trader/r2r/bid2ask/protocol.h>
 
-namespace us { namespace trader { namespace r2r { namespace bid2ask { namespace ask {
+namespace us::trader::r2r::bid2ask::ask {
 
     struct business_t;
 
@@ -78,5 +78,5 @@ namespace us { namespace trader { namespace r2r { namespace bid2ask { namespace 
         bool enabled_select{true};
     };
 
-}}}}}
+}
 

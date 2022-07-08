@@ -21,17 +21,19 @@
 //===----------------------------------------------------------------------------
 //===-
 #pragma once
-#include "coder.h"
-#include "apifun.h"
+
 #include <set>
 #include <functional>
 
-namespace us { namespace apitool {
+#include "coder.h"
+#include "apifun.h"
+
+namespace us::apitool {
     struct apifun;
     struct model;
-}}
+}
 
-namespace us { namespace apitool { namespace cpp {
+namespace us::apitool::cpp {
 
     using namespace std;
 
@@ -44,6 +46,8 @@ namespace us { namespace apitool { namespace cpp {
         coder(model& m): b(m) {}
 
         string lang() const override { return "c++"; }
+        string line_comment() const override { return "//"; }
+
         void gen_fcgi_index(const api_t&) const;
         void gen_fcgi_index(const api_t&, ostream&) const;
         void gen_fcgi_index(const apifun&, ostream&) const;
@@ -74,5 +78,5 @@ namespace us { namespace apitool { namespace cpp {
         void gen_dto_get_datagram(const apifun&, const apifun::io_types_t&, const string& prot_sfx, ostream&) const;
     };
 
-}}}
+}
 

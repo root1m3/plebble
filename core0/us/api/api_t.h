@@ -23,7 +23,7 @@
 #pragma once
 #include "apifun.h"
 
-namespace us { namespace apitool {
+namespace us::apitool {
 
     using namespace std;
     struct model;
@@ -36,11 +36,11 @@ namespace us { namespace apitool {
         void collect_in_specs(map<string, vector<pair<string, string>>>&) const;
         void collect_out_specs(map<string, vector<pair<string, string>>>&) const;
 
-        static void warn_h(ostream&);
-        void info(ostream&) const;
-        static void warn_f(ostream&);
-        static void templ_h(const string& filename, ostream&);
-        static void templ_f(ostream&);
+        static void warn_h(const string& line_comment_pfx, ostream&);
+        void info(const string& line_comment_pfx, ostream&) const;
+        static void warn_f(const string& line_comment_pfx, ostream&);
+        static void templ_h(const string& line_comment_pfx, const string& filename, ostream&);
+        static void templ_f(const string& line_comment_pfx, ostream&);
         static api_t* from_stream(istream&);
         static void feedback_load(const string& file);
         static api_t* load(const string& process, string file);
@@ -51,5 +51,5 @@ namespace us { namespace apitool {
         bool delegate{false}; // false: handler impl is at peer; true: handler at daemon
     };
 
-}}
+}
 

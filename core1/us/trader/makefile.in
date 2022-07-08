@@ -70,17 +70,19 @@ test/${LIBUSTESTC1}.so: libs
 testx/${USTESTC1}: test/${LIBUSTESTC1}.so
 	$(MAKE) CXXFLAGS="${CXXFLAGS}" INC="${INC}" LIB0="${LIB}" -C testx
 
-libs: lib${US}trader-bid2ask-bid.so lib${US}trader-bid2ask-ask.so
+libs: lib${US}trader-bid2ask-bid.so lib${US}trader-bid2ask-ask.so lib${US}trader-games-player.so
 
 DEPS_bid2ask=workflow/consumer/wf.o workflow/logistics/wf.o workflow/organization/wf.o
+DEPS_games=
 
-lib${US}trader-bid2ask-bid.so: bid2ask
+lib${US}trader-bid2ask-bid.so: r2r
 	${CXX} -shared -fPIC ${CXXFLAGS} ${RPATH} ${DEPS_bid2ask} r2r/bid2ask/bid2ask-bid.o ${LIB} -l${US}wallet -l${US}gov -lstdc++fs -pthread -o lib${US}trader-bid2ask-bid.so
 
-lib${US}trader-bid2ask-ask.so: bid2ask
+lib${US}trader-bid2ask-ask.so: r2r
 	${CXX} -shared -fPIC ${CXXFLAGS} ${RPATH} ${DEPS_bid2ask} r2r/bid2ask/bid2ask-ask.o ${LIB} -l${US}wallet -l${US}gov -lstdc++fs -pthread -o lib${US}trader-bid2ask-ask.so
 
-bid2ask: r2r
+lib${US}trader-games-player.so: r2r
+	${CXX} -shared -fPIC ${CXXFLAGS} ${RPATH} ${DEPS_games} r2r/games/libtrader-r2r-games.o ${LIB} -l${US}wallet -l${US}gov -lstdc++fs -pthread -o lib${US}trader-games-player.so
 
 r2r: workflow
 	$(MAKE) CXXFLAGS="${CXXFLAGS}" INC="${INC}" LIB0="${LIB}" -C r2r;
@@ -101,5 +103,5 @@ clean:
 	$(MAKE) clean -C testx;
 	rm -f *.so
 
-.PHONY: all debug release clean targets arch libs test libtest workflow r2r bid2ask
+.PHONY: all debug release clean targets arch libs test libtest workflow r2r
 

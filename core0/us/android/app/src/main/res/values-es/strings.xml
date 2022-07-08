@@ -20,7 +20,7 @@
     <string name="enter_message">Introduzca mensaje</string>
     <string name="loading">Cargando ...</string>
     <string name="endpointcopied">Tu endpoint se ha copiado al portapapeles</string>
-    <string name="select_protocol_role">Seleccione protocolo / rol</string>
+    <string name="select_protocol_role">Adoptar rol</string>
     <string name="mode_custodial">Modo de custodia.\nSus datos privados son almacenados en un nodo ajeno.\nPara maximizar la privacidad instale su propio nodo.</string>
     <string name="mode_non_custodial">Modo no custodiado.\nSus datos privados están protegidos en su propio nodo (hardware wallet).\nEste modo proporciona la maxima privacidad, bien hecho!.</string>
     <string name="follower">Seguidor</string>

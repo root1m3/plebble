@@ -24,8 +24,6 @@ package us.cash;
 import androidx.appcompat.app.ActionBarDrawerToggle;                                           // ActionBarDrawerToggle
 import android.app.ActivityManager;                                                            // ActivityManager
 import android.app.AlertDialog;                                                                // AlertDialog
-import android.view.animation.AlphaAnimation;                                                  // AlphaAnimation
-import android.view.animation.Animation;                                                       // Animation
 import android.widget.ArrayAdapter;                                                            // ArrayAdapter
 import java.util.ArrayList;                                                                    // ArrayList
 import java.util.concurrent.atomic.AtomicInteger;                                              // AtomicInteger
@@ -78,21 +76,18 @@ import android.widget.ListView;                                                 
 import java.util.Locale;                                                                       // Locale
 import android.view.Menu;                                                                      // Menu
 import android.view.MenuItem;                                                                  // MenuItem
-import com.google.android.material.navigation.NavigationView;                                  // NavigationView
 import android.net.NetworkInfo;                                                                // NetworkInfo
 import androidx.annotation.NonNull;                                                            // NonNull
 import android.app.NotificationChannel;                                                        // NotificationChannel
 import androidx.core.app.NotificationCompat;                                                   // NotificationCompat
 import androidx.core.app.NotificationManagerCompat;                                            // NotificationManagerCompat
 import android.app.NotificationManager;                                                        // NotificationManager
-import android.animation.ObjectAnimator;                                                       // ObjectAnimator
 import static us.ko.ok;                                                                        // ok
 import java.io.OutputStreamWriter;                                                             // OutputStreamWriter
 import android.app.PendingIntent;                                                              // PendingIntent
 import us.wallet.protocol;                                                                     // protocol
 import us.wallet.trader.protocol_selection_t;                                                  // protocol_selection_t
 import us.wallet.trader.qr_t;                                                                  // qr_t
-import android.widget.RelativeLayout;                                                          // RelativeLayout
 import androidx.annotation.RequiresApi;                                                        // RequiresApi
 import android.net.wifi.ScanResult;                                                            // ScanResult
 import android.provider.Settings;                                                              // Settings
@@ -103,9 +98,7 @@ import android.widget.TextView;                                                 
 import java.util.Timer;                                                                        // Timer
 import java.util.TimerTask;                                                                    // TimerTask
 import android.widget.Toast;                                                                   // Toast
-import androidx.appcompat.widget.Toolbar;                                                      // Toolbar
 import android.net.Uri;                                                                        // Uri
-import android.animation.ValueAnimator;                                                        // ValueAnimator
 import android.view.View;                                                                      // View
 import android.net.wifi.WifiManager;                                                           // WifiManager
 import android.view.Window;                                                                    // Window
@@ -113,13 +106,18 @@ import android.view.WindowManager;                                              
 import org.xmlpull.v1.XmlPullParser;                                                           // XmlPullParser
 import android.view.MenuInflater;
 import android.view.SubMenu;
+import us.string;                                                                              // string
+import static us.ko.is_ko;                                                                     // is_ko
+import us.ko;                                                                                  // ko
+import static us.gov.io.types.*;                                                               // *
+import us.gov.io.blob_reader_t;                                                                // blob_reader_t
 
-public final class main_activity extends activity implements datagram_dispatcher_t.handler_t, NavigationView.OnNavigationItemSelectedListener {
+public final class main_activity extends activity implements datagram_dispatcher_t.handler_t {
     static final int AC_RESULT = 0;
 
-    static void log(final String line) {            //--strip
-       CFG.log_android("main_activity: " + line);   //--strip
-    }                                               //--strip
+    static void log(final String line) {             //--strip
+        CFG.log_android("main_activity: " + line);   //--strip
+    }                                                //--strip
 
     BroadcastReceiver wifiReceiver = new BroadcastReceiver() {
         @Override public void onReceive(Context context, Intent intent) {
@@ -134,54 +132,15 @@ public final class main_activity extends activity implements datagram_dispatcher
     @RequiresApi(api = Build.VERSION_CODES.O)
     @Override protected void onCreate(Bundle savedInstanceState) {
         log("main_activity.onCreate"); //--strip
-        locale_init();
-        overridePendingTransition(R.anim.fadein, R.anim.fadeout);
-        setTheme(R.style.AppTheme);
-        requestWindowFeature(Window.FEATURE_NO_TITLE);
-        View decorView = getWindow().getDecorView();
-        decorView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_STABLE | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN);
-        setContentView(R.layout.activity_main);
         super.onCreate(savedInstanceState);
-        mainprogressbarcontainer = findViewById(R.id.progressbarcontainer);
-        toolbar = findViewById(R.id.toolbar);
-        toolbar_button refresh = findViewById(R.id.refresh);
-        drawer_layout = findViewById(R.id.drawer_layout);
-        navigation = findViewById(R.id.navigation_view);
-        toolbar = findViewById(R.id.toolbar);
-        mainprogressbarcontainer.setVisibility(View.VISIBLE);
-        refresh.setVisibility(View.GONE);
-        toolbar.setTitle(""); //toolbar.setTitle(R.string.select_menu);
-        log("toolbar visible");//--strip
-        toolbar.setVisibility(View.VISIBLE);
-        setSupportActionBar(toolbar);
-        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(this, drawer_layout, toolbar, R.string.bookmarks, R.string.bookmarks);
-        drawer_layout.addDrawerListener(toggle);
-        toggle.syncState();
-        navigation.setNavigationItemSelectedListener(this);
-        //tests to recognize new IPs
-        //if (!wifiManager.isWifiEnabled()) {
-        //    Toast.makeText(this, "WiFi is disabled ... We need to enable it", Toast.LENGTH_LONG).show();
-        //    wifiManager.setWifiEnabled(true);
-        //}
-        //scanWifiNetworks();
-        Menu nav_menu = navigation.getMenu();
-        updateavailable = nav_menu.findItem(R.id.nav_updateavailable);
-        if (a.sw_updates.is_updateavailable){
-            updateavailable.setVisible(true);
-        }
-        else {
-            updateavailable.setVisible(false);
-        }
-        boolean showiot = false;
-        //release builds (which don't incluce lines marked '--strip' ) doesn't show the experimental IoT menu.
-        showiot = true; //--strip
-        if (showiot) {
-            nav_menu.add(R.id.group5, 5948, Menu.NONE, "IoT");
-        }
-
+        set_content_layout(R.layout.activity_main);
+        log("locale_init"); //--strip
+        locale_init();
+        log("setTheme"); //--strip
+        setTheme(R.style.AppTheme);
+        log("setSystemUiVisibility"); //--strip
+        getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_STABLE | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN);
         log("Build.VERSION.SDK_INT=" + Build.VERSION.SDK_INT); //--strip
-        createNotificationChannel();
-        Context ctx = this;
         Window window = getWindow();
         window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
         window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
@@ -189,7 +148,7 @@ public final class main_activity extends activity implements datagram_dispatcher
         log("Connecting to datagram dispatcher");//--strip
         dispatchid = a.datagram_dispatcher.connect_sink(this);
         log("initating hmi in background");//--strip
-        app.progress_t progress=new app.progress_t() {
+        app.progress_t progress = new app.progress_t() {
             @Override public void on_progress(final String report) {
                 runOnUiThread(new Runnable() {
                     @Override public void run() {
@@ -225,10 +184,7 @@ public final class main_activity extends activity implements datagram_dispatcher
                 launch_settings();
             }
         }
-        mainprogressbarcontainer.setVisibility(View.GONE);
     }
-
-    private animation_t animated_icon;
 
     public void launch_settings__worker() {
         a.assert_worker_thread(); //--strip
@@ -248,14 +204,6 @@ public final class main_activity extends activity implements datagram_dispatcher
         Menu nav_menu = navigation.getMenu();
         MenuItem menuItem = nav_menu.findItem(R.id.nav_settings);
         onNavigationItemSelected(menuItem);
-    }
-
-    public void start_animation() {
-        ValueAnimator animator = ObjectAnimator.ofInt(0, 360);
-        animator.addUpdateListener(animation -> {
-            animated_icon.set_rotation((int) animation.getAnimatedValue());
-        });
-        animator.start();
     }
 
     @Override public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
@@ -284,15 +232,9 @@ public final class main_activity extends activity implements datagram_dispatcher
     }
 
     @SuppressWarnings("StatementWithEmptyBody")
-    @Override public boolean onNavigationItemSelected(MenuItem menu_item){
-        int title;
-        Drawable icon = menu_item.getIcon();
-        animated_icon = new animation_t(a.getResources(), icon);
-        menu_item.setIcon(animated_icon);
-        start_animation();
-
+    @Override public boolean onNavigationItemSelected(MenuItem menu_item) {
+        log("onNavigationItemSelected"); //--strip
         int item_id = menu_item.getItemId();
-
         if (!a.hmi.is_online) {
             if (item_id != R.id.nav_settings) {
                 log("HMI is down. Opening settings instead"); //--strip
@@ -301,11 +243,8 @@ public final class main_activity extends activity implements datagram_dispatcher
         }
 
         Intent intent;
-//        appinitlabel.setText(R.string.loading);
-        mainprogressbarcontainer.setVisibility(View.VISIBLE);
         switch (item_id) {
             case R.id.nav_balance:
-                //title = R.string.title_activity_position;
                 intent = new Intent(main_activity.this, position.class);
                 intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NO_HISTORY);
                 startActivity(intent);
@@ -360,6 +299,7 @@ public final class main_activity extends activity implements datagram_dispatcher
 
     private String CHANNEL_ID="app_notify_channel0";
 
+/*
     private void createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             log("creating notification channel"); //--strip
@@ -401,42 +341,22 @@ public final class main_activity extends activity implements datagram_dispatcher
         notificationManager.notify(NOTIFICATION_ID, builder.build());
         if (!a.notification_trades_id.contains(info)) a.notification_trades_id.add(info);
     }
+*/
 
-    @Override
-    protected void onStart() {
+    @Override protected void onStart() {
         super.onStart();
         log("onStart"); //--strip
     }
 
-    @Override
-    protected void onStop() {
+    @Override protected void onStop() {
         super.onStop();
         log("onStop"); //--strip
     };
 
-    @Override
-    public void onDestroy() {
+    @Override public void onDestroy() {
         super.onDestroy();
         log("onDestroy"); //--strip
         wait_handler.removeCallbacksAndMessages(null); //Remove all the callbacks otherwise navigation will execute even after activity is killed or closed.
-    }
-
-    @Override
-    public void onResume() {
-        super.onResume();
-        if (!first) {
-            mainprogressbarcontainer.setVisibility(View.GONE);
-        }
-        else {
-            first = false;
-        }
-        log("onResume"); //--strip
-    }
-
-    @Override
-    public void onPause() {
-        super.onPause();
-        log("onPause"); //--strip
     }
 
     @Override public void on_push(hash_t target_tid, uint16_t code, byte[] payload) {
@@ -449,32 +369,55 @@ public final class main_activity extends activity implements datagram_dispatcher
             }
             case us.wallet.trader.trader_t.push_chat: {
                 runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
+                    @Override public void run() {
                         call_human(1, target_tid.encode());
                     }
                 });
             }
-            break;
+            case us.gov.relay.pushman.push_ko: {
+                string s = new string();
+                blob_reader_t rder = new blob_reader_t(new blob_t(payload));
+                ko r = rder.read(s);
+                if (is_ko(r)) {
+                    toast__worker("trade " + target_tid.encode() + ": error arrived (Unparseable)");
+                    return;
+                }
+                toast__worker("trade " + target_tid.encode() + ": " + s.value);
+                return;
+            }
+            case us.gov.relay.pushman.push_ok: {
+                string s = new string();
+                blob_reader_t rder = new blob_reader_t(new blob_t(payload));
+                ko r = rder.read(s);
+                if (is_ko(r)) {
+                    toast__worker("Ok arrived (Unparseable)");
+                    return;
+                }
+                toast__worker("trade " + target_tid.encode() + ": " + s.value);
+                return;
+            }
         }
     }
 
+    void toast__worker(final String msg) {
+        runOnUiThread(new Runnable() {
+            @Override public void run() {
+                Toast.makeText(main_activity.this, msg, 6000).show();
+            }
+        });
+    }
+
     void call_human(int code, final String info) {
+/*
         switch(code) {
             case 1: //trade #tid received a chat update
-                String tid=info;
+                String tid = info;
                 log("CALL_HUMAN "+code+" "+info); //--strip
                 show_notification(1, info);
                 //TODO: ... Show ! icon on every view there a tid is shown
             break;
        }
-    }
-
-    @Override
-    public void onConfigurationChanged(Configuration newConfig) {
-        super.onConfigurationChanged(newConfig);
-        log("onConfigurationChanged"); //--strip
-        //updateControls();
+*/
     }
 
     public static boolean isAndroidRuntime() {
@@ -505,16 +448,14 @@ public final class main_activity extends activity implements datagram_dispatcher
         if (ByteOrder.nativeOrder().equals(ByteOrder.LITTLE_ENDIAN)) {
             ipAddress = Integer.reverseBytes(ipAddress);
         }
-
         byte[] ipByteArray = BigInteger.valueOf(ipAddress).toByteArray();
-
         String ipAddressString;
         try {
             ipAddressString = InetAddress.getByAddress(ipByteArray).getHostAddress();
-        } catch (Exception ex) {
+        }
+        catch (Exception ex) {
             ipAddressString = null;
         }
-
         return ipAddressString;
     }
 
@@ -533,15 +474,14 @@ public final class main_activity extends activity implements datagram_dispatcher
         startActivityForResult(intent, AC_RESULT);
     }
 
-    @Override
-    public void onBackPressed() {
-        mainprogressbarcontainer.setVisibility(View.GONE);
+    @Override public void onBackPressed() {
         if (drawer_layout.isDrawerOpen(GravityCompat.START)) {
             drawer_layout.closeDrawer(GravityCompat.START);
-        } else {
+        }
+        else {
             ActivityManager mngr = (ActivityManager) getSystemService( ACTIVITY_SERVICE );
             List<ActivityManager.RunningTaskInfo> taskList = mngr.getRunningTasks(10);
-            if(taskList.get(0).numActivities == 1 && taskList.get(0).topActivity.getClassName().equals(this.getClass().getName())) {
+            if (taskList.get(0).numActivities == 1 && taskList.get(0).topActivity.getClassName().equals(this.getClass().getName())) {
                 android.os.Process.killProcess(android.os.Process.myPid());
                 System.exit(1);
             }
@@ -597,8 +537,7 @@ public final class main_activity extends activity implements datagram_dispatcher
     public void go_trade__worker(final hash_t tid) {
         log("go_trade__worker " + tid.encode()); //--strip
         runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
+            @Override public void run() {
                 go_trade(tid);
             }
         });
@@ -685,19 +624,12 @@ public final class main_activity extends activity implements datagram_dispatcher
     }
 
     Handler wait_handler = new Handler();
-    boolean first = true;
-    RelativeLayout mainprogressbarcontainer;
     WifiManager wifiManager;
     ListView listView;
     Button buttonScan;
     int size = 0;
     List<ScanResult> results;
-    Toolbar toolbar;
-    private MenuItem updateavailable;
-    public DrawerLayout drawer_layout;
-    public NavigationView navigation;
     int dispatchid = -1;
     //smart_card_reader reader;
-
 }
 

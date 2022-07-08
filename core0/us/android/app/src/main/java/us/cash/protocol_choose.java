@@ -50,22 +50,19 @@ import android.view.View;                                                       
 
 public final class protocol_choose extends activity implements datagram_dispatcher_t.handler_t {
 
-    static void log(final String line) {                //--strip
-       CFG.log_android("protocol_choose: " + line);     //--strip
-    }                                                   //--strip
+    static void log(final String line) {                 //--strip
+        CFG.log_android("protocol_choose: " + line);     //--strip
+    }                                                    //--strip
 
     private final static class ListViewItem_adapter extends ArrayAdapter<String> {
-
-        private Activity activity;
-        private LayoutInflater inflater = null;
 
         public ListViewItem_adapter(Activity ac, ArrayList<String> data) {
             super(ac, R.layout.trade_list_item, data);
             this.activity = ac;
             inflater = (LayoutInflater)activity.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         }
-        @Override
-        public View getView(int position, View view, ViewGroup parent) {
+
+        @Override public View getView(int position, View view, ViewGroup parent) {
             View vi=view;
             if (vi == null) {
                 vi = inflater.inflate(R.layout.trade_list_item, null, true);
@@ -79,20 +76,16 @@ public final class protocol_choose extends activity implements datagram_dispatch
             imageView.setImageResource(R.drawable.ic_basket);
             return vi;
         }
-    }
 
-    no_scroll_list_view lv;
-    ArrayList<String> shit;
-    hash_t tid;
-    ListViewItem_adapter adapter = null;
-    String selected_protocol = null;
-    int dispatchid;
+        private Activity activity;
+        private LayoutInflater inflater = null;
+    }
 
     @Override protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_trades);
-        Toolbar toolbar = findViewById(R.id.toolbar);
-        setSupportActionBar(findViewById(R.id.toolbar));
+        set_content_layout(R.layout.activity_trades);
+//        Toolbar toolbar = findViewById(R.id.toolbar);
+//        setSupportActionBar(findViewById(R.id.toolbar));
         shit = new ArrayList<String>();
         adapter = new ListViewItem_adapter(this,shit);
         lv = (no_scroll_list_view) findViewById(R.id.listviewX);
@@ -156,5 +149,11 @@ public final class protocol_choose extends activity implements datagram_dispatch
 
     }
 
+    no_scroll_list_view lv;
+    ArrayList<String> shit;
+    hash_t tid;
+    ListViewItem_adapter adapter = null;
+    String selected_protocol = null;
+    int dispatchid;
 }
 

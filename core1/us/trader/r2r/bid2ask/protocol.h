@@ -36,7 +36,7 @@
 
 #include "types.h"
 
-namespace us { namespace trader { namespace r2r { namespace bid2ask {
+namespace us::trader::r2r::bid2ask {
 
     struct protocol: us::wallet::trader::workflow::trader_protocol {
         using b = us::wallet::trader::workflow::trader_protocol;
@@ -117,5 +117,5 @@ namespace us { namespace trader { namespace r2r { namespace bid2ask {
         workflow_t* _workflow{nullptr};
     };
 
-}}}}
+}
 

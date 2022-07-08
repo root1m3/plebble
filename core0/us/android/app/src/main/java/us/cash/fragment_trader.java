@@ -182,8 +182,7 @@ public class fragment_trader extends Fragment implements datagram_dispatcher_t.h
         String[] options = roles.as_options();
         new AlertDialog.Builder(tr).setTitle("Select role:")
             .setItems(options, new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
+                @Override public void onClick(DialogInterface dialog, int which) {
                     if (which >= 0 && which < options.length) {
                         select_pr(options[which]);
                     }
@@ -258,14 +257,13 @@ public class fragment_trader extends Fragment implements datagram_dispatcher_t.h
             }
         });
         select_protocol_role.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
+            @Override public void onClick(View view) {
                 tr.forward_roles = fragment_trader.this;
                 tr.get_sourceshit("roles", getActivity().getApplicationContext());
             }
         });
         online.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            public void onCheckedChanged(CompoundButton buttonView, boolean is_checked) {
+            @Override public void onCheckedChanged(CompoundButton buttonView, boolean is_checked) {
                 if (a == null) return;
                 if (a.hmi == null) return;
                 a.hmi.command_trade(tid, is_checked ? "connect" : "disconnect");
@@ -491,11 +489,9 @@ public class fragment_trader extends Fragment implements datagram_dispatcher_t.h
             select_protocol_role.setText(getResources().getString(R.string.select_protocol_role));
         }
         else {
-            select_protocol_role.setText(getResources().getString(R.string.protocolandrole) + " " + tr.cur_protocol);
+            select_protocol_role.setText(getResources().getString(R.string.protocolandrole) + " Cur: " + tr.cur_protocol);
         }
-
         refresh_peer_ico(data);
-
         tr.setmode_ready();
     }
 

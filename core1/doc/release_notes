@@ -96,6 +96,9 @@ Shortlisted features/fixes:
         file hash
         timestamp pubkey signature sender
         timestamp pubkey signature recipient
+    * blobs made of debian packages.
+    * become/find a debian maintainer for adding plebble to official debian
+    * rpc-cli timeout configurable in HMI (CFG_DGRAM_ROUNDTRIP_TIMEOUT_SECS rendezvous_t.cpp)
 
 In progress/testing:
     * Continuous build System. Produces final assets or error report for every git commit.
@@ -138,10 +141,17 @@ Production releases. beta
 Production releases. alpha
 --------------------------
 
-alpha-36 - 
-    * 
+alpha-37 -
 
-alpha-35 - 
+
+alpha-36 - alpha-36_8ffb9049 2022-07-05_19-01-52 vhash 8ffb9049 <- R 910bf5353fa897407c1ccff8b525e4be3894cb56 alpha-36 dbg-0 logs-0 counters-0 connlog-0 fcgi-0
+    * android - moved toolbar and main menu drawer to base class activity.
+    * android - increased API level 30->31 (for Android 12).
+    * wallet generates an address if empty allowing invoice and hence transfer of funds via bank2bank protocol for guest wallets.
+    * wallet. fix. trade list on root wallet was showing trades belonging to guest wallets.
+    * updated seeds at etc/nodes.distr0 and str67
+
+alpha-35 - mezzanine release
     * wallet::trader::business_t::interface_version 8->9
     * android - upgrade to non-custodial button
     * scalability. sharding simulation test/sim

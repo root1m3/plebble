@@ -45,6 +45,8 @@ using namespace us::wallet::wallet;
 using c = us::wallet::wallet::local_api;
 using peer_t = us::wallet::engine::peer_t;
 
+const char* c::KO_20183 = "KO 20183 Wallet contains no addresses.";
+
 c::local_api(engine::daemon_t& daemon, const string& home, const string& subhome, const hash_t& subhomeh, trader::endpoint_t&& ep):
         daemon(daemon),
         home(home),
@@ -66,12 +68,15 @@ c::~local_api() {
 ko c::refresh_data() {
     log("refresh_data");
     if (unlikely(empty())) {
-        auto r = "KO 20183 Wallet contains 0 addresses.";
-        log(r);
+        log("empty wallet. generating new_address.");
+        algorithm::new_address();
+    }
+    if (unlikely(empty())) {
+        log(KO_20183);
         lock_guard<mutex> lock(w::mx);
         delete data;
         data = nullptr;
-        return r;
+        return KO_20183;
     }
     us::gov::cash::addresses_t addresses;
     addresses.reserve(size());
