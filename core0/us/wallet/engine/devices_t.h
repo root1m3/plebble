@@ -59,6 +59,9 @@ namespace us::wallet::engine {
         ko device_unprepair(pin_t pin);
         const device_t* get_device(const pub_t&) const;
         const attempts_t& get_attempts() const { return attempts; }
+        void set_consume_pin(bool);
+        bool get_consume_pin() const;
+        inline const string& get_home() const { return home; }
 
     private:
         void load_();

@@ -12,7 +12,7 @@
 
     <EditText
         android:id="@+id/page"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:hint="@string/endpointlabel"
         android:textAlignment="center"
@@ -23,7 +23,7 @@
 
     <EditText
         android:id="@+id/qrlabel"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:hint="@string/endpointlabel"
         android:textAlignment="center"
@@ -34,7 +34,7 @@
 
     <EditText
         android:id="@+id/qrtext"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:hint="@string/endpointlabel"
         android:textAlignment="center"

@@ -89,6 +89,7 @@ namespace us::wallet::cli {
         bool banner{true};
         string logd{LOGDIR};
         bool nolog{false};
+        uint16_t rpc_timeout_secs{CFG_DGRAM_ROUNDTRIP_TIMEOUT_SECS};
     };
 
 }

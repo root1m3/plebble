@@ -82,7 +82,7 @@ lib${US}trader-bid2ask-ask.so: r2r
 	${CXX} -shared -fPIC ${CXXFLAGS} ${RPATH} ${DEPS_bid2ask} r2r/bid2ask/bid2ask-ask.o ${LIB} -l${US}wallet -l${US}gov -lstdc++fs -pthread -o lib${US}trader-bid2ask-ask.so
 
 lib${US}trader-games-player.so: r2r
-	${CXX} -shared -fPIC ${CXXFLAGS} ${RPATH} ${DEPS_games} r2r/games/libtrader-r2r-games.o ${LIB} -l${US}wallet -l${US}gov -lstdc++fs -pthread -o lib${US}trader-games-player.so
+	${CXX} -shared -fPIC ${CXXFLAGS} ${RPATH} ${DEPS_games} r2r/games/games-player.o ${LIB} -l${US}wallet -l${US}gov -lstdc++fs -pthread -o lib${US}trader-games-player.so
 
 r2r: workflow
 	$(MAKE) CXXFLAGS="${CXXFLAGS}" INC="${INC}" LIB0="${LIB}" -C r2r;
@@ -101,7 +101,7 @@ clean:
 	$(MAKE) clean -C workflow;
 	$(MAKE) clean -C test;
 	$(MAKE) clean -C testx;
-	rm -f *.so
+	$(RM) *.so
 
 .PHONY: all debug release clean targets arch libs test libtest workflow r2r
 

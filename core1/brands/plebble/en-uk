@@ -29,4 +29,5 @@ str73=1                 #TOR_ENABLED
 str74=1                 #HTTP_ENABLED
 str75=1                 #BIND_ENABLED
 str80=0                 #enable sharding
+str82="https://github.com/root1m3/plebble"   #Repreducible builds URL
 

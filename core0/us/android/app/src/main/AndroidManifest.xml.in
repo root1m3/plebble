@@ -14,6 +14,11 @@
     <uses-permission android:name="android.permission.WRITE_INTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.READ_INTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
+
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
+
     <uses-feature android:name="android.hardware.camera" />
     <uses-feature android:name="android.hardware.camera.autofocus" />
 <!--
@@ -41,9 +46,10 @@
         <activity
             android:name=".splash"            
             android:label="@string/app_name"
-            android:theme="@style/AppTheme.Launcher">
+            android:theme="@style/AppTheme.Launcher"
+            android:exported="true">
             <intent-filter>
-		        <action android:name="android.intent.action.MAIN" />
+                <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         
@@ -54,10 +60,11 @@
         <activity
             android:name=".main_activity"
             android:label="@string/app_name"
-			android:configChanges="orientation"
+            android:configChanges="orientation"
             android:launchMode="singleTask"
             android:hardwareAccelerated="true"			
-            android:theme="@style/AppTheme.NoActionBar">
+            android:theme="@style/AppTheme.NoActionBar"
+            android:exported="true">
             <intent-filter>                
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
@@ -72,7 +79,7 @@
 
         <activity android:name=".protocol_choose"></activity>
 
-        <activity android:name=".trader"                  
+        <activity android:name=".trader"
 				  android:windowSoftInputMode="adjustPan"
 				  android:theme="@style/AppTheme.NoActionBar"
 				  android:parentActivityName=".main_activity"
@@ -80,6 +87,20 @@
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".trades" />
+        </activity>
+
+        <activity android:name=".about"
+				  android:windowSoftInputMode="adjustPan"
+				  android:theme="@style/AppTheme.NoActionBar"
+				  android:parentActivityName=".main_activity"
+                  >
+        </activity>
+
+        <activity android:name=".settings_language"
+				  android:windowSoftInputMode="adjustPan"
+				  android:theme="@style/AppTheme.NoActionBar"
+				  android:parentActivityName=".main_activity"
+                  >
         </activity>
 
         <activity android:name=".endpoint" />

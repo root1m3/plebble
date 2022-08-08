@@ -121,38 +121,54 @@ function mk_blobs {
     echo $sep
     echo "bin/10_make_build_jobs ${flags10} $brand"
     bin/10_make_build_jobs ${flags10} $brand
-    [[ $? -ne 0 ]] && exit 1
+    if [[ $? -ne 0 ]]; then
+        exit 1
+    fi
     echo $sep
     echo "bin/15_make_deps ${flags15} build_jobs_distr"
     bin/15_make_deps ${flags15} build_jobs_distr
-    [[ $? -ne 0 ]] && exit 1
+    if [[ $? -ne 0 ]]; then
+        exit 1
+    fi
     echo $sep
     echo "bin/20_make_core ${flags20} build_jobs_distr"
     bin/20_make_core ${flags20} build_jobs_distr
-    [[ $? -ne 0 ]] && exit 1
+    if [[ $? -ne 0 ]]; then
+        exit 1
+    fi
     echo $sep
     echo "bin/30_make_android build_jobs_distr"
     bin/30_make_android build_jobs_distr
-    [[ $? -ne 0 ]] && exit 1
+    if [[ $? -ne 0 ]]; then
+        exit 1
+    fi
     echo $sep
     echo "bin/35_make_r2r_protocols ${flags35} build_jobs_distr"
     bin/35_make_r2r_protocols ${flags35} build_jobs_distr
-    [[ $? -ne 0 ]] && exit 1
+    if [[ $? -ne 0 ]]; then
+        exit 1
+    fi
     echo $sep
     echo "bin/40_make_raspi_image"
     bin/40_make_raspi_image
-    [[ $? -ne 0 ]] && exit 1
+    if [[ $? -ne 0 ]]; then
+        exit 1
+    fi
     echo $sep
     echo "bin/50_tokenized_files_and_sign build_jobs_distr"
     bin/50_tokenized_files_and_sign build_jobs_distr
-    [[ $? -ne 0 ]] && exit 1
+    if [[ $? -ne 0 ]]; then
+        exit 1
+    fi
     echo $sep
     echo "bin/70_make_blobs build_jobs_distr"
     bin/70_make_blobs build_jobs_distr
-    [[ $? -ne 0 ]] && exit 1
+    if [[ $? -ne 0 ]]; then
+        exit 1
+    fi
     echo $sep
-    echo "distr:"
-    find distr -type f
+#    echo "distr:"
+#    find distr -type f
     echo "blobs:"
     find blobs -type f
     date

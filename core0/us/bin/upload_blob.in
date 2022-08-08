@@ -27,7 +27,7 @@ US="##str3##"
 . /home/gov/.${US}/config
 
 gov="${US}-gov"
-wallet="${US}-wallet"
+wallet="${US}-wallet -t 15"
 
 address="##str39##"  #Software updates account.
 

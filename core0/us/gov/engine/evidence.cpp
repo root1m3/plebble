@@ -77,7 +77,6 @@ hash_t c::hash_id() const {
     return hash;
 }
 
-
 void c::write_sigmsg(sigmsg_hasher_t& h, bool include_ts) const {
     if (include_ts) h.write(ts);
     h.write(app);

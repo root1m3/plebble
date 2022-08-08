@@ -21,42 +21,43 @@
 //===----------------------------------------------------------------------------
 //===-
 package us.cash;
-import org.acra.annotation.AcraCore;                                                           // AcraCore
-import org.acra.ACRA;                                                                          // ACRA
+//import org.acra.annotation.AcraCore;                                                           // AcraCore
+//import org.acra.ACRA;                                                                          // ACRA
 import android.app.Application;                                                                // Application
-import org.acra.BuildConfig;                                                                   // BuildConfig
+//import org.acra.BuildConfig;                                                                   // BuildConfig
 import android.content.Context;                                                                // Context
-import org.acra.config.CoreConfigurationBuilder;                                               // CoreConfigurationBuilder
-import com.google.firebase.crashlytics.FirebaseCrashlytics;                                    // FirebaseCrashlytics
-import org.acra.config.HttpSenderConfigurationBuilder;                                         // HttpSenderConfigurationBuilder
-import org.acra.sender.HttpSender;                                                             // HttpSender
-import org.acra.data.StringFormat;                                                             // StringFormat
+//import org.acra.config.CoreConfigurationBuilder;                                               // CoreConfigurationBuilder
+//import com.google.firebase.crashlytics.FirebaseCrashlytics;                                    // FirebaseCrashlytics
+//import org.acra.config.HttpSenderConfigurationBuilder;                                         // HttpSenderConfigurationBuilder
+//import org.acra.sender.HttpSender;                                                             // HttpSender
+//import org.acra.data.StringFormat;                                                             // StringFormat
 
-@AcraCore(reportFormat = StringFormat.JSON)
+//@AcraCore(reportFormat = StringFormat.JSON)
 public class error_manager {
 
-    static void log(final String line) {                //--strip
+    static private void log(final String line) {        //--strip
        CFG.log_android("error_manager: " + line);       //--strip
     }                                                   //--strip
 
     public static void manage(final Exception e, final String error) {
         log(error); //--strip
-        if(!CFG.acra_connection_string.isEmpty()) {
-            FirebaseCrashlytics.getInstance().recordException(e); //--strip
+        if (!CFG.acra_connection_string.isEmpty()) {
+            //FirebaseCrashlytics.getInstance().recordException(e); //--strip
         }
         else {
             log("acra is not configured"); //--strip
             e.printStackTrace();
-            System.err.println(error+" "+e.getMessage() + " - " + e.toString());
+            log(error + " " + e.getMessage() + " - " + e.toString()); //--strip
             System.exit(1);
         }
         e.printStackTrace();
-        System.err.println(error+" "+e.getMessage() + " - " + e.toString());
+        log(error + " " + e.getMessage() + " - " + e.toString()); //--strip
     }
 
     public static void setup(Context ctx, Application ap) {
-        if(!CFG.acra_connection_string.isEmpty()) {
-            String[] s=CFG.acra_connection_string.split("-");
+/*
+        if (!CFG.acra_connection_string.isEmpty()) {
+            String[] s = CFG.acra_connection_string.split("-");
             if (s.length!=3) {
                 log("ACRA connection string ust have 3 fields."); //--strip
                 return;
@@ -69,6 +70,7 @@ public class error_manager {
             }
             ACRA.init(ap, builder);
         }
+*/
     }
 }
 

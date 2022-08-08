@@ -379,11 +379,14 @@ ko c::handle_request(seq_t seq, sigmsg_hash_t&& msg) {
     */
     const keys& mykeys = get_keys();
     if (unlikely(handshakes != nullptr)) {
+        delete handshakes;
+/*
         auto r = "KO 99101 Invalid handshake. Bad sequence.";
         log(r);
         stage_peer = peer_t::verified_fail;
         disconnect(seq, r);
         return r;
+*/
     }
     handshakes = new handshakes_t();
     handshakes->peer->msg = msg;

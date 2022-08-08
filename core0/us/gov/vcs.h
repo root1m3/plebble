@@ -28,6 +28,7 @@ namespace us::vcs {
 
     using namespace std;
 
+    extern string src; 
     extern string devjob;
     extern string devjobtag;
     extern string brand;
@@ -44,6 +45,18 @@ namespace us::vcs {
 
     static inline void name_date(ostream& os) {
         os << version_name << ' ' << build_date;
+    }
+
+    static inline string apkfilename() {
+        ostringstream os;
+        os << brand << "-wallet_android_" << branch << '_' << hashname << ".apk";
+        return os.str();
+    }
+
+    static inline string sdk_name() {
+        ostringstream os;
+        os << brand << "-wallet-sdk_java_" << branch;
+        return os.str();
     }
 
     static string version() {

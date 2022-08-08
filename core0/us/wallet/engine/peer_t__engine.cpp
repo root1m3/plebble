@@ -33,6 +33,7 @@
 #define loglevel "wallet/engine"
 #define logclass "peer_t__engine"
 #include <us/gov/logs.inc>
+#include <us/gov/vcs.h>
 
 using namespace us::wallet::engine;
 using c = us::wallet::engine::peer_t;
@@ -41,7 +42,7 @@ using c = us::wallet::engine::peer_t;
 
 bool c::process_work__engine(datagram* d) {
     using namespace protocol;
-    switch(d->service) {
+    switch (d->service) {
         #include <us/api/generated/c++/wallet/engine/hdlr_svc-router>
     }
     return false;
@@ -123,7 +124,6 @@ Returns:
         log(r, o_in.component);
         return r;
     }
-    auto& demon = static_cast<daemon_t&>(daemon);
     string branddir;
     string blobhashfile;
     string blobfile;
@@ -134,6 +134,7 @@ Returns:
     }
     log("brandcode ", brandcode);
     {
+        auto& demon = static_cast<daemon_t&>(daemon);
         ostringstream os;
         os << demon.downloads_dir << '/' << o_in.component << '/' << brandcode;
         branddir = os.str();
@@ -175,6 +176,53 @@ Returns:
     }
     o_out.file = sblobhash;
     log("ok blobhash=", o_out.file, "blob", o_out.bin_pkg.size(), "bytes");
+    return ok;
+}
+
+ko c::handle_get_component_hash(get_component_hash_in_dst_t&& o_in, string& curver) {
+    log("get_component_hash");
+    /// in:
+    ///     string component;
+    ///     string filename;
+
+    if (o_in.component != "android") {
+        auto r = "KO 66953 Invalid component.";
+        log(r, o_in.component);
+        return r;
+    }
+    string apkfilename = us::vcs::apkfilename();
+    if (apkfilename != o_in.filename) {
+        auto r = "KO 66954 Not available.";
+        log(r, apkfilename, o_in.filename);
+        return r;
+    }
+    string branddir;
+    string blobhashfile;
+    log("brandcode ", CFG_ANDROID_BLOB_ID);
+    {
+        auto& demon = static_cast<daemon_t&>(daemon);
+        ostringstream os;
+        os << demon.downloads_dir << '/' << o_in.component << '/' << CFG_ANDROID_BLOB_ID;
+        branddir = os.str();
+        os << "/blob_name";
+        blobhashfile = os.str();
+    }
+    {
+        log("read_file", blobhashfile);
+        auto r = us::gov::io::read_text_file_(blobhashfile, curver);
+        if (is_ko(r)) {
+            auto r = "KO 70978 blob_name file not found.";
+            log(r);
+            return r;
+        }
+    }
+    us::gov::io::cfg0::trim(curver);
+    if (curver.empty()) {
+        auto r = "KO 70928 curver is empty.";
+        log(r);
+        return r;
+    }
+    log("curver", curver);
     return ok;
 }
 

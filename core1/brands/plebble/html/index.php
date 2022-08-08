@@ -11,14 +11,12 @@ $gridok=$argv[4]; // 0 good 1 bad
 }
 else {
     $swver=shell_exec("cat /home/gov/pub/version.txt | awk '{ print $1\" \"$3}'");
-
     $nn=shell_exec("cat /home/gov/pub/nodes.txt | grep \"nodes:\" | awk '{print $2}'");
     $nw=shell_exec("cat /home/gov/pub/wallets.txt | grep entries | awk '{print $2}'");
     $na=shell_exec("cat /home/gov/pub/accounts.txt | grep \"accounts:\" | awk '{ print $2 }'");
     $nv=shell_exec("cat /home/gov/pub/votes.txt | grep \"voters\" | awk '{ print $2 }'");
     $nb=shell_exec("cat /home/gov/pub/votes.txt | grep \"beams\" | awk '{ print $2 }'");
     $gridok=shell_exec("cat /home/gov/pub/status.txt | grep \"in sync: true\" | wc -l");
-//	echo "argc and argv disabled\n";
 }
 $raspilink="plebble-os_raspi_alpha-11_b4b8240eb38bcc7ea270f4c6a1d9f248adeb3567.zip";
 
@@ -99,10 +97,10 @@ margin-right: auto;
 </a>
 </tr>
 </table>
-<h2>P2P Ecosystem</h2>
-<h3>Featuring cooperative consensus among untrusted nodes.</h3>
-<p>free open source software</p>
-
+<h2>P2P</h2>
+<h3></h3>
+<p>free open source software for the research of P2P interactive models for public systems (the ying) and private systems (the yang)</p>
+<p>conceived, designed, developed (with others), tested and published by root1m3, an anonymous doxable alter ego inspired on Satoshi Nakamoto</p>
 <font size="-1" color="#FFFFFF">
 <table bgcolor="#000000" width="90%" border="0" cellspacing="10">
 <!--
@@ -148,18 +146,24 @@ software version: <b><?=$swver?></b> [<a class="hdl" href="pub/release_notes.txt
 <br/>
 <button type="button" class="collapsible">Introduction.</button>
 <div class="content">
-<p>Plebble is a L1 (Level 1) multi-coin cryptocurrency system.</p>
-<p>You can think of it as a heavy remake of <a href="https://bitcoin.org" target="_blank">Bitcoin</a> built 100% from scrach with the following differences:</p>
+<p>P2P Network of computers running the Plebble software (100% free/open source).
+</p>
+<p>The <b>PRIVATE</b> overlay: A L2 private P2P network run by the Plebble smart-trader. A process meant to act as a negociator between the public and You. Provides P2P trades, contexts designed for achieving maximum productivity out of private tasks by means of automation for the human based on roles.</p>
+<p>Plebble models a society that maximices anonymity, as much as foul_play-safe could be, where individuals are 100% empowered with the abscense of any central government, or any sign of centralization at any stage that could interfere the pure act of exchanging value in private between two participants; anytime, anywhere, anywho.</p>
+<p>The implementation offers an SDK that provides the developer with the ability of creating automation protocols based on roles. These are running as plugins in your node, allowing task automation on every interaction with anyone else in the network. E.g. (example: there is a plugin for adopting the rol 'shop' that is instantiated when a peer approach running their role 'buyer'; there is a plugin that makes your node behave as a 'Doctor' with any anonymous approach claiming the role 'patient')</p>
+<p>The trading context available for further specialized automation includes:
 <ul>
- <li>Miners do not exist: All nodes participate in the production of new blocks, thanks to a novel algorithm called <a href="https://www.reddit.com/r/plebble/comments/u479f2/cooperative_consensus/" target="_blank">cooperative consensus</a>.</li>
- <li>All nodes compute the same block, and <b>all</b> are receiving their share of the profit from the very first minute. [<a href="https://www.reddit.com/r/plebble/comments/u8rt8e/how_to_implement_universal_salary/" target="_blank">Universal Salary</a>]</li>
- <li>Aside from running a single Coin with fixed cryptoeconomics rules, users are able to create <b>their coins</b> with their own inlation/deflation laws.</li>
- <li>Instead of having a pointless hardcap, Plebble.GAS cryptoeconomics algorithm for the supply law is dynamic, <b>printing and/or burning money algorithmically</b> in order to optimize <a href="" target="_blank">social efficiency</a>.</li>
+<li>trade-ID, unique identifier for a trading context, status (closed, new, reopened), online status, history of actions, chat/audio/video/streasming channels, workflows, user profile (ZK proofs), role in this trade, application key-value maps.</li>
 </ul>
-<p>...and the following similarities:</p>
-<ul>
-<li>It is free, borderless and permissionless. Anyone can join and participate.</li>
-<li>Not tied to any profit seeking company.</li>
+<p>The user can create and manage coins, transfer value, program their inflation/deflation, create liquidity pools, and operate the exchange. (<i>Be your own 'central' bank</i>).</p>
+</p>
+<p>Beside economics, there are future areas that could help in continuing dissolving goverment centralily, e.g. P2P Law.</p>
+<p>Plebble's challenge is extreme: full distribution, which means that there is not any possible third-party involvement in every pure Peer-to-Peer private interaction (unless invited, desirably without cohertion).</p>
+<p></p>
+<p>The <b>PUBLIC</b> overlay: Plebble runs a new development in L1 (Level 1) multi-coin cryptocurrency system, which started as a framework for research on consensus algorithms, cryptoeconomy and social order.
+</p>
+<p>You could (naively) think of it as a heavy remake of <a href="https://bitcoin.org" target="_blank">Bitcoin</a>. Plebble was built from the bottom up after severe influence of the Bitcoin paper (by Satoshi Nakamoto) in terms of <u>'what we want to achieve'</u>. The <u>'how are we going to achieve it?'</u> is what is different in Plebble. e.g. These terms have been resolved in different way in Plebble: PoW, the 'longest chain', 'the ordering of tx', the network topology, tokens, mint regulator (inflation/deflation), smart contracts, sharding, L2:</p>
+<li>It is free, borderless and permissionless. Anyone can join and participate. It should pass an exam of <a href="https://twitter.com/aantonop" target="_blank">Bitcoin author and speaker @aantonop - Andreas Antonopoulos</a></li>
 </ul>
 </div>
 

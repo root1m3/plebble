@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android" xmlns:tools="http://schemas.android.com/tools" tools:showIn="navigation_view">
+    <group android:checkableBehavior="single" android:id="@+id/group1">
+	
+        <item android:id="@+id/nav_softwareupdates" android:icon="@drawable/ic_pill" android:title="Software updates..." />
+
+        <item android:id="@+id/nav_hmi_poweroff" android:icon="@drawable/ic_node_idle" android:title="Power-off HMI" />
+        <item android:id="@+id/nav_close" android:icon="@drawable/ic_cancel" android:title="Close settings" />
+    </group>
+    <group android:checkableBehavior="single" android:id="@+id/group2">
+        <item android:id="@+id/nav_cancel" android:icon="@drawable/ic_cancel" android:title="Cancel" />
+    </group>
+
+</menu>

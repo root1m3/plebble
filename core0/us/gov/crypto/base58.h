@@ -24,6 +24,7 @@ namespace us::gov::crypto::b58 {
     string encode(const string&);
     string encode(const unsigned char* pbegin, const unsigned char* pend);
     string encode(const vector<unsigned char>&);
+    string encode(const vector<uint32_t>&);
 
     string decode_string(const string& b58);
     vector<unsigned char> decode(const string& b58);

@@ -33,7 +33,7 @@ import android.content.ClipboardManager;                                        
 import android.content.ClipData;                                                               // ClipData
 import android.content.Context;                                                                // Context
 import android.widget.EditText;                                                                // EditText
-import com.google.firebase.crashlytics.FirebaseCrashlytics;                                    // FirebaseCrashlytics
+//import com.google.firebase.crashlytics.FirebaseCrashlytics;                                    // FirebaseCrashlytics
 import android.view.GestureDetector;                                                           // GestureDetector
 import android.widget.ImageView;                                                               // ImageView
 import android.text.InputType;                                                                 // InputType
@@ -53,11 +53,11 @@ import androidx.appcompat.widget.Toolbar;                                       
 import android.view.View;                                                                      // View
 import com.google.zxing.WriterException;                                                       // WriterException
 
-public class endpoint extends activity {
+public final class endpoint extends activity {
 
-    static void log(final String line) {          //--strip
-        CFG.log_android("endpoint: " + line);     //--strip
-    }                                             //--strip
+    private static void log(final String line) {          //--strip
+        CFG.log_android("endpoint: " + line);             //--strip
+    }                                                     //--strip
 
     public class OnSwipeTouchListener implements OnTouchListener {
 
@@ -102,62 +102,65 @@ public class endpoint extends activity {
     }
 
     @Override protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        set_content_layout(R.layout.activity_endpoint);
-//        Toolbar toolbar = findViewById(R.id.toolbar);
-//        setSupportActionBar(toolbar);
-        toolbar.setTitle(R.string.myendpoint);
-//        progressbarcontainer = findViewById(R.id.progressbarcontainer);
-//        progressbarcontainer.setVisibility(View.VISIBLE);
-        refresh = findViewById(R.id.refresh);
-        refresh.setVisibility(View.GONE);
-        qrcode = findViewById(R.id.qrcode);
-        qrtext = findViewById(R.id.qrtext);
-        qrlabel = findViewById(R.id.qrlabel);
-        page = findViewById(R.id.page);
-        qrtext.setInputType(InputType.TYPE_NULL);
-        qrtext.setTextIsSelectable(true);
-        qrtext.setKeyListener(null);
-        qrlabel.setInputType(InputType.TYPE_NULL);
-        qrlabel.setKeyListener(null);
-        page.setInputType(InputType.TYPE_NULL);
-        page.setKeyListener(null);
-        qrtext.setOnClickListener(new View.OnClickListener() {
-            @Override public void onClick(View view) {
-                copy_clip();
+        log("OnCreate"); //--strip
+        try {
+            super.onCreate(savedInstanceState);
+            set_content_layout(R.layout.activity_endpoint);
+            refresh = findViewById(R.id.refresh);
+            qrcode = findViewById(R.id.qrcode);
+            qrtext = findViewById(R.id.qrtext);
+            qrlabel = findViewById(R.id.qrlabel);
+            page = findViewById(R.id.page);
+            toolbar.setTitle(R.string.myendpoint);
+            refresh.setVisibility(View.GONE);
+            qrtext.setInputType(InputType.TYPE_NULL);
+            qrtext.setTextIsSelectable(true);
+            qrtext.setKeyListener(null);
+            qrlabel.setInputType(InputType.TYPE_NULL);
+            qrlabel.setKeyListener(null);
+            page.setInputType(InputType.TYPE_NULL);
+            page.setKeyListener(null);
+            qrtext.setOnClickListener(new View.OnClickListener() {
+                @Override public void onClick(View view) {
+                    copy_clip();
+                }
+            });
+            qrcode.setOnClickListener(new View.OnClickListener() {
+                @Override public void onClick(View view) {
+                    copy_clip();
+                }
+            });
+            qrcode.setOnTouchListener(new OnSwipeTouchListener(this) {
+                @Override public void onSwipeRight() {
+                    --index;
+                    if (index < 0) index = bookmarks.size() - 1;
+                    refresh();
+                }
+                @Override public void onSwipeLeft() {
+                    ++index;
+                    if (index >= bookmarks.size()) index = 0;
+                    refresh();
+                }
+            });
+            pair<ko, bookmarks_t> r = a.hmi.bookmarks_me();
+            if (is_ko(r.first)) {
+                finish();
+                return;
             }
-        });
-        qrcode.setOnClickListener(new View.OnClickListener() {
-            @Override public void onClick(View view) {
-                copy_clip();
+            bookmarks = r.second;
+            if (bookmarks.isEmpty()) {
+                log("KO 54094"); //--strip
+                finish();
+                return;
             }
-        });
-        qrcode.setOnTouchListener(new OnSwipeTouchListener(this) {
-            @Override public void onSwipeRight() {
-                --index;
-                if (index < 0) index = bookmarks.size() - 1;
-                paintQR();
-            }
-            @Override public void onSwipeLeft() {
-                ++index;
-                if (index >= bookmarks.size()) index = 0;
-                paintQR();
-            }
-        });
-        pair<ko, bookmarks_t> r = a.hmi.bookmarks_me();
-        if (is_ko(r.first)) {
-            finish();
-            return;
+            index = 0;
         }
-        bookmarks = r.second;
-        if (bookmarks.isEmpty()) {
-            log("KO 54094"); //--strip
+        catch(Exception ex) {
+            error_manager.manage(ex, ex.getMessage() + "    " + ex.toString());
+            ex.printStackTrace();
             finish();
-            return;
         }
-        index = 0;
-        paintQR();
-        //progressbarcontainer.setVisibility(View.GONE);
+
     }
 
     void copy_clip() {
@@ -168,7 +171,14 @@ public class endpoint extends activity {
         Toast.makeText(endpoint.this, getResources().getString(R.string.endpointcopied) + "\n" + qr, 600).show();
     }
 
-    public void paintQR() {
+    @Override public void refresh() {
+        log("refresh"); //--strip
+        if (a.hmi == null) {
+            log("Closing activity hmi is null"); //--strip
+            finish();
+            return;
+        }
+        super.refresh();
         MultiFormatWriter multiFormatWriter = new MultiFormatWriter();
         try {
             bookmark_t b = bookmarks.get("" + bookmarks.keySet().toArray()[index]);
@@ -204,7 +214,6 @@ public class endpoint extends activity {
     private EditText qrtext;
     private EditText qrlabel;
     private EditText page;
-//    RelativeLayout progressbarcontainer;
     private toolbar_button refresh;
 }
 

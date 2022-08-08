@@ -55,7 +55,7 @@ public class fragment_pat2slt_pat extends role_fragment  {
     void init_level() {
         data_t data = tr.get_data();
         String slevel = data.find("remote__level");
-        if (slevel!=null) {
+        if (slevel != null) {
             if (slevel.equals("0")) {
                 level = level_t.GP;
             }
@@ -72,10 +72,13 @@ public class fragment_pat2slt_pat extends role_fragment  {
     }
 
     @Override public String init_cards() {
+        log("init_cards"); //--strip
         init_level();
         String cards;
         if (is_GP()) {
+            log("is GP. opening chat"); //--strip
             cards = "app";
+            tr.openchat(null);
         }
         else {
             cards = "app aireq aires pres";

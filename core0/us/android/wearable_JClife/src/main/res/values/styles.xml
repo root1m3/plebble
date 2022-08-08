@@ -1,6 +1,7 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
 
-    <style name="AppTheme" parent="Theme.MaterialComponents.Light.Bridge">
+<!--
+    <style name="WearableAppTheme" parent="ThemeX.MaterialComponents.Light.Bridge">
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/colorCustomFG</item>
         <item name="colorAccent">@color/colorAccent</item>
@@ -72,8 +73,10 @@
         <item name="android:colorForeground">@color/colorPrimary</item>
     </style>
 
-    <style name="AppBarTheme" parent="AppTheme">
+    <style name="WearableAppBarTheme" parent="WearableAppTheme">
         <item name="windowActionBar">true</item>
     </style>
+-->
+
 </resources>
 

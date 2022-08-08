@@ -149,8 +149,10 @@ void c::diff(const f_t& newer, vector<pair<hash_t, uint32_t>>& old_files, vector
 }
 
 void c::delete_path(const string& path) {
+    log("delete_path", path);
     for (auto i = begin(); i != end();) {
         if (i->second.path == path) {
+            log("found+erased file", i->first);
             i = erase(i);
         }
         else {

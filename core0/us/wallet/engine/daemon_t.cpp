@@ -29,6 +29,7 @@
 
 #include <us/gov/crypto/ec.h>
 #include <us/gov/io/cfg0.h>
+#include <us/gov/socket/client.h>
 #include <us/gov/traders/wallet_address.h>
 #include <us/gov/engine/track_status_t.h>
 
@@ -406,10 +407,10 @@ void c::configure_gov_rpc_daemon(const shost_t& shost) {
     gov_rpc_daemon.encrypt_traffic = true;
     //bool trusted_localhost = true; // disable for systems where IPC is not safe. provably true for machines controlled by the user.
     //if (trusted_localhost) {
-        if (shost == "localhost" || shost == "127.0.0.1") {
-            log("trusted_localhost is set to 1: disabling encryption on IPC calls between wallet and gov as they are in the same machine. govd at", shost);
-            gov_rpc_daemon.encrypt_traffic = false;
-        }
+    if (shost == "localhost" || shost == "127.0.0.1") {
+        log("trusted_localhost is set to 1: disabling encryption on IPC calls between wallet and gov as they are in the same machine. govd at", shost);
+        gov_rpc_daemon.encrypt_traffic = false;
+    }
     //}
 }
 
@@ -419,6 +420,13 @@ ko c::lookup_wallet(const hash_t& addr, hostport_t& hostport) {
     auto r = gov_rpc_daemon.get_peer().call_lookup_wallet(addr, fc_out);
     if (is_ko(r)) {
         return r;
+    }
+    switch (fc_out.net_addr) {
+        case 2130706433: //127.0.0.1
+        case 0:
+            r = "KO 30299 Resolved to 127.0.0.1 or 0. Resolve to localhost is disabled.";
+            log(r, gov::socket::client::endpoint(fc_out.net_addr, fc_out.port));
+            return r;
     }
     hostport.first = fc_out.net_addr;
     hostport.second = fc_out.port;

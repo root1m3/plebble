@@ -28,9 +28,9 @@ import android.view.View;                                                       
 
 public class leds_t {
 
-    static void log(final String line) {         //--strip
-       CFG.log_android("leds_t: " + line);       //--strip
-    }                                            //--strip
+    static void log(final String line) {          //--strip
+        CFG.log_android("leds_t: " + line);       //--strip
+    }                                             //--strip
 
     static final int off = Color.parseColor("#a0a0a0");
     static final int amber = Color.parseColor("#FFBF00");
@@ -47,28 +47,43 @@ public class leds_t {
         led[1] = view.findViewById(R.id.pb_receive);
         led[2] = view.findViewById(R.id.pb_online);
         log("led[0]=" + led[0] + " led[1]=" + led[1] + " led[2]=" + led[2]); //--strip
-        set_led(0, led_off);
-        set_led(1, led_off);
-        set_led(2, led_off);
+        set_all_off();
+        //set_led(0, led_off);
+        //set_led(1, led_off);
+        //set_led(2, led_off);
     }
 
     public void set_visibility(final boolean b) {
         view.setVisibility(b ? View.VISIBLE : View.INVISIBLE);
     }
 
+    public void set_all_off() {
+        ac.runOnUiThread(new Runnable() {
+            @Override public void run() {
+//                log("Leds set. UI th."); //--strip
+                led[0].setImageDrawable(led_off);
+                led[1].setImageDrawable(led_off);
+                led[2].setImageDrawable(led_off);
+                //led[0].invalidate();
+                //led[1].invalidate();
+                //led[2].invalidate();
+            }
+        });
+    }
+
     public void set_led(final int i, final ColorDrawable color) { // -1 off
         if (led[i] == null) {
-            log("Led " + i + " not set"); //--strip
+            //log("Led " + i + " not set"); //--strip
             return;
         }
-        log("Led " + i + " set"); //--strip
+        //log("Led " + i + " set"); //--strip
         ac.runOnUiThread(new Runnable() {
-                public void run() {
-                    log("Led " + i + " set. UI th."); //--strip
-                    led[i].setImageDrawable(color);
-                    led[i].invalidate();
-                }
-            });
+            @Override public void run() {
+                //log("Led " + i + " set. UI th."); //--strip
+                led[i].setImageDrawable(color);
+                //led[i].invalidate();
+            }
+        });
     }
 
     ImageView led[] = new ImageView[3];

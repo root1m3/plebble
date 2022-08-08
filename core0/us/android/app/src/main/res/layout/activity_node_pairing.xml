@@ -19,56 +19,143 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:fillViewport="true"
-            android:layout_margin="6dp"
             android:gravity="bottom|center"
             android:orientation="vertical">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="left">
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/select_language"
-                    android:textAlignment="gravity" />
-
-                <Spinner
-                    android:id="@+id/lang_selector"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:foregroundTint="#000000"
-                    android:layout_marginLeft="20dp"
-                    android:spinnerMode="dropdown"
-                    android:prompt="@string/select_language"
-                    android:hint="@string/select_language"
-                    android:tooltipText="@string/select_language"/>
-            </LinearLayout>
-
-            <androidx.appcompat.widget.LinearLayoutCompat
-                android:id="@+id/layoutnode"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop = "15dip"
-                android:orientation="vertical">
+                android:layout_marginTop="8dp"
+                android:layout_marginLeft="8dp"
+                android:layout_marginRight="8dp"
+                android:orientation="horizontal">
 
                 <com.google.android.material.textfield.TextInputLayout
-                    android:layout_width="match_parent"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
                     android:layout_height="wrap_content"
-                    app:startIconDrawable="@drawable/ic_devices"
-                    app:helperTextEnabled="true"
-                    app:helperText="This app unique cryptographic id."
-                    android:hint="@string/thisdevice">
-
-                    <com.google.android.material.textfield.TextInputEditText
-                        android:id="@+id/devicepk"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        />
+                    android:layout_marginRight="8dp"
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                    android:hint="Name of this connection"
+                    >
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/name"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="My_wallet"
+                            android:textSize="16dp"
+                            />
 
                 </com.google.android.material.textfield.TextInputLayout>
 
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/save_name"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="save"
+                    />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:layout_marginLeft="8dp"
+                android:layout_marginRight="8dp"
+                android:orientation="horizontal">
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:layout_height="wrap_content"
+                    android:layout_marginRight="8dp"
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                    android:hint="Tie to cellular/WiFi network (Enter SSID)"
+                    >
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/ssid"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text=""
+                            android:textSize="16dp"
+                            />
+
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/read_ssid"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginRight="8dp"
+                    android:text="Read SSID"
+                    />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/save_ssid"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="save"
+                    />
+
+            </LinearLayout>
+
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:startIconDrawable="@drawable/ic_devices"
+                android:layout_marginTop="8dp"
+                android:layout_marginLeft="8dp"
+                android:layout_marginRight="8dp"
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                android:hint="@string/thisdevice">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/devicepk"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:maxLines="2"
+                    android:lines="2"
+                    android:gravity="start"
+                    android:inputType="text"
+                    
+                    />
+
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <include layout="@layout/connect_box"/>
+
+            <Switch
+                android:id="@+id/poweron"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="POWER"
+                android:textStyle="bold"
+                android:scaleX="2"
+                android:scaleY="2"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="32dp"
+                android:theme="@style/switch_theme"
+                />
+
+            <LinearLayout
+                android:id="@+id/layoutnode"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="15dip"
+                android:layout_marginLeft="8dp"
+                android:layout_marginRight="8dp"
+                android:orientation="vertical">
+
+<!--
+                    app:helperTextEnabled="true"
+                    app:helperText="This app unique cryptographic id."
+                    app:helperTextEnabled="true"
+                    app:helperText="Connection status."
+                    app:helperTextEnabled="true"
+                    app:helperText="wallet id."
+-->
                 <com.google.android.material.textfield.TextInputLayout
                     android:id="@+id/connection_status_lo"
                     android:layout_width="match_parent"
@@ -78,11 +165,10 @@
                     app:endIconDrawable="@drawable/led"
                     app:endIconTintMode="screen"
                     app:endIconTint="#FFFFFF"
-                    app:helperTextEnabled="true"
-                    app:helperText="Connection status."
                     android:layout_marginTop="10dp"
-
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                     android:hint="@string/connection">
+
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/connection_status"
                         android:layout_width="match_parent"
@@ -98,8 +184,8 @@
                     app:startIconDrawable="@drawable/ic_node_idle_32"
                     android:hint="@string/nodehash"
                     android:layout_marginTop="10dp"
-                    app:helperTextEnabled="true"
-                    app:helperText="wallet id.">
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                    >
 
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/nodepkh"
@@ -109,93 +195,26 @@
 
                 </com.google.android.material.textfield.TextInputLayout>
 
-            </androidx.appcompat.widget.LinearLayoutCompat>
+            </LinearLayout>
 
-            <androidx.appcompat.widget.LinearLayoutCompat
-                android:layout_width="wrap_content"
+            
+            <TextView
+                android:id="@+id/current_endpoint"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical">
+                android:text="Current values:"
+                android:textAlignment="center"
+                android:layout_marginTop = "15dip"
+                 />
 
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="Initiate a new connection with a node or hardware wallet:"
-                    android:textAlignment="center"
-                    android:layout_marginTop="10dp"
-                     />
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:gravity="center_horizontal|center_vertical"
-                    >
-                    <com.google.android.material.textfield.TextInputLayout
-                        android:id="@+id/walletd_address_lo"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginRight="1dp"
-                        android:hint="@string/ipaddress"
-                        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-                        app:endIconMode="custom"
-                        app:endIconDrawable="@drawable/resolveip"
-                        >
-                        <com.google.android.material.textfield.TextInputEditText
-                            android:id="@+id/walletd_address"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:text="127.0.0.1" />
-                    </com.google.android.material.textfield.TextInputLayout>
-
-                    <com.google.android.material.textfield.TextInputLayout
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginRight="1dp"
-                        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-                        android:hint="@string/tcpport"
-                        >
-                        <com.google.android.material.textfield.TextInputEditText
-                            android:id="@+id/walletd_port"
-                            android:layout_width="80dp"
-                            android:layout_height="wrap_content"
-                            android:text="16673"
-                            />
-                    </com.google.android.material.textfield.TextInputLayout>
-
-                    <com.google.android.material.textfield.TextInputLayout
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:hint="@string/channel"
-                        android:layout_marginRight="1dp"
-                        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-                        >
-                        <com.google.android.material.textfield.TextInputEditText
-                            android:id="@+id/channel"
-                            android:layout_width="80dp"
-                            android:layout_height="wrap_content"
-                            android:text="0"
-                            />
-                    </com.google.android.material.textfield.TextInputLayout>
-
-                </LinearLayout>
-
-                <TextView
-                    android:id="@+id/current_endpoint"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="Current values:"
-                    android:textAlignment="center"
-                    android:layout_marginTop = "15dip"
-                     />
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/connect_btn"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="@string/connect"
-                    android:textColor="@android:color/white" />
-
-            </androidx.appcompat.widget.LinearLayoutCompat>
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/connect_btn"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:layout_marginLeft="8dp"
+                android:layout_marginRight="8dp"                android:text="@string/connect"
+                android:textColor="@android:color/white" />
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -219,20 +238,6 @@
                     android:text="@string/upgrade2noncustodial"
                     />
 
-                <TextView
-                    android:id="@+id/textView4"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:gravity="center_horizontal|bottom"
-                    android:text="@string/softwareversion" />
-
-                <TextView
-                    android:id="@+id/swv"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:gravity="center_horizontal|bottom"
-                    android:text=""
-                    />
             </LinearLayout>
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>

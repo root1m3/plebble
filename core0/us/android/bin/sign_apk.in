@@ -37,18 +37,19 @@ fi
 jarsigner="jarsigner"
 keytool="keytool"
 if [ "_$JAVA_HOME" != "_" ]; then
-	jarsigner=$JAVA_HOME/bin/jarsigner
-	keytool=$JAVA_HOME/bin/keytool
+    jarsigner=$JAVA_HOME/bin/jarsigner
+    keytool=$JAVA_HOME/bin/keytool
 fi
 
 function sign_apks {
     echo "signing APKs"
     ks=$1
     for file in `find . -name "*-unsigned.apk"`; do
-	echo "found unsigned apk: $file"
+        echo "found unsigned apk: $file"
         newfile=`echo $file | sed "s/-unsigned//"`
         echo "using $pass"
-        $jarsigner -verbose -keystore $ks $file distr <<< "$pass"
+#        $jarsigner -verbose -keystore $ks $file distr <<< "$pass"
+        $jarsigner -keystore $ks $file distr <<< "$pass"
         if [ $? -ne 0 ]; then
             echo "signer failed" >2
             exit 1

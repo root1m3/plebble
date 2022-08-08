@@ -14,8 +14,8 @@ Puede ser habilitado en la configuracion de Android>Apps>Permisos, HABILITAR AHO
     <string name="menu_scan">Escanear</string>
     <string name="menu_stop">Parar</string>
     <string name="unknown_device">dispositivo desconocido</string>
-    <string name="connectting">Conectando</string>
+    <string name="connecting">Conectando</string>
     <string name="pair_device">Por favor conecte dispositivo</string>
-    <string name="cancel">Cancelar</string>
+    <string name="cancel2">Cancelar</string>
 </resources>
 

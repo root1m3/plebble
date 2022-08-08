@@ -532,6 +532,12 @@ ko c::start_daemon(busyled_t::handler_t* busyled_handler_send, busyled_t::handle
     #if CFG_LOGS == 1
         daemon->logdir = logdir + "/daemon";
     #endif
+    log("setting dgram_roundtrip_timeout_secs", p.rpc_timeout_secs);
+    us::gov::socket::rendezvous_t::dgram_roundtrip_timeout_secs = p.rpc_timeout_secs;
+    log("configuring save evidences", p.save_evidences);
+    if (p.save_evidences) {
+        daemon->save_evidences = true;
+    }
     auto r = daemon->start();
     if (unlikely(is_ko(r))) {
         delete daemon;
@@ -594,6 +600,8 @@ ko c::start_rpc_daemon(busyled_t::handler_t* busyled_handler_send, busyled_t::ha
             return r;
         }
     }
+    log("setting dgram_roundtrip_timeout_secs", p.rpc_timeout_secs);
+    us::gov::socket::rendezvous_t::dgram_roundtrip_timeout_secs = p.rpc_timeout_secs;
     rpc_peer = static_cast<rpc_peer_t*>(rpc_daemon->peer);
     assert(rpc_peer != nullptr);
     if (rpc_daemon->connect_for_recv) {
@@ -814,6 +822,8 @@ void c::help(const params& p, ostream& os) {
     os << "  -nb                Don't show the banner.\n";
     #if CFG_LOGS == 1
     os << "  -log               Logs in console.\n";
+    os << "  -t <secs>          RPC timeout in seconds [" << p.rpc_timeout_secs << "]\n";
+    os << "  -E <0|1>           Save evidences. [" << (p.save_evidences ? us::gov::engine::daemon_t::get_evidencesdir(p.get_home()) : string("No")) << '\n';
     #endif
     os << "Commands are:\n";
     os << '\n';

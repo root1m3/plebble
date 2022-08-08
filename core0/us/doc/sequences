@@ -1,0 +1,235 @@
+########################################################################################
+========================================================================================
+
+Name: Test Android app with mocked test network
+Id: 1
+Requires:
+
+Steps:
+1-Build and install the android app.
+2-Build and run a mocked network of two nodes, formed by
+ *2 gov processes with their respective RPC command terminal
+ *2 wallet processes with their respective RPC command terminal
+ (Interactive Menu option 1)
+
+For a guided interaction test on the android app follow Menu option 2.
+
+Detail:
+
+cd core0/us
+make clean
+rm -f res/strings/en-uk.ovr  #set by a previous call to configure 
+bin/configure                #debug mode
+
+#build SDK for android
+pushd sdk/wallet/java/
+make spongy
+popd
+
+#android App
+pushd android
+make                        #generate unsigned apk
+bin/sign_apk --install      #sign the apk and install in device via adb
+popd
+
+#backend interactive_tests
+make -j8
+./us-test --shell
+Menu
+====
+0 Exit
+1 Consoles
+2 Android app Test
+
+########################################################################################
+========================================================================================
+
+Name: Tests - RPC console to the wallet process in node bank1
+Id: 2
+Requires:
+
+cd core0/us
+make clean
+rm -f res/strings/en-uk.ovr  #set by a previous call to configure 
+bin/configure                #debug mode
+
+#backend interactive_tests
+make -j8
+./us-test --shell
+Select: 1 gov/wallet terminal . (doc/sequences~seq.id.2)
+
+console for node? :bank1 bank2 
+select node> 
+
+type bank1
+
+bank1. console type? : g w
+select console> 
+
+type w (for wallet)
+
+[wallet login shell] (RPC console to the wallet process in node bank1)
+
+type q to quit returning back to
+bank1. console type? : g w
+select console> 
+
+########################################################################################
+========================================================================================
+Name: bank1/w My Id
+Id: 3
+Requires: 2
+
+Method 1:
+wallet> id
+Wallet public key is kmNUkk2nxWzPJzb1b2Z1BWdqkZyzBm33hDXTe8Utrb2K address 3uruvsMAL2hDU4vLymkE7jYsZaez
+"our wallet address is 3uruvsMAL2hDU4vLymkE7jYsZaez"
+
+Method 2:
+wallet> trade qr
+1: 'bm_1': qr: "123 3uruvsMAL2hDU4vLymkE7jYsZaez w2w w " label: "bank" icon: [0 bytes]
+"Our banking endpoint QR refer us as 3uruvsMAL2hDU4vLymkE7jYsZaez"
+
+
+########################################################################################
+========================================================================================
+Name: Identify node bank2 (via world)
+Seq id: 4
+Requires: 3
+
+Enter Trading sub-shell
+wallet> trade
+[Trading sub-shell]
+
+
+Examine the world
+trade$> world
+me: 25vdw2uwXU7dfQWkcrzg6dfVrQY2
+
+123 3uruvsMAL2hDU4vLymkE7jYsZaez
+123 4PWmnWEtGTmfnJa94cjm9a2E41y3
+
+Identify the target node (knowing that we are 3uruvsMAL2hDU4vLymkE7jYsZaez (seq.3))
+The field 'me' shows the wrong id, please disregard it.
+
+Our target node is 4PWmnWEtGTmfnJa94cjm9a2E41y3
+
+########################################################################################
+========================================================================================
+Name: Start trade with bank2 without specifying role
+Seq id: 5
+Requires: 4
+
+trade$> start 123 4PWmnWEtGTmfnJa94cjm9a2E41y3
+New trade. 3Dx7HC8LjKNcJywqGN39efREVfik
+
+
+
+
+trade$> start 123 4PWmnWEtGTmfnJa94cjm9a2E41y3
+New trade. 3Dx7HC8LjKNcJywqGN39efREVfik
+
+########################################################################################
+========================================================================================
+Name: Request peer QR's
+Seq id: 6
+Requires: 5
+
+3Dx7HC8LjKNcJywqGN39efREVfik$> request qrs
+qrs requested.
+Peer's shared bookmarks:
+   1: 'bm_1': qr: "123 4PWmnWEtGTmfnJa94cjm9a2E41y3 w2w w " label: "bank" icon: [0 bytes]
+
+3Dx7HC8LjKNcJywqGN39efREVfik$> show roles
+Matching roles:
+   w2w w
+
+########################################################################################
+========================================================================================
+Name: Start w2w (bank to bank) protocol from a trade
+Seq id: 7
+Requires: 6
+
+3Dx7HC8LjKNcJywqGN39efREVfik$> start w2w w
+
+
+########################################################################################
+========================================================================================
+Name: Kill trade
+Seq id: 9
+Requires: 6
+
+3Dx7HC8LjKNcJywqGN39efREVfik-w2w w$> kill
+Trade 3Dx7HC8LjKNcJywqGN39efREVfik has been killed.
+Leaving trade 3Dx7HC8LjKNcJywqGN39efREVfik
+
+
+########################################################################################
+========================================================================================
+Name: Transger gas 
+Seq id: 8
+Requires: 7
+
+Pay order:
+
+3Dx7HC8LjKNcJywqGN39efREVfik-w2w w$> transfer 100 gas
+transfer log:
+   1657966247766122708 recv 100 gas
+       wallet-status 5 delivered
+       gov-status 7 settled
+   1657969236973057768 send 100 gas
+       wallet-status 3 wait_signature
+
+
+Confirm payment:
+
+3Dx7HC8LjKNcJywqGN39efREVfik-w2w w$> pay 1657969236973057768
+3Dx7HC8LjKNcJywqGN39efREVfik-w2w w$> 
+   1657969236973057768 send 100 gas
+       gov-status 3 calendar
+       gov-status 4 mempool
+       gov-status 5 craftblock
+       gov-status 6 consensus
+       gov-status 7 settled
+
+
+########################################################################################
+========================================================================================
+Name: Android app - Show my QR
+Seq id: 11
+Requires: 
+console equivalent: 3
+
+Steps:
+
+My QR
+
+########################################################################################
+========================================================================================
+Name: Android app - Start w2w (bank to bank) protocol from a trade
+Seq id: 10
+Requires: 
+console equivalent: 7
+
+Steps:
+
+World | Pick the one that is not you
+
+
+
+
+--
+##############################TEMPLATE##################################################
+########################################################################################
+########################################################################################
+########################################################################################
+########################################################################################
+########################################################################################
+new
+
+########################################################################################
+========================================================================================
+Name: 
+Seq id: 11
+Requires: 
+

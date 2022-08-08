@@ -22,7 +22,8 @@
 
     <group android:checkableBehavior="single" android:id="@+id/group6">
         <item android:id="@+id/nav_updateavailable" android:icon="@drawable/ic_update" android:title="@string/updatesareavailable" android:visible="false"/>
-        <item android:id="@+id/nav_settings" android:icon="@drawable/ic_settings" android:title="@string/settings" />
+        <item android:id="@+id/nav_stophmi" android:icon="@drawable/ic_node_idle" android:title="Stop HMI" />
+        <item android:id="@+id/nav_about" android:icon="@drawable/ic_pill" android:title="About..." />
         <item android:id="@+id/nav_exit" android:icon="@drawable/ic_exit" android:title="@string/exit" />
     </group>
 </menu>

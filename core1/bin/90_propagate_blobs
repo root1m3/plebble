@@ -1,0 +1,66 @@
+#!/bin/bash
+#===-                           P L E B B L E
+#===-                         https://plebble.us
+#===-
+#===-              Copyright (C) 2017-2022 root1m3@plebble.us
+#===-
+#===-                      GNU GENERAL PUBLIC LICENSE
+#===-                       Version 3, 29 June 2007
+#===-
+#===-    This program is free software: you can redistribute it and/or modify
+#===-    it under the terms of the GPLv3 License as published by the Free
+#===-    Software Foundation.
+#===-
+#===-    This program is distributed in the hope that it will be useful,
+#===-    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#===-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+#===-
+#===-    You should have received a copy of the General Public License
+#===-    along with this program, see LICENCE file.
+#===-    see https://www.gnu.org/licenses
+#===-
+#===----------------------------------------------------------------------------
+#===-
+echo "########################"
+echo "## 90_propagate_blobs ##"
+echo "########################"
+
+let n=0
+let x=0
+function step2 {
+    ush -yes update_dfs_index
+    let ln=0
+    let t=10
+    while [[ true ]]; do
+        sleep $t
+        echo "Checking for ans"
+        ush ans > /tmp/xx55910 2>&1
+        let n=`cat /tmp/xx55910 | grep "waiting for" | wc -l`
+        echo "$n answers"
+        if [[ $n -ne 0 ]]; then
+            if [[ $n -eq $ln ]]; then
+                break
+            fi
+            ln=$n
+            let t=1
+        fi
+    done
+    cat /tmp/xx55910 | grep "waiting for"
+    cat /tmp/xx55910 | grep "waiting for" | wc -l
+    let x=`cat /tmp/xx55910 | grep "waiting for 0 files" | wc -l`
+    rm -f /tmp/xx55910
+    #exit 0
+}
+
+function repeat_step2 {
+    while [[ true ]]; do
+        step2
+        echo "expecting $n 0-files. found $x"
+        if [[ $x -eq $n ]]; then
+            break
+        fi
+    done
+}
+
+repeat_step2
+exit 0

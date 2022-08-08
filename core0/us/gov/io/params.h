@@ -75,6 +75,8 @@ namespace us::gov::io {
         output_mode om{om_human};
         bool names{false};
         bool banner{true};
+        bool save_evidences{false};
+        uint16_t rpc_timeout_secs{CFG_DGRAM_ROUNDTRIP_TIMEOUT_SECS};
     };
 
 }

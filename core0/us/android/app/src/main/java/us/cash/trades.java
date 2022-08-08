@@ -34,7 +34,7 @@ import android.graphics.Color;                                                  
 import android.content.Context;                                                                // Context
 import us.gov.socket.datagram;                                                                 // datagram
 import static android.graphics.BitmapFactory.decodeResource;                                   // decodeResource
-import com.google.firebase.crashlytics.FirebaseCrashlytics;                                    // FirebaseCrashlytics
+//import com.google.firebase.crashlytics.FirebaseCrashlytics;                                    // FirebaseCrashlytics
 import android.widget.FrameLayout;                                                             // FrameLayout
 import java.util.HashMap;                                                                      // HashMap
 import static us.gov.crypto.ripemd160.hash_t;                                                  // hash_t
@@ -69,6 +69,10 @@ import android.view.View;                                                       
 
 public final class trades extends activity {
 
+    private static void log(final String s) {       //--strip
+        System.out.println("trades: " + s);         //--strip
+    }                                               //--strip
+
     public static class adapter_t extends ArrayAdapter<trade> {
 
         public adapter_t(Activity ac, ArrayList<trade> data) {
@@ -87,12 +91,12 @@ public final class trades extends activity {
             TextView tvitem = vi.findViewById(R.id.the_item);
             TextView tvitem2 = vi.findViewById(R.id.the_item2);
             TextView tvitem3 = vi.findViewById(R.id.the_item3);
-            TextView badge_balloon = vi.findViewById(R.id.badge_balloon);
+            //TextView badge_balloon = vi.findViewById(R.id.badge_balloon);
             ImageView img = vi.findViewById(R.id.img);
             trade tr = getItem(position);
             log("position " + position + (tr == null ? 0 : 1)); //--strip
             log("tid " + (tr.tid == null ? 0 : 1)); //--strip
-            if (tr.tid == null) { //.equals(getContext().getResources().getString(R.string.therearenotrades))){
+            if (tr.tid == null) {
                 img.setVisibility(View.GONE);
                 LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
                 params.setMargins(10,30,10,10);
@@ -112,6 +116,7 @@ public final class trades extends activity {
             }
 
             app a = (app) ac.getApplication();
+            /*
             if (a.notification_trades_id.contains(tr.tid)){
                 badge_balloon.setVisibility(View.VISIBLE);
                 badge_balloon.setText("new");
@@ -119,18 +124,15 @@ public final class trades extends activity {
             else {
                 badge_balloon.setVisibility(View.INVISIBLE);
             }
+            */
             log("/ adapter. getView"); //--strip;
             return vi;
         }
 
         private Activity ac;
         private LayoutInflater inflater = null;
-        private TextView badge_balloon;
+        //private TextView badge_balloon;
     }
-
-    static void log(final String s) { //--strip
-        System.out.println("trades: "+s); //--strip
-    } //--strip
 
     @SuppressLint("ResourceAsColor")
     @Override protected void onCreate(Bundle savedInstanceState) {
@@ -151,7 +153,7 @@ public final class trades extends activity {
                 log("onItemClick " + position); //--strip
                 Intent data = new Intent();
                 log("Open trade " + shit.get(position).tid.encode()); //--strip
-                main.go_trade(shit.get(position).tid);
+                a.go_trade(shit.get(position).tid);
             }
         });
         toolbar_button refresh = findViewById(R.id.refresh);
@@ -185,7 +187,6 @@ public final class trades extends activity {
         if (is_ko(e)) {
             log(e.msg + " " + a.hmi.rewrite(e)); //--strip
             Toast.makeText(this, a.hmi.rewrite(e), Toast.LENGTH_LONG).show();
-            //al.add(new trade(e.msg));
         }
         else {
             log(">" + payload + "<");  //--strip
@@ -200,25 +201,8 @@ public final class trades extends activity {
             }
         }
         Collections.sort(al);
-/*
-        runOnUiThread(new Runnable() {
-            public void run() {
-                log("X");  //--strip
-                lock.lock();
-                try {
-                    adapter.clear();
-                    //progressbarcontainer.setVisibility(View.GONE);
-                    adapter.addAll(al);
-                }
-                finally {
-                    lock.unlock();
-                }
-            }
-        });
-*/
         lock.lock();
         try {
-            //adapter.clear();
             adapter.addAll(al);
         }
         finally {
@@ -229,7 +213,16 @@ public final class trades extends activity {
 
     void fetch() {
         a.assert_ui_thread(); //--strip
-        Toast.makeText(this, "refresh", Toast.LENGTH_SHORT).show();
+        if (a.hmi == null) {
+            log("Closing activity hmi is null"); //--strip
+            finish();
+            return;
+        }
+        if (a.hmi.rpc_peer == null) {
+            log("Closing activity hmi is not connected"); //--strip
+            finish();
+            return;
+        }
         lock.lock();
         try {
             adapter.clear();
@@ -238,16 +231,6 @@ public final class trades extends activity {
             lock.unlock();
         }
         log("calling API list_trades"); //--strip
-/*
-        Thread thread = new Thread(new Runnable() {
-            @Override public void run() {
-                string s = new string();
-                ko r = a.hmi.rpc_peer.call_list_trades(s);
-                on_trades(r, s.value);
-            }
-        });
-        thread.start();
-*/
         string s = new string();
         ko r = a.hmi.rpc_peer.call_list_trades(s);
         on_trades(r, s.value);

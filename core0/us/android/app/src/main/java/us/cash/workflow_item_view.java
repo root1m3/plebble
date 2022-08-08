@@ -41,9 +41,9 @@ import android.view.View;                                                       
 
 public class workflow_item_view extends LinearLayout {
 
-    static void log(final String s) { //--strip
-        System.out.println("workflow_item_view: " + s); //--strip
-    } //--strip
+    private static void log(final String s) {               //--strip
+        System.out.println("workflow_item_view: " + s);     //--strip
+    }                                                       //--strip
 
     public interface on_click_listener {
         public void on_send(workflow_item_view v);
@@ -116,8 +116,8 @@ public class workflow_item_view extends LinearLayout {
             Date d = new Date(TimeUnit.MILLISECONDS.convert(local.ts.value, TimeUnit.NANOSECONDS));
             Date now = new Date();
             long diff = (now.getTime() - d.getTime()) / 1000;
-            if (diff < 0) {
-                st.setText("KO 0118 " + getResources().getString(R.string.documentinfuture) + " " + ts_words(-diff) + ".");
+            if (diff < -30) {
+                st.setText("KO 01184 " + getResources().getString(R.string.documentinfuture) + " " + ts_words(-diff) + ".");
                 st.setTextColor(Color.RED);
             }
             else {

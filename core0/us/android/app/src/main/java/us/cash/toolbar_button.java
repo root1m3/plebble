@@ -23,7 +23,7 @@
 package us.cash;
 import android.util.AttributeSet;                                                              // AttributeSet
 import android.content.Context;                                                                // Context
-import com.google.firebase.crashlytics.FirebaseCrashlytics;                                    // FirebaseCrashlytics
+//import com.google.firebase.crashlytics.FirebaseCrashlytics;                                    // FirebaseCrashlytics
 import android.widget.ImageButton;                                                             // ImageButton
 import android.view.KeyEvent;                                                                  // KeyEvent
 import android.widget.LinearLayout;                                                            // LinearLayout

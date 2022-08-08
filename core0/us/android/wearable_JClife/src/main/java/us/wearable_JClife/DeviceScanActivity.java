@@ -55,19 +55,20 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-//import butterknife.ButterKnife;
-//import butterknife.BindView;
 import us.wearable_JClife.util.PermissionsUtil;
 import us.wearable_JClife.util.ResolveData;
 import us.wearable_JClife.R;
 
 public class DeviceScanActivity extends AppCompatActivity implements PermissionsUtil.PermissionListener {
 
+    private static void log(final String line) {                    //--strip
+        System.out.println("DeviceScanActivity: " + line);          //--strip
+    }                                                               //--strip
+
     @Override public void onCreate(Bundle savedInstanceState) {
-        setTheme(R.style.AppBarTheme);
+//        setTheme(R.style.WearableAppBarTheme);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_device_scan);
-//        ButterKnife.bind(this);
         listView = findViewById(R.id.list_view);
         mHandler = new Handler();
         if (!getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
@@ -81,7 +82,14 @@ public class DeviceScanActivity extends AppCompatActivity implements Permissions
             finish();
             return;
         }
-        PermissionsUtil.requestPermissions(this, this, Manifest.permission.ACCESS_FINE_LOCATION);
+
+/*
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(this, new String[] {Manifest.permission.CAMERA}, 50);
+            }
+*/
+
+        //PermissionsUtil.requestPermissions(this, this, Manifest.permission.ACCESS_FINE_LOCATION);
         Toolbar tb = findViewById(R.id.ble_toolbar);
         setSupportActionBar(tb);
     }
@@ -163,16 +171,20 @@ public class DeviceScanActivity extends AppCompatActivity implements Permissions
         mLeDeviceListAdapter = new LeDeviceListAdapter();
         //listView = findViewById(R2.id.list_view);
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> adapterView, View view, int position, long l) {
+            @Override public void onItemClick(AdapterView<?> adapterView, View view, int position, long l) {
+                log("item click"); //--strip
                 mBluetoothAdapter.stopLeScan(mLeScanCallback);
                 final BluetoothDevice device = mLeDeviceListAdapter.getDevice(position);
-                if (device == null)
+                if (device == null) {
+                    log("device is null"); //--strip
                     return;
+                }
                 String name = mLeDeviceListAdapter.getName(position);
                 if (mScanning) {
+                    log("stop scanning"); //--strip
                     scanLeDevice(false);
                 }
+                log("starting activity Ble"); //--strip
                 final Intent intent = new Intent(DeviceScanActivity.this, BleActivity.class);
                 intent.putExtra("address", device.getAddress());
                 intent.putExtra("name", name);
@@ -364,10 +376,8 @@ public class DeviceScanActivity extends AppCompatActivity implements Permissions
         }
     }
 
-    // Device scan callback.
     private BluetoothAdapter.LeScanCallback mLeScanCallback = new BluetoothAdapter.LeScanCallback() {
-        @Override
-        public void onLeScan(final BluetoothDevice device, final int rssi, final byte[] scanRecord) {
+        @Override public void onLeScan(final BluetoothDevice device, final int rssi, final byte[] scanRecord) {
             runOnUiThread(new Runnable() {
                 @Override public void run() {
                     String deviceName = device.getName();
@@ -394,7 +404,6 @@ public class DeviceScanActivity extends AppCompatActivity implements Permissions
     }
 
     ListView listView;
-//    @BindView(R2.id.list_view) ListView listView;
     private LeDeviceListAdapter mLeDeviceListAdapter;
     private BluetoothAdapter mBluetoothAdapter;
     private boolean mScanning;

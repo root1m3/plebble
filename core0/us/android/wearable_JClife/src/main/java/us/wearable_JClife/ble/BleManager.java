@@ -34,23 +34,31 @@ import android.text.TextUtils;
 
 public class BleManager {
 
+    static void log(final String s) {               //--strip
+        //Log.i(TAG, s);                              //--strip
+        System.out.println("BleManager: " + s);         //--strip
+    }                                               //--strip
+
     private BleManager(Context context) {
         this.context = context;
         final BleManager i = this;
         serviceConnection = new ServiceConnection() {
             @Override public void onServiceDisconnected(ComponentName name) {// TODO Auto-generated method stub
+                log("Service disconnected"); //--strip
                 bleService = null;
             }
 
             @Override public void onServiceConnected(ComponentName name, IBinder service) {
+                log("Service connected!"); //--strip
                 bleService = ((BleService.LocalBinder) service).getService();
                 if (!TextUtils.isEmpty(address)) {
+                    log("initBluetoothDevice address " + address); //--strip
                     bleService.initBluetoothDevice(address, i.context);
                 }
             }
         };
-
         if (serviceIntent == null) {
+            log("Service intent! - context.bindService(serviceIntent, serviceConnection, Service.BIND_AUTO_CREATE)"); //--strip
             serviceIntent = new Intent(context, BleService.class);
             context.bindService(serviceIntent, serviceConnection, Service.BIND_AUTO_CREATE);
         }
@@ -59,9 +67,11 @@ public class BleManager {
     }
 
     public static void init(Context context) {
+        log("init"); //--strip
         if (ourInstance == null) {
             synchronized (BleManager.class) {
                 if (ourInstance == null) {
+                    log("instantiating BleManager"); //--strip
                     ourInstance = new BleManager(context);
                 }
             }
@@ -77,11 +87,18 @@ public class BleManager {
     }
 
     public void connectDevice(String address) {
-        if (!bluetoothAdapter.isEnabled() || TextUtils.isEmpty(address) || isConnected()) return;
+        log("connectDevice addr " + address); //--strip
+        if (!bluetoothAdapter.isEnabled() || TextUtils.isEmpty(address) || isConnected()) {
+            log("KO 78968 Something is wrong " + address); //--strip
+            return;
+        }
         if (bleService == null) {
+            log("bleService == null"); //--strip
+            log("Not doing bleService.initBluetoothDevice addr " + address); //--strip
             this.address = address;
         }
         else {
+            log("bleService.initBluetoothDevice addr " + address); //--strip
             bleService.initBluetoothDevice(address, this.context);
         }
     }

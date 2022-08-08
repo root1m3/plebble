@@ -1,0 +1,76 @@
+Plebble Problem statement
+=========================
+
+(Incomplete)
+
+Philosophical GOALS
+
+1.- A view of a global economy made of local economies run anonymously by every individual on earth via personal coins.
+2.- 
+
+
+Design GOALS:
+=============
+
+P2P-Law Demonstrator:
+    Classic Law.
+
+    Every node has its own laws, represented by a list of paragraphs.
+    They shall compare 2 laws and extract one common law they can agree upon.
+    Enrich your own Law incorporating articles you'd like to endorse.
+    Provides the best contextual information for conducting interactions.
+    In Augmentated Reality it could be represented as a HUD Display for the users-user specialized automation)
+    Articles can be tied to algorithms transforming evidences into a veredict.
+    You could run in private a judge. A judge is a program taking as input:
+            your evidences (assume envidences are sequence of bits meaning a cryptographic proof of some fact) ), 
+            law (list of articles)
+    producing as a result a veredict, like an economic saction/award could be.
+
+    When a wallet starts a trade with other wallet, execute the law2law protocol. It will follow the sequence:
+        1- Exchange laws
+        2- Merge and agree into 1 law
+        3- Exchange known judges (remember judges are algorithms).
+        4- Agree on a judge. It could imply to run every judge with your facts and the agreed law, and try to agree on the one that is more convenient or having good veredicts.
+        5- From now on parties promise to obey the judge. If one refuses to obey the other can create a public proof of the offence that could end up affecting current or future trades the perpetrator could do using the same personality.
+
+The negotiation stage is an agreement on a common Law and a common judge.
+    With this agreement in place 
+
+    The Hypertrade provides
+        
+    
+
+Compilant under ANY Law:
+
+    * Law systems guaranteeing the following Rights for an individual for electronic communications:
+        * Right to stay anonymous and being able to securely communicate with anyone in privacy.
+        * Right to create coins and control their mint (printing/burning capability)
+        * Right to acquire good/services in private using other's money.
+        * Right to give good/services using self-money as payment coin (previously printed and distributed)
+        * Right to be sovereign. Being free to choose between subverting to authority or none.
+        * Right to negotiate rights. Eg. accepting safety in exchange of privacy guarantees.
+
+    * More restrictive Laws.
+        Under more strict Law systems the system can easily be forked for developing a compilancy-patch.
+        (e.g. An hypothetical law requiring to run a periodic function disclosing to the government taxoffice your financial details)
+
+
+
+
+
+Build the software for / Design goals:
+* forming a P2P network where everyone's automation is reachable
+* setup multiple income streams for everyone
+
+
+========
+The protection offered by being one in a million.
+Gives a weigh w ~ 1/N to
+  * the probability of being under attack
+  * 
+
+
+
+
+
+

@@ -28,15 +28,15 @@ echo "#################################"
 if [[ -f ./.cbs/config ]]; then
     . ./.cbs/config
 else
-	echo "KO 8585 Missing .cbs/config."
-	exit 1
+    echo "KO 8585 Missing .cbs/config."
+    exit 1
 fi
 
 strset="en-uk"
 hash=""
 
 let inst=0
-while [ true ]; do
+while [[ true ]]; do
     opt=$1
     echo "read opt=$opt"
     shift
@@ -51,7 +51,7 @@ while [ true ]; do
 done
 
 build_jobs=$opt
-if [ "_$build_jobs" == "_" ]; then
+if [[ "_$build_jobs" == "_" ]]; then
     build_jobs="build_jobs"
     echo -n "specify which one: "
     find . -maxdepth 1 -type d -name "build_jobs*" | sed "s~^\./~~" | xargs
@@ -61,12 +61,12 @@ echo "using dir $build_jobs"
 
 jarsigner="jarsigner"
 keytool="keytool"
-if [ "_$JAVA_HOME" != "_" ]; then
+if [[ "_$JAVA_HOME" != "_" ]]; then
     jarsigner=$JAVA_HOME/bin/jarsigner
     keytool=$JAVA_HOME/bin/keytool
 fi
 
-if [ "_$1" != "_" ]; then
+if [[ "_$1" != "_" ]]; then
     strset=$1
 fi
 
@@ -102,6 +102,7 @@ function patch {
 
 function mk_checksums {
     branddir=$1
+    echo "mk_checksums $branddir"
     pushd $branddir > /dev/null
         rm -f sha256sums.txt
         rm -f sha256sums.txt.gpg
@@ -109,39 +110,65 @@ function mk_checksums {
         file=../sha256sums.txt
         echo -n "" > $file
         for f in `find . -type f`; do
-            echo "checksum $f"
+            echo -n "."
             sha256sum $f >> $file
         done
+        echo ""
         mv $file .
-        $gpg --batch --yes --passphrase-file $gpg_passphrase_file --default-key $gpgkey --sign sha256sums.txt
+        gpgkey=$distr_key
+        if [[ "_$gpgkey" == "_" ]]; then
+            echo "KO 91124 gpgkey not set"
+            exit 1
+        fi
+#        gpg_passphrase_file=${distr_gpg_home}/passphrase
+        echo "gpg_passphrase_file $gpg_passphrase_file"
+        echo "distr_gpg_home $distr_gpg_home"
+        gpg="gpg --homedir $distr_gpg_home"
+        echo "$gpg --batch --yes --passphrase-file $gpg_passphrase_file --default-key $gpgkey --sign sha256sums.txt"
+#        $gpg --batch --yes --passphrase-file $gpg_passphrase_file --default-key $gpgkey --sign sha256sums.txt
+        $gpg --batch --yes --default-key $gpgkey --sign sha256sums.txt
+        r=$?
+        if [[ $r -ne 0 ]]; then
+            echo "KO 88944"
+            exit 1
+        fi
         $gpg --armor --export $gpgkey > gpg_pubkey.txt
     popd > /dev/null
 }
 
-gpgkey=$distr_key
-gpg_passphrase_file=$distr_passphrase_file
-gpg="gpg --homedir $distr_gpg_home"
-pass=`cat $gpg_passphrase_file`
-
 function sign_apks {
-    echo "signing APKs"
-    ks=$1
-    for file in `find $distr -name "*-unsigned.apk"`; do
-	echo "found unsigned apk: $file"
+    brand=$1
+    branddir=$brands/$brand
+    echo "sign apks $brand $branddir"
+    distr_passphrase_file=${distr_gpg_home}/passphrase
+    pass=`cat $distr_passphrase_file`
+    ks=$keyroot/keystore.jks
+    echo "keystore $ks"
+    if [[ ! -f $ks ]]; then
+        echo "KO 66501 $ks not found."
+        exit 1
+    fi
+    let signed=0
+    for file in `find $distr/$brand -name "*-unsigned.apk"`; do
+        echo "found unsigned apk: $file"
         newfile=`echo $file | sed "s/-unsigned//"`
-        $jarsigner -verbose -keystore $ks $file distr <<< "$pass"
-        if [ $? -ne 0 ]; then
+        echo "Signing apk $file using keystore at $ks"
+#         $jarsigner -verbose -keystore $ks $file distr <<< "$pass"
+        $jarsigner -keystore $ks $file distr <<< "$pass"
+        if [[ $? -ne 0 ]]; then
             echo "signer failed" >2
             exit 1
         fi
+        let signed=1
         mv $file $newfile
         echo "signature $newfile"
         echo "$file -> $newfile"
         $keytool -list -printcert -jarfile $newfile
     done
+    if [[ $signed -ne 1 ]]; then
+        echo "WA 86954 No unsigned apk found for brand $brand"
+    fi
 }
-
-sign_apks $keyroot/keystore.jks
 
 hash=""
 branch=""
@@ -171,69 +198,83 @@ githash=`cat $distr/build_hashes | grep "^vhash $vhash" | sort | uniq | head -n1
 echo "githash: $githash"
 mk_sloccount $githash $branch
 
-
 v="${branch}_${vhash}"
 echo "looking for core_${v}.tar.zst"
 
 cat $distr/build_hashes
 
 for branddir in `find $distr -maxdepth 1 -mindepth 1 -type d`; do
+    echo "branddir $branddir"
     brand=$(basename $branddir)
-#for brand in `cat $distr/build_hashes | grep "^vhash " | awk '{ print $6 }' | sort | uniq`; do
-    if [ -f $distr/$brand/bin/apply_blob ]; then
-        echo "brand $brand"
-        if [ ! -d $distr/$brand ]; then
-            continue;
-        fi
-        branddir=$brands/$brand
-        strfile=$branddir/$strset
-        if [ ! -f $strfile ]; then
-            echo "KO 33029 unknown set $strset for $brand"
-	        exit 1
-        fi
-        . $strfile
-        if [ "_$str3" != "_$brand" ]; then
-            echo "KO 4032 - str3 in file $strfile must be $brand"
-            exit 1
-        fi
-        echo "title: $str1"
-        if [ -d $distr/$brand/raspberry_pi ]; then
-            pushd $distr/$brand/raspberry_pi/ > /dev/null
-                for i in `ls -1 *.zip`; do
-                    str_os_raspi=$i #$brand-os_raspi_$hash.zip
-                    break
-                done
-            popd > /dev/null
-            echo "Image $str_os_raspi"
-            str_os_raspi_size=`ls -la $distr/$brand/raspberry_pi/$str_os_raspi | awk '{ print $5 }'`
-            echo "str_os_raspi_size $str_os_raspi_size"
-            str_os_raspi_sha256sum=`sha256sum $distr/$brand/raspberry_pi/$str_os_raspi | awk '{ print $1 }'`
-        else
-            str_os_raspi_size="0"
-            str_os_raspi_sha256sum="0"
-        fi
-        patch doc/node_setup_instructions_linux
-        patch doc/node_setup_instructions_windows
-        find doc
-        mv doc/node_setup_instructions_linux $distr/$brand/node_setup_instructions_linux.txt
-        mv doc/node_setup_instructions_windows $distr/$brand/node_setup_instructions_windows.txt
-        cp sloccount.txt $distr/$brand/
-        cp $distr/build_hashes $distr/$brand/
-        cat doc/release_notes | grep "RELEASE NOTES" -A1000000 >  $distr/$brand/release_notes
-        if [ -d $branddir/html ]; then
-	        pushd $branddir
-		        tar -I zstd -cf html.tar.zst html
-	        popd
-	        mv $branddir/html.tar.zst $distr/$brand/
-        fi
-        if [ -d $branddir/misc ]; then
-            find $branddir/misc -type f -exec cp {} $distr/$brand/ \;
-        fi
-        mk_checksums $distr/$brand
+    if [[ "_$brand" == "_deps" ]]; then
+        continue
     fi
+    echo "brand $brand"
+    if [[ ! -f $distr/$brand/bin/apply_blob ]]; then
+         echo "KO 79221 File does not exist: $distr/$brand/bin/apply_blob"
+         exit 1
+    fi
+    echo "brand $brand"
+    if [[ ! -d $distr/$brand ]]; then
+        continue;
+    fi
+    if [[ -f ./.cbs/config_$brand ]]; then
+        echo "sourcing ./.cbs/config_$brand"
+        . ./.cbs/config_$brand
+    else
+        echo "KO 85856 Missing .cbs/config_$brand."
+        exit 1
+    fi
+    echo "Keyroot for brand $brand is $keyroot"
+    sign_apks $brand
+
+    branddir=$brands/$brand
+    strfile=$branddir/$strset
+    if [[ ! -f $strfile ]]; then
+        echo "KO 33029 unknown set $strset for $brand"
+        exit 1
+    fi
+    . $strfile
+    if [[ "_$str3" != "_$brand" ]]; then
+        echo "KO 4032 - str3 in file $strfile must be $brand"
+        exit 1
+    fi
+    echo "title: $str1"
+    if [[ -d $distr/$brand/raspberry_pi ]]; then
+        pushd $distr/$brand/raspberry_pi/ > /dev/null
+            for i in `ls -1 *.zip`; do
+                str_os_raspi=$i #$brand-os_raspi_$hash.zip
+                break
+            done
+        popd > /dev/null
+        echo "Image $str_os_raspi"
+        str_os_raspi_size=`ls -la $distr/$brand/raspberry_pi/$str_os_raspi | awk '{ print $5 }'`
+        echo "str_os_raspi_size $str_os_raspi_size"
+        str_os_raspi_sha256sum=`sha256sum $distr/$brand/raspberry_pi/$str_os_raspi | awk '{ print $1 }'`
+   else
+        str_os_raspi_size="0"
+        str_os_raspi_sha256sum="0"
+   fi
+   patch doc/node_setup_instructions_linux
+   patch doc/node_setup_instructions_windows
+   find doc
+   mv doc/node_setup_instructions_linux $distr/$brand/node_setup_instructions_linux.txt
+   mv doc/node_setup_instructions_windows $distr/$brand/node_setup_instructions_windows.txt
+   cp sloccount.txt $distr/$brand/
+   cp $distr/build_hashes $distr/$brand/
+   cat doc/release_notes | grep "RELEASE NOTES" -A1000000 >  $distr/$brand/release_notes
+   if [[ -d $branddir/html ]]; then
+       pushd $branddir
+           tar -I zstd -cf html.tar.zst html
+       popd
+       mv $branddir/html.tar.zst $distr/$brand/
+   fi
+   if [[ -d $branddir/misc ]]; then
+       find $branddir/misc -type f -exec cp {} $distr/$brand/ \;
+   fi
+   mk_checksums $distr/$brand
 done
 rm -f sloccount.txt
 echo "Finished $distr"
-find $distr -type f
+#find $distr -type f
 exit 0
-

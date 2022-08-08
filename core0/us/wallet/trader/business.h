@@ -40,9 +40,7 @@
 #include "bootstrap/protocols_t.h"
 
 namespace us::wallet::wallet {
-
     struct local_api;
-
 }
 
 namespace us::wallet::trader {
@@ -71,7 +69,6 @@ namespace us::wallet::trader {
         virtual std::pair<ko, trader_protocol*> create_protocol() = 0;
         virtual void list_protocols(ostream&) const = 0; //human format
         virtual void invert(protocols_t&) const = 0;
-        //virtual void to_stream_protocols(protocols_t&) const = 0;
         virtual void published_protocols(protocols_t&, bool inverse) const = 0;
         virtual void exec_help(const string& prefix, ostream&) const;
         virtual ko exec(istream&, traders_t&, wallet::local_api&);

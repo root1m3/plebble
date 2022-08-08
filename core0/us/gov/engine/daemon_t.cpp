@@ -28,6 +28,8 @@
 #include <sstream>
 #include <tuple>
 #include <filesystem>
+#include <time.h>
+#include <stdint.h>
 
 #include <us/gov/likely.h>
 #include <us/gov/io/cfg0.h>
@@ -69,6 +71,7 @@ void c::constructor() {
     running_since = chrono::system_clock::now();
     blocksdir = get_blocksdir(home);
     peerd.fsroot = get_fsrootdir(home);
+    evidencesdir = get_evidencesdir(home);
     io::cfg0::ensure_dir(blocksdir);
     io::cfg0::ensure_dir(peerd.fsroot);
     db = new db_t(*this);
@@ -239,6 +242,10 @@ string c::get_fsrootdir(const string& govhome) {
     return govhome + "/fsroot";
 }
 
+string c::get_evidencesdir(const string& govhome) {
+    return govhome + "/evidences";
+}
+
 bool c::patch_db(vector<hash_t>& patches) {
     #if CFG_COUNTERS == 1
         ++counters.patch_db;
@@ -314,7 +321,6 @@ void c::set_tx_status(ts_t from, ts_t to, evt_status_t evst) {
     if (st.st == evt_untracked) {
         return;
     }
-//    pm.schedule_push(blob_writer_t::get_datagram(peerd.channel, protocol::engine_track_response, 0, progress), device_filter);
     pm.schedule_push(st.get_datagram(peerd.channel, protocol::engine_track_response, 0), device_filter);
 }
 
@@ -711,6 +717,33 @@ void c::new_evidence(evidence* ev) {
     peerd.relay_evidence(dgram, nullptr);
 }
 
+namespace {
+    string minute_dir() {
+        time_t unix_timestamp = time(0);
+        struct tm ts;
+        ts = *localtime(&unix_timestamp);
+        char time_buf[20];
+        strftime(time_buf, sizeof(time_buf), "%Y/%m/%d/%H/%M", &ts);
+        return time_buf;
+    }
+}
+
+void c::save_evidence(const evidence& ev, ko calendar_result) {
+    ostringstream os;
+    os << evidencesdir << '/' << minute_dir();
+    io::cfg0::ensure_dir(os.str());
+    os << '/' << ev.ts << '_' << ev.hash_id();
+    if (unlikely(is_ko(calendar_result))) {
+        string s = calendar_result;
+        istringstream is(s);
+        string x;
+        is >> x; //KO
+        is >> x; //48765
+        os << "_KO_" << x;
+    }
+    ev.save(os.str());
+}
+
 ko c::process_evidence2(evidence* ev) {
     log("process_evidence2");
     assert(ev != nullptr);
@@ -732,6 +765,11 @@ ko c::process_evidence2(evidence* ev) {
         auto x = ev->ts;
         os << now << ' ' << x << ' ' << xh << '\n';
     #endif
+    if (save_evidences) {
+        if (is_ok(r) || r != calendar_t::KO_50450) {
+            save_evidence(*ev, r);
+        }
+    }
     if (is_ko(r)) {
         if (r == calendar_t::WP_50451) { //duplicate
         }

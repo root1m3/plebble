@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android" xmlns:tools="http://schemas.android.com/tools" tools:showIn="navigation_view">
+    <group android:checkableBehavior="single" android:id="@+id/group1">
+        <item android:id="@+id/mainmenu" android:icon="@drawable/ic_back" android:title="Main" />
+    </group>
+</menu>

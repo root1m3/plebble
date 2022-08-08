@@ -84,8 +84,6 @@ public final class protocol_choose extends activity implements datagram_dispatch
     @Override protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         set_content_layout(R.layout.activity_trades);
-//        Toolbar toolbar = findViewById(R.id.toolbar);
-//        setSupportActionBar(findViewById(R.id.toolbar));
         shit = new ArrayList<String>();
         adapter = new ListViewItem_adapter(this,shit);
         lv = (no_scroll_list_view) findViewById(R.id.listviewX);
@@ -116,7 +114,7 @@ public final class protocol_choose extends activity implements datagram_dispatch
             }
         });
         log("connect network-datagram hose");//--strip
-        dispatchid = a.datagram_dispatcher.connect_sink(this);
+        dispatchid = a.hmi.dispatcher.connect_sink(this);
     }
 
     @Override public void onDestroy() {
@@ -124,7 +122,7 @@ public final class protocol_choose extends activity implements datagram_dispatch
         log("onDestroy"); //--strip
         final app a = (app)getApplication();
         log("disconnect network-datagram hose");//--strip
-        a.datagram_dispatcher.disconnect_sink(dispatchid);
+        a.hmi.dispatcher.disconnect_sink(dispatchid);
     }
 
     @Override public void onResume() {

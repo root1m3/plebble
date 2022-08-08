@@ -76,7 +76,6 @@
                 android:layout_height="21dp"
                 android:layout_marginStart="16dp"
                 android:text="@string/reason"
-                android:textColor="@color/viewfinder_laser"
                 />
         </LinearLayout>
 
@@ -182,7 +181,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginStart="8dp"
-                            android:text="2NPmcYQeBA7joo5cGQsLYddUxRmW"
+                            android:text=""
                             />
 
                     </android.widget.LinearLayout>
@@ -260,7 +259,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginStart="8dp"
-                            android:text="2NPmcYQeBA7joo5cGQsLYddUxRmW"
+                            android:text=""
                             />
                     </android.widget.LinearLayout>
 

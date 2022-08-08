@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android" xmlns:tools="http://schemas.android.com/tools" tools:showIn="navigation_view">
+    <group android:checkableBehavior="single" android:id="@+id/group1">
+        <item android:id="@+id/nav_manage_connections" android:icon="@drawable/ic_chat" android:title="Manage connections" />
+        <item android:id="@+id/nav_newconnection" android:icon="@drawable/ic_chat" android:title="New connection..." />
+    </group>
+    <group android:checkableBehavior="single" android:id="@+id/group2">
+        <item android:id="@+id/nav_language" android:icon="@drawable/ic_chat" android:title="Language" />
+        <item android:id="@+id/nav_testleds" android:icon="@drawable/led" android:title="Test LEDs" />
+        <item android:id="@+id/nav_about" android:icon="@drawable/ic_pill" android:title="About..." />
+    </group>
+    <group android:checkableBehavior="single" android:id="@+id/group3">
+        <item android:id="@+id/nav_exit" android:icon="@drawable/ic_exit" android:title="Exit" />
+    </group>
+</menu>

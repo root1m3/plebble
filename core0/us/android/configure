@@ -45,16 +45,18 @@ cp files/colors.xml app/src/main/res/values/
 cp files/brand.png app/src/main/res/raw/
 cp files/icoapp.png app/src/main/res/raw/
 cp files/splash.png app/src/main/res/raw/
-if [ -f files/google-services.json ]; then
-    echo "Enabling firebase"
-    cp files/google-services.json app/
-    echo "apply plugin: 'com.google.gms.google-services'" >> app/build.gradle
-    echo "apply plugin: 'com.google.firebase.crashlytics'" >> app/build.gradle
-fi
+
+#if [[ -f files/google-services.json ]]; then
+#    echo "Enabling firebase"
+#    cp files/google-services.json app/
+#    echo "apply plugin: 'com.google.gms.google-services'" >> app/build.gradle
+#    echo "apply plugin: 'com.google.firebase.crashlytics'" >> app/build.gradle
+#fi
 
 echo -n "SDK lib: "
-if [ ! -f app/libs/$us-sdk_sc.jar ]; then
-    if [ ! -L app/libs/$us-sdk_sc.jar ]; then
+if [[ ! -f app/libs/$us-sdk_sc.jar ]]; then
+    rm -f app/libs/*-sdk_sc.jar  #clean other brand's sdk
+    if [[ ! -L app/libs/$us-sdk_sc.jar ]]; then
         mkdir -p app/libs
         pushd app/libs >/dev/null
             echo "symlinking $us-sdk_sc.jar"

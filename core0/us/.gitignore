@@ -9,7 +9,6 @@ test/unit_tests
 cash/android/android_sdk/
 api/apitool
 api/generated/
-android/app/build.gradle
 android/app/src/main/AndroidManifest.xml
 api/config.h
 bin/proc_1.1

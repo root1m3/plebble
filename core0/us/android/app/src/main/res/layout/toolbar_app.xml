@@ -85,7 +85,7 @@
             </us.cash.toolbar_button>
 
             <us.cash.toolbar_button
-                android:id="@+id/newtrade_btn"
+                android:id="@+id/new_btn"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 app:custom_id="new"

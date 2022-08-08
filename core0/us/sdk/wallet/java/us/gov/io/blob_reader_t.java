@@ -322,7 +322,7 @@ public class blob_reader_t {
         log("read from blob offset " + cur); //--strip
         x.read(blob.value, cur);
         cur += uint8_t.size();
-        return new pair<ko, Boolean>(ok, new Boolean(x.value != 0));
+        return new pair<ko, Boolean>(ok, x.value != 0 ? Boolean.TRUE : Boolean.FALSE);
     }
 
     ko overflow() {

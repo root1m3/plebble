@@ -52,64 +52,69 @@ public class scan extends activity implements ZXingScannerView.ResultHandler {
 
     static final int MY_PERMISSIONS_REQUEST_CAMERA = 1873;
 
-    static void log(final String s) {       //--strip
-        System.out.println("scan: " + s);   //--strip
-    }                                       //--strip
+    private static void log(final String s) {       //--strip
+        System.out.println("scan: " + s);           //--strip
+    }                                               //--strip
 
     @Override protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        set_content_layout(R.layout.activity_scan);
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, new String[] {Manifest.permission.CAMERA}, 50);
-        }
-//        Toolbar toolbar = findViewById(R.id.toolbar);
-//        setSupportActionBar(findViewById(R.id.toolbar));
-//        progressbarcontainer = findViewById(R.id.progressbarcontainer);
-        toolbar_button refresh = findViewById(R.id.refresh);
-        refresh.setVisibility(View.GONE);
-        ViewGroup contentFrame = findViewById(R.id.content_frame);
-        mScannerView = new ZXingScannerView(this);
-        contentFrame.addView(mScannerView);
-        mScannerView.setResultHandler(this); // Register ourselves as a handler for scan results.
-        Bundle bundle = getIntent().getExtras();
-        if (getIntent().hasExtra("continuous")) {
-            cont = bundle.getBoolean("continuous", false);
-            tid = new hash_t(bundle.getByteArray("tid"));
-            Toast.makeText(getApplicationContext(), "trade " + tid.encode(), 6000).show();
-        }
-        else {
-            cont = false;
-        }
-        if (getIntent().hasExtra("what")) {
-            what = bundle.getInt("what", 0);
-        }
-        else {
-            what = 0;
-        }
-        if (what == 0) {
-            MaterialButton use_endpoint_btn = findViewById(R.id.use_endpoint_btn);
-            TextInputEditText ep_text = findViewById(R.id.ep_text);
-            use_endpoint_btn.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    String ep = ep_text.getText().toString();
-                    if (ep.trim().isEmpty()) {
-                        Toast.makeText(scan.this, "type or paste an endpoint.", 6000).show();
+        log("OnCreate"); //--strip
+        try {
+            super.onCreate(savedInstanceState);
+            set_content_layout(R.layout.activity_scan);
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(this, new String[] {Manifest.permission.CAMERA}, 50);
+            }
+            toolbar_button refresh_btn = findViewById(R.id.refresh);
+            refresh_btn.setVisibility(View.GONE);
+            ViewGroup contentFrame = findViewById(R.id.content_frame);
+            mScannerView = new ZXingScannerView(this);
+            contentFrame.addView(mScannerView);
+            mScannerView.setResultHandler(this); // Register ourselves as a handler for scan results.
+            Bundle bundle = getIntent().getExtras();
+            if (getIntent().hasExtra("continuous")) {
+                cont = bundle.getBoolean("continuous", false);
+                tid = new hash_t(bundle.getByteArray("tid"));
+                Toast.makeText(getApplicationContext(), "trade " + tid.encode(), 6000).show();
+            }
+            else {
+                cont = false;
+            }
+            if (getIntent().hasExtra("what")) {
+                what = bundle.getInt("what", 0);
+            }
+            else {
+                what = 0;
+            }
+            if (what == 0) {
+                MaterialButton use_endpoint_btn = findViewById(R.id.use_endpoint_btn);
+                TextInputEditText ep_text = findViewById(R.id.ep_text);
+                use_endpoint_btn.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        String ep = ep_text.getText().toString();
+                        if (ep.trim().isEmpty()) {
+                            Toast.makeText(scan.this, "type or paste an endpoint.", 6000).show();
+                        }
+                        else {
+                            submit(ep);
+                        }
                     }
-                    else {
-                        submit(ep);
-                    }
-                }
-            });
-            toolbar.setTitle(R.string.scanendpoint);
+                });
+                toolbar.setTitle(R.string.scanendpoint);
 
+            }
+            else if (what == 1) {
+                LinearLayout endpoint_paste = findViewById(R.id.endpoint_paste);
+                endpoint_paste.setVisibility(View.GONE);
+                toolbar.setTitle("Product scanner");
+            }
+            //progressbarcontainer.setVisibility(View.GONE);
         }
-        else if (what == 1) {
-            LinearLayout endpoint_paste = findViewById(R.id.endpoint_paste);
-            endpoint_paste.setVisibility(View.GONE);
-            toolbar.setTitle("Product scanner");
+        catch(Exception ex) {
+            error_manager.manage(ex, ex.getMessage() + "    " + ex.toString());
+            ex.printStackTrace();
+            finish();
         }
-        //progressbarcontainer.setVisibility(View.GONE);
     }
 
     @Override public void onResume() {

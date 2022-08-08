@@ -75,14 +75,14 @@ import java.util.ListIterator;
 
 public class hmi {
 
-    public static void log(final String line) {     //--strip
-        CFG.log_wallet_cli("hmi: " + line);         //--strip
-    }                                               //--strip
+    private static void log(final String line) {     //--strip
+        CFG.log_wallet_cli("hmi: " + line);          //--strip
+    }                                                //--strip
 
-    static void logdump(final shell_args args) {    //--strip
-        if (CFG.logs.wallet)                        //--strip
-        args.dump("hmi: args>",System.out);         //--strip
-    }                                               //--strip
+    private static void logdump(final shell_args args) {    //--strip
+        if (CFG.logs.wallet)                                //--strip
+        args.dump("hmi: args>",System.out);                 //--strip
+    }                                                       //--strip
 
     public static final ko KO_11000 = new ko("KO 11000 Invalid command.");
     public static final ko KO_10020 = new ko("KO 10020 Feature not available in RPC mode.");
@@ -93,9 +93,9 @@ public class hmi {
 
     public static class dispatcher_t implements datagram.dispatcher_t {
 
-        static void log(final String line) {    //--strip
-           CFG.log_wallet(line);                //--strip
-        }                                       //--strip
+        private static void log(final String line) {    //--strip
+           CFG.log_wallet(line);                        //--strip
+        }                                               //--strip
 
         public dispatcher_t(hmi i) {
             m = i;
@@ -409,6 +409,7 @@ public class hmi {
             ko r = rpc_daemon.start();
             if (is_ko(r)) {
                 rpc_daemon = null;
+                cfg = null;
                 return r;
             }
         }
@@ -416,6 +417,7 @@ public class hmi {
             ko r = rpc_daemon.wait_ready(CFG.HMI_READY_TIMEOUT_SECS);
             if (is_ko(r)) {
                 rpc_daemon = null;
+                cfg = null;
                 return r;
             }
         }
@@ -429,6 +431,7 @@ public class hmi {
                     rpc_daemon.stop();
                     rpc_peer = null;
                     rpc_daemon = null;
+                    cfg = null;
                     return r;
                 }
             }
@@ -439,6 +442,7 @@ public class hmi {
                     rpc_daemon.stop();
                     rpc_peer = null;
                     rpc_daemon = null;
+                    cfg = null;
                     return r;
                 }
                 log("ready"); //--strip

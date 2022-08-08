@@ -66,12 +66,24 @@ public class shell_args {
         args[0] = CFG.PLATFORM + "-walletj";
     }
 
+    public static boolean is_root_token(String token) {
+        String i = token.toLowerCase();
+        if (i.equals(CFG.LGAS)) return true; //water
+        if (i.equals("w")) return true;
+        if (i.equals("h2o")) return true;
+        if (i.equals("agua")) return true;
+        if (i.equals("gas")) return true;
+        return false;
+    }
+
     public hash_t next_token() {
         if (n >= args.length) {
             return null;
         }
         String i = args[n++];
-        if (i.equals(CFG.LGAS) || i.equals(CFG.UGAS)) i = "11111111111111111111";
+        if (is_root_token(i)) {
+            i = "11111111111111111111";
+        }
         return hash_t.decode(i);
     }
 

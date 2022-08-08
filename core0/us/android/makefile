@@ -27,7 +27,7 @@ debug:
 	./make.sh debug
 
 release:
-	./make.sh release
+	./make.sh --bundle release
 
 clean:
 	./make.sh clean

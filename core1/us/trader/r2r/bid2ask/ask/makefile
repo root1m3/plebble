@@ -36,7 +36,7 @@ ${OBJ}: ${OBJS} ${CPPS} ${HS}
 	${CXX} -fPIC -c ${CXXFLAGS} ${INC} -I.. ${LIB} $^ -o $@
 
 clean:
-	rm -f *.o
+	$(RM) *.o
 
 .PHONY: all
 

@@ -36,7 +36,7 @@ import android.content.Context;                                                 
 import us.gov.socket.datagram;                                                                 // datagram
 import us.wallet.trader.data_t;                                                                // data_t
 import us.wallet.trader.endpoint_t;                                                            // endpoint_t
-import com.google.firebase.crashlytics.FirebaseCrashlytics;                                    // FirebaseCrashlytics
+//import com.google.firebase.crashlytics.FirebaseCrashlytics;                                    // FirebaseCrashlytics
 import androidx.fragment.app.Fragment;                                                         // Fragment
 import androidx.fragment.app.FragmentTransaction;                                              // FragmentTransaction
 import android.widget.FrameLayout;                                                             // FrameLayout
@@ -71,14 +71,12 @@ import android.view.View;                                                       
 
 public class trader extends activity implements datagram_dispatcher_t.handler_t  {
 
-    static final int PROTOCOLROLE_RESULT = 902;
-
-    static void log(final String line) {         //--strip
-        CFG.log_android("trader: " + line);      //--strip
-    }                                            //--strip
+    private static void log(final String line) {           //--strip
+        CFG.log_android("trader: " + line);                //--strip
+    }                                                      //--strip
 
     public synchronized data_t get_data() {
-        return data;
+        return data_;
     }
 
     public synchronized String get_src_data() {
@@ -87,7 +85,7 @@ public class trader extends activity implements datagram_dispatcher_t.handler_t 
 
     private synchronized void set_data(String src, data_t x) {
         src_data = src;
-        data = x;
+        data_ = x;
     }
 
     @Override protected void onSaveInstanceState(Bundle outState) {
@@ -121,6 +119,8 @@ public class trader extends activity implements datagram_dispatcher_t.handler_t 
         button_chat.setVisibility(View.VISIBLE);
         sheetBehavior = BottomSheetBehavior.from(bottom_sheet);
         sheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
+        sheetBehavior.setSkipCollapsed(true);
+
         toolbar_button action = findViewById(R.id.action);
         action.setVisibility(View.GONE);
         chat_handlers();
@@ -160,15 +160,32 @@ public class trader extends activity implements datagram_dispatcher_t.handler_t 
                 refresh();
             }
         });
-        log("connect 'dispatch' to network-datagram hose"); //--strip
-        dispatchid = a.datagram_dispatcher.connect_sink(this);
-        invalidate_data_fetch0();
     }
 
-    @Override public void onDestroy() {
-        log("onDestroy " + a.datagram_dispatcher); //--strip
-        super.onDestroy();
-        a.datagram_dispatcher.disconnect_sink(dispatchid);
+    @Override public void onPause() {
+        super.onPause();
+        log("onPause"); //--strip
+        if (a.hmi == null) {
+            dispatchid = -1;
+        }
+        else {
+            if (dispatchid != -1) {
+                a.hmi.dispatcher.disconnect_sink(dispatchid);
+            }
+        }
+    }
+
+    @Override public void onResume() {
+        super.onResume();
+        log("onResume"); //--strip
+        if (a.hmi == null) {
+            dispatchid = -1;
+        }
+        else {
+            log("Connecting to datagram dispatcher");//--strip
+            dispatchid = a.hmi.dispatcher.connect_sink(this);
+            invalidate_data_fetch0();
+        }
     }
 
     @Override public void on_push(final hash_t target_tid, final uint16_t code, final byte[] payload) {
@@ -203,7 +220,7 @@ public class trader extends activity implements datagram_dispatcher_t.handler_t 
             break;
             case us.wallet.trader.trader_t.push_chat: {
                 log("a chat for me "); //--strip
-                openchat_worker(payload);
+                openchat__worker(payload);
             }
             break;
             case us.wallet.trader.trader_t.push_killed: {
@@ -217,11 +234,16 @@ public class trader extends activity implements datagram_dispatcher_t.handler_t 
     void chat_handlers() {
         button_chat.setOnClickListener(new View.OnClickListener() {
             @Override public void onClick(View view) {
-                if (sheetBehavior.getState() == BottomSheetBehavior.STATE_HIDDEN) {
-                    sheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
+                log("click on chat_handler"); //--strip
+                int st = sheetBehavior.getState();
+                if (st == BottomSheetBehavior.STATE_HIDDEN) {
+                    sheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED); //BottomSheetBehavior.BottomSheetBehavior);
                 }
-                else if (sheetBehavior.getState() == BottomSheetBehavior.STATE_EXPANDED) {
-                    sheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
+                else if (st == BottomSheetBehavior.STATE_EXPANDED) {
+                    sheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
+                }
+                else if (st == BottomSheetBehavior.STATE_COLLAPSED) {
+                    sheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
                 }
                 else {
                     sheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
@@ -235,12 +257,12 @@ public class trader extends activity implements datagram_dispatcher_t.handler_t 
                     case BottomSheetBehavior.STATE_HIDDEN:
                         break;
                     case BottomSheetBehavior.STATE_EXPANDED: {
-                        openchat(null);
-                    }
-                    break;
-                    case BottomSheetBehavior.STATE_COLLAPSED: {
-                    }
-                    break;
+                            log("bottomsheet expanded: opening chat chat_handler"); //--strip
+                            openchat(null);
+                        }
+                        break;
+                    case BottomSheetBehavior.STATE_COLLAPSED:
+                        break;
                     case BottomSheetBehavior.STATE_DRAGGING:
                         break;
                     case BottomSheetBehavior.STATE_SETTLING:
@@ -248,13 +270,11 @@ public class trader extends activity implements datagram_dispatcher_t.handler_t 
                 }
             }
 
-            @Override public void onSlide(@NonNull View view, float v) {
-
-            }
+            @Override public void onSlide(@NonNull View view, float v) {}
         });
     }
 
-    void openchat_worker(final byte[] chatpayload) {
+    void openchat__worker(final byte[] chatpayload) {
         app.assert_worker_thread(); //--strip
         runOnUiThread(new Runnable() {
             @Override public void run() {
@@ -264,6 +284,7 @@ public class trader extends activity implements datagram_dispatcher_t.handler_t 
     }
 
     public String getendpoint() {
+        data_t data = get_data();
         String endpoint = data.find("remote_endpoint");
         if (endpoint == null) {
             endpoint = "";
@@ -272,6 +293,7 @@ public class trader extends activity implements datagram_dispatcher_t.handler_t 
     }
 
     public String peer_moniker() {
+        data_t data = get_data();
         String s = data.find("peer_moniker");
         if (s == null) {
             s = "Anonymous";
@@ -318,7 +340,8 @@ public class trader extends activity implements datagram_dispatcher_t.handler_t 
             log("KO 30306 failed setdata0"); //--strip
             return false;
         }
-        if (get_data() == null) {
+        data_t data = get_data();
+        if (data == null) {
             log("data is null"); //--strip
             cur_protocol = null;
             vf = 0;
@@ -353,7 +376,6 @@ public class trader extends activity implements datagram_dispatcher_t.handler_t 
             else {
                 parent_trade = new hash_t(base58.decode(pt));
             }
-
         }
         log("cur_protocol=" + cur_protocol); //--strip
         return true;
@@ -368,13 +390,11 @@ public class trader extends activity implements datagram_dispatcher_t.handler_t 
                 refresh();
             }
         });
-
         return true;
     }
 
     void get_sourceshit_qrs(String key, Context ctx) {
         app.assert_ui_thread(); //--strip
-
         if (command_show_param_qrs(key, ctx)) {
             return;
         }
@@ -394,8 +414,7 @@ public class trader extends activity implements datagram_dispatcher_t.handler_t 
     void on_redirect(final bookmark_t redirect) {
         log("redirection to " + redirect.to_string()); //--strip
         log("referrertid " + tid.encode()); //--strip
-        main.new_trade(tid, "", redirect.qr);
-        Toast.makeText(trader.this, R.string.newtradeadded, 6000).show();  //--strip
+        a.new_trade(tid, "", redirect.qr);
     }
 
     public void go_parent_trade() {
@@ -408,7 +427,7 @@ public class trader extends activity implements datagram_dispatcher_t.handler_t 
             return;
         }
         Intent data = new Intent();
-        main.go_trade(parent_trade);
+        a.go_trade(parent_trade);
     }
 
     public void setmode_loading() {
@@ -427,8 +446,8 @@ public class trader extends activity implements datagram_dispatcher_t.handler_t 
     public void invalidate_data_fetch0() {
         app.assert_ui_thread(); //--strip
         if (a.hmi == null) {
-            log("HMI is not ready"); //--strip
-            Toast.makeText(getApplicationContext(), "HMI is not ready", 6000).show();
+            log("Closing activity hmi is null"); //--strip
+            finish();
             return;
         }
         setmode_loading();
@@ -438,9 +457,15 @@ public class trader extends activity implements datagram_dispatcher_t.handler_t 
         a.hmi.command_trade(tid, "show data"); //backend will push data
     }
 
-    void refresh() {
+    public void refresh() {
         log("refresh"); //--strip
         app.assert_ui_thread(); //--strip
+        if (a.hmi == null) {
+            log("Closing activity hmi is null"); //--strip
+            finish();
+            return;
+        }
+        super.refresh();
         log("cur_protocol " + cur_protocol); //--strip
         log("procol.isChecked " + procol.isChecked()); //--strip
         if (get_data() == null) {
@@ -610,7 +635,11 @@ public class trader extends activity implements datagram_dispatcher_t.handler_t 
 
     boolean command_show_param_qrs(final String key, Context ctx) {
         app.assert_ui_thread(); //--strip
-        String val = data.find(key);
+        data_t data = get_data();
+        String val = null;
+        if (data != null) {
+            val = data.find(key);
+        }
         if (val != null) {
             log("val not null");  //--strip
             if (val.equals("Y")) {
@@ -630,7 +659,11 @@ public class trader extends activity implements datagram_dispatcher_t.handler_t 
         app.assert_ui_thread(); //--strip
         boolean rr = require_request(key);
         if (rr) {
-            String val = data.find(key);
+            data_t data = get_data();
+            String val = null;
+            if (data != null) {
+                val = data.find(key);
+            }
             if (val != null) {
                 log("val not null");  //--strip
                 if (val.equals("Y")) {
@@ -666,8 +699,10 @@ public class trader extends activity implements datagram_dispatcher_t.handler_t 
     }
 
     public void openchat(byte[] chatpayload) {
+        log("openchat"); //--strip
         app.assert_ui_thread(); //--strip
         if (chat_fragment == null) {
+            log("chat_fragment is null. recreating."); //--strip
             String lbl = peer_moniker();
             log("Starting fragment chat_fragment"); //--strip
             chat_fragment = new chat();
@@ -688,8 +723,17 @@ public class trader extends activity implements datagram_dispatcher_t.handler_t 
             }
         }
 
-        if (sheetBehavior.getState() == BottomSheetBehavior.STATE_HIDDEN) {
-            sheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
+        int st = sheetBehavior.getState();
+        boolean sound = false;
+        if (st == BottomSheetBehavior.STATE_HIDDEN) {
+            sheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
+            sound = true;
+        }
+        else if (st == BottomSheetBehavior.STATE_COLLAPSED) {
+            sound = true;
+        }
+        if (sound) {
+            log("SOUND"); //--strip
             a.tone.startTone(ToneGenerator.TONE_CDMA_CALL_SIGNAL_ISDN_NORMAL, 150);
         }
 
@@ -698,7 +742,7 @@ public class trader extends activity implements datagram_dispatcher_t.handler_t 
     void archive() {
         runOnUiThread(new Thread(new Runnable() {
             @Override public void run() {
-                Toast.makeText(trader.main, "This trade has been archived.", 6000).show();
+                Toast.makeText(a.main, "This trade has been archived.", 6000).show();
                 finish();
             }
         }));
@@ -714,6 +758,8 @@ public class trader extends activity implements datagram_dispatcher_t.handler_t 
         finish();
     }
 
+    static final int PROTOCOLROLE_RESULT = 902;
+
     private Switch procol;
     private TextView procol_cap;
     private TextView tradeid;
@@ -724,7 +770,7 @@ public class trader extends activity implements datagram_dispatcher_t.handler_t 
     public hash_t parent_trade = null;
     public String cur_protocol = null;
     int dispatchid;
-    private data_t data = null;
+    private data_t data_ = null;
     private String src_data = null;
     public us.wallet.trader.roles_t roles = null;
     public fragment_trader forward_roles = null;

@@ -1,0 +1,67 @@
+File System Evolution
+
+Project directory structure along time
+===================================
+Original. Consensus protocol
+
+namespaces:
+    us
+
+===================================
+split public/private
+daemons and RPC clients
+-----------------------------------
+
+namespaces:
+     us::gov
+     us::wallet
+
+us/gov
+us/govx
+us/wallet
+us/walletx
+
+===================================
+Replica RPC-Client java
+Android app
+-----------------------------------
+
+namespaces:
+     us::cash
+     us::gov
+     us::wallet
+
+us/gov
+us/govx
+us/wallet
+us/walletx
+us/sdk/wallet/java/us/gov
+us/sdk/wallet/java/us/govj
+us/sdk/wallet/java/us/wallet
+us/sdk/wallet/java/us/walletj
+us/android
+
+
+===================================
+Rebranding
+CBS (Continuous Build System)
+devjobs
+-----------------------------------
+namespaces:
+     us::cash
+     us::gov
+     us::wallet
+
+core0/us/gov
+core0/us/govx
+core0/us/wallet
+core0/us/walletx
+core0/us/sdk/wallet/java/us/gov
+core0/us/sdk/wallet/java/us/govj
+core0/us/sdk/wallet/java/us/wallet
+core0/us/sdk/wallet/java/us/walletj
+core0/us/android
+core1/bin/cbs
+core1/brands
+
+

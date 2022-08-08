@@ -1,1 +1,5 @@
-../../../../../app/src/main/res/values/colors.xml
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorAccent">#CEC1C5</color>
+</resources>
+

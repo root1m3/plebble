@@ -52,7 +52,6 @@ namespace us::gov::socket {
     struct datagram final: vector<uint8_t> {
         using b = vector<uint8_t>;
 
-
         static const char *KO_0001, *KO_0002, *KO_0003, *KO_4038, *KO_4921, *KO_9021, *KO_20293, *KO_20292;
 
         struct dispatcher_t {
@@ -160,7 +159,7 @@ namespace us::gov::socket {
             uint64_t _serial;
             static atomic<uint64_t> _next_serial;
         #endif
-        //static channel_t system_channel;
+
         static constexpr channel_t all_channels{numeric_limits<channel_t>::max()};
         svc_t service;
         uint32_t dend;

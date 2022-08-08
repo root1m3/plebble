@@ -48,7 +48,7 @@ import java.util.TreeMap;                                                       
 
 public final class chat {
 
-    static void log(final String line) {                        //--strip
+    private static void log(final String line) {                //--strip
         CFG.log_wallet_trader("chat: " + line);                 //--strip
     }                                                           //--strip
 
@@ -57,6 +57,15 @@ public final class chat {
         private static final long serialVersionUID = 1234324L;
 
         public paragraphs() {}
+
+        public String to_string() {
+            StringBuilder sb = new StringBuilder(blob_size());
+            for (String entry : this) {
+                sb.append(entry);
+                sb.append("\n");
+            }
+            return sb.toString();
+        }
 
         @Override public serid_t serial_id() { return serid_t.no_header; }
 
@@ -88,6 +97,7 @@ public final class chat {
                     pair<ko, String> rs = reader.read_string();
                     if (is_ko(rs.first)) return rs.first;
                     s = rs.second;
+                    log("READ-chat-from-blob " + s); //--strip
                 }
                 add(s);
             }

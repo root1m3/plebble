@@ -24,7 +24,7 @@ package us.cash;
 import android.app.Activity;                                                                   // Activity
 import java.util.Arrays;                                                                       // Arrays
 import android.content.Context;                                                                // Context
-import com.google.firebase.crashlytics.FirebaseCrashlytics;                                    // FirebaseCrashlytics
+//import com.google.firebase.crashlytics.FirebaseCrashlytics;                                    // FirebaseCrashlytics
 import java.io.IOException;                                                                    // IOException
 import android.nfc.tech.IsoDep;                                                                // IsoDep
 import android.util.Log;                                                                       // Log

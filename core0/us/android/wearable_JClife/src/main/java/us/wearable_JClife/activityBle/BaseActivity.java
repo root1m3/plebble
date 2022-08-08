@@ -31,10 +31,14 @@ import com.jstyle.blesdk2025.Util.BleSDK;
 import com.jstyle.blesdk2025.callback.DataListener2025;
 import com.jstyle.blesdk2025.constant.DeviceKey;
 import java.util.Map;
-import io.reactivex.android.schedulers.AndroidSchedulers;
-import io.reactivex.disposables.Disposable;
-import io.reactivex.functions.Consumer;
-import io.reactivex.schedulers.Schedulers;
+//import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
+//import io.reactivex.disposables.Disposable;
+import io.reactivex.rxjava3.disposables.Disposable;
+//import io.reactivex.functions.Consumer;
+import io.reactivex.rxjava3.functions.Consumer;
+//import io.reactivex.schedulers.Schedulers;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 import us.wearable_JClife.R;
 import us.wearable_JClife.ble.BleManager;
 import us.wearable_JClife.ble.BleService;
@@ -43,15 +47,12 @@ import us.wearable_JClife.util.RxBus;
 
 public class BaseActivity extends AppCompatActivity implements DataListener2025 {
 
-    private Disposable subscription;
-    private ProgressDialog progressDialog;
-
     @Override protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         subscribe();
     }
 
-    protected void subscribe(){
+    protected void subscribe() {
         subscription = RxBus.getInstance().toObservable(BleData.class).subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread()).subscribe(new Consumer<BleData>() {
             @Override public void accept(BleData bleData) throws Exception {
                 String action = bleData.getAction();
@@ -64,7 +65,7 @@ public class BaseActivity extends AppCompatActivity implements DataListener2025 
         });
     }
 
-    protected void unSubscribe(Disposable disposable) {
+    protected void unsubscribe(Disposable disposable) {
         if (disposable != null && !disposable.isDisposed()) {
             disposable.dispose();
         }
@@ -72,7 +73,7 @@ public class BaseActivity extends AppCompatActivity implements DataListener2025 
 
     @Override protected void onDestroy() {
         super.onDestroy();
-        unSubscribe(subscription);
+        unsubscribe(subscription);
     }
 
     @Override public void dataCallback(Map<String, Object> maps) {
@@ -147,5 +148,8 @@ public class BaseActivity extends AppCompatActivity implements DataListener2025 
     protected void disMissProgressDialog() {
         if(progressDialog != null && progressDialog.isShowing()) progressDialog.dismiss();
     }
+
+    private Disposable subscription;
+    private ProgressDialog progressDialog;
 }
 

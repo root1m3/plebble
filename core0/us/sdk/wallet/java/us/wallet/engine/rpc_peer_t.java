@@ -255,6 +255,38 @@ public abstract class rpc_peer_t extends us.gov.relay.rpc_peer_t implements call
         return r;
     }
 
+    @Override public ko call_get_component_hash(final get_component_hash_in_t o_in, string curver) {
+        log("get_component_hash "); //--strip
+        /// in:
+        ///     string component;
+        ///     string filename;
+
+        datagram d_in;
+        {
+            string lasterr = new string();
+            pair<ko, datagram> r = sendrecv(o_in.get_datagram(daemon.channel, new seq_t(0)), lasterr);
+            if (ko.is_ko(r.first)) {
+                assert r.second == null;
+                if (lasterr.value != null) {
+                    lasterror.set(lasterr.value);
+                }
+                else {
+                    lasterror.set("");
+                }
+                return r.first;
+            }
+            assert r.second != null;
+            d_in = r.second;
+        }
+        if (d_in.service.value != protocol.engine_get_component_hash_response) {
+            ko r = KO_50143;
+            log(r.msg + "expected " + protocol.engine_get_component_hash_response + " got " + d_in.service.value); //--strip
+            return r;
+        }
+        ko r = blob_reader_t.readD(d_in, curver);
+        return r;
+    }
+
     @Override public ko call_harvest(final harvest_in_t o_in, string ans) {
         log("harvest "); //--strip
         /// in:

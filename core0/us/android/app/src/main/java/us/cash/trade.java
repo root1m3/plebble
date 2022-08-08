@@ -64,7 +64,7 @@ public class trade implements Comparable<trade> {
         if (field.length == 6) {
             tid = new hash_t(field[0]);
             ts_creation = Long.parseLong(field[1]);
-            ts_activity = Long.parseLong(field[2]); // Long.parseUnsignedLong(field[2]);  reqs. API26
+            ts_activity = Long.parseLong(field[2]);
             caption = field[3] + ' ' + field[4] + ' ' + field[5];
         }
     }

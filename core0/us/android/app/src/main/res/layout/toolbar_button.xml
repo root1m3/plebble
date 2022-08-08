@@ -16,7 +16,7 @@
         android:scaleType="fitStart"
         android:layout_gravity="center"
         android:src="@drawable/ic_refresh"
-        android:backgroundTint="@color/zxing_transparent"
+        android:backgroundTint="@android:color/transparent"
         android:gravity="end">
     </ImageButton>
 

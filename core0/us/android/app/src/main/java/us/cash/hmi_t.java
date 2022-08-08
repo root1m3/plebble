@@ -68,284 +68,31 @@ public class hmi_t extends us.wallet.cli.hmi {
     public static final ko KO_10001 = new ko("KO 10001 I Disconnected.");
     public static final ko KO_61210 = new ko("KO 61210 Handshake could not be completed.");
 
-    public static void log(final String line) { //--strip
-        CFG.log_android("hmi_t: " + line);      //--strip
-    }                                           //--strip
+    private static void log(final String line) {         //--strip
+        CFG.log_android("hmi_wallet_t: " + line);        //--strip
+    }                                                    //--strip
 
     public interface status_handler_t {
         void on_status(ColorDrawable led, final String msg);
     }
 
-    public static class cfg_android extends us.gov.io.cfg1 {
-
-        public static ko KO_97033 = new ko("KO 97033 Cannot write file.");
-        public static ko KO_97034 = new ko("KO 97034 Cannot read file.");
-
-        public static void log(final String line) {              //--strip
-            CFG.log_android("hmi_t::cfg_android: " + line);      //--strip
-        }                                                        //--strip
-
-        public cfg_android(PrivateKey privk, String home_) {
-            super(privk, home_);
-        }
-
-        public cfg_android(cfg_android other) {
-            super(other);
-        }
-
-        public static File get_download_file(Context ctx, String file) {
-            log("file " + file); //--strip
-            log("Environment.getExternalStorageDirectory()=" + Environment.getExternalStorageDirectory()); //--strip
-            File f = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS) + "/" + CFG.blob_id, file);
-            try {
-                log("canonicalpath: " + f.getCanonicalPath()); //--strip
-                File parent = f.getParentFile();
-                if (parent != null && !parent.exists() && !parent.mkdirs()) {
-                    ko r = new ko("KO 76905 Cannot create dir.");
-                    log(r.msg + " " + parent.getCanonicalPath()); //--strip
-                    return null;                    
-                }
-                log("parent.exists()=" + parent.exists() + " " + parent.getCanonicalPath()); //--strip
-                return f;
-            }
-            catch (Exception e) {
-                log("Ex. " + e.getMessage()); //--strip
-            }
-            return null;
-        }
-
-        public static boolean is_external_storage_writable() {
-            return Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED);
-        }
-
-        public static boolean is_external_storage_readable() { // Checks if a volume containing external storage is available to at least read.
-             return Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED) || Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED_READ_ONLY);
-        }
-
-        public static File public_file(Context ctx, String file) {
-            try {
-                return get_download_file(ctx, file);
-            }
-            catch (Exception e) {
-                return null;
-            }
-        }
-
-        public static boolean public_file_exists(Context ctx, String file) {
-            try {
-                File f = get_download_file(ctx, file);
-                if (f == null) return false;
-                return f.exists();
-            }
-            catch (Exception e) {
-                return false;
-            }
-        }
-
-        public static void delete_public_file(Context ctx, String file) {
-            try {
-                File f = get_download_file(ctx, file);
-                if (f != null) f.delete();
-            }
-            catch (Exception e) {
-            }
-        }
-
-        public static void logfiles(Context ctx) {      //--strip
-            String[] f = ctx.fileList();                //--strip
-            log("  Private files: ");                   //--strip
-            for (int i = 0; i < f.length; ++i) {        //--strip
-                log("    File: " + f[i]);               //--strip
-            }                                           //--strip
-        }                                               //--strip
-
-        public static boolean private_file_exists(Context ctx, String file) {
-            log("File exists"); //--strip
-            String[] f = ctx.fileList();
-            log("  Private files: "); //--strip
-            boolean e = false;
-            for (int i = 0; i < f.length; ++i) {
-                log("    File: " + f[i]); //--strip
-                if (file.equals(f[i])) {
-                    e = true;
-                    log("           (^found)"); //--strip
-                }
-            }
-            return e;
-        }
-
-        public static void delete_private_file(Context ctx, String file) {
-            ctx.deleteFile(file);
-        }
-
-        public static ko write_private_file(Context ctx, String file, byte[] content) {
-            try {
-                File f = private_file(ctx, file);
-                FileOutputStream os = new FileOutputStream(f);
-                log("Writing private file " + file + " sz=" + content.length); //--strip
-                os.write(content);
-                os.flush();
-                os.close();
-                return ok;
-            }
-            catch (Exception e) {
-                log("Ex. " + e.getMessage()); //--strip
-                return new ko("KO 89540 ");
-            }
-        }
-
-        public static ko write_private_file(Context ctx, String file, String content) {
-            return write_private_file(ctx, file, content.getBytes());
-        }
-
-        public static File private_file(Context ctx, String file) {
-            return ctx.getFileStreamPath(file);
-        }
-
-        public static ko write_public_file(Context ctx, String file, byte[] content) {
-            log("write_public_file " + file + " sz:" + content.length); //--strip
-            try {
-                File f = get_download_file(ctx, file.trim());
-                log("A1 + " + f.getCanonicalPath()); //--strip
-                if (!f.createNewFile()) {
-                    log("createNewFile didn't create the file"); //--strip
-                }
-                log("A2"); //--strip
-                FileOutputStream os = new FileOutputStream(f);
-                log("A3"); //--strip
-                os.write(content);
-                log("A4"); //--strip
-                log("Writing public file " + file + " sz=" + content.length); //--strip
-                os.flush();
-                os.close();
-                log("A5"); //--strip
-            }
-            catch (Exception e) {
-                log(KO_97033.msg + ". " + file + ". " + e.getMessage()); //--strip
-                return KO_97033;
-            }
-            return ok;
-        }
-
-        public static ko c(Context ctx, String file, byte[] content) {
-            try {
-                FileOutputStream os= ctx.openFileOutput(file, Context.MODE_PRIVATE);
-                os.write(content);
-                os.close();
-            }
-            catch (Exception e) {
-                log(KO_97033.msg + ". " + file + ". " + e.getMessage()); //--strip
-                return KO_97033;
-            }
-            return ok;
-        }
-
-        public static String read_private_file_string(Context ctx, String file) {
-            log("read_file " + file); //--strip
-            try {
-                FileInputStream is = ctx.openFileInput(file);
-                long sz = is.getChannel().size();
-                byte content[] = new byte[(int)sz];
-                is.read(content);
-                is.close();
-                return new String(content, StandardCharsets.UTF_8);
-            }
-            catch (Exception e) {
-                log(KO_97034.msg + " " + file + ". " + e.getMessage()); //--strip
-                return null;
-            }
-        }
-
-        public static byte[] read_private_file(Context ctx, String file) {
-            log("read_file " + file); //--strip
-            try {
-                FileInputStream is = ctx.openFileInput(file);
-                long sz = is.getChannel().size();
-                byte content[] = new byte[(int)sz];
-                is.read(content);
-                is.close();
-                return content;
-            }
-            catch (Exception e) {
-                log(KO_97034.msg + " " + file + ". " + e.getMessage()); //--strip
-                return null;
-            }
-        }
-
-        public static ko write_k(Context ctx, String home, PrivateKey priv) {
-            log("write_k at " + home);  //--strip
-            String filename = "k";
-            log("ignoring homedir" + home + " because android SDK sucks with their directory trees."); //--strip
-            log("filename " + filename);  //--strip
-            try {
-                FileOutputStream os = ctx.openFileOutput(filename, Context.MODE_PRIVATE);
-                os.write(us.gov.crypto.ec.instance.to_b58(priv).getBytes());
-                os.write('\n');
-                os.close();
-            }
-            catch (Exception e) {
-                log(KO_97032 + " " + e.getMessage()); //--strip
-                return KO_97032;
-            }
-            return ok;
-        }
-
-        public static pair<ko, PrivateKey> load_sk(Context ctx, String home) {
-            try {
-                String keyfile = "k";
-                FileInputStream is = ctx.openFileInput(keyfile);
-                BufferedReader buf = new BufferedReader(new InputStreamReader(is));
-                String line = buf.readLine();
-                StringBuilder sb = new StringBuilder();
-                while(line != null) {
-                    sb.append(line).append("\n");
-                    line = buf.readLine();
-                }
-                String content = sb.toString();
-                log("sk=" + content);  //--strip
-                PrivateKey privateKey = ec.instance.get_private_key(base58.decode(content.trim()));
-                return new pair<ko, PrivateKey>(ok, privateKey);
-            }
-            catch(Exception e) {
-                log(KO_96857 + " " + e.getMessage()); //--strip
-                return new pair<ko, PrivateKey>(KO_96857, null);
-            }
-        }
-
-        public static pair<ko, cfg_android> load(Context ctx, String home, boolean gen) {
-            String keyfile = "k";
-            pair<ko, PrivateKey> pk = load_sk(ctx, home);
-            if (pk.first != null) {
-                log("keyfile " + keyfile + " not found."); //--strip
-                if (!gen) {
-                    return new pair<ko, cfg_android>(KO_97832, null);
-                }
-                log("generating new keys at " + home); //--strip
-                KeyPair k;
-                try {
-                    k = ec.instance.generate_keypair();
-                }
-                catch (Exception e) {
-                    log(KO_60593 + " " + e.getMessage()); //--strip
-                    return new pair<ko, cfg_android>(KO_60593, null);
-                }
-                ko r = write_k(ctx, home, k.getPrivate());
-                if (r != ok) {
-                    return new pair<ko, cfg_android>(r, null);
-                }
-                pk = load_sk(ctx, home);
-                if (pk.first != null) {
-                    return new pair<ko, cfg_android>(pk.first, null);
-                }
-            }
-            return new pair<ko, cfg_android>(ok, new cfg_android(pk.second, home));
-        }
-
+    public interface hmi_callback_t {
+        void on_hmi__worker(final ko status);
     }
 
-    public hmi_t(app a_, final us.wallet.cli.params p, status_handler_t status_handler_, datagram.dispatcher_t dispatcher_, PrintStream os) {
-        super(p, os);
+    boolean online = false;
+
+    public void on_hmi__worker(final ko status) {
+        online = (status == ok);
+        if (cb != null) {
+            cb.on_hmi__worker(status);
+        }
+    }
+
+    public hmi_t(app a_, hmi_callback_t cb_, final us.wallet.cli.params p, status_handler_t status_handler_, datagram_dispatcher_t dispatcher_) {
+        super(p, System.out);
         a = a_;
+        cb = cb_;
         dispatcher = dispatcher_;
         status_handler = status_handler_;
         set_status(leds_t.led_red, "Stopped");
@@ -401,8 +148,7 @@ public class hmi_t extends us.wallet.cli.hmi {
     public void report_status__ui() {
         app.assert_ui_thread(); //--strip
         Thread thread = new Thread(new Runnable() {
-            @Override
-            public void run() {
+            @Override public void run() {
                 report_status();
             }
         });
@@ -424,8 +170,20 @@ public class hmi_t extends us.wallet.cli.hmi {
     }
 
     @Override public pair<ko, us.gov.io.cfg1> load_cfg(String home, boolean gen) {
-        pair<ko, cfg_android> z = cfg_android.load(a.getApplicationContext(), home, gen);
+        return new pair<ko, us.gov.io.cfg1>(ok, cfg);
+
+/*
+        log("load_cfg " + home + " gen " + gen);
+        pair<ko, cfg_android_private_t> z = cfg_android_private_t.load(a.getApplicationContext(), home, gen);
+        set_status(leds_t.led_amber, "Loading previous network info for channel " + p.channel.value);
+        update_network_info_from_cache(z.second, p.channel);
+        set_status(leds_t.led_amber, (seeds == null ? "0" : "" + seeds.size()) + " seeds");
         return new pair<ko, us.gov.io.cfg1>(z.first, z.second);
+*/
+    }
+
+    public cfg_android_private_t get_cfg() {
+        return (cfg_android_private_t) cfg;
     }
 
     public ko restart(endpoint_t ep, pin_t pin) {
@@ -437,14 +195,14 @@ public class hmi_t extends us.wallet.cli.hmi {
         join();
         log("starting hmi once stopped"); //--strip
         endpoint = ep;
-        ko r = start(ep, pin, busyled_handler_send, busyled_handler_recv, dispatcher);
+        ko r = start(ep, pin); // busyled_handler_send, busyled_handler_recv, dispatcher);
         log("hmi start return code is " + ko.as_string(r)); //--strip
         return r;
     }
 
     pair<ko, us.wallet.cli.rpc_peer_t.net_info_out_dst_t> load_netinfo(channel_t channel) {
         log("load_netinfo(channel=" + channel.value + ")"); //--strip
-        byte[] fc = cfg_android.read_private_file(a.getApplicationContext(), "netinfo_ch_" + channel.value);
+        byte[] fc = ((cfg_android_private_t)cfg).read_file2("netinfo_ch_" + channel.value);
         if (fc == null) {
             ko r = new ko("KO 66094 netinfo cached file unavailable.");
             log(r.msg); //--strip
@@ -468,20 +226,24 @@ public class hmi_t extends us.wallet.cli.hmi {
         blob_t blob = new blob_t();
         blob_writer_t writer = new blob_writer_t(blob, o.blob_size());
         writer.write(o);
-        ko r = cfg_android.write_private_file(a.getApplicationContext(), "netinfo_ch_" + channel.value, blob.value);
+        ko r = get_cfg().write_file("netinfo_ch_" + channel.value, blob.value);
         if (r != null) {
             return new ko("KO 25934 Unable to write netinfo file in private storage.");
         }
         return ok;
     }
 
-    public ko start(final endpoint_t ep, final pin_t pin, busyled_t.handler_t busyled_handler_send, busyled_t.handler_t busyled_handler_recv, datagram.dispatcher_t dis) {
-        log("start with dispatcher " + (dis == null ? " NULL" : " Not Null")); //--strip
-        freeze = false;
+    public ko start(final endpoint_t ep, final pin_t pin) {
+        //, busyled_t.handler_t busyled_handler_send, busyled_t.handler_t busyled_handler_recv, datagram_dispatcher_t dis) {
+        log("start"); //--strip
+        if (cfg == null) {
+            return new ko("KO 80799 cfg is null");
+        }
+        freeze = false; //show the first error, then ign the rest
         is_online = false;
-        this.busyled_handler_send = busyled_handler_send;
-        this.busyled_handler_recv = busyled_handler_recv;
-        this.dispatcher = dis;
+//        this.busyled_handler_send = busyled_handler_send;
+//        this.busyled_handler_recv = busyled_handler_recv;
+//        this.dispatcher = dis;
         endpoint = ep;
         p.pin = pin;
         if (endpoint != null) {
@@ -494,35 +256,46 @@ public class hmi_t extends us.wallet.cli.hmi {
             p.walletd_port = us.CFG.WALLET_PORT;
             p.channel = us.CFG.CHANNEL;
         }
-        set_status(leds_t.led_amber, "Loading previous network info for channel " + p.channel.value);
-
-        update_network_info_from_cache(p.channel);
-        set_status(leds_t.led_amber, "Starting HMI. " + endpoint.to_string() + ". " + (seeds == null ? "0" : seeds.size()) + " seeds");
-
+        set_status(leds_t.led_amber, "Starting HMI. " + endpoint.to_string());
         log("super.start. stop_on_disconnection = " + p.rpc__stop_on_disconnection); //--strip
-        ko r = super.start(busyled_handler_send, busyled_handler_recv, dis);
-        if (r != ok) {
+        ko r = super.start(busyled_handler_send, busyled_handler_recv, dispatcher);
+        if (is_ko(r)) {
             log("super returned " + r.msg); //--strip
             set_status(leds_t.led_red, r.msg);
-            activity.main.on_hmi__worker(r);
+            on_hmi__worker(r);
             return r;
         }
-        else {
-            set_status(leds_t.led_amber, "HMI running. Peer " + endpoint.to_string());
-            log("super returned ok"); //--strip
+        set_status(leds_t.led_amber, "Loading previous network info for channel " + p.channel.value);
+        update_network_info_from_cache(p.channel);
+        set_status(leds_t.led_amber, (seeds == null ? "0" : "" + seeds.size()) + " seeds");
+        if (CFG.sw_updates_on == 1) {
+            cfg_android_public_t cfg_pub = new cfg_android_public_t(a, get_cfg().home);
+            sw_updates = new sw_updates_t(a, this, get_cfg(), cfg_pub);
+            r = sw_updates.start();
+            if (is_ko(r)) {
+                set_status(leds_t.led_red, r.msg);
+                on_hmi__worker(r);
+                sw_updates = null;
+                super.stop();
+                super.join();
+                return r;
+            }
         }
+        set_status(leds_t.led_amber, "HMI running. Peer " + endpoint.to_string());
+        log("super returned ok"); //--strip
         return ok;
     }
 
-    @Override
-    public void stop() {
+    @Override public void stop() {
+        if (sw_updates != null) sw_updates.stop();
         super.stop();
         set_status(leds_t.led_amber, "Stopping HMI.");
         is_online = false;
     }
 
-    @Override
-    public void join() {
+    @Override public void join() {
+        if (sw_updates != null) sw_updates.join();
+        sw_updates = null;
         super.join();
         set_status(leds_t.led_red, "HMI stop.");
     }
@@ -530,15 +303,14 @@ public class hmi_t extends us.wallet.cli.hmi {
     @Override public void on_connect(final ko error) {
         super.on_connect(error);
         log("on_connect. " + (error == ok ? "ok" : error.msg)); //--strip
-        if (error != ok) {
+        if (is_ko(error)) {
             log("try_renew_ip_on_connect_failed = " + try_renew_ip_on_connect_failed); //--strip
             if (try_renew_ip_on_connect_failed) {
                 set_status(leds_t.led_blue, "Trying to renew IP");
                 final hmi_t o = this;
                 final ko err = error;
                 Thread task = new Thread(new Runnable () {
-                    @Override
-                    public void run() {
+                    @Override public void run() {
                         log("looking up IP address..."); //--strip
                         pair<ko, endpoint_t> r = lookup_ip(new app.progress_t() {
                             @Override
@@ -554,11 +326,11 @@ public class hmi_t extends us.wallet.cli.hmi {
                             }
                             else if (r.first.equals(KO_50493)) { //no pkh
                                 o.set_status(leds_t.led_red, err.msg);
-                                activity.main.on_hmi__worker(err);
+                                on_hmi__worker(err);
                             }
                             else {
                                 o.set_status(leds_t.led_red, err.msg);
-                                activity.main.on_hmi__worker(err);
+                                on_hmi__worker(err);
                             }
                             return;
                         }
@@ -568,7 +340,7 @@ public class hmi_t extends us.wallet.cli.hmi {
             }
             else {
                 set_status(leds_t.led_red, error.msg);
-                activity.main.on_hmi__worker(error);
+                on_hmi__worker(error);
             }
         }
     }
@@ -608,14 +380,14 @@ public class hmi_t extends us.wallet.cli.hmi {
         log("I disconnected. Reason: " + reason.value); //--strip
         set_status(leds_t.led_red, KO_10001.msg + " Reason: " + reason.value);
         is_online = false;
-        activity.main.on_hmi__worker(KO_10001);
+        on_hmi__worker(KO_10001);
     }
 
     @Override public void on_peer_disconnected(final reason_t reason) {
         log("peer disconnected. Reason: " + reason.value); //--strip
         set_status(leds_t.led_red, KO_10000.msg + " Reason given: " + reason.value);
         is_online = false;
-        activity.main.on_hmi__worker(KO_10000);
+        on_hmi__worker(KO_10000);
         super.on_peer_disconnected(reason);
     }
 
@@ -625,8 +397,7 @@ public class hmi_t extends us.wallet.cli.hmi {
         is_online = verok;
         set_status(leds_t.led_amber, "handshake completed with " + endpoint.to_string());
         Thread thread = new Thread(new Runnable() {
-            @Override
-            public void run() {
+            @Override public void run() {
                 try {
                     Thread.sleep(1000);
                 }
@@ -638,13 +409,11 @@ public class hmi_t extends us.wallet.cli.hmi {
                     ko r = update_network_info(p.channel);
                     if (r != ok) {
                         set_status(leds_t.led_red, r.msg);
-                        activity.main.on_hmi__worker(r);
+                        on_hmi__worker(r);
                         return;
                     }
                     set_status(leds_t.led_green, "online with " + endpoint.to_string());
-                    log("saving endpoint " + endpoint.to_string()); //--strip
-                    a.save(endpoint);
-                    activity.main.on_hmi__worker(ok);
+                    on_hmi__worker(ok);
                 }
                 else {
                     log("Not online"); //--strip
@@ -819,6 +588,7 @@ public class hmi_t extends us.wallet.cli.hmi {
     }
 
     app a;
+    hmi_callback_t cb;
     public boolean is_online = false;
     public boolean try_renew_ip_on_connect_failed = true;
     status_handler_t status_handler = null;
@@ -833,7 +603,7 @@ public class hmi_t extends us.wallet.cli.hmi {
     busyled_t.handler_t busyled_handler_send = null;
     busyled_t.handler_t busyled_handler_recv = null;
     busyled_t.handler_t busyled_handler_online = null;
-    datagram.dispatcher_t dispatcher = null;
+    public datagram_dispatcher_t dispatcher = null;
     boolean lookingup = false;
     hash_t wallet_address = null;
     public String subhome = "";
@@ -841,5 +611,6 @@ public class hmi_t extends us.wallet.cli.hmi {
     public endpoint_t endpoint = null;
     boolean manual_mode = false;
 
+    sw_updates_t sw_updates = null;
 }
 

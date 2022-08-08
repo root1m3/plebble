@@ -30,11 +30,14 @@ import us.vcs;                                                                  
 public final class CFG {
     public static final int mode = ##str43##;
     public static final port_t walletd_port = new port_t(##str19##);
-    public static final String apkfilename = vcs.brand + "-wallet_android_" + vcs.branch + "_" + vcs.hashname + ".apk";
+    //public static final String apkfilename = vcs.brand + "-wallet_android_" + vcs.branch + "_" + vcs.hashname + ".apk";
     public static final String blob_id = "##str56##"; //Branded android app blob_id
     public static final String debug_sk = "##str47##";
     public static final String acra_connection_string = "##str48##";
     public static final String app_name = "##str32##";
+    public static final String brand = vcs.brand;
+    //public static final String SDK_name = vcs.brand + "-wallet-sdk_java_" + vcs.branch;
+    public static final int sw_updates_on = ##str83##;
 
     public static boolean sdk_logs = false;                                             //--strip
 

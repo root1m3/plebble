@@ -263,11 +263,11 @@ ko c::start() {
     #if CFG_LOGS == 1
         trades_logdir = logdir + "/trades";
     #endif
-    lock_guard<mutex> lock(mx);
+    lock_guard<mutex> lock(_mx);
     for (auto& i: *this) {
         auto r = i.second->start();
         if (is_ko(r)) {
-            stop();
+            stop_();
             return r;
         }
     }
@@ -275,7 +275,7 @@ ko c::start() {
 }
 
 ko c::wait_ready(const time_point& deadline) const {
-    lock_guard<mutex> lock(mx);
+    lock_guard<mutex> lock(_mx);
     for (auto& i: *this) {
         auto r = i.second->wait_ready(deadline);
         if (is_ko(r)) {
@@ -285,13 +285,17 @@ ko c::wait_ready(const time_point& deadline) const {
     return ok;
 }
 
-void c::stop() {
-    lock_guard<mutex> lock(mx);
+void c::stop_() {
     for (auto& i: *this) i.second->stop();
 }
 
+void c::stop() {
+    lock_guard<mutex> lock(_mx);
+    stop_();
+}
+
 void c::join() {
-    lock_guard<mutex> lock(mx);
+    lock_guard<mutex> lock(_mx);
     for (auto& i: *this) i.second->join();
 }
 
@@ -340,12 +344,12 @@ pair<ko, hash_t> c::initiate(const hash_t parent_tid, const string& datadir, qr_
     }
     auto tder = new trader_t(*this, daemon, parent_tid, datadir);
     log("boot with initiator bootstrapper", tder);
-    lock_guard<mutex> lock(mx);
     auto tid = tder->boot(daemon.id.pub.hash(), new bootstrap::initiator_t(move(qr), w));
     if (is_ko(tid.first)) {
         return make_pair(tid.first, hash_t(0));
     }
     log("new trade id", tid.second);
+    lock_guard<mutex> lock(_mx);
     emplace(tid.second, tder);
     return make_pair(ok, tid.second);
 }
@@ -416,15 +420,21 @@ ko c::trading_msg(peer_t& peer, svc_t svc, const hash_t& trade_id, blob_t&& blob
                     peer.disconnect(0, r);
                     return r;
                 }
-                lock_guard<mutex> lock(mx);
-                auto tder = lock_trader_(trade_id);
+                trader_t* tder;
+                {
+                    lock_guard<mutex> lock(_mx);
+                    tder = lock_trader_(trade_id);
+                }
                 assert(tder != nullptr);
                 {
                     log("boot with follower bootstrapper", trade_id, tder);
                     auto r = tder->boot(peer.pubkey.hash(), new bootstrap::follower_t(trade_id, peer));
                     if (is_ko(r.first)) {
                         log("Oo");
-                        erase_trader_(trade_id);
+                        {
+                            lock_guard<mutex> lock(_mx);
+                            erase_trader_(trade_id);
+                        }
                         log("--busyref", trade_id);
                         --tder->busyref;
                         return r.first;
@@ -432,7 +442,8 @@ ko c::trading_msg(peer_t& peer, svc_t svc, const hash_t& trade_id, blob_t&& blob
                 }
                 auto r = tder->trading_msg(peer, svc, move(blob));
                 if (is_ko(r)) {
-                    log("Oo2");
+                    log("Oo2", r);
+                    lock_guard<mutex> lock(_mx);
                     erase_trader_(trade_id);
                 }
                 log("--busyref", trade_id);
@@ -443,19 +454,23 @@ ko c::trading_msg(peer_t& peer, svc_t svc, const hash_t& trade_id, blob_t&& blob
         }
     }
     log("looking up trader");
-    auto* tr = lock_trader_(trade_id);
-    if (unlikely(tr == nullptr)) {
+    trader_t* tder;
+    {
+        lock_guard<mutex> lock(_mx);
+        tder = lock_trader_(trade_id);
+    }
+    if (unlikely(tder == nullptr)) {
         ko r = "KO 40391 Trader not connected.";
         log(r);
         return r;
     }
-    auto r = tr->trading_msg(peer, svc, move(blob));
-    --tr->busyref;
+    auto r = tder->trading_msg(peer, svc, move(blob));
+    --tder->busyref;
     return r;
 }
 
 void c::dump(ostream& os) const {
-    lock_guard<mutex> lock(mx);
+    lock_guard<mutex> lock(_mx);
     for (auto& i: *this) {
         os << "trade # " << i.second->id << '\n';
         i.second->dump("  ", os);
@@ -463,7 +478,7 @@ void c::dump(ostream& os) const {
 }
 
 void c::dump(const string& prefix, ostream& os) const {
-    lock_guard<mutex> lock(mx);
+    lock_guard<mutex> lock(_mx);
     string pfx = prefix + "  ";
     for (auto& i: *this) {
         os << prefix << "trade # " << i.second->id << '\n';
@@ -473,12 +488,10 @@ void c::dump(const string& prefix, ostream& os) const {
 }
 
 void c::list_trades(const hash_t& subhomeh, ostream& os) const {
-    lock_guard<mutex> lock(mx);
+    lock_guard<mutex> lock(_mx);
     for (auto& i: *this) {
-//        if (!subhomeh.is_zero()) {
         assert(i.second->w != nullptr);
         if (subhomeh != i.second->w->subhomeh) continue;
-//        }
         os << i.second->id << ' ';
         i.second->list_trades(os);
         os << '\n';
@@ -610,7 +623,7 @@ void c::kill(const hash_t& id, const string& source) {
         log("source", source);
         trader_t* o;
         {
-            lock_guard<mutex> lock(mx);
+            lock_guard<mutex> lock(_mx);
             auto i = find(id);
             if (i == end()) {
                 auto r = "KO 40398 Trade not found";
@@ -635,8 +648,9 @@ void c::dispose(trader_t* tder) {
     dispose_task.detach();
 }
 
-void c::on_file_updated(const string& path, const string& name, const trader_t* source_trader) { //shall be locked on caller
-    log("on_file_updated");
+void c::on_file_updated2(const string& path, const string& name, const trader_t* source_trader) { //shall be locked on caller
+    log("on_file_updated2");
+    lock_guard<mutex> lock(_mx);
     for (auto i = begin(); i != end(); ++i) {
         if (i->second == source_trader) continue;
         i->second->on_file_updated(path, name);
@@ -713,21 +727,69 @@ void c::list_files_dir(const string& prefix, const string& dir, ostream& os) {
 
 ko c::exec(const hash_t& tid, const string& cmd, wallet::local_api& w) {
     log("exec", tid, cmd);
-    lock_guard<mutex> lock(mx);
-    auto i = find(tid);
-    if (i == end()) {
-        auto r = "KO 15322 Trade not found.";
-        push_KO(tid, r, w);
-        log(r, tid);
-        return r;
+    trader_t* tder;
+    {
+/*
+(gdb) info threads
+  Id   Target Id                                         Frame 
+  1    Thread 0x7f1e70a91780 (LWP 27596) "katlas-wallet" __pthread_clockjoin_ex (threadid=139768638826240, thread_return=0x0, clockid=<optimized out>, 
+    abstime=<optimized out>, block=<optimized out>) at pthread_join_common.c:145
+  2    Thread 0x7f1e7091f700 (LWP 27608) "katlas-wallet" futex_wait_cancelable (private=0, expected=0, futex_word=0x5645e3d7bafc)
+    at ../sysdeps/nptl/futex-internal.h:186
+  3    Thread 0x7f1e7011e700 (LWP 27609) "katlas-wallet" 0x00007f1e712f78b3 in __GI___select (nfds=10, readfds=0x7f1e7011ddc0, writefds=0x0, exceptfds=0x0, 
+    timeout=0x0) at ../sysdeps/unix/sysv/linux/select.c:41
+* 4    Thread 0x7f1e6f91d700 (LWP 27610) "katlas-wallet" 
+
+            __lll_lock_wait 
+
+        (futex=futex@entry=0x5645e3d7ced8, private=0) at lowlevellock.c:52
+  5    Thread 0x7f1e6f11c700 (LWP 27611) "katlas-wallet" __pthread_clockjoin_ex (threadid=139768630351616, thread_return=0x0, clockid=<optimized out>, 
+    abstime=<optimized out>, block=<optimized out>) at pthread_join_common.c:145
+  6    Thread 0x7f1e6e91b700 (LWP 27612) "katlas-wallet" futex_abstimed_wait_cancelable (private=0, abstime=0x7f1e6e91ae10, clockid=1855040880, expected=0, 
+    futex_word=0x5645e3d7c06c) at ../sysdeps/nptl/futex-internal.h:323
+  7    Thread 0x7f1e6e11a700 (LWP 27613) "katlas-wallet" futex_abstimed_wait_cancelable (private=0, abstime=0x7f1e6e116cc0, clockid=1846635536, expected=0, 
+    futex_word=0x5645e3d7c3a0) at ../sysdeps/nptl/futex-internal.h:323
+  8    Thread 0x7f1e6d919700 (LWP 27614) "katlas-wallet" futex_wait_cancelable (private=0, expected=0, futex_word=0x5645e3d7c62c)
+    at ../sysdeps/nptl/futex-internal.h:186
+  9    Thread 0x7f1e6d118700 (LWP 27615) "katlas-wallet" __libc_recv (flags=<optimized out>, len=10, buf=0x7f1e64002020, fd=3)
+    at ../sysdeps/unix/sysv/linux/recv.c:28
+  10   Thread 0x7f1e6c917700 (LWP 27616) "katlas-wallet" futex_wait_cancelable (private=0, expected=0, futex_word=0x5645e3d7cb44)
+    at ../sysdeps/nptl/futex-internal.h:186
+  11   Thread 0x7f1e6c116700 (LWP 27617) "katlas-wallet" futex_abstimed_wait_cancelable (private=0, abstime=0x7f1e6c115e00, clockid=1813077344, expected=0, 
+    futex_word=0x5645e3d7cfc0) at ../sysdeps/nptl/futex-internal.h:323
+  12   Thread 0x7f1e6b901700 (LWP 27719) "katlas-wallet" futex_wait_cancelable (private=0, expected=0, futex_word=0x7f1e50001918)
+    at ../sysdeps/nptl/futex-internal.h:186
+
+
+(gdb) bt
+#0  __lll_lock_wait (futex=futex@entry=0x5645e3d7ced8, private=0) at lowlevellock.c:52
+#1  0x00007f1e70d0a843 in __GI___pthread_mutex_lock (mutex=0x5645e3d7ced8) at ../nptl/pthread_mutex_lock.c:80
+#2  0x00007f1e71870c7c in us::wallet::trader::traders_t::exec(us::gov::crypto::ripemd160::value_type const&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, us::wallet::wallet::local_api&) () from /usr/local/lib/libkatlaswallet.so
+#3  0x00007f1e71819b1e in us::wallet::engine::peer_t::process_async_api__wallet_exec_trade(us::gov::socket::datagram*) () from /usr/local/lib/libkatlaswallet.so
+#4  0x00007f1e716865e0 in us::gov::socket::peer_t::process_work() () from /usr/local/lib/libkatlasgov.so
+#5  0x00007f1e7168b0e7 in us::gov::socket::multipeer::thpool::run() () from /usr/local/lib/libkatlasgov.so
+#6  0x00007f1e714afed0 in ?? () from /lib/x86_64-linux-gnu/libstdc++.so.6
+#7  0x00007f1e70d07ea7 in start_thread (arg=<optimized out>) at pthread_create.c:477
+#8  0x00007f1e712ffdef in clone () at ../sysdeps/unix/sysv/linux/x86_64/clone.S:95
+
+*/
+        lock_guard<mutex> lock(_mx);
+        auto i = find(tid);
+        if (i == end()) {
+            auto r = "KO 15322 Trade not found.";
+            push_KO(tid, r, w);
+            log(r, tid);
+            return r;
+        }
+        tder = i->second;
     }
-    if (i->second->w != &w) {
+    if (tder->w != &w) {
         auto r = "KO 15323 Trade not found.";
         push_KO(tid, r, w);
         log(r, tid);
         return r;
     }
-    i->second->schedule_exec(cmd);
+    tder->schedule_exec(cmd);
     return ok;
 }
 
@@ -903,8 +965,7 @@ void c::reload_file(const string& fqn) {
         log(r);
         return;
     }
-    lock_guard<mutex> lock(mx);
-    on_file_updated(r.second.first, r.second.second, nullptr);
+    on_file_updated2(r.second.first, r.second.second, nullptr);
 }
 
 

@@ -50,6 +50,37 @@ echo "CXX=$CXX"
 
 echo "total concurrent jobs = $jobs"
 
+function check_android_sdk { #Search K8750R3. SYNC android/make.sh
+    sdkmanager=cmdline-tools/latest/bin/sdkmanager
+    if [[ ! -f ~/android_sdk/$sdkmanager ]]; then
+        echo "pruning old android_sdk"
+        rm -r ~/android_sdk
+    fi
+    if [[ ! -d ~/android_sdk ]]; then
+        echo "recreating android_sdk API 32"
+        mkdir ~/android_sdk
+        for c0dir in `find . -type d -name "core0"`; do
+            cp $c0dir/us/android/licenses ~/android_sdk/ -R
+            break
+        done
+        pushd ~/android_sdk >/dev/null
+#            sdktools=sdk-tools-linux-4333796.zip
+            sdktools=commandlinetools-linux-8512546_latest.zip
+            wget https://dl.google.com/android/repository/$sdktools
+            unzip $sdktools
+            rm $sdktools
+            #workaround problem
+            mkdir cmdline-tools/latest
+            mv cmdline-tools/* cmdline-tools/latest/
+            $sdkmanager  "platform-tools"
+            $sdkmanager "build-tools;33.0.0"  #Search R6Tr465. SYNC android/app/build.gradle
+            $sdkmanager "platforms;android-32"
+            #tools/latest/bin/sdkmanager "platform-tools"
+            #tools/bin/sdkmanager "build-tools;28.0.3"
+            #$sdkmanager "platforms;android-28"
+        popd >/dev/null
+    fi
+}
 
 if [[ "_$cmd" == "_deps" ]]; then
     echo "building deps"
@@ -128,7 +159,7 @@ if [[ "_$cmd" == "_deps" ]]; then
     exit 0
 fi
 
-if [ "_$cmd" == "_core" ]; then
+if [[ "_$cmd" == "_core" ]]; then
     opt=$1
 
     for c0dir in `find . -type d -name "core0"`; do
@@ -217,7 +248,7 @@ EOF
     exit 0
 fi
 
-if [ "_$cmd" == "_r2r" ]; then
+if [[ "_$cmd" == "_r2r" ]]; then
     distr=$1
     shift
     cat << EOF
@@ -385,28 +416,13 @@ EOF
     exit 0
 fi
 
-if [ "_$cmd" == "_android" ]; then
-    if [ ! -d ~/android_sdk ]; then
-        mkdir ~/android_sdk
-        for c0dir in `find . -type d -name "core0"`; do
-            cp $c0dir/us/android/licenses ~/android_sdk/ -R
-            break
-        done
-        pushd ~/android_sdk >/dev/null
-            sdktools=sdk-tools-linux-4333796.zip
-            wget https://dl.google.com/android/repository/$sdktools
-            unzip $sdktools
-            rm $sdktools
-            tools/bin/sdkmanager "platform-tools"
-            tools/bin/sdkmanager "build-tools;28.0.3"
-            tools/bin/sdkmanager "platforms;android-28"
-        popd >/dev/null
-    fi
-    if [ -d ~/us_sdk_deps/libs_android ]; then  #remove in future, when all devjobs out there are updated
-	    echo "removing deprecated dir ~/us_sdk_deps"
-	    rm -rf ~/us_sdk_deps
-    fi
-    if [ ! -d ~/us_sdk_deps ]; then
+if [[ "_$cmd" == "_android" ]]; then
+    check_android_sdk
+#    if [ -d ~/us_sdk_deps/libs_android ]; then  #remove in future, when all devjobs out there are updated
+#	    echo "removing deprecated dir ~/us_sdk_deps"
+#	    rm -rf ~/us_sdk_deps
+#    fi
+    if [[ ! -d ~/us_sdk_deps ]]; then
         mkdir ~/us_sdk_deps
         pushd ~/us_sdk_deps >/dev/null
             mkdir libs_spongy
@@ -461,11 +477,11 @@ EOF
                 fi
                 pushd android >/dev/null
                     ln -s ~/android_sdk
-                    ./make.sh release
+                    ./make.sh
                     if [[ $? -ne 0 ]]; then
                         echo "Build failed. Trying again..."
                         sleep 2
-                        ./make.sh release
+                        ./make.sh
                         if [[ $? -ne 0 ]]; then
 		            sleep 2
                             echo "KO 10996 Build failed."

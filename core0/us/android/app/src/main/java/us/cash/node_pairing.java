@@ -22,6 +22,7 @@
 //===-
 package us.cash;
 import androidx.appcompat.app.ActionBarDrawerToggle;                                           // ActionBarDrawerToggle
+import androidx.core.app.ActivityCompat;                                                       // ActivityCompat
 import android.widget.AdapterView;                                                             // AdapterView
 import androidx.appcompat.app.AlertDialog;                                                     // AlertDialog
 import android.widget.ArrayAdapter;                                                            // ArrayAdapter
@@ -31,6 +32,7 @@ import android.os.Build;                                                        
 import android.os.Bundle;                                                                      // Bundle
 import android.graphics.drawable.ColorDrawable;                                                // ColorDrawable
 import android.graphics.Color;                                                                 // Color
+import android.widget.CompoundButton;                                                          // CompoundButton
 import android.content.res.Configuration;                                                      // Configuration
 import androidx.core.content.ContextCompat;                                                    // ContextCompat
 import android.content.Context;                                                                // Context
@@ -40,10 +42,13 @@ import android.content.DialogInterface;                                         
 import android.text.method.DigitsKeyListener;                                                  // DigitsKeyListener
 import android.graphics.drawable.Drawable;                                                     // Drawable
 import us.gov.crypto.ec;                                                                       // ec
+import android.text.Editable;                                                                  // Editable
 import android.widget.EditText;                                                                // EditText
-import com.google.firebase.crashlytics.FirebaseCrashlytics;                                    // FirebaseCrashlytics
+//import com.google.firebase.crashlytics.FirebaseCrashlytics;                                    // FirebaseCrashlytics
 import android.graphics.drawable.GradientDrawable;                                             // GradientDrawable
+import androidx.core.view.GravityCompat;                                                       // GravityCompat
 import static us.gov.crypto.ripemd160.hash_t;                                                  // hash_t
+import static android.Manifest.permission.*;                                                   // *
 import static us.gov.id.types.*;                                                               // *
 import static us.gov.io.types.*;                                                               // *
 import static us.gov.socket.types.*;                                                           // *
@@ -61,12 +66,15 @@ import java.security.KeyPair;                                                   
 import us.ko;                                                                                  // ko
 import android.view.LayoutInflater;                                                            // LayoutInflater
 import androidx.appcompat.widget.LinearLayoutCompat;                                           // LinearLayoutCompat
+import android.widget.LinearLayout;                                                            // LinearLayout
 import java.util.Locale;                                                                       // Locale
+import android.Manifest;                                                                       // Manifest
 import java.util.Map;                                                                          // Map
 import com.google.android.material.button.MaterialButton;                                      // MaterialButton
 import android.view.Menu;                                                                      // Menu
 import android.view.MenuItem;                                                                  // MenuItem
 import android.view.View.OnFocusChangeListener;                                                // OnFocusChangeListener
+import android.content.pm.PackageManager;                                                      // PackageManager
 import us.pair;                                                                                // pair
 import us.wallet.protocol;                                                                     // protocol
 import android.widget.RelativeLayout;                                                          // RelativeLayout
@@ -76,26 +84,25 @@ import android.text.SpannableStringBuilder;                                     
 import android.widget.Spinner;                                                                 // Spinner
 import java.lang.StringBuilder;                                                                // StringBuilder
 import android.annotation.SuppressLint;                                                        // SuppressLint
+import android.widget.Switch;                                                                  // Switch
 import com.google.android.material.textfield.TextInputEditText;                                // TextInputEditText
 import com.google.android.material.textfield.TextInputLayout;                                  // TextInputLayout
 import android.widget.TextView;                                                                // TextView
+import android.text.TextWatcher;                                                               // TextWatcher
 import java.util.Timer;                                                                        // Timer
 import java.util.TimerTask;                                                                    // TimerTask
 import android.widget.Toast;                                                                   // Toast
+import android.media.ToneGenerator;                                                            // ToneGenerator
 import android.util.TypedValue;                                                                // TypedValue
 import us.gov.io.types.vector_tuple_hash_host_port;                                            // vector_tuple_hash_host_port
 import android.view.ViewGroup;                                                                 // ViewGroup
 import android.view.View;                                                                      // View
 
-public final class node_pairing extends activity {
+public final class node_pairing extends activity /* implements device_endpoint_t.hmi_power_listener_t*/ {
 
-    static void log(final String s) {               //--strip
-        System.out.println("node_pairing: " + s);   //--strip
-    }                                               //--strip
-
-    public static int instances = 0;
-    static int darkgreen = Color.parseColor("#009900");
-    static int orange = Color.parseColor("#ffa500");
+    private static void log(final String s) {               //--strip
+        System.out.println("node_pairing: " + s);           //--strip
+    }                                                       //--strip
 
     static class state_t {
         public endpoint_t endpoint = null;
@@ -189,31 +196,6 @@ public final class node_pairing extends activity {
             }
         });
 
-        swv.setOnClickListener(new View.OnClickListener() {
-            @Override public void onClick(View view) {
-                a.sw_updates.show_ui(node_pairing.this);
-            }
-        });
-
-        setlang.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override public void onItemSelected(AdapterView<?> parentView, View selectedItemView, int position, long id) {
-                String selected_string = setlang.getSelectedItem().toString();
-                String[] x = selected_string.split("_");
-                assert x.length == 2;
-                String l = x[0];
-                String c = x[1];
-                if (lang != null && !lang.equals(l)) {
-                    locale.set_lang(getApplicationContext(), l);
-                    locale.set_country(getApplicationContext(), c);
-                    locale.set(new Locale(l, c));
-                    Toast.makeText(a, R.string.changelangnext, Toast.LENGTH_SHORT).show();
-                }
-            }
-
-            @Override public void onNothingSelected(AdapterView<?> parentView) {
-            }
-        });
-
         done.setOnClickListener(new View.OnClickListener() {
            @Override public void onClick(View view) {
                finish();
@@ -227,13 +209,61 @@ public final class node_pairing extends activity {
         });
     }
 
+    @SuppressWarnings("StatementWithEmptyBody")
+    @Override public boolean onNavigationItemSelected(MenuItem menu_item) {
+        log("onNavigationItemSelected"); //--strip
+        int item_id = menu_item.getItemId();
+        switch (item_id) {
+            case R.id.nav_hmi_poweron_withpin:
+                show_PIN_dialog(this);
+                break;
+
+            case R.id.nav_hmi_poweron:
+                do_test(new pin_t(0));
+                break;
+
+            case R.id.nav_hmi_poweroff:
+                app.progress_t progress = new app.progress_t() {
+                    @Override public void on_progress(final String report) {
+                        runOnUiThread(new Runnable() {
+                            @Override public void run() {
+                                Toast.makeText(node_pairing.this, report, 6000).show();
+                            }
+                        });
+                    }
+                };
+                a.HMI_power_off(conf_index, progress);
+                refresh();
+                break;
+
+            case R.id.nav_softwareupdates:
+                if (dep.hmi.sw_updates != null) {
+                    dep.hmi.sw_updates.show_ui(node_pairing.this);
+                }
+                else {
+                    toast("software updates not available here. Check Google's Play store.");
+                }
+                break;
+
+            default:
+                return super.onNavigationItemSelected(menu_item);
+        }
+        drawer_layout.closeDrawer(GravityCompat.START);
+        return true;
+    }
+
+    @Override public int menuid() {
+        if (dep == null) return 0;
+        return dep.hmi == null ? R.menu.menu_hmi_off : R.menu.menu_hmi_on;
+    }
+
     @RequiresApi(api = Build.VERSION_CODES.O)
     @SuppressLint("ResourceType")
     @Override protected void onCreate(Bundle savedInstanceState) {
         log("on create"); //--strip
-        ++instances;
         super.onCreate(savedInstanceState);
         set_content_layout(R.layout.activity_node_pairing);
+
         addr = findViewById(R.id.walletd_address);
         addr_lo=findViewById(R.id.walletd_address_lo);
         port = findViewById(R.id.walletd_port);
@@ -244,14 +274,19 @@ public final class node_pairing extends activity {
         devicepk = findViewById(R.id.devicepk);
         done = findViewById(R.id.done);
         refresh = findViewById(R.id.refresh);
-        refresh.setVisibility(View.GONE);
         connect_btn = findViewById(R.id.connect_btn);
         mode = findViewById(R.id.mode);
         upgrade2noncustodial = findViewById(R.id.upgrade2noncustodial);
         imagenode = findViewById(R.id.imagenode);
-        swv = findViewById(R.id.swv);
         current_endpoint = findViewById(R.id.current_endpoint);
-        setSupportActionBar(findViewById(R.id.toolbar));
+        name = findViewById(R.id.name);
+        ssid = findViewById(R.id.ssid);
+        save_name = findViewById(R.id.save_name);
+        read_ssid = findViewById(R.id.read_ssid);
+        save_ssid = findViewById(R.id.save_ssid);
+        poweron = findViewById(R.id.poweron);
+        layoutnode = findViewById(R.id.layoutnode);
+
         redled = ContextCompat.getDrawable(this, R.drawable.led).mutate();
         amberled = ContextCompat.getDrawable(this, R.drawable.led).mutate();
         greenled = ContextCompat.getDrawable(this, R.drawable.led).mutate();
@@ -260,8 +295,9 @@ public final class node_pairing extends activity {
         ((GradientDrawable) amberled).setColor(leds_t.amber);
         ((GradientDrawable) greenled).setColor(Color.GREEN);
         ((GradientDrawable) blueled).setColor(Color.CYAN);
+
+        refresh.setVisibility(View.GONE);
         toolbar.setTitle(R.string.settings);
-        assert(a.hmi != null);
         addr.setSingleLine();
         addr.setInputType(InputType.TYPE_CLASS_NUMBER);
         addr.setKeyListener(DigitsKeyListener.getInstance("0123456789."));
@@ -297,7 +333,22 @@ public final class node_pairing extends activity {
         channel.setSingleLine();
         channel.setInputType(InputType.TYPE_CLASS_NUMBER);
         channel.setSelectAllOnFocus(true);
-        endpoint_t ep = a.get_endpoint();
+
+        if (getIntent().hasExtra("conf_index")) {
+            conf_index = getIntent().getExtras().getInt("conf_index", 0);
+        }
+
+        dep = a.device_endpoints.get(conf_index);
+
+        final endpoint_t ep = dep.endpoint;
+
+/*
+        public endpoint_t get_endpoint() {
+            if (hmi == null) return null;
+            return hmi.endpoint;
+        }
+*/
+
         log("endpoint " + (ep == null ? "Null" : ep.to_string())); //--strip
         if (ep != null) {
             log("Set UI Texts"); //--strip
@@ -307,21 +358,7 @@ public final class node_pairing extends activity {
         }
 
         done.setVisibility(View.GONE);
-        Resources res = getResources();
-        Configuration conf = res.getConfiguration();
-        lang = locale.get_lang(this);
-        country = locale.get_country(this);
-        setlang = findViewById(R.id.lang_selector);
-        ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this, R.array.langs_array, android.R.layout.simple_spinner_item);
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        setlang.setAdapter(adapter);
-        if (lang != null && lang.equals("es")) {
-            setlang.setSelection(1);
-        }
-        else {
-            setlang.setSelection(0);
-        }
-        swv.setText(us.vcs.name_date() + " b: " + CFG.blob_id);
+
         devicepk.setInputType(InputType.TYPE_NULL);
         devicepk.setTextIsSelectable(true);
         devicepk.setKeyListener(null);
@@ -329,65 +366,178 @@ public final class node_pairing extends activity {
         nodepkh.setTextIsSelectable(true);
         nodepkh.setKeyListener(null);
         set_handlers();
-        a.hmi.set_manual_mode(true);
+
+        toolbar_button refresh_btn = findViewById(R.id.refresh);
+        refresh_btn.setOnClickListener(new View.OnClickListener() {
+            @Override public void onClick(View view) {
+                refresh();
+            }
+        });
+        refresh_btn.setVisibility(View.VISIBLE);
+
+        name.addTextChangedListener(new TextWatcher() {
+            @Override public void afterTextChanged(Editable s) { save_name.setVisibility(View.VISIBLE); }
+            @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            @Override public void onTextChanged(CharSequence s, int start, int before, int count) {}
+        });
+
+        save_name.setOnClickListener(new View.OnClickListener() {
+            @Override public void onClick(View view) {
+                dep.name_ = name.getText().toString();
+                a.device_endpoints.save();
+                save_name.setVisibility(View.GONE);
+            }
+        });
+
+        ssid.addTextChangedListener(new TextWatcher() {
+            @Override public void afterTextChanged(Editable s) { save_ssid.setVisibility(View.VISIBLE); }
+            @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            @Override public void onTextChanged(CharSequence s, int start, int before, int count) {}
+        });
+
+        save_ssid.setOnClickListener(new View.OnClickListener() {
+            @Override public void onClick(View view) {
+                dep.ssid = ssid.getText().toString();
+                a.device_endpoints.save();
+                save_ssid.setVisibility(View.GONE);
+            }
+        });
+
+        read_ssid.setOnClickListener(new View.OnClickListener() {
+            @Override public void onClick(View view) {
+                set_ssid();
+            }
+        });
+
+        //refresh();
+    }
+
+/*
+    @Override public void onResume() {
+        update_hmi();
+        super.onResume();
+        log("onResume"); //--strip
+    }
+*/
+
+    @Override public void onPause() {
+       log("onPause"); //--strip
+       super.onPause();
+       if (dep.hmi == null) return;
+       dep.hmi.set_manual_mode(false);
+       dep.hmi.add_status_handler(null);
     }
 
     @Override public void onDestroy() {
         super.onDestroy();
         log("onDestroy"); //--strip
-        --instances;
-        a.hmi.set_manual_mode(false);
+        if (dep.hmi != null) {
+            dep.hmi.set_manual_mode(false);
+            dep.hmi.add_status_handler(null);
+        }
     }
 
-    @Override public void onBackPressed() {
-        log("finish"); //--strip
-        finish();
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
     }
 
-    @Override public void onResume() {
-        super.onResume();
-        log("onResume"); //--strip
-        --instances;
-        if (a.hmi == null) {
+    private static String[] PERMISSIONS_WIFI_SSID = {Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION};
+    private static final int REQUEST_PERMISSION_WIFI_SSID = 1832;
+
+
+    public void ask_permission_continue() {
+        log("request Permission"); //--strip
+        ActivityCompat.requestPermissions(this, PERMISSIONS_WIFI_SSID, REQUEST_PERMISSION_WIFI_SSID);
+        int permission = ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION);
+        log("checkSelfPermission returned " + permission + " (granted=" + PackageManager.PERMISSION_GRANTED + ")"); //--strip
+        String msg = (permission == PackageManager.PERMISSION_GRANTED) ? "Thanks for granting access to current wifi SSID." : "Permissions for reading the SSID has been denied.";
+        Toast.makeText(node_pairing.this, msg, 6000).show();
+        if (permission != PackageManager.PERMISSION_GRANTED) {
+            a.tone.startTone(ToneGenerator.TONE_CDMA_NETWORK_BUSY, 200);
+        }
+    }
+
+    public void ask_permission() {
+        log("ask_permission"); //--strip
+        String[] options = {"Proceed to FINE_LOCATION permissions.", a.getResources().getString(R.string.cancel)};
+        new AlertDialog.Builder(this).setTitle("Access to WIFI network name (SSID).")
+            .setItems(options, new DialogInterface.OnClickListener() {
+                @Override public void onClick(DialogInterface dialog, int which) {
+                    if (which == 0) {
+                        ask_permission_continue();
+                    }
+                 }
+            })
+            .setIcon(android.R.drawable.ic_dialog_info).show();
+    }
+
+    public ko verify_ssid_permissions() {        // Check if we have write permission
+        a.assert_ui_thread(); //--strip
+        log("verify_ssid_permissions"); //--strip
+        int permission = ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION);
+        if (permission == PackageManager.PERMISSION_GRANTED) {
+            log("Permission already granted"); //--strip
+            return ok;
+        }
+        return new ko("KO 43097 Permission denied");
+    }
+
+    String ssid_verified = null;
+
+    void set_ssid() {
+        if (ssid_verified != null) {
+            log("in cache ssid_verified" + ssid_verified); //--strip
+        }
+        else {
+            a.assert_ui_thread(); //--strip
+            if (is_ko(verify_ssid_permissions())) {
+                log("asking for permissions"); //--strip
+                ask_permission();
+            }
+            else {
+                ssid_verified = a.net_identifier();
+                log("ssid_verified " + ssid_verified); //--strip
+                ssid.setText(ssid_verified);
+                toast("ssid read " + ssid_verified);
+            }
+        }
+    }
+
+    void update_hmi() {
+        if (dep.hmi == null) {
             return;
         }
-        a.hmi.add_status_handler(new hmi_t.status_handler_t() {
-            public void on_status(ColorDrawable ledstate, final String msg) {
-                runOnUiThread(new Runnable() {
-                    @Override public void run() {
-                        set_status_led(ledstate, msg);
-                    }
-                });
-            }
-        });
-        refresh();
-    }
-
-    @Override public void onPause() {
-       super.onPause();
-       if (a.hmi == null) return;
-       a.hmi.add_status_handler(null);
-       log("onPause"); //--strip
-       ++instances;
+        if (!dep.hmi.manual_mode) {
+            dep.hmi.set_manual_mode(true);
+            dep.hmi.add_status_handler(new hmi_t.status_handler_t() {
+                public void on_status(ColorDrawable ledstate, final String msg) {
+                    runOnUiThread(new Runnable() {
+                        @Override public void run() {
+                            log("HMI status: " + msg); //--strip
+                            set_status_led(ledstate, msg);
+                        }
+                    });
+                }
+            });
+        }
     }
 
     void show_connection_log() {
-        if(a.hmi == null) return;
-        new AlertDialog.Builder(node_pairing.this).setTitle("Connection log:").setMessage(a.hmi.get_msg_log()).show();
+        if (dep.hmi == null) return;
+        new AlertDialog.Builder(node_pairing.this).setTitle("Connection log:").setMessage(dep.hmi.get_msg_log()).show();
     }
 
     void techinfo() {
         log("techinfo"); //--strip
         StringBuilder b = new StringBuilder();
-        b.append("HMI: "+(a.hmi == null ? "KO Not" : "OK ") + " present.\n");
-        if (a.hmi != null) {
-            b.append("  endpoint:\n    "+(a.hmi.endpoint == null ? "Null" : "" + a.hmi.endpoint.to_string()) + '\n');
-            b.append("  active: " + a.hmi.is_active() + '\n');
-            b.append("  online: " + a.hmi.is_online + '\n');
-            b.append("  wallet_address:\n    " + (a.hmi.wallet_address == null ? "KO null" : a.hmi.wallet_address.encode()) + '\n');
-            b.append("  wloc: "+ (a.hmi.subhome.isEmpty() ? "[Non Custodial (empty)]" : a.hmi.subhome) + '\n');
+        b.append("HMI: " + (dep.hmi == null ? "KO Not" : "OK ") + " present.\n");
+        if (dep.hmi != null) {
+            b.append("  endpoint:\n    "+(dep.hmi.endpoint == null ? "Null" : "" + dep.hmi.endpoint.to_string()) + '\n');
+            b.append("  active: " + dep.hmi.is_active() + '\n');
+            b.append("  online: " + dep.hmi.is_online + '\n');
+            b.append("  wallet_address:\n    " + (dep.hmi.wallet_address == null ? "KO null" : dep.hmi.wallet_address.encode()) + '\n');
+            b.append("  wloc: "+ (dep.hmi.subhome.isEmpty() ? "[Non Custodial (empty)]" : dep.hmi.subhome) + '\n');
             b.append("  trader_endpoints:\n");
-            pair<ko, bookmarks_t> r = a.hmi.bookmarks_me();
+            pair<ko, bookmarks_t> r = dep.hmi.bookmarks_me();
             if (is_ko(r.first)) {
                 b.append(r.first.msg);
             }
@@ -401,7 +551,7 @@ public final class node_pairing extends activity {
     }
 
     void connection_log() {
-        if(a.hmi == null) return;
+        if (dep.hmi == null) return;
         String[] options = {"Connection log. Show.", "Connection log. Clear.", "HMI info.", a.getResources().getString(R.string.cancel)};
         new AlertDialog.Builder(node_pairing.this).setTitle("Connection log:")
             .setItems(options, new DialogInterface.OnClickListener() {
@@ -411,7 +561,7 @@ public final class node_pairing extends activity {
                             show_connection_log();
                             break;
                         case 1:
-                            a.hmi.clear_msg_log();
+                            dep.hmi.clear_msg_log();
                             Toast.makeText(node_pairing.this, "Connection log cleared.", 6000).show();
                             break;
                         case 2:
@@ -425,9 +575,9 @@ public final class node_pairing extends activity {
     }
 
     void show_seeds() {
-        if(a.hmi == null) return;
-        StringBuilder b = new StringBuilder(a.hmi.seeds.size() * 50);
-        for (tuple3<hash_t, host_t, port_t> i: a.hmi.seeds) {
+        if (dep.hmi == null) return;
+        StringBuilder b = new StringBuilder(dep.hmi.seeds.size() * 50);
+        for (tuple3<hash_t, host_t, port_t> i: dep.hmi.seeds) {
             b.append(i.item0.encode());
             b.append(' ');
             b.append(us.gov.socket.client.endpoint(i.item1, i.item2));
@@ -440,16 +590,15 @@ public final class node_pairing extends activity {
         log("looking up IP address..."); //--strip
         Thread t = new Thread(new Runnable() {
             @Override public void run () {
-                ColorDrawable curled = a.hmi.cur_led;
-                String curmsg = a.hmi.cur_msg;
-                pair<ko, endpoint_t> r = a.hmi.lookup_ip(new app.progress_t() {
-                    @Override
-                    public void on_progress(final String msg) {
+                ColorDrawable curled = dep.hmi.cur_led;
+                String curmsg = dep.hmi.cur_msg;
+                pair<ko, endpoint_t> r = dep.hmi.lookup_ip(new app.progress_t() {
+                    @Override public void on_progress(final String msg) {
                         log("renew IP: " + msg); //--strip;
-                        a.hmi.set_status(leds_t.led_blue, msg);
+                        dep.hmi.set_status(leds_t.led_blue, msg);
                     }
                 });
-                a.hmi.set_status(curled, curmsg);
+                dep.hmi.set_status(curled, curmsg);
             }
         });
         t.start();
@@ -539,6 +688,62 @@ public final class node_pairing extends activity {
         }
     }
 
+    void on_user_req_poweron() {
+        a.assert_ui_thread(); //--strip
+        log("on_user_req_poweron"); //--strip
+        endpoint_t endpoint = endpoint_from_widgets();
+        app.progress_t progress = new app.progress_t() {
+            @Override public void on_progress(final String report) {
+                runOnUiThread(new Runnable() {
+                    @Override public void run() {
+                        Toast.makeText(node_pairing.this, report, 6000).show();
+                    }
+                });
+            }
+        };
+        ko ans = dep.set_endpoint(endpoint);
+        a.HMI_power_on(conf_index, new pin_t(0), progress);
+        Timer timer = new Timer();
+        timer.schedule(new TimerTask() {
+          @Override public void run() {
+            runOnUiThread(new Runnable() {
+                @Override public void run() {
+                    log("Saving settings"); //--strip
+                    a.device_endpoints.save();
+                    refresh();
+                }
+            });
+          }
+        }, 1000);
+    }
+
+    void on_user_req_poweroff() {
+        a.assert_ui_thread(); //--strip
+        log("on_user_req_poweroff"); //--strip
+        app.progress_t progress = new app.progress_t() {
+            @Override public void on_progress(final String report) {
+                runOnUiThread(new Runnable() {
+                    @Override public void run() {
+                        Toast.makeText(node_pairing.this, report, 6000).show();
+                    }
+                });
+            }
+        };
+        a.HMI_power_off(conf_index, progress);
+        Timer timer = new Timer();
+        timer.schedule(new TimerTask() {
+          @Override public void run() {
+            runOnUiThread(new Runnable() {
+                @Override public void run() { 
+                    log("Saving settings"); //--strip
+                    a.device_endpoints.save();
+                    refresh(); 
+                }
+            });
+          }
+        }, 1000);
+    }
+
     void test_task() {
         log("test_task"); //--strip
         a.assert_worker_thread(); //--strip
@@ -560,18 +765,22 @@ public final class node_pairing extends activity {
                 }
             };
             log("Connecting to " + state.endpoint.to_string() + " using PIN>0 " + (state.pin.value > 0 ? "yes" : "no")); //--strip
-            a.hmi.manual_mode = true;
-            log("setting a.hmi.p.rpc__stop_on_disconnection = true"); //--strip
-            ans = a.restart_hmi(state.endpoint, state.pin, progress);
+            if (dep.hmi != null) {
+                a.HMI_power_off__worker(conf_index, progress);
+            }
+            ans = dep.set_endpoint(state.endpoint);
+            a.device_endpoints.save();
+            a.HMI_power_on__worker(conf_index, state.pin, progress);
+
+            update_hmi();
+
+//            ans = a.restart_hmi(state.endpoint, state.pin, progress);
             log("hmi ans " + (is_ok(ans) ? "ok" : ans.msg)); //--strip
             Timer timer = new Timer();
             timer.schedule(new TimerTask() {
-              @Override
-              public void run() {
+              @Override public void run() {
                 runOnUiThread(new Runnable() {
-                    public void run() {
-                        refresh();
-                    }
+                    @Override public void run() { refresh(); }
                 });
               }
             }, 3000);
@@ -632,7 +841,7 @@ public final class node_pairing extends activity {
     void test_result_ui(final ko report) {
         log("test_result_ui"); //--strip
         a.assert_ui_thread(); //--strip
-        a.hmi.manual_mode = false;
+        //hmi.manual_mode = false;
         state.end_testing(report);
         refresh();
     }
@@ -648,49 +857,80 @@ public final class node_pairing extends activity {
 
     String get_pubkey() {
         log("get_pubkey"); //--strip
-        KeyPair kp = a.hmi.get_keys();
+        if (dep == null) return "";
+        KeyPair kp = dep.cfg.keys;
         if (kp == null) return "";
         return ec.instance.to_b58(kp.getPublic());
     }
 
+/*
+    String get_pubkeyh() {
+        log("get_pubkey"); //--strip
+        if (dep.hmi == null) return "";
+        KeyPair kp = hmi.get_keys();
+        if (kp == null) return "";
+        return ec.instance.to_encoded_address(kp.getPublic());
+    }
+*/
+/*
+    void refresh_menu() {
+        navigation.getMenu().clear();
+        navigation.inflateMenu(menuid());
+    }
+*/
+
     void refresh_mode_widgets() {
         log("custodial_info"); //--strip
-        if (a.hmi.is_online) {
-            log("hmi is up"); //--strip
-            String subhome = a.hmi.subhome;
-            if (subhome.isEmpty()) {
-                mode.setText(R.string.mode_non_custodial);
-                mode.setTextColor(darkgreen);
-                upgrade2noncustodial.setVisibility(View.GONE);
-            }
-            else {
-                String mcs = r_(R.string.mode_custodial);
-                log("mcs=" + mcs); //--strip
-                mode.setText(mcs + "\n(subhome " + subhome + ")");
-                mode.setTextColor(orange);
-                upgrade2noncustodial.setVisibility(View.VISIBLE);
-            }
-            mode.setVisibility(View.VISIBLE);
+        if (dep.hmi == null) {
+            mode.setVisibility(View.GONE);
+            upgrade2noncustodial.setVisibility(View.GONE);
+            return;            
         }
-        else {
+        if (!dep.hmi.is_online) {
             log("hmi is down"); //--strip
             mode.setVisibility(View.GONE);
+            dep.hmi.report_status__ui();
+            return;
         }
-        a.hmi.report_status__ui();
+        log("hmi is up"); //--strip
+        String subhome = dep.hmi.subhome;
+        if (subhome.isEmpty()) {
+            mode.setText(R.string.mode_non_custodial);
+            mode.setTextColor(darkgreen);
+            upgrade2noncustodial.setVisibility(View.GONE);
+        }
+        else {
+            String mcs = r_(R.string.mode_custodial);
+            log("mcs=" + mcs); //--strip
+            mode.setText(mcs + "\n(subhome " + subhome + ")");
+            mode.setTextColor(orange);
+            upgrade2noncustodial.setVisibility(View.VISIBLE);
+        }
+        mode.setVisibility(View.VISIBLE);
+        dep.hmi.report_status__ui();
     }
 
     void refresh_node_address_n_lookupip() {
         boolean lookupip_enable = true;
-        hash_t wallet_address = a.hmi.wallet_address;
+        hash_t wallet_address = null;
+        if (dep.hmi == null) {
+            layoutnode.setVisibility(View.GONE);
+            return;
+        }
+        layoutnode.setVisibility(View.VISIBLE);
+
+        if (dep.hmi != null) {
+            wallet_address = dep.hmi.wallet_address;
+        }
         if (wallet_address == null || wallet_address.is_zero()) {
-            nodepkh.setText("[unknown]");
+            nodepkh.setText("");
             lookupip_enable = false;
         }
         else {
             log("wallet_address " + wallet_address.encode()); //--strip
-            String addr = a.hmi.wallet_address.encode();
-            if (!a.hmi.subhome.isEmpty()) {
-                addr += "." + a.hmi.subhome;
+            String addr = dep.hmi.wallet_address.encode();
+            if (!dep.hmi.subhome.isEmpty()) {
+                addr += "." + dep.hmi.subhome;
             }
             nodepkh.setText(addr);
         }
@@ -701,35 +941,121 @@ public final class node_pairing extends activity {
 
     void refresh_device_widgets() {
         log("devicepk"); //--strip
+//        devicepk.setText(get_pubkey() + "\n" + get_pubkeyh());
         devicepk.setText(get_pubkey());
     }
 
     void refresh_connect_button() {
         log("refresh_connect_button " + state.lookingup + " " + state.testing); //--strip
-        connect_btn.setEnabled(true);
+        if (dep.hmi != null) {
+            endpoint_t ep = dep.endpoint;
+            log("endpoint " + (ep == null ? "Null" : ep.to_string())); //--strip
+            if (ep != null) {
+                current_endpoint.setText("Current: " + ep.to_string());
+            }
+
+            connect_btn.setEnabled(true);
+            connect_btn.setVisibility(View.VISIBLE);
+            current_endpoint.setVisibility(View.VISIBLE);
+        }
+        else {
+            connect_btn.setVisibility(View.GONE);
+            current_endpoint.setVisibility(View.GONE);
+        }    
     }
 
-    void refresh() {
+    void refresh_ssid_widgets() {
+        read_ssid.setVisibility(View.VISIBLE);
+        save_ssid.setVisibility(View.GONE);
+
+        String curnet = ssid_verified;
+        log("curnet " + curnet); //--strip
+        if (ssid.getText().equals(curnet)) {
+            read_ssid.setVisibility(View.GONE);
+        }
+        else {
+            read_ssid.setVisibility(View.VISIBLE);
+        }
+
+        String uissid = ssid.getText().toString();
+        log("ssid.getText()='" + uissid + "'"); //--strip
+        if (uissid.isEmpty()) {
+            log("ssid.setText()->'" + dep.ssid + "'"); //--strip
+            ssid.setText(dep.ssid);
+            save_ssid.setVisibility(View.GONE);
+        }
+    }
+
+    boolean disable_listener = false;
+
+    void refresh_poweron() {
+        log("refresh_poweron dep.hmi=" + (dep.hmi != null ? "ON" : "OFF")); //--strip
+        poweron.setOnCheckedChangeListener(null);
+
+        disable_listener = true;
+        if (dep.hmi == null) {
+            poweron.setChecked(false);
+        }        
+        else {
+            poweron.setChecked(true);
+        }
+        disable_listener = false;
+
+        poweron.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if (disable_listener) {
+                    log("power switch not actioned by human"); //--strip
+                    return;
+                }
+                log("human touched power switch"); //--strip
+                if (isChecked) {
+                    on_user_req_poweron();
+                }
+                else {
+                    on_user_req_poweroff();
+                }
+
+//                refresh();
+            }
+        });
+    }
+
+    public void refresh() {
         log("refresh"); //--strip
+        update_hmi();
+
+        name.setText(dep.name_);
+        save_name.setVisibility(View.GONE);
+
+        refresh_ssid_widgets();
         refresh_device_widgets();
+        refresh_poweron();
         refresh_node_address_n_lookupip();
         refresh_connect_button();
         refresh_mode_widgets();
+        //refresh_menu();
 
-        endpoint_t ep = a.get_endpoint();
-        log("endpoint " + (ep == null ? "Null" : ep.to_string())); //--strip
-        if (ep != null) {
-            current_endpoint.setText("Current: " + ep.to_string());
-        }
+        super.refresh();
 
         log("end refresh"); //--strip
     }
 
+/*
+    @Override public void on_power__worker() {
+        log("on_power__worker" + (a.hmi == null ? 0 : 1)); //--strip
+        runOnUiThread(new Thread(new Runnable() {
+            public void run() {
+                refresh();
+            }
+        }));
+    }
+*/
+
     void lookup() {
         app.assert_worker_thread(); //--strip
+        if (dep.hmi == null) return;
         log("lookup ip"); //--strip
-        assert a.hmi != null;
-        pair<ko, endpoint_t> r = a.hmi.lookup_ip(new app.progress_t() {
+        pair<ko, endpoint_t> r = dep.hmi.lookup_ip(new app.progress_t() {
             @Override public void on_progress(final String txt) {
                 runOnUiThread(new Thread(new Runnable() {
                     public void run() {
@@ -740,17 +1066,29 @@ public final class node_pairing extends activity {
         });
     }
 
+    private TextInputEditText name;
+    MaterialButton save_name;
+    
+    private TextInputEditText ssid;
+    MaterialButton save_ssid;
+    MaterialButton read_ssid;
+
+    private Switch poweron;
+
+
+    static int darkgreen = Color.parseColor("#009900");
+    static int orange = Color.parseColor("#ffa500");
     private TextView current_endpoint;
     private TextInputEditText addr;
     private TextInputEditText port;
     private TextInputEditText channel;
-    private TextView swv;
     private toolbar_button done;
     private toolbar_button refresh;
     private MaterialButton connect_btn;
     private TextInputEditText devicepk;
     private TextInputEditText connection_status;
     private TextInputEditText nodepkh;
+    LinearLayout layoutnode;
     TextInputLayout connection_status_lo;
     TextInputLayout addr_lo;
     private TextView mode;
@@ -761,8 +1099,9 @@ public final class node_pairing extends activity {
     Drawable greenled;
     Drawable blueled;
     state_t state = new state_t();
-    Spinner setlang;
-    String lang;
-    String country;
+
+    device_endpoint_t dep = null;
+    int conf_index = 0;
+    //hmi_t hmi;
 }
 

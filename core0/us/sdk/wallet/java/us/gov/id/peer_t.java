@@ -202,8 +202,7 @@ public class peer_t extends us.gov.socket.peer_t implements api {
         return connect(r.second, pport, pin, role, block);
     }
 
-    @Override
-    public boolean process_work(datagram d) {
+    @Override public boolean process_work(datagram d) {
         log("process_work"); //--strip
         assert(d.service.value < protocol.id_end);
         if (d.service.value < protocol.id_begin) {
@@ -325,30 +324,29 @@ completed(hs.peer.pport)                                           -------------
                                                                    verify signature
                                                                    completed(hs.peer.pport)
 */
-    public ko initiate_dialogue(final role_t role, final pport_t pport, final pin_t pin) {  //role '0'peer; '1'sysop; '2'device
-        /*
-        initiate_dialogue()
-        -------------------
-        hs(me,peer)=(new,0)
-        send (hs.me)      ----------------------gov_id_request---------->
-        */
-        log("Initiate dialogue. Role=" + role.str() + " pport " + pport.value + " pin " + pin.value);  //--strip
-        if (se != null) {
-            log("Found existing encryption module. destroying it.");  //--strip
-            se = null;
-        }
-        if (handshakes != null) {
-            log("Found existing handshakes object. destroying it."); //--strip
-        }
-        log("reseting state."); //--strip
-        set_stage_peer(stage_t.anonymous);
-        pubkey = null;
-        handshakes = new handshakes_t(role, pport, pin);
-        log("Sending gov_id_request " + protocol.id_request);  //--strip
-        assert role == handshakes.me.parse_role();
-        return call_request(handshakes.me.msg);
-//        return send1(new datagram(new svc_t(protocol.gov_id_request), new seq_t(0), new string(handshakes.me.msg)));
+public ko initiate_dialogue(final role_t role, final pport_t pport, final pin_t pin) {  //role '0'peer; '1'sysop; '2'device
+    /*
+    initiate_dialogue()
+    -------------------
+    hs(me,peer)=(new,0)
+    send (hs.me)      ----------------------gov_id_request---------->
+    */
+    log("Initiate dialogue. Role=" + role.str() + " pport " + pport.value + " pin " + pin.value);  //--strip
+    if (se != null) {
+        log("Found existing encryption module. destroying it.");  //--strip
+        se = null;
     }
+    if (handshakes != null) {
+        log("Found existing handshakes object. destroying it."); //--strip
+    }
+    log("reseting state."); //--strip
+    set_stage_peer(stage_t.anonymous);
+    pubkey = null;
+    handshakes = new handshakes_t(role, pport, pin);
+    log("Sending gov_id_request " + protocol.id_request);  //--strip
+    assert role == handshakes.me.parse_role();
+    return call_request(handshakes.me.msg);
+}
 
 //------------------apitool - API Spec defined @ us/api/generated/java/gov/id/hdlr_local-impl
 
@@ -365,11 +363,14 @@ completed(hs.peer.pport)                                           -------------
 
     KeyPair mykeys = get_keys();
     if (handshakes != null) {
+        handshakes = null;
+/*
         ko r = new ko("KO 99101 Invalid handshake. Bad sequence.");
         log(r.msg); //--strip
         set_stage_peer(stage_t.verified_fail);
         disconnect(seq, new reason_t(r.msg));
         return r;
+*/
     }
     handshakes = new handshakes_t();
     handshakes.peer.msg = msg;
@@ -478,7 +479,6 @@ completed(hs.peer.pport)                                           -------------
         return r;
     }
     sig_t sig = new sig_t();
-
     {
         ko r = call_challenge_response(new challenge_response_in_t(new pub_t(mykeys.getPublic()), sig, sig_der));
         if (ko.is_ko(r)) {
@@ -606,17 +606,16 @@ completed(hs.peer.pport)                                           -------------
             se = null;
             return r;
         }
-        if (daemon.outbound_traffic__goes_encrypted()) {
-            log("================== ENCRYPTION TURNED ON =================="); //--strip
-        }
-        else {
-            log("================== ENCRYPTION TURNED send:OFF recv:ON  =================="); //--strip
-        }
+        if (daemon.outbound_traffic__goes_encrypted()) {                                        //--strip
+            log("================== ENCRYPTION TURNED ON ==================");                  //--strip
+        }                                                                                       //--strip
+        else {                                                                                  //--strip
+            log("================== ENCRYPTION TURNED send:OFF recv:ON  ==================");   //--strip
+        }                                                                                       //--strip
         return ok;
     }
 
-    @Override
-    public pair<ko, datagram> encrypt0(datagram d) {
+    @Override public pair<ko, datagram> encrypt0(datagram d) {
         log("encrypt datagram"); //--strip;
         svc_t svc = d.decode_service(); //pre-decoded field (service) is 0 when sending
         if (svc.value == 0) {

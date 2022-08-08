@@ -43,9 +43,9 @@ import static us.gov.socket.types.channel_t;
 
 public class cfg1 extends cfg0 {
 
-    static void log(final String line) {            //--strip
-        CFG.log_gov_io("cfg1: " + line);            //--strip
-    }                                               //--strip
+    private static void log(final String line) {            //--strip
+        CFG.log_gov_io("cfg1: " + line);                    //--strip
+    }                                                       //--strip
 
     public static final ko KO_30291 = new ko("KO 30291 invalid k file.");
     public static final ko KO_97832 = new ko("KO 97832 Secret key not found.");

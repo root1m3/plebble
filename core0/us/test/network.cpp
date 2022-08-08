@@ -31,6 +31,7 @@
 #include <us/gov/engine/db_t.h>
 #include <us/gov/engine/track_status_t.h>
 #include <us/gov/cli/rpc_peer_t.h>
+#include <us/wallet/engine/daemon_t.h>
 
 #include "node_bank.h"
 #include "dispatcher_t.h"
@@ -182,14 +183,43 @@ ko c::android_app_test_automatic_updates() {
     return ok;
 }
 
-ko c::android_app_test() {
-    assert(!empty());
-    auto& n = *begin()->second;
-    cout << "In settings (Android app), connect to wallet at : " << node::localip << ":" << n.wallet->p.listening_port << " channel " << 123 << endl;
-    cout << "First connect without PIN to receive an error not-authorized." << endl;
-    cout << "Then type a name for testing the app using a custodial wallet, or just press enter for testing the non-custodial wallet." << endl;
-    string subhome;
-    cin >> subhome;
+ko c::android_app_test__prepair(string subhome, node& n) {
+    cout << "PIN (or auto): "; cout.flush();
+    string inputPIN;
+    getline(cin, inputPIN);
+    us::gov::io::cfg0::trim(inputPIN);
+    pin_t pin;
+    if (inputPIN == "auto") {
+        pin = numeric_limits<pin_t>::max();
+    }
+    else {
+        pin = atoi(inputPIN.c_str());
+    }
+    if (pin == 0) {
+        return "KO 87096";
+    }
+    cout << "type 'auto' to generate subhomes tied to devices. (Input anything else to use subhome '" << subhome << "'): " ; cout.flush();
+    string subhome_auto;
+    getline(cin, subhome_auto);
+    us::gov::io::cfg0::trim(subhome_auto);
+    if (subhome_auto == "auto") {
+        subhome = "auto";
+    }
+    cout << "using subhome " << subhome << endl;
+    {
+        cout << "pre-authorizing " << pin << " subhome " << subhome << endl;
+        us::wallet::cli::rpc_peer_t::prepair_device_out_dst_t ans;
+        auto r = n.wallet_cli->rpc_daemon->get_peer().call_prepair_device(us::wallet::cli::rpc_peer_t::prepair_device_in_t(pin, subhome, "Tests"), ans);
+        if (r != ok) {
+            cout << n.wallet_cli->rpc_daemon->rewrite(r) << endl;
+            assert(false);
+        }
+        cout << "prepair_device response: PIN: " << ans.pin << " subhome: " << ans.subhome << endl;
+    }
+    return ok;
+}
+
+ko c::android_app_test__pair(string subhome, node& n) {
     {
         auto r = n.wallet_cli->exec("list_devices");
         if (r != ok) {
@@ -228,11 +258,79 @@ ko c::android_app_test() {
             cout << "pair_device response: " << ans << endl;
         }
     }
-    {
-        auto r = n.wallet_cli->exec("list_devices");
-        if (r != ok) {
-            cout << r << endl;
-            return r;
+    return ok;
+}
+
+void c::set_consume_pin(node& n) {
+    cout << "Consume PIN? (1|0): "; cout.flush();
+    string i;
+    getline(cin, i);
+    us::gov::io::cfg0::trim(i);
+    if (i == "0") {
+        n.wallet->daemon->devices.set_consume_pin(false);
+    }
+    else if (i == "1") {
+        n.wallet->daemon->devices.set_consume_pin(true);
+    }
+    else {
+        cerr << "Nothing done." << endl;
+    }
+}
+
+namespace {
+    string inputsubhome;
+}
+
+ko c::android_app_test() {
+    assert(!empty());
+    auto& n = *begin()->second;
+    cout << "In settings (Android app), connect to wallet at : " << node::localip << ":" << n.wallet->p.listening_port << " channel " << 123 << endl;
+//    cout << "First connect without PIN to receive an error not-authorized." << endl;
+
+    while (true) {
+        cout << "Node " << n.id << endl;
+        cout << "Pairing Menu\n";
+        cout << "0- Skip Pairing Menu\n";
+        cout << "1- Subhome: " << inputsubhome << "\n";
+        cout << "2- list_devices\n";
+        cout << "3- pair from unauthorized attempts & continue (Do a connection attempt with the app before choosing 3)\n";
+        cout << "4- set_consume_pin [consume_pin " << (n.wallet->daemon->devices.get_consume_pin() ? "1" : "0") << "]\n";
+        cout << "5- Prepair & continue\n";
+        string input;
+        getline(cin, input);
+        us::gov::io::cfg0::trim(input);
+        if (input == "1") {
+            cout << "Enter subhome (e.g. mycusw1) for custodial mode, or empty for non-custodial mode." << endl;
+            cout << "Subhome: "; cout.flush();
+            getline(cin, inputsubhome);
+            us::gov::io::cfg0::trim(inputsubhome);
+        }
+        else if (input == "2") {
+            auto r = n.wallet_cli->exec("list_devices");
+            if (r != ok) {
+                cout << r << endl;
+                return r;
+            }
+        }
+        else if (input == "3") {
+            auto r = android_app_test__pair(inputsubhome, n);
+            if (is_ko(r)) {
+                return r;
+            }
+            break;
+        }
+        else if (input == "4") {
+            set_consume_pin(n);
+        }
+        else if (input == "5") {
+            auto r = android_app_test__prepair(inputsubhome, n);
+            if (is_ko(r)) {
+                return r;
+            }
+            break;
+        }
+        else if (input == "0") {
+            break;
         }
     }
 
@@ -247,7 +345,9 @@ ko c::android_app_test() {
         cout << "  2.1 upload to blockchain.   " << endl;
         cout << "  2.2 install on node " << n.id << "." << endl;
         string input;
-        cin >> input;
+        getline(cin, input);
+        us::gov::io::cfg0::trim(input);
+
         if (input == "0") {
             break;
         }
@@ -664,13 +764,15 @@ void c::test() {
 void c::menu() {
     setup_signals(this, false);
     while(true) {
-        out << "Menu" << endl;
+        out << "RPC Devices Menu" << endl;
         out << "====" << endl;
         out << "0 Exit" << endl;
-        out << "1 Consoles" << endl;
-        out << "2 Android app Test" << endl;
+        out << "1 gov/wallet terminal. (doc/sequences~seq.id.2)" << endl;
+        out << "2 android app. (doc/sequences~seq.id.1)" << endl;
+        out << "  " << endl;
         string input;
-        cin >> input;
+        getline(cin, input);
+        us::gov::io::cfg0::trim(input);
         if (input == "1") {
             consoles_shell();
         }

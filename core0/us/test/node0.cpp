@@ -36,6 +36,7 @@
 #include <us/wallet/wallet/algorithm.h>
 #include <us/wallet/cli/hmi.h>
 #include <us/wallet/engine/devices_t.h>
+#include <us/wallet/engine/daemon_t.h>
 
 #define loglevel "test"
 #define logclass "node"
@@ -183,7 +184,7 @@ void test_wallet_rpc_keys(const string& homedir) {
     d.dump(cout);
     cout << "Random device not authorized\n";
     {
-        pair<bool,string> r=d.authorize(us::gov::crypto::ec::keys::generate().pub, 0);
+        pair<bool,string> r = d.authorize(us::gov::crypto::ec::keys::generate().pub, 0);
         assert(!r.first);
         assert(r.second == us::wallet::engine::devices_t::KO_30291);
     }
@@ -200,7 +201,7 @@ void test_wallet_rpc_keys(const string& homedir) {
     cout << "  pubkey '" << pubk << "'\n";
     cout << "  pubkeyh '" << pubk.hash() << "'\n";
     assert(d.size() == 1);
-    pair<bool,string> r = d.authorize(pubk, 0);
+    pair<bool, string> r = d.authorize(pubk, 0);
     assert(r.first); //authorized
     assert(r.second == ""); //given subhome
 }
@@ -228,7 +229,7 @@ govx_t* start_gov_daemon(const string& homedir) {
 }
 
 walletx_t* start_wallet_daemon(const string& homedir) {
-    log("starting wallet daemon");
+    log("starting wallet daemon", homedir);
     wallet::cli::params p;
     p.daemon = true;
     p.homedir = homedir;
@@ -247,6 +248,9 @@ walletx_t* start_wallet_daemon(const string& homedir) {
 }
 
 void test_wallet_hmi(wallet::cli::hmi& hmi) {
+    tee("test_wallet_hmi");
+    tee("hmi home", hmi.home);
+    tee("hmi devices home", hmi.daemon->devices.get_home());
     tee("exec: list_devices");
     assert(hmi.exec("list_devices") == ok);
 
@@ -356,6 +360,7 @@ void test_wallet_daemon_files(const string& h) {
 }
 
 void test_gov_daemon_files(const string& h) {
+    tee("test_gov_daemon_files", h);
     using us::gov::io::cfg0;
     string d = h;
     assert(cfg0::dir_exists(d));

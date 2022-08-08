@@ -44,8 +44,15 @@ char c::devices_t::d_version = '2';
 ko c::KO_30291 = "KO 30291 Device not paired.";
 
 c::devices_t(const string& home): home(home) {
+    log("constructor", home);
     assert(!home.empty());
-    load();
+    string filename = home + "/d";
+    if (us::gov::io::cfg0::file_exists(filename)) {
+        load();
+    }
+    else {
+        save();
+    }
 }
 
 void c::load() {
@@ -60,16 +67,16 @@ void c::save() const {
 
 void c::load_v1_() {
     clear();
-    ifstream is(home+"/d");
-    log("loading authorized devices",home+"/d");
+    ifstream is(home + "/d");
+    log("loading authorized devices", home + "/d");
     string ver;
     is >> ver;
     log("devices file version",ver);
     bool prev=false;
     if (!ver.empty()) {
-        if (ver[0]!='1') {
+        if (ver[0] != '1') {
             log("prev mode");
-            prev=true;
+            prev = true;
         }
     }
     while (is.good()) {
@@ -85,7 +92,6 @@ void c::load_v1_() {
             break;
         }
         if (!d.second.pub.valid) {
-            //log("error loading device. invalid pubkey");
             prepaired.emplace(d.second.decode_pin(), d.second);
             continue;
         }
@@ -93,9 +99,9 @@ void c::load_v1_() {
         emplace(d.second.pub.hash(), d.second);
     }
     if (empty()) {
-        log("white list is empty","adding console key");
+        log("white list is empty", "adding console key");
         using io::cfg_id;
-        auto f = cfg_id::load(home+"/rpc_client", true);
+        auto f = cfg_id::load(home + "/rpc_client", true);
         if (is_ko(f.first)) {
             cerr << (const char*)f.first << '\n';
             exit(1);
@@ -113,16 +119,15 @@ void c::load_v1_() {
 }
 
 void c::load_() {
+    string filename = home + "/d";
+    log("load file ", filename);
     clear();
-    ifstream is(home + "/d");
+    ifstream is(filename);
     log("loading authorized devices", home + "/d");
     string ver;
     is >> ver;
     log("devices file version", ver);
-    if (ver.size() != 1 || ver[0] != d_version) {
-        is.close();
-        load_v1_();
-        save_();
+    if (ver[0] != d_version) {
         return;
     }
     is >> authorize_and_create_guest_wallet;
@@ -163,17 +168,17 @@ void c::load_() {
 void c::save_() const {
     string file = home + "/d";
     {
-    ofstream os(file);
-    os << d_version << '\n';
-    os << (authorize_and_create_guest_wallet ? 1 : 0) << '\n';
-    os << (consume_pin ? 1 : 0) << '\n';
-    for (auto& i: *this) {
-        i.second.to_stream(os);
-    }
-    for (auto& i: prepaired) {
-        os << "pin " << i.first << ' ';
-        i.second.to_stream(os);
-    }
+        ofstream os(file);
+        os << d_version << '\n';
+        os << (authorize_and_create_guest_wallet ? 1 : 0) << '\n';
+        os << (consume_pin ? 1 : 0) << '\n';
+        for (auto& i: *this) {
+            i.second.to_stream(os);
+        }
+        for (auto& i: prepaired) {
+            os << "pin " << i.first << ' ';
+            i.second.to_stream(os);
+        }
     }
     chmod(file.c_str(), S_IRUSR | S_IWUSR);
     log("saved devices file", file);
@@ -193,20 +198,26 @@ pair<bool, string> c::authorize(const pub_t& p, pin_t pin) {
     auto j = prepaired.find(pin);
     if (j != prepaired.end()) {
         log("found prepaired device");
-        auto r = device_pair_(p, j->second.subhome, j->second.name, false);
+        string subhome = j->second.subhome;
+        if (subhome == "auto") {
+            ostringstream os;
+            os << p.hash();
+            subhome = os.str();
+            log("auto subhome", subhome);
+        }
+        auto r = device_pair_(p, subhome, j->second.name, false);
         if (is_ko(r)) {
             return make_pair(false, r);
         }
-        string subh = j->second.subhome;
-        log("paired device", p, j->second.subhome, j->second.name);
+        log("paired device", p, subhome, j->second.name);
         if (consume_pin) {
             log("PIN consumed");
             prepaired.erase(j);
         }
-        log("authorized for the first time.", "used pin", pin, "pubkey", p, "subhome", subh);
+        log("authorized for the first time.", "used pin", pin, "pubkey", p, "subhome", subhome);
         save_();
         attempts.purge(p);
-        return make_pair(true, subh);
+        return make_pair(true, subhome);
     }
     log("not found in prepairing table", p);
     if (authorize_and_create_guest_wallet) {
@@ -357,6 +368,19 @@ const device_t* c::get_device(const pub_t& pub) const {
     return &i->second;
 }
 
+bool c::get_consume_pin() const {
+    lock_guard<mutex> lock(mx);
+    return consume_pin;
+}
+
+void c::set_consume_pin(bool b) {
+    lock_guard<mutex> lock(mx);
+    if (consume_pin != b) {
+        consume_pin = b;
+        save_();
+    }
+}
+
 void c::dump(ostream& os) const {
     log("dump devices");
     {
@@ -364,7 +388,7 @@ void c::dump(ostream& os) const {
         os << size() << " authorized devices:\n";
         os << "----------------------\n";
 
-        for (auto&i:*this) {
+        for (auto& i: *this) {
             os << "  ";
             i.second.dump(os);
             os << '\n';
@@ -372,7 +396,7 @@ void c::dump(ostream& os) const {
         os << '\n';
         os << prepaired.size() << " pre-authorized devices:\n";
         os << "--------------------------\n";
-        for (auto&i:prepaired) {
+        for (auto& i: prepaired) {
             os << "  pin " << i.first << ' ';
             i.second.dump(os);
             os << '\n';
@@ -380,7 +404,7 @@ void c::dump(ostream& os) const {
         os << '\n';
         os << "Pairing configuration:\n";
         os << "----------------------\n";
-        os << "  Automatic authorization (not requiring PIN): " << (authorize_and_create_guest_wallet ? "ON" : "OFF") << '\n';
+        os << "  Automatic authorization (without PIN): " << (authorize_and_create_guest_wallet ? "ON" : "OFF") << '\n';
         os << "  Consume PIN once used: " << (consume_pin ? "ON" : "OFF") << '\n';
     }
     os << '\n';

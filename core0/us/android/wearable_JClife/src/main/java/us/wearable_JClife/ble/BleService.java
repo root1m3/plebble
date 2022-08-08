@@ -63,6 +63,11 @@ public final class BleService extends Service {
     public static BluetoothGattCharacteristic colorCharacteristic;
     private static ArrayList<BluetoothGatt> arrayGatts = new ArrayList<BluetoothGatt>(); // 存放BluetoothGatt的集�? / Store the collection of BluetoothGatt?
 
+    static void log(final String s) {               //--strip
+        //Log.i(TAG, s);                              //--strip
+        System.out.println("BleService: " + s);         //--strip
+    }                                               //--strip
+
     @Override public IBinder onBind(Intent intent) {
         initAdapter();
         return kBinder;
@@ -73,6 +78,7 @@ public final class BleService extends Service {
     }
 
     public void initBluetoothDevice(final String address, final Context context) {
+        log("initBluetoothDevice " + address); //--strip
         this.address = address;
         final BluetoothDevice device = mBluetoothAdapter.getRemoteDevice(address);
         if (isConnected()) return;
@@ -80,21 +86,26 @@ public final class BleService extends Service {
             refreshDeviceCache(mGatt);
             mGatt = null;
         }
-
+        log("WP 57483"); //--strip
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            log("WP 57484"); //--strip
             mGatt = device.connectGatt(context, false, bleGattCallback, BluetoothDevice.TRANSPORT_LE);
         }
         else {
+            log("WP 57485"); //--strip
             mGatt = device.connectGatt(context, false, bleGattCallback);
         }
+        log("WP 57486"); //--strip
 
-        if (mGatt == null) {
-            System.out.println(device.getAddress() + "gatt is null");
-        }
+        if (mGatt == null) { //--strip
+            log(device.getAddress() + "gatt is null"); //--strip
+        } //--strip
+        log("set mLeScanCallback"); //--strip
 
         mLeScanCallback = new BluetoothAdapter.LeScanCallback() {
 
             @Override public void onLeScan(final BluetoothDevice device, final int rssi, final byte[] scanRecord) {
+                log("onLeScan deviceAddr: " + device.getAddress() + " address: " + address); //--strip
                 if (device.getAddress().equals(address) && Math.abs(rssi) < 90) {
     //				//String name = Tools.decodeDeviceName(scanRecord);
     //				if (!TextUtils.isEmpty(name) && name.equals("DfuTarg"))

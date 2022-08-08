@@ -77,6 +77,7 @@ namespace us::gov::io {
         int args_left() const;
         void dump(const string& prefix, ostream&) const;
         void dump(ostream&) const;
+        static bool is_root_token(string);
 
         bool del;
         int argc;

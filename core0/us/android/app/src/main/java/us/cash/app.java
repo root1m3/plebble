@@ -33,11 +33,14 @@ import java.io.ByteArrayOutputStream;                                           
 import java.nio.charset.Charset;                                                               // Charset
 import java.util.Collections;                                                                  // Collections
 import android.graphics.drawable.ColorDrawable;                                                // ColorDrawable
+import java.util.Comparator;                                                                   // Comparator
 import java.util.concurrent.locks.Condition;                                                   // Condition
 import android.content.res.Configuration;                                                      // Configuration
+import android.net.ConnectivityManager;                                                        // ConnectivityManager
 import android.content.Context;                                                                // Context
-import org.acra.config.CoreConfigurationBuilder;                                               // CoreConfigurationBuilder
+//import org.acra.config.CoreConfigurationBuilder;                                               // CoreConfigurationBuilder
 import us.gov.socket.datagram;                                                                 // datagram
+import java.util.Date;                                                                         // Date
 import android.app.DialogFragment;                                                             // DialogFragment
 import android.util.DisplayMetrics;                                                            // DisplayMetrics
 import android.os.Environment;                                                                 // Environment
@@ -45,11 +48,11 @@ import java.io.File;                                                            
 import java.io.FileNotFoundException;                                                          // FileNotFoundException
 import java.io.FileOutputStream;                                                               // FileOutputStream
 import androidx.core.content.FileProvider;                                                     // FileProvider
-import com.google.firebase.crashlytics.FirebaseCrashlytics;                                    // FirebaseCrashlytics
+//import com.google.firebase.crashlytics.FirebaseCrashlytics;                                    // FirebaseCrashlytics
 import java.security.GeneralSecurityException;                                                 // GeneralSecurityException
 import static us.gov.crypto.ripemd160.hash_t;                                                  // hash_t
-import org.acra.config.HttpSenderConfigurationBuilder;                                         // HttpSenderConfigurationBuilder
-import org.acra.sender.HttpSender;                                                             // HttpSender
+//import org.acra.config.HttpSenderConfigurationBuilder;                                         // HttpSenderConfigurationBuilder
+//import org.acra.sender.HttpSender;                                                             // HttpSender
 import java.net.HttpURLConnection;                                                             // HttpURLConnection
 import static us.gov.id.types.*;                                                               // *
 import static us.gov.socket.types.*;                                                           // *
@@ -71,6 +74,7 @@ import android.util.Log;                                                        
 import android.os.Looper;                                                                      // Looper
 import android.view.Menu;                                                                      // Menu
 import android.view.MenuItem;                                                                  // MenuItem
+import android.net.NetworkInfo;                                                                // NetworkInfo
 import static us.ko.ok;                                                                        // ok
 import java.io.OutputStream;                                                                   // OutputStream
 import java.io.OutputStreamWriter;                                                             // OutputStreamWriter
@@ -79,12 +83,16 @@ import java.net.PasswordAuthentication;                                         
 import android.preference.PreferenceManager;                                                   // PreferenceManager
 import java.io.PrintStream;                                                                    // PrintStream
 import us.wallet.protocol;                                                                     // protocol
+import us.wallet.trader.qr_t;                                                                  // qr_t
 import java.util.Random;                                                                       // Random
 import java.util.concurrent.locks.ReentrantLock;                                               // ReentrantLock
 import android.content.res.Resources;                                                          // Resources
 import android.content.SharedPreferences;                                                      // SharedPreferences
 import android.os.StrictMode;                                                                  // StrictMode
-import org.acra.data.StringFormat;                                                             // StringFormat
+//import org.acra.data.StringFormat;                                                             // StringFormat
+import us.string;                                                                              // string
+import android.net.wifi.SupplicantState;                                                       // SupplicantState
+import android.telephony.TelephonyManager;                                                     // TelephonyManager
 import java.util.Timer;                                                                        // Timer
 import java.util.TimerTask;                                                                    // TimerTask
 import android.widget.Toast;                                                                   // Toast
@@ -92,11 +100,13 @@ import android.media.ToneGenerator;                                             
 import java.util.TreeMap;                                                                      // TreeMap
 import java.io.UnsupportedEncodingException;                                                   // UnsupportedEncodingException
 import java.net.URL;                                                                           // URL
+import android.net.wifi.WifiInfo;                                                              // WifiInfo
+import android.net.wifi.WifiManager;                                                           // WifiManager
 
 public final class app extends Application {
 
-    public static String KO_68874 = "KO 68874 Invalid endpoint";
-    static final String SETTINGS_JSON_PRIVATE_FILE = "node_settings.json";
+    public static String KO_68874 = "KO 68874 Invalid endpoint.";
+    public static String KO_89700 = "KO 89700 HMI is off.";
 
     static void log(final String line) {          //--strip
         CFG.log_android("app: " + line);          //--strip
@@ -139,12 +149,16 @@ public final class app extends Application {
 CFG.sdk_logs = true; //--strip
         log("SDK logs: " + CFG.sdk_logs);                                   //--strip
         us.CFG.logs.set(CFG.sdk_logs);                                      //--strip
+
     }
 
     void abort(String reason) {
-        error_manager.manage(new GeneralSecurityException(reason), "KO 50493");
+        log("ABORT"); //--strip
+        //error_manager.manage(new GeneralSecurityException(reason), "KO 50493");
         android.os.Process.killProcess(android.os.Process.myPid());
-        System.exit(1);
+        //finishAndRemoveTask();
+
+        System.exit(0);
     }
 
     public static class walletd_status_handler_t implements hmi_t.status_handler_t {
@@ -153,51 +167,12 @@ CFG.sdk_logs = true; //--strip
             a = a_;
         }
 
-        @Override
-        public void on_status(ColorDrawable led_status, final String msg) {
+        @Override public void on_status(ColorDrawable led_status, final String msg) {
+            log("walletd_status_handler_t: on_status. " + msg); //--strip
             a.set_walletd_led(2, led_status);
         }
 
         app a;
-    }
-
-    void init_hmi(progress_t progress) {
-        log("init_hmi"); //--strip
-        final app a = this;
-        Thread worker = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                log("Starting HMI ..."); //--strip
-                us.wallet.cli.params p = new us.wallet.cli.params();
-                p.daemon = false;
-                p.homedir = homedir + "/hmi";
-                log("homedir=" + p.homedir); //--strip
-                p.rpc__connect_for_recv = true;
-                p.rpc__stop_on_disconnection = false;
-                hmi = new hmi_t(a, p, new walletd_status_handler_t(a), datagram_dispatcher, System.out);
-                hmi.busyled_handler_recv = new walletd_led_handler(app.this, 0);
-                hmi.busyled_handler_send = new walletd_led_handler(app.this, 1);
-                endpoint_t ep = endpoint_from_settings();
-                if (ep == null) {
-                    log("ep is null"); //--strip
-                    save(new endpoint_t());
-                    ep = endpoint_from_settings();
-                    assert ep != null;
-                }
-                hmi.try_renew_ip_on_connect_failed = true;
-                if (ep == null) {
-                    ko r = new ko("KO 54093 invalid ep in settings. Restart of HMI's been aborted.");
-                    log(r.msg); //--strip
-                    return;
-                }
-                log("restarting HMI with ep " + ep.to_string()); //--strip
-                ko r = restart_hmi(ep, new pin_t(0), progress);
-                if (is_ko(r)) {
-                    log(r.msg); //--strip
-                }
-            }
-        });
-        worker.start();
     }
 
     static interface i18n_t {
@@ -280,23 +255,54 @@ CFG.sdk_logs = true; //--strip
         }
         StrictMode.VmPolicy.Builder builder = new StrictMode.VmPolicy.Builder();
         StrictMode.setVmPolicy(builder.build());
-        homedir = getApplicationContext().getFilesDir().getPath();
+        
         log("boot test"); //--strip
         if (!hmi_t.test()) {
             abort("failed hmi tests");
+            return;
         }
         log("boot test succeed"); //--strip
 
-        log("creating datagram dispatcher"); //--strip
-        datagram_dispatcher = new datagram_dispatcher_t(3);
-        log("Private storage  " + homedir); //--strip
-        sw_updates = new sw_updates_t(this);
         tone = new ToneGenerator(AudioManager.STREAM_MUSIC, 100);
+
+        hmi = null;
+        int pwr = create_device_endpoints();
+        if (a.device_endpoints == null) {
+            log("KO 55061"); //--strip
+            abort("device_endpoints failure");
+            return;
+        }
+        log("pwr = " + pwr); //--strip
+        if (pwr != -1) {
+            log("powering ON pos " + pwr); //--strip
+            HMI_power_on(pwr, new pin_t(0), null);
+        }
+        else {
+            hmi = a.device_endpoints.cur.hmi;
+        }
+//            System.exit(1);
+/*
+        if (a.device_endpoints != null) {
+            hmi = a.device_endpoints.cur.hmi;
+        }
+*/
     }
 
-    public endpoint_t get_endpoint() {
-        if (hmi == null) return null;
-        return hmi.endpoint;
+    public int create_device_endpoints() { // returns the index to poweron, -1 for none
+        log("create_device_endpoints"); //--strip
+        if (device_endpoints != null) {
+            log("Already created"); //--strip
+            return -1;
+        }
+        try {
+            device_endpoints = new device_endpoints_t(this);
+            return device_endpoints.init();
+        }
+        catch (Exception e) {
+            log("could not create device_endpoints." + e.getMessage()); //--strip
+            device_endpoints = null;
+        }
+        return -1;
     }
 
     public void set_foreground_activity(activity ac, boolean up) {
@@ -343,13 +349,64 @@ CFG.sdk_logs = true; //--strip
         }
     }
 
-    void set_govd_led(int i, ColorDrawable color) {
+    void set_walletd_leds_off() {
         assert_worker_thread(); //--strip
+        log("set_walletd_leds off"); //--strip
         lock_active_ac.lock();
         try {
-            if (active_ac == null) return;
-            if (active_ac.govd_leds == null) return;
-            active_ac.govd_leds.set_led(i, color);
+            if (active_ac == null) {
+                log("active_ac is null"); //--strip
+                return;
+            }
+            if (active_ac.walletd_leds == null) {
+                log("active_ac.walletd_leds is null"); //--strip
+                return;
+            }
+            active_ac.walletd_leds.set_all_off();
+        }
+        finally {
+            lock_active_ac.unlock();
+        }
+    }
+
+    void set_govd_led(int i, ColorDrawable color) {
+        assert_worker_thread(); //--strip
+        log("set_govd_led "); //--strip
+        lock_active_ac.lock();
+        try {
+            if (active_ac == null) {
+                log("active_ac is null"); //--strip
+                return;
+            }
+            if (active_ac.walletd_leds == null) {
+                log("active_ac.walletd_leds is null"); //--strip
+                return;
+            }
+            if (active_ac.govd_leds != null) {
+                active_ac.govd_leds.set_led(i, color);
+            }
+        }
+        finally {
+            lock_active_ac.unlock();
+        }
+    }
+
+    void set_govd_leds_off() {
+        assert_worker_thread(); //--strip
+        log("set_govd_leds off"); //--strip
+        lock_active_ac.lock();
+        try {
+            if (active_ac == null) {
+                log("active_ac is null"); //--strip
+                return;
+            }
+            if (active_ac.walletd_leds == null) {
+                log("active_ac.walletd_leds is null"); //--strip
+                return;
+            }
+            if (active_ac.govd_leds != null) {
+                active_ac.govd_leds.set_all_off();
+            }
         }
         finally {
             lock_active_ac.unlock();
@@ -363,13 +420,11 @@ CFG.sdk_logs = true; //--strip
             i = i_;
         }
 
-        @Override
-        public void on_busy() {
+        @Override public void on_busy() {
             a.set_walletd_led(i, leds_t.led_green);
         }
 
-        @Override
-        public void on_idle() {
+        @Override public void on_idle() {
             a.set_walletd_led(i, leds_t.led_off);
         }
 
@@ -488,15 +543,16 @@ CFG.sdk_logs = true; //--strip
         finally {
             lock_active_ac.unlock();
         }
-
-        hmi.report_status();
+        log("report status"); //--strip
+        if (hmi != null) {
+            hmi.report_status();
+        }
     }
 
     public void led_test(final int daemon) {
         assert_ui_thread();  //--strip
         Thread thread = new Thread(new Runnable() {
-            @Override
-            public void run() {
+            @Override public void run() {
                 led_test__worker(daemon);
             }
         });
@@ -507,20 +563,6 @@ CFG.sdk_logs = true; //--strip
         log("led_test"); //--strip
         led_test(0);
         led_test(1);
-    }
-
-    public ko restart_hmi(final endpoint_t ep, pin_t pin, progress_t report) {
-        log("Restarting HMI... pin " + pin.value); //--strip
-        report.on_progress("Starting connection to " + (ep == null ? "null" : ep.to_string()));
-        ko r = hmi.restart(ep, pin);
-        if (r != ok) {
-            log("HMI Failed to start: " + r.msg); //--strip
-            report.on_progress("Failed to connect to " + (ep == null ? "null" : ep.to_string()));
-            return r;
-        }
-        log("hmi started"); //--strip
-        report.on_progress("HMI restarted " + (ep == null ? "null" : ep.to_string()));
-        return ok;
     }
 
     public void use_personality(final hash_t tid, final String personality) {
@@ -545,6 +587,8 @@ CFG.sdk_logs = true; //--strip
         thread.start();
     }
 
+
+/*
     public void write_settings(String data) {
         log("writing settings " + data); //--strip
         try {
@@ -553,7 +597,7 @@ CFG.sdk_logs = true; //--strip
             os.close();
         }
         catch (IOException e) {
-            error_manager.manage(e, e.getMessage() + "    " + e.toString());
+            //error_manager.manage(e, e.getMessage() + "    " + e.toString());
             log("File write failed: " + e.toString()); //--strip
         }
     }
@@ -581,7 +625,7 @@ CFG.sdk_logs = true; //--strip
         }
         catch (IOException e) {
             log("Exception: " + e.getMessage() + "    " + e.toString()); //--strip
-            error_manager.manage(e, e.getMessage() + "    " + e.toString());
+            //error_manager.manage(e, e.getMessage() + "    " + e.toString());
             log("Can not read file: " + e.toString()); //--strip
         }
         return null;
@@ -598,7 +642,7 @@ CFG.sdk_logs = true; //--strip
             data = new JSONArray(sdata);
         }
         catch (JSONException e) {
-            error_manager.manage(e, e.getMessage() + "    " + e.toString());
+            //error_manager.manage(e, e.getMessage() + "    " + e.toString());
             return null;
         }
         if (data == null) {
@@ -615,20 +659,21 @@ CFG.sdk_logs = true; //--strip
             return null;
         }
         try {
-            for(int i = 0; i < data.length(); i++) {
+            for (int i = 0; i < data.length(); i++) {
                 JSONObject o = data.getJSONObject(i);
-                if (o.getString("default").equals("1")) {
-                    return new endpoint_t(new shost_t(o.getString("lanip")), new port_t(o.getInt("lanport")), new channel_t(o.getInt("channel")));
+                if (o != null) {
+                    if (o.getString("default").equals("1")) {
+                        return new endpoint_t(new shost_t(o.getString("lanip")), new port_t(o.getInt("lanport")), new channel_t(o.getInt("channel")));
+                    }
                 }
             }
         }
         catch (JSONException e) {
-            error_manager.manage(e, e.getMessage() + "    " + e.toString());
+            //error_manager.manage(e, e.getMessage() + "    " + e.toString());
             return null;
         }
         return null;
     }
-
     boolean save(endpoint_t ep0) {
         assert ep0 != null;
         endpoint_t ep = new endpoint_t(ep0);
@@ -671,23 +716,287 @@ CFG.sdk_logs = true; //--strip
         }
         catch(JSONException e) {
             log("Exception " + e.getMessage()); //--strip
-            FirebaseCrashlytics.getInstance().recordException(e); //--strip
+            //FirebaseCrashlytics.getInstance().recordException(e); //--strip
             return false;
         }
         return true;
+    }
+*/
+
+/*
+    public boolean is_HMI_poweron() {
+        if (hmi == null) return false;
+        return true;
+    }
+*/
+
+/*
+    public void launch_settings__worker() {
+        assert_worker_thread(); //--strip
+        lock_active_ac.lock();
+        try {
+            if (main == null) {
+                log("Cannot launch settings main = null"); //--strip
+                return;
+            }
+            main.launch_settings__worker();
+        }
+        finally {
+            lock_active_ac.unlock();
+        }
+    }
+
+    public void launch_settings() {
+        a.assert_ui_thread(); //--strip
+        lock_active_ac.lock();
+        try {
+            if (main == null) {
+                log("Cannot launch settings main = null"); //--strip
+                return;
+            }
+            main.launch_settings();
+        }
+        finally {
+            lock_active_ac.unlock();
+        }
+    }
+*/
+    public void runOnUiThread(Runnable uitask) {
+        assert_worker_thread(); //--strip
+        if (main == null) {
+            log("main is null"); //--strip
+            return;
+        }
+        main.runOnUiThread(uitask);
+    }
+
+
+
+/*
+    void init_hmi_(progress_t progress) {
+        log("init_hmi"); //--strip
+        assert_ui_thread();  //--strip
+        final app a = this;
+        Thread worker = new Thread(new Runnable() {
+            @Override public void run() {
+                HMI_power_on(progress);
+            }
+        });
+        worker.start();
+    }
+*/
+
+    String r_(int id) {
+        return getResources().getString(id);
+    }
+
+    public void new_trade(final hash_t parent_trade, final String datasubdir, final qr_t qr) {
+        assert_ui_thread();  //--strip
+        log("new_trade " + qr.to_string()); //--strip
+        hmi.new_trade(parent_trade, datasubdir, qr);
+        log("invoked API new_trade"); //--strip
+/*
+        Thread thread = new Thread(new Runnable() {
+            @Override public void run() {
+                a.hmi.new_trade(parent_trade, datasubdir, qr);
+                log("invoked API new_trade"); //--strip
+            }
+        });
+        thread.start();
+*/
+        Toast.makeText(main, r_(R.string.newtrade) + "\n" + qr.to_string(), 600).show();
+    }
+
+    public void call_human(int code, final String info) {
+/*
+        switch(code) {
+            case 1: //trade #tid received a chat update
+                String tid = info;
+                log("CALL_HUMAN "+code+" "+info); //--strip
+                show_notification(1, info);
+                //TODO: ... Show ! icon on every view there a tid is shown
+            break;
+       }
+*/
+    }
+
+    public void go_trade__worker(final hash_t tid) {
+        assert_worker_thread();  //--strip
+        log("go_trade__worker " + tid.encode()); //--strip
+        runOnUiThread(new Runnable() {
+            @Override public void run() {
+                a.go_trade(tid);
+            }
+        });
+    }
+
+    public void go_trade(final hash_t tid) {
+        assert_ui_thread();  //--strip
+        log("go_trade " + tid.encode());  //--strip
+        if (main == null) {
+            log("KO 77968 main is null"); //--strip
+            return;
+        }
+        Intent intent = new Intent(main, trader.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        intent.putExtra("tid", tid.value);
+        startActivity(intent);
+    }
+
+    public String balance(string s) {
+        if (hmi == null) {
+            return KO_89700;
+        }
+        final ko r = hmi.rpc_peer.call_balance(new uint16_t(0), s);
+        String x = null;
+        if (is_ko(r)) {
+            x = a.hmi.rewrite(r);
+        }
+        return x;
+    }
+
+    public void HMI_power_on__worker(int pos, final pin_t pin, progress_t progress) {
+        assert_worker_thread();  //--strip
+        set_walletd_leds_off();
+        set_govd_leds_off();
+        if (progress == null) {
+            log("adding default progress"); //--strip
+            progress = new app.progress_t() {
+                @Override public void on_progress(final String report) {
+                    log("progress: " + report); //--strip
+                }
+            };
+        }
+        if (hmi != null) {
+            progress.on_progress("Cannot power on other endpoint while " + device_endpoints.cur.name_ + " is already powereded ON.");
+            return;
+        }
+        hmi = device_endpoints.poweron(this, pos, pin, progress);
+    }
+
+    public void HMI_power_off__worker(final int pos, final progress_t progress) {
+        assert_worker_thread();  //--strip
+        log("HMI_power_off__worker"); //--strip
+        if (hmi == null) {
+            return;
+        }
+//        if (main != null) {
+//            main.on_hmi_power_off__worker();
+//        }
+        log("set leds off"); //--strip
+        device_endpoints.poweroff(this, pos, progress);
+        set_walletd_leds_off();
+        set_govd_leds_off();
+        hmi = null;
+    }
+
+    public void HMI_power_on(final int pos, final pin_t pin, final progress_t progress) {
+        assert_ui_thread();  //--strip
+        Thread thread = new Thread(new Runnable() {
+            @Override public void run() {
+                HMI_power_on__worker(pos, pin, progress);
+            }
+        });
+        thread.start();
+    }
+
+    public void HMI_power_off(final int pos, final progress_t progress) {
+        a.assert_ui_thread(); //--strip
+        Thread thread = new Thread(new Runnable() {
+            @Override public void run() {
+                HMI_power_off__worker(pos, progress);
+            }
+        });
+        thread.start();
     }
 
     final app a = (app) this;
     PrintStream cout = System.out;
     activity active_ac = null;
+    main_activity main = null;
+
     Lock lock_active_ac = new ReentrantLock();
-    datagram_dispatcher_t datagram_dispatcher = null;
-    hmi_t hmi = null;
-    public String homedir = null;
-    sw_updates_t sw_updates = null;
-    public ArrayList<String> notification_trades_id =  new ArrayList<String>();
+    hmi_t hmi = null; ///current hmi
+
+/*
+    public void set_hmi(int position) {
+        log("set_hmi " + position); //--strip
+        a.device_endpoints.set_cur(position);
+        hmi = a.device_endpoints.cur.hmi;
+    }
+*/
+
+    public String net_identifier() {
+        ConnectivityManager cm;
+        NetworkInfo info = null;
+        try {
+            cm = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+            info = cm.getActiveNetworkInfo();
+        }
+        catch (Exception e) {
+            return ""; //e.printStackTrace();
+        }
+        if (info == null) {
+            return "";
+        }
+        if (!info.isConnected()) {
+            return "";
+        }
+        if (info.getType() == ConnectivityManager.TYPE_WIFI) {
+            WifiManager wifiManager = (WifiManager) getSystemService(Context.WIFI_SERVICE);
+            WifiInfo wifiInfo;
+            wifiInfo = wifiManager.getConnectionInfo();
+            if (wifiInfo.getSupplicantState() == SupplicantState.COMPLETED) {
+                String ssid = wifiInfo.getSSID();
+                ssid = ssid.replaceAll("\"", "");
+                if (!ssid.equals("<unknown ssid>")) {
+                    return ssid;
+                }
+            }
+            return "wifi";
+        }
+        if (info.getType() == ConnectivityManager.TYPE_MOBILE) { 
+            switch (info.getSubtype()) {
+                case TelephonyManager.NETWORK_TYPE_GPRS:
+                case TelephonyManager.NETWORK_TYPE_EDGE:
+                case TelephonyManager.NETWORK_TYPE_CDMA:
+                case TelephonyManager.NETWORK_TYPE_1xRTT:
+                case TelephonyManager.NETWORK_TYPE_IDEN:
+                case TelephonyManager.NETWORK_TYPE_GSM:
+                     return "2G";
+                case TelephonyManager.NETWORK_TYPE_UMTS:
+                case TelephonyManager.NETWORK_TYPE_EVDO_0:
+                case TelephonyManager.NETWORK_TYPE_EVDO_A:
+                case TelephonyManager.NETWORK_TYPE_HSDPA:
+                case TelephonyManager.NETWORK_TYPE_HSUPA:
+                case TelephonyManager.NETWORK_TYPE_HSPA:
+                case TelephonyManager.NETWORK_TYPE_EVDO_B:
+                case TelephonyManager.NETWORK_TYPE_EHRPD:
+                case TelephonyManager.NETWORK_TYPE_HSPAP:
+                case TelephonyManager.NETWORK_TYPE_TD_SCDMA:
+                    return "3G";
+                case TelephonyManager.NETWORK_TYPE_LTE:
+                case TelephonyManager.NETWORK_TYPE_IWLAN:
+                case 19:
+                    return "4G";
+                case TelephonyManager.NETWORK_TYPE_NR:
+                    return "5G";
+                default:
+                    return "mobile";
+            }
+        }
+        return "unknown";
+    }
+
+    device_endpoints_t device_endpoints = null;
+    //device_endpoint_t cur;
+    //ArrayList<cryptocurrency> shit
+
+    //public String homedir = null;
+//    public ArrayList<String> notification_trades_id =  new ArrayList<String>();
     public i18n_t i18n;
     ToneGenerator tone;
 
 }
+
 

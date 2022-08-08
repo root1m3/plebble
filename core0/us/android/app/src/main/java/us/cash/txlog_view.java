@@ -313,7 +313,7 @@ public class txlog_view extends LinearLayout {
     public void update(index_t index) {
         log("update index sz " + index.size()); //--strip
         entries = convert(index);
-        activity.main.runOnUiThread(new Runnable() {
+        rf.tr.a.main.runOnUiThread(new Runnable() {
             public void run() {
                 adapter.clear();
                 adapter.addAll(entries);

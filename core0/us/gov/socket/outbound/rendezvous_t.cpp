@@ -37,6 +37,8 @@ using c = us::gov::socket::rendezvous_t;
 const char* c::KO_3029 = "KO 3029.2 Timeout.";
 const char* c::KO_20190 = "KO 20190 Backend returned a KO code: ";
 
+uint16_t c::dgram_roundtrip_timeout_secs{CFG_DGRAM_ROUNDTRIP_TIMEOUT_SECS};
+
 c::rendezvous_t(caller_daemon_t& caller_daemon): caller_daemon(caller_daemon) {
 }
 
@@ -89,9 +91,9 @@ pair<ko, datagram*> c::sendrecv(client& peer, datagram* d, string& remote_error)
     }
     auto t0 = peer.activity.load();
     iterator i;
-    while(true) {
-        log("waiting for", CFG_DGRAM_ROUNDTRIP_TIMEOUT_SECS, "seconds");
-        chrono::system_clock::time_point deadline = chrono::system_clock::now() + chrono::seconds(CFG_DGRAM_ROUNDTRIP_TIMEOUT_SECS);
+    while (true) {
+        log("waiting for", dgram_roundtrip_timeout_secs, "seconds");
+        chrono::system_clock::time_point deadline = chrono::system_clock::now() + chrono::seconds(dgram_roundtrip_timeout_secs);
         cv.wait_until(lock, deadline, [&] {
                 if (unlikely(finished)) return true;
                 auto i = find(seq);

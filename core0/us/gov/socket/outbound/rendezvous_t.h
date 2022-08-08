@@ -38,7 +38,9 @@ namespace us::gov::socket {
     struct rendezvous_t final: unordered_map<seq_t, datagram*> {
 
         static const char* KO_3029, *KO_20190;
+        static uint16_t dgram_roundtrip_timeout_secs;
 
+    public:
         rendezvous_t(caller_daemon_t&);
         ~rendezvous_t();
 

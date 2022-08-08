@@ -26,7 +26,7 @@ import java.util.Date;                                                          
 public class chat_message {
     public enum source_type{ P, M };
     public Date date;
-    public String texto;
+    public String text;
     public source_type source;
     public Boolean managed = false;
 }

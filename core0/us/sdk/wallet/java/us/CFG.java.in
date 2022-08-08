@@ -67,6 +67,7 @@ public class CFG {
     public static final int SENDQ_SCHUNK = ##str53##;
     public static final int DGRAM_ROUNDTRIP_TIMEOUT_SECS = ##str54##;
     public static final blob_t.version_t BLOB_VERSION = new blob_t.version_t((short)##str60##);
+    public static final String ANDROID_BLOB_ID = "##str56##";
 
     public static class network_topology_t {
         public String TYPE;
@@ -145,6 +146,13 @@ public class CFG {
             = b_in;                                                                     //--strip
             b = b_in;                                                                   //--strip
         }                                                                               //--strip
+    }                                                                                   //--strip
+
+    public static void log_stacktrace() {                                               //--strip
+         StackTraceElement[] stktrace = new Exception().getStackTrace();                //--strip
+         for (int i = 0; i < stktrace.length; i++) {                                    //--strip
+                System.out.println("stack trace frame " + i + ": " + stktrace[i].toString()); //--strip
+         }                                                                              //--strip
     }                                                                                   //--strip
 
     public static void log_gov(final String line) {                                     //--strip

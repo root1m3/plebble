@@ -71,8 +71,7 @@ public class fragment_trader extends Fragment implements datagram_dispatcher_t.h
        CFG.log_android("fragment_trader: " + line);     //--strip
     }                                                   //--strip
 
-    @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+    @Override public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         this.inflater = inflater;
         this.container = container;
         view = inflater.inflate(R.layout.fragment_trader, container, false);
@@ -106,26 +105,23 @@ public class fragment_trader extends Fragment implements datagram_dispatcher_t.h
             log("KO 4033 - missing tid"); //--strip
         } //--strip
         log("connect network-datagram hose");//--strip
-        dispatchid = a.datagram_dispatcher.connect_sink(this);
+        dispatchid = a.hmi.dispatcher.connect_sink(this);
         return view;
     }
 
-    @Override
-    public void onDestroyView() {
+    @Override public void onDestroyView() {
         super.onDestroyView();
         log("onDestroyView"); //--strip
         log("disconnect network-datagram hose.");//--strip
-        a.datagram_dispatcher.disconnect_sink(dispatchid);
+        a.hmi.dispatcher.disconnect_sink(dispatchid);
     }
 
-    @Override
-    public void onResume() {
+    @Override public void onResume() {
         super.onResume();
         log("onResume"); //--strip
     }
 
-    @Override
-    public void onPause() {
+    @Override public void onPause() {
         super.onPause();
         log("onPause"); //--strip
     }
@@ -146,11 +142,6 @@ public class fragment_trader extends Fragment implements datagram_dispatcher_t.h
 
     void close_trade() { //means archive
         tr.close_trade();
-    }
-
-    @Override
-    public void setUserVisibleHint(boolean isVisibleToUser) {
-        super.setUserVisibleHint(isVisibleToUser);
     }
 
     TextView get_my_personality() {
@@ -197,8 +188,7 @@ public class fragment_trader extends Fragment implements datagram_dispatcher_t.h
 
     void set_handlers() {
         pic_initiator.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
+            @Override public void onClick(View view) {
                 if (initiator) {
                     on_personality_me(personality_initiator.getText().toString());
                 }
@@ -208,60 +198,62 @@ public class fragment_trader extends Fragment implements datagram_dispatcher_t.h
 
             }
         });
+
         data_btn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
+            @Override public void onClick(View view) {
                 Intent intent = new Intent(getActivity().getApplicationContext(), tradelog.class);
                 intent.putExtra("tid", tid.value);
                 intent.putExtra("content_type", "data");
                 startActivity(intent);
             }
         });
+
         reset.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
+            @Override public void onClick(View view) {
                 reset();
             }
         });
+
         reload.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
+            @Override public void onClick(View view) {
                 reload();
             }
         });
+
         closetrade_btn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
+            @Override public void onClick(View view) {
                 close_trade();
             }
         });
+
         log_btn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
+            @Override public void onClick(View view) {
                 Intent intent = new Intent(getActivity().getApplicationContext(), tradelog.class);
                 intent.putExtra("tid", tid.value);
                 intent.putExtra("content_type", "log");
                 startActivity(intent);
             }
         });
+
         personality_exchange_btn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
+            @Override public void onClick(View view) {
                 exchange_personality();
             }
         });
+
         create_bookmark_btn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
+            @Override public void onClick(View view) {
                 create_bookmark();
             }
         });
+
         select_protocol_role.setOnClickListener(new View.OnClickListener() {
             @Override public void onClick(View view) {
                 tr.forward_roles = fragment_trader.this;
                 tr.get_sourceshit("roles", getActivity().getApplicationContext());
             }
         });
+
         online.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override public void onCheckedChanged(CompoundButton buttonView, boolean is_checked) {
                 if (a == null) return;
@@ -298,10 +290,9 @@ public class fragment_trader extends Fragment implements datagram_dispatcher_t.h
         if (is_ko(r)) {
             return;
         }
-        final main_activity ma = tr.main;
+        final main_activity ma = tr.a.main;
         getActivity().runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
+            @Override public void run() {
                 ma.show_remote_bookmarks(tid, bm);
             }
         });
@@ -311,8 +302,7 @@ public class fragment_trader extends Fragment implements datagram_dispatcher_t.h
         app.assert_worker_thread(); //--strip
         log("set_peer_ico " + l.length); //--strip
         getActivity().runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
+            @Override public void run() {
                 r_peer_ico = BitmapFactory.decodeByteArray(l, 0, l.length);
                 if (r_peer_ico == null) {
                     log("KO 50059 Bitmap is null " + l.length); //--strip
@@ -466,7 +456,6 @@ public class fragment_trader extends Fragment implements datagram_dispatcher_t.h
         if (mper != null) {
             peerp += "\n" + mper;
         }
-
         String myper = data.find("my_personality");
         if (myper != null) {
             myp = myper;

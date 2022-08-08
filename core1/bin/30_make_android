@@ -33,7 +33,7 @@ else
 fi
 
 flag=0
-while [ true ]; do
+while [[ true ]]; do
     opt=$1
     echo "read opt=$opt"
     shift
@@ -48,7 +48,7 @@ while [ true ]; do
 done
 build_jobs=$opt
 
-if [ "_$build_jobs" == "_" ]; then
+if [[ "_$build_jobs" == "_" ]]; then
     build_jobs="build_jobs"
     echo -n "specify which one: "
     find . -maxdepth 1 -type d -name "build_jobs*" | sed "s~^\./~~" | xargs
@@ -117,7 +117,7 @@ find android -type f
 rm android -rf
 
 echo "Finished"
-find distr -type f
+#find distr -type f
 
 exit 0
 

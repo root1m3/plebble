@@ -101,7 +101,7 @@ namespace us::wallet::wallet {
         io_accounts_t select_sources_algS0(const cash_t& amount, const hash_t& token) const;
         io_accounts_t select_destinations(const asa_t&, const cash_t& amount, const hash_t& token) const;
         io_accounts_t select_destinations_algR0(const cash_t& amount, const hash_t& token) const;
-        io_accounts_t select_source(const hash_t& src, const cash_t& amount, const hash_t& token) const;
+        io_accounts_t select_source(const hash_t& src, cash_t amount, const hash_t& token) const;
         static locking_program_input_t create_input(const sigmsg_hash_t&, const priv_t&);
         locking_program_input_t generate_locking_program_input(const ttx_t& t, const locking_program_t&) const;
         locking_program_input_t generate_locking_program_input(const map_tx_t& t, const locking_program_t&) const;

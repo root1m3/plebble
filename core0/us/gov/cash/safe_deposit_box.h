@@ -58,7 +58,7 @@ namespace us::gov::cash {
         bool burn(const hash_t& token, const cash_t& amount, cash_t& fee);
         void add(const hash_t& token, const cash_t&);
         bool store(const string& key, const string& value);
-        bool store(const string& path, const hash_t& key, const uint32_t& sz);
+        bool store(const string& path, const hash_t& key, uint32_t sz);
         void dump(ostream&) const;
         void diff_files(const safe_deposit_box& newer, vector<pair<hash_t, uint32_t>>& old_files, vector<pair<hash_t, uint32_t>>& new_files) const;
         void get_files(const hash_t&a, vector<pair<hash_t, pair<hash_t, fileattr_t>>>&) const;

@@ -256,5 +256,8 @@ clean_java:
 	$(MAKE) clean -C sdk/wallet/java;
 	$(MAKE) clean -C android;
 
-.PHONY: all wallet gov debug release sdk image res clean distr-common warndistr android sdk-spongy clean_gov clean_wallet clean_bz clean_crypto clean_java clean_test clean_api
+clean_conf: clean clean_java
+	$(RM) res/strings/*.ovr
+	$(RM) vcs_git_*
 
+.PHONY: all wallet gov debug release sdk image res clean distr-common warndistr android sdk-spongy clean_gov clean_wallet clean_bz clean_crypto clean_java clean_test clean_api clean_conf

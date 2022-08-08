@@ -15,8 +15,8 @@ It can be enabled under Phone Settings>Apps>Permissions, SET NOW?
     <string name="menu_scan">Scan</string>
     <string name="menu_stop">Stop</string>
     <string name="unknown_device">Unknown device</string>
-    <string name="connectting">Connecting</string>
+    <string name="connecting">Connecting</string>
     <string name="pair_device">Please Connect Device</string>
-    <string name="cancel">Cancel</string>
+    <string name="cancel2">Cancel</string>
 </resources>
 

@@ -67,7 +67,22 @@ void c::process(const wallet_address& t) {
     log("process wallet_address evidence.");
     logdump("  wallet_address::", t);
     if (unlikely(t.pkh.is_zero())) {
-        auto r = "KO 34029 invalid address.";
+        auto r = "KO 34029 invalid wallet address.";
+        log(r);
+        return;
+    }
+    if (unlikely(t.net_addr == 2130706433)) {
+        auto r = "KO 34030 invalid localhost address.";
+        log(r);
+        return;
+    }
+    if (unlikely(t.net_addr == 0)) {
+        auto r = "KO 34031 invalid null address.";
+        log(r);
+        return;
+    }
+    if (unlikely(t.pport == 0)) {
+        auto r = "KO 34032 invalid port.";
         log(r);
         return;
     }
@@ -82,6 +97,23 @@ void c::process(const wallet_address& t) {
         log("B112");
         pool->online.emplace(t.pkh, account_t(t.net_addr, t.pport, 0, 0));
     }
+
+/*
+    //alpha-38. purge localhost entries
+    {    
+        auto i = pool->online.begin();
+        while(i != pool->online.end()) {
+            switch(i->second.net_address) {
+                case 0:
+                case 2130706433:
+                    i = pool->online.erase(i);
+                    continue;
+            }
+            ++i;
+        }
+    }
+*/
+
 }
 
 void c::import(const wallets_t& online) {

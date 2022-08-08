@@ -61,7 +61,7 @@ ko c::init(const string& r2rhome) {
     return ok;
 }
 
-string c::homedir() const {
+string c::homedir() const { /// home is homedir() cached
     ostringstream os;
     os << r2rhome << '/' << protocol::name << "/ask";
     log("homedir", os.str());

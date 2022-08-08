@@ -30,17 +30,19 @@ import android.provider.Settings;
 import android.util.Log;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
-import com.tbruyelle.rxpermissions2.Permission;
-import com.tbruyelle.rxpermissions2.RxPermissions;
-import io.reactivex.functions.Consumer;
+import com.tbruyelle.rxpermissions3.Permission;
+import com.tbruyelle.rxpermissions3.RxPermissions;
+//import io.reactivex.functions.Consumer;
+import io.reactivex.rxjava3.functions.Consumer;
 import us.wearable_JClife.R;
+import io.reactivex.rxjava3.core.Observable;
 
 public class PermissionsUtil {
 
     private static final String TAG = "PermissionsUtil";
 
     public static void requestPermissions(final AppCompatActivity activity, final PermissionListener  permissionListener, final String... permissions) {
-        if(activity.isFinishing())return;
+        if (activity.isFinishing()) return;
         RxPermissions rxPermission = new RxPermissions(activity);
         rxPermission.requestEach(permissions).subscribe(new Consumer<Permission>() {
             @Override public void accept(Permission permission) throws Exception {
@@ -62,7 +64,7 @@ public class PermissionsUtil {
     }
 
     public static void showNeedPermission(final AppCompatActivity activity, final PermissionListener  permissionListener, final String permissionName) {
-        if(activity.isFinishing())return;
+        if (activity.isFinishing()) return;
         AlertDialog alertDialog = new AlertDialog.Builder(activity)
                 .setCancelable(false)
                 .setTitle(R.string.permission_requierd)
@@ -80,7 +82,7 @@ public class PermissionsUtil {
     }
 
     public static void showToEnable(final AppCompatActivity context) {
-        if(context.isFinishing())return;
+        if (context.isFinishing()) return;
         AlertDialog alertDialog = new AlertDialog.Builder(context)
             .setCancelable(false)
             .setTitle(context.getString(R.string.Enable_Access_title))
@@ -92,7 +94,7 @@ public class PermissionsUtil {
                     intent.setData(uri);
                     context.startActivity(intent);
                 }
-            }).setNegativeButton(context.getString(R.string.cancel), new DialogInterface.OnClickListener() {
+            }).setNegativeButton(context.getString(R.string.cancel2), new DialogInterface.OnClickListener() {
                 @Override public void onClick(DialogInterface dialog, int which) {
                 }
             }).create();

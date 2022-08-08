@@ -149,9 +149,21 @@ function patch_android {
         gradlename=${str28/./-}
         sed -i "s/us-cash/$gradlename/g" settings.gradle
         pushd app > /dev/null
-            sed -i "s/applicationId \"us\.cash\"/applicationId \"$str28\"/" build.gradle.in
-            sed -i "s#versionName \"0 28/03/2017\"#versionName \"$core0_version_name $core0_build_date\"#" build.gradle.in
-            sed -i "s#versionCode 6#versionCode $core0_version_code#" build.gradle.in
+            sed -i "s/applicationId \"us\.cash\"/applicationId \"$str28\"/" build.gradle
+            if [[ $? -ne 0 ]]; then
+                echo "KO 88796"
+                exit 1
+            fi
+            sed -i "s#versionName \"0 28/03/2017\"#versionName \"$core0_version_name $core0_build_date\"#" build.gradle
+            if [[ $? -ne 0 ]]; then
+                echo "KO 88797"
+                exit 1
+            fi
+            sed -i "s#versionCode 6#versionCode $core0_version_code#" build.gradle
+            if [[ $? -ne 0 ]]; then
+                echo "KO 88798"
+                exit 1
+            fi
             pushd src > /dev/null
                 find . -type f -name "*.java" -exec sed -i "s/package us\.cash;/package $str28;/g" {} \;
                 find . -type f -name "*.java.in" -exec sed -i "s/package us\.cash;/package $str28;/g" {} \;

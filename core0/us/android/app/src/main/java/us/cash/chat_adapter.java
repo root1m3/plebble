@@ -53,17 +53,16 @@ public class chat_adapter extends RecyclerView.Adapter {
     private ArrayList<message_t> array_list;
     private static MediaPlayer media_player = new MediaPlayer(); //TODO review static
 
-    static void log(final String line) {            //--strip
-       CFG.log_android("chat_adapter: " + line);    //--strip
-    }                                               //--strip
+    static private void log(final String line) {            //--strip
+       CFG.log_android("chat_adapter: " + line);            //--strip
+    }                                                       //--strip
 
     public chat_adapter(Context context, ArrayList<message_t> array_list) {
         this.context = context;
         this.array_list = array_list;
     }
 
-    @Override
-    public int getItemViewType(int position) {
+    @Override public int getItemViewType(int position) {
         message_t message = array_list.get(position);
         if (message.is_sent() && position != array_list.size() - 1)
             return VIEW_TYPE_MESSAGE_SENT;
@@ -76,9 +75,7 @@ public class chat_adapter extends RecyclerView.Adapter {
         return 0;
     }
 
-    @NonNull
-    @Override
-    public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+    @NonNull @Override public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         log("onCreateViewHolder" + viewType); //--strip
         View view;
         Animation animation = AnimationUtils.loadAnimation(context, R.anim.slide_from_bottom);
@@ -108,8 +105,7 @@ public class chat_adapter extends RecyclerView.Adapter {
         return null;
     }
 
-    @Override
-    public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
+    @Override public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
         try {
             log("onBindViewHolder" + position + ' ' + array_list.size());  //--strip
             message_t message = array_list.get(position);
@@ -133,8 +129,7 @@ public class chat_adapter extends RecyclerView.Adapter {
         }
     }
 
-    @Override
-    public int getItemCount() {
+    @Override public int getItemCount() {
         return array_list.size();
     }
 

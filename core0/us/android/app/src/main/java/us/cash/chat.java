@@ -31,7 +31,7 @@ import android.os.Bundle;                                                       
 import us.gov.socket.datagram;                                                                 // datagram
 import java.util.Date;                                                                         // Date
 import android.widget.EditText;                                                                // EditText
-import com.google.firebase.crashlytics.FirebaseCrashlytics;                                    // FirebaseCrashlytics
+//import com.google.firebase.crashlytics.FirebaseCrashlytics;                                    // FirebaseCrashlytics
 import androidx.fragment.app.Fragment;                                                         // Fragment
 import static us.gov.crypto.ripemd160.hash_t;                                                  // hash_t
 import android.widget.ImageButton;                                                             // ImageButton
@@ -63,9 +63,9 @@ import android.view.View;                                                       
 
 public final class chat extends Fragment implements datagram_dispatcher_t.handler_t {
 
-    static void log(final String line) {    //--strip
-       CFG.log_android("chat: " + line);    //--strip
-    }                                       //--strip
+    private static void log(final String line) {    //--strip
+       CFG.log_android("chat: " + line);            //--strip
+    }                                               //--strip
 
     void set_handlers() {
         refreshbtn.setOnClickListener(v -> {
@@ -91,7 +91,7 @@ public final class chat extends Fragment implements datagram_dispatcher_t.handle
         super.onCreate(savedInstanceState);
         log("OnCreate"); //--strip
         v = inflater.inflate(R.layout.fragment_chat, container, false);
-        progressbarcontainer = v.findViewById(R.id.progressbarcontainer);
+        //progressbarcontainer = v.findViewById(R.id.progressbarcontainer);
         a = (app) getActivity().getApplication();
         smessage = v.findViewById(R.id.edittext_chatbox);
         sent = v.findViewById(R.id.button_chatbox_send);
@@ -122,21 +122,19 @@ public final class chat extends Fragment implements datagram_dispatcher_t.handle
         message_adapter.setHasStableIds(true);
         smessage.requestFocus();
         log("connect network-datagram hose"); //--strip
-        dispatchid = a.datagram_dispatcher.connect_sink(this);
+        dispatchid = a.hmi.dispatcher.connect_sink(this);
         set_payload(raw);
         return v;
     }
 
-    @Override
-    public void onDestroy() {
+    @Override public void onDestroy() {
         super.onDestroy();
         log("onDestroy"); //--strip
         log("disconnect network-datagram hose");//--strip
-        a.datagram_dispatcher.disconnect_sink(dispatchid);
+        a.hmi.dispatcher.disconnect_sink(dispatchid);
     }
 
-    @Override
-    public void on_push(final hash_t target_tid, final uint16_t code, final byte[] payload) {
+    @Override public void on_push(final hash_t target_tid, final uint16_t code, final byte[] payload) {
         log("on_push target_tid " + target_tid.encode() + " tid " + tid.encode()); //--strip
         if (!tid.equals(target_tid)) {
             log("not for me"); //--strip
@@ -197,6 +195,7 @@ public final class chat extends Fragment implements datagram_dispatcher_t.handle
     }
 
     void update_shit(final chat_t ch) {
+        //ch.dump("chat> ", System.out);
         lock.lock();
         try {
             message_array.clear();
@@ -204,12 +203,14 @@ public final class chat extends Fragment implements datagram_dispatcher_t.handle
                 ts_t key = entry.getKey();
                 us.wallet.trader.chat.chat_entry value = entry.getValue();
                 Date d = new Date(TimeUnit.MILLISECONDS.convert(key.value, TimeUnit.NANOSECONDS));
-                chat_message cm = new chat_message();
-                cm.date = d;
-                cm.texto = value.toString();
-                cm.source = (value.me) ? chat_message.source_type.M : chat_message.source_type.P;
-                chat_messages.add(cm);
-                message_t msg = new message_t(value.toString(), value.me ? 0 : 1, d);
+                //chat_message cm = new chat_message();
+                //cm.date = d;
+                //cm.text = value.to_string();
+                //log("TEXTHERE: " + cm.text); //--strip
+                //cm.source = (value.me) ? chat_message.source_type.M : chat_message.source_type.P;
+                //chat_messages.add(cm);
+
+                message_t msg = new message_t(value.to_string(), value.me ? 0 : 1, d);
                 message_array.add(msg);
             }
         }
@@ -227,8 +228,7 @@ public final class chat extends Fragment implements datagram_dispatcher_t.handle
         boolean tracklast = true; //TODO scroll only if last item was visible
         if (tracklast) {
             TimerTask task = new TimerTask() {
-                @Override
-                public void run() {
+                @Override public void run() {
                     if (message_adapter.getItemCount() > 0) {
                         message_recycler.smoothScrollToPosition(message_adapter.getItemCount() - 1);
                     }
@@ -236,12 +236,12 @@ public final class chat extends Fragment implements datagram_dispatcher_t.handle
             };
             new Timer().schedule(task, 500);
         }
-        progressbarcontainer.setVisibility(View.GONE);
+        //progressbarcontainer.setVisibility(View.GONE);
     }
 
     void fetch() {
         app.assert_ui_thread(); //--strip;
-        progressbarcontainer.setVisibility(View.VISIBLE);
+        //progressbarcontainer.setVisibility(View.VISIBLE);
         log("fetch - UI thread"); //--strip
         a.hmi.command_trade(tid, "show chat");
     }
@@ -256,10 +256,10 @@ public final class chat extends Fragment implements datagram_dispatcher_t.handle
     private int REQUEST_CODE = 200;
     private app a;
     hash_t tid;
-    RelativeLayout progressbarcontainer;
+    //RelativeLayout progressbarcontainer;
     ReentrantLock lock = new ReentrantLock();
     ArrayList<message_t> message_array;
-    private ArrayList<chat_message> chat_messages = new ArrayList<chat_message>();
+//    private ArrayList<chat_message> chat_messages = new ArrayList<chat_message>();
     private chat_adapter message_adapter;
     LinearLayout chat_header;
     int dispatchid;

@@ -40,6 +40,13 @@ s file 1 bin_pkg
 -
 -
 
+get_component_hash
+s component s filename
+sync
+s curver
+-
+-
+
 harvest
 u2 id  u2 timeout  u2 decay  k priv
 sync

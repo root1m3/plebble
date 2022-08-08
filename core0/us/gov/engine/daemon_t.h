@@ -190,6 +190,8 @@ namespace us::gov::engine {
         bool ready_for_block_opening(ts_t) const override;
         static string get_blocksdir(const string& govhome);
         static string get_fsrootdir(const string& govhome);
+        static string get_evidencesdir(const string& govhome);
+
         string uptime() const;
 
         ko start();
@@ -212,6 +214,7 @@ namespace us::gov::engine {
         void set_tx_error(ts_t, const string& err);
         void set_tx_status(ts_t, evt_status_t st);
         void replace_db(const hash_t&, db_t*);
+        void save_evidence(const evidence&, ko calendar_result);
 
     public:
         hash_t last_vote{0};
@@ -247,6 +250,8 @@ namespace us::gov::engine {
         mutable mutex mx_import;
         uint16_t depth{0};
         string blocksdir;
+        string evidencesdir;
+        bool save_evidences{false};
         reg votes_timing;
         reg local_deltas_timing;
         string status_file;

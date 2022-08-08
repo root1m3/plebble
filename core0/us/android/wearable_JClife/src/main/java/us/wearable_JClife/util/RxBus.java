@@ -22,13 +22,22 @@
 //===-
 package us.wearable_JClife.util;
 
-
+/*
 import io.reactivex.Flowable;
 import io.reactivex.Observable;
 import io.reactivex.processors.FlowableProcessor;
 import io.reactivex.processors.PublishProcessor;
 import io.reactivex.subjects.PublishSubject;
 import io.reactivex.subjects.Subject;
+*/
+import io.reactivex.rxjava3.core.Flowable;
+import io.reactivex.rxjava3.core.Observable;
+import io.reactivex.rxjava3.processors.FlowableProcessor;
+import io.reactivex.rxjava3.processors.PublishProcessor;
+import io.reactivex.rxjava3.subjects.PublishSubject;
+import io.reactivex.rxjava3.subjects.Subject;
+
+
 
 /**
  * Created by zhuge on 2017/1/19 0019.
@@ -36,28 +45,29 @@ import io.reactivex.subjects.Subject;
 public class RxBus {
 
     private static RxBus ourInstance = new RxBus();
-    private final Subject<Object> bus;
 
     public static RxBus getInstance() {
         return ourInstance;
     }
 
-    private final FlowableProcessor<Object> mBus;
-
     private RxBus() {
-        mBus= PublishProcessor.create().toSerialized();
-        bus= PublishSubject.create().toSerialized();
+        mBus = PublishProcessor.create().toSerialized();
+        bus = PublishSubject.create().toSerialized();
     }
 
     public void post(Object object){
         bus.onNext(object);
     }
 
-    public <T> Observable<T> toObservable(Class<T> eventType){
+    public <T> Observable<T> toObservable(Class<T> eventType) {
         return bus.ofType(eventType);
     }
 
     public <T> Flowable<T> toFlowable(Class<T> tClass) {
         return mBus.ofType(tClass);
     }
+
+    private final Subject<Object> bus;
+    private final FlowableProcessor<Object> mBus;
 }
+

@@ -141,8 +141,37 @@ Production releases. beta
 Production releases. alpha
 --------------------------
 
-alpha-37 -
+alpha-40 -
+    * upgraded gradle scripts to use newer libraries. Andropid API level 32. Java8 -> Java12
+    * android. Generation of bundles for AppStore
 
+alpha-39 - alpha-39_d9e0cf60 2022-08-06_23-09-10 vhash d9e0cf60 <- R cf16d9ef512e361fbf4cecc2a37690f060e3c825 alpha-39 dbg-0 logs-0 counters-0 connlog-0 fcgi-0
+    * Remove temporary purge algorithm put to invalid localhost and null entries in wallet db 40.
+    * android app Buf fixes in the new menu organization.
+    * android sw_updates made optional (str83) . APK uploaded to google app store doesn't need sw updates.
+    * android fix automatic updates
+    * android About-app screen.
+    * android LnF touches.
+    * gov/id fix returned error is prev handshake object found. it shouldn't.
+    * android apks for different brands are signed with different keyroots.
+
+alpha-38 - vhash 4b7cadfd <- R dad0255e6d7289a4a6fa10c1e05f49055d7e4e9e alpha-38 dbg-0 logs-0 counters-0 connlog-0 fcgi-0
+    * android app Multi HMI. Allowing the managemnent of multiple nodes or connection methods.
+    * Fix: Traders mutex restored. alpha-37-hotfix1 deadlocked in self-trades.
+    * Prevent from registering localhost and null entries in wallet db 40.
+    * purge invalid localhost and null entries in wallet db 40.
+
+alpha-37-hotfix2 - 
+    * duplicate evidence were being unneccesarily saved.
+    * deadlock motivating hotfix1 was not fully fixed.
+
+alpha-37-hotfix1 - vhash 2a618df7 <- R e8f0eb7aa5d2c1ebbc7e7cbc0b52762f1c05ecc8 alpha-37-hotfix1 dbg-0 logs-0 counters-0 connlog-0 fcgi-0
+    * Fix: R2R traders down. trader::exec was causing a deadlock double-locking a mutex, hanging the process and freezing R2R trades.
+    * save evidences, configurable by command line option, default no. can be turned on by users to record incoming evidences 
+
+alpha-37 - vhash 1025c768 <- R 792510851947c77dfe19d00ef5eb07ca2ad7e8bf alpha-37 dbg-0 logs-0 counters-0 connlog-0 fcgi-0
+    * wallet auto prepair devices with pin. Create guest wallets named after linked to device-pubkey
+    * fix a trade start (w/o protocol) was not working on the app.
 
 alpha-36 - alpha-36_8ffb9049 2022-07-05_19-01-52 vhash 8ffb9049 <- R 910bf5353fa897407c1ccff8b525e4be3894cb56 alpha-36 dbg-0 logs-0 counters-0 connlog-0 fcgi-0
     * android - moved toolbar and main menu drawer to base class activity.

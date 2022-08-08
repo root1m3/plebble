@@ -68,9 +68,9 @@ import android.view.View;                                                       
 
 public final class position extends activity {
 
-    static void log(final String line) {          //--strip
-        CFG.log_android("position: " + line);     //--strip
-    }                                             //--strip
+    private static void log(final String line) {          //--strip
+        CFG.log_android("position: " + line);             //--strip
+    }                                                     //--strip
 
     public static class adapter_t extends ArrayAdapter<cryptocurrency> {
 
@@ -93,7 +93,7 @@ public final class position extends activity {
             cryptocurrency cripto = getItem(position);
             token_address.setText(cripto.get_token());
             double finalbalance = cripto.get_amount();
-            NumberFormat nFormat = NumberFormat.getInstance(activity.main.getResources().getConfiguration().locale);
+            NumberFormat nFormat = NumberFormat.getInstance(activity.a.main.getResources().getConfiguration().locale);
             nFormat.setGroupingUsed(true);
             if (cripto.get_decimals() > 0) {
                 nFormat.setMaximumFractionDigits(2);
@@ -101,26 +101,6 @@ public final class position extends activity {
                 finalbalance = cripto.get_amount() / Math.pow(10, cripto.get_decimals());
             }
             balance_tv.setText(nFormat.format(finalbalance));
-            View.OnClickListener lner = new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    String[] options = {"Send "+cripto.get_token()};
-                    new AlertDialog.Builder(adapter_t.this.activity_).setTitle("Select action:")
-                        .setItems(options, new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                switch(which) {
-                                    case 0:
-                                        adapter_t.this.activity_.main.transfer(cripto.get_token());
-                                        break;
-                                }
-                            }
-                        })
-                    .show();
-                }
-            };
-            token_address.setOnClickListener(lner);
-            balance_tv.setOnClickListener(lner);
             return vi;
         }
 
@@ -144,14 +124,8 @@ public final class position extends activity {
         try {
             super.onCreate(savedInstanceState);
             set_content_layout(R.layout.activity_position);
-//            Toolbar toolbar = findViewById(R.id.toolbar);
-//            setSupportActionBar(findViewById(R.id.toolbar));
             toolbar.setTitle(R.string.balance);
-//            progressbarcontainer = findViewById(R.id.progressbarcontainer);
-            //listview  = findViewById(R.id.listview);
             log("Filling Coin bookmarks - TODO well done"); //--strip
-            coinbookmarks = new HashMap<String, cryptocurrency>();
-            log("CoinBookmarks size: " + coinbookmarks.size()); //--strip
             shit = new ArrayList<cryptocurrency>();
             adapter = new adapter_t(this, shit);
             lv = findViewById(R.id.listview);
@@ -188,77 +162,41 @@ public final class position extends activity {
     void set_balances(final String[] ashit) {
         app.assert_ui_thread(); //--strip
         shit.clear();
-/*
-        if (b.startsWith("KO")) {
-            if (b.startsWith("KO 2018 ")) {
-                cryptocurrency c = new cryptocurrency();
-                c.set_mnemonic(getResources().getString(R.string.nocoinsinwallet));
-                c.set_amount(0);
-                c.set_decimals(0);
-                c.set_token("-");
-                shit.add(c);
-            }
-            else {
-                cryptocurrency c = new cryptocurrency();
-                c.set_mnemonic(b.substring(0,7));
-                c.set_amount(0);
-                c.set_decimals(0);
-                c.set_token("-");
-                shit.add(c);
-            }
-        }
-        else {
-*/
         for (String itm : ashit) {
             String[] txts = itm.split("\\s");
-            cryptocurrency c = coinbookmarks.get(txts[0]);
-            if (c == null) {
-                c = new cryptocurrency(txts[0], txts[0], 0, 0, "default_coin");
-            }
+            cryptocurrency c = new cryptocurrency(txts[0], txts[0], 0, 0, "default_coin");
             c.set_amount(Double.parseDouble(txts[1]));
             shit.add(c);
         }
-//        }
         refresh();
     }
 
     void fetch() {
         app.assert_ui_thread(); //--strip
-        //progressbarcontainer.setVisibility(View.VISIBLE);
         lv.setVisibility(View.GONE);
         adapter.clear();
         adapter.notifyDataSetChanged();
-        Thread thread = new Thread(new Runnable() {
-            public void run() {
-                final app a = (app) getApplication();
-                final string s = new string();
-                final ko r = a.hmi.rpc_peer.call_balance(new uint16_t(0), s);
-                String x = null;
-                if (is_ko(r)) {
-                    x = a.hmi.rewrite(r);
-                }
-                final String y = x;
-                runOnUiThread(new Runnable() {
-                    @Override public void run() {
-                        log("process response"); //--strip
-                        if (is_ko(r)) {
-                            log(r.msg + " " + y); //--strip
-                            Toast.makeText(getApplicationContext(), y, 6000).show();
-                            return;
-                        }
-                        final String[] ashit = s.value.split("\\r?\\n");
-                        set_balances(ashit);
-                    }
-                });
-            }
-        });
-        thread.start();
+        final string s = new string();
+        String r = a.balance(s);
+        log("process response"); //--strip
+        if (r != null) {
+            log(r); //--strip
+            Toast.makeText(getApplicationContext(), r, 6000).show();
+            return;
+        }
+        final String[] ashit = s.value.split("\\r?\\n");
+        set_balances(ashit);
     }
 
-    void refresh() {
+    @Override public void refresh() {
         app.assert_ui_thread(); //--strip
+        if (a.hmi == null) {
+            log("Closing activity hmi is null"); //--strip
+            finish();
+            return;
+        }
+        super.refresh();
         adapter.notifyDataSetChanged();
-        //progressbarcontainer.setVisibility(View.GONE);
         lv.setVisibility(View.VISIBLE);
     }
 
@@ -267,12 +205,5 @@ public final class position extends activity {
     private toolbar_button cryptos;
     adapter_t adapter = null;
     ArrayList<cryptocurrency> shit;
-//    RelativeLayout progressbarcontainer;
-    HashMap<String,cryptocurrency> coinbookmarks = null;
-//    Toolbar toolbar;
-//    ListView listview;
-//    DrawerLayout drawerLayout;
-//    NavigationView navigationView;
-    int dispatchid;
 }
 

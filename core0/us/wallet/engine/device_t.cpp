@@ -43,7 +43,7 @@ void c::to_stream(ostream& os) const {
     os << (subhome.empty() ? "-" : subhome) << ' ' << name << '\n';
 }
 
-pair<bool, device_t> c::from_stream(istream& is) { //v 2
+pair<bool, device_t> c::from_stream(istream& is) {
     pair<bool, device_t> d;
     d.first = true;
     auto g = is.tellg();
@@ -68,12 +68,12 @@ pair<bool, device_t> c::from_stream(istream& is) { //v 2
     return move(d);
 }
 
-pair<bool, device_t> c::from_stream_prev(istream& is) { // v 1
+pair<bool, device_t> c::from_stream_prev(istream& is) {
     log("from stream prev");
     return from_stream_v1(is);
 }
 
-pair<bool, device_t> c::from_stream_v1(istream& is) { // v 1
+pair<bool, device_t> c::from_stream_v1(istream& is) {
     log("from stream prev");
     pair<bool, device_t> d;
     d.first = true;
@@ -93,8 +93,8 @@ pin_t c::decode_pin() const {
     return *reinterpret_cast<const pin_t*>(&pub.data[0]);
 }
 
-void c::encode_pin(uint16_t pin) {
-    *reinterpret_cast<uint16_t*>(&pub.data[0]) = pin;
+void c::encode_pin(pin_t pin) {
+    *reinterpret_cast<pin_t*>(&pub.data[0]) = pin;
     pub.valid = false;
 }
 

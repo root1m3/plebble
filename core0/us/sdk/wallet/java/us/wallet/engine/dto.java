@@ -109,6 +109,38 @@ public interface dto {
         public bin_t bin_pkg = new bin_t();
     }
 
+    /// get_component_hash - IN
+    public static final class get_component_hash_in_t extends blob_writer_t.writable {
+        //source: coder_java.cpp::gen_dto_in_hdr (1)
+
+        public get_component_hash_in_t(final string component, final string filename) {
+            this.component = component;
+            this.filename = filename;
+        }
+
+        @Override public int blob_size() {
+            return blob_writer_t.blob_size(component) +
+                blob_writer_t.blob_size(filename);
+        }
+
+        @Override public void to_blob(blob_writer_t writer) {
+            writer.write(component);
+            writer.write(filename);
+        }
+
+        public datagram get_datagram(final channel_t channel, final seq_t seq) {
+            return super.get_datagram(channel, new svc_t(protocol.engine_get_component_hash), seq);
+        }
+
+        public static datagram get_datagram(final channel_t channel, final seq_t seq, final string component, final string filename) {
+            get_component_hash_in_t o = new get_component_hash_in_t(component, filename);
+            return o.get_datagram(channel, seq);
+        }
+
+        final string component;
+        final string filename;
+    }
+
     /// harvest - IN
     public static final class harvest_in_t extends blob_writer_t.writable {
         //source: coder_java.cpp::gen_dto_in_hdr (1)
@@ -260,6 +292,28 @@ public interface dto {
 
         public string file;
         public bin_t bin_pkg;
+    }
+
+    public static final class get_component_hash_in_dst_t extends blob_reader_t.readable {
+        //source: coder_java.cpp::gen_dto_in_hdr (2)
+
+        public get_component_hash_in_dst_t() {}
+
+
+        @Override public ko from_blob(blob_reader_t reader) {
+            {
+                ko r = reader.read(component);
+                if (ko.is_ko(r)) return r;
+            }
+            {
+                ko r = reader.read(filename);
+                if (ko.is_ko(r)) return r;
+            }
+            return ok;
+        }
+
+        public string component = new string();
+        public string filename = new string();
     }
 
     public static final class harvest_in_dst_t extends blob_reader_t.readable {

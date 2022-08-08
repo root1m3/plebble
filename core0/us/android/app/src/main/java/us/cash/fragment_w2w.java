@@ -85,14 +85,14 @@ public class fragment_w2w extends role_fragment  {
                 on_select_coin();
             }
         });
-        dispatchid = a.datagram_dispatcher.connect_sink(this);
+        dispatchid = a.hmi.dispatcher.connect_sink(this);
         return v;
    }
 
     @Override public void onDestroyView() {
         super.onDestroyView();
         log("onDestroyView"); //--strip
-        a.datagram_dispatcher.disconnect_sink(dispatchid);
+        a.hmi.dispatcher.disconnect_sink(dispatchid);
     }
 
     @Override public void onPause() {

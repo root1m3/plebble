@@ -1,0 +1,39 @@
+This transfer doesnt work:
+
+gov@pi2:~ $ wallet balance 2
+25GmfWAuGSfnZgoTxYxGLZDc3y2D GAS 9999999
+2it9gucHmxbGeJpwGoPusEaRaiop GAS 2006346805151
+4NwEEwnQbnwB7p8yCBNkx9uj71ru GAS 36315586; 4 files. 73 MiB; 1 coins
+
+gov@pi2:~ $ wallet transfer 4NwEEwnQbnwB7p8yCBNkx9uj71ru 100000000 gas
+2cEcMQX1zKVU9Nymtxu8gFjxR6FsK29kXDy5oA1uvgyC2MTKfjwBDAX16devzc6mo22WcTvHBEN4KSb7SivxCbNg6LDZSaNqQwkXt9CR7qkVgJNQqK1taoXBYQqU3vZ7HjVi811WgfzfupMRsVG2RocKckZvTx2BVAE2EGQxNXFcttHF5JUeiTEjNCQ4767bBV5h6f3LQNEYb9zBwmK1oKmw5z9drWcMhMe3QmWuSfGZEU1b8t2yMRhPmkgLRF2VWgX6xaaDkA35XLWfdjS3ShpsacaAziEmKeeiuKUxWPHUTWotwJWGbSWHmgjcW8TwmpdgARxWrd6waF1kJyG5jGSLuaaqtiGvHjPDhVxtUknmM3biGxURW5fwxDrjnYH3cJrygikctk2w4B81EmbLiRjuNej3sTX86Uw3Y4FoPRYfJ4NgXEYNg5XA4qmgGNtvaBSMPLrAqrkfmydZ6jvoJo46QMPLDRCAkmDtzDdwx6amEbQgFHdcpQMSfWhiAP6NL9aQ4fR3xKf7xzRNe2ZqrwoFSE7jFPXzeLDancjBuC93sryeS3Bfj9iUtGqHgCZvrcyFEvYCFWArEYnSHftA3MGTe6HMPDrhStLV1ytykRw37HYKkXEHVnF
+
+Transfering 100.000.000 to 4NwEEwnQbnwB7p8yCBNkx9uj71ru
+
+Sources: 9.999.999 25GmfWAuGSfnZgoTxYxGLZDc3y2D 
+         90.000.001 2it9gucHmxbGeJpwGoPusEaRaiop
+
+Expected:
+25GmfWAuGSfnZgoTxYxGLZDc3y2D GAS 0 (not shown)
+2it9gucHmxbGeJpwGoPusEaRaiop GAS 2.006.256.805.000 + subsidy 47 nodes
+4NwEEwnQbnwB7p8yCBNkx9uj71ru GAS 136315586; 4 files. 73 MiB; 1 coins
+
+Got:
+2it9gucHmxbGeJpwGoPusEaRaiop GAS 2.006.313.397.167 (+56.592.167) 
+4NwEEwnQbnwB7p8yCBNkx9uj71ru GAS 100999999 (-35.315.587); 4 files. 73 MiB; 1 coins
+
+----------------------------------------
+This one afterwards works OK
+
+gov@pi2:~ $ wallet transfer_from 2it9gucHmxbGeJpwGoPusEaRaiop 4NwEEwnQbnwB7p8yCBNkx9uj71ru 100000000 gas
+2db2dvQjLjbLpr3Gd4u5U5gmTKSgdXsLrnY8yr3qDgioLsMWmMuXzzqNq2nKHhXQ6keuGf2wraKWEFPzsHLDaQCbdxxivPZZ5BLrJBmxHKVgEk95YKMqnJ294i7JQdJseMBAcu5X4eGygZggd7VXa17dPPDYaMCzeTCfjp5BfZkcaxPdXuppPyapKrrj44a9Cq2LeC63X3ajc4beauZbyEmNVfvEySspG3vtoV7Q3CpzYtc94d1wc7NmBAM5zH1J1dVw2xKPM
+
+Expected:
+2it9gucHmxbGeJpwGoPusEaRaiop GAS 2.006.156.805.000 + subsidy 47 nodes
+4NwEEwnQbnwB7p8yCBNkx9uj71ru GAS 200.999.999; 4 files. 73 MiB; 1 coins
+
+Got:
+2it9gucHmxbGeJpwGoPusEaRaiop GAS 2.006.224.035.462 (+67.230.462)
+4NwEEwnQbnwB7p8yCBNkx9uj71ru GAS 200.999.920; 4 files. 73 MiB; 1 coins
+
+

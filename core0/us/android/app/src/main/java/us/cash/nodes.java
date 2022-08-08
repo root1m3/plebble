@@ -42,7 +42,7 @@ import static android.graphics.BitmapFactory.decodeResource;                    
 import android.content.DialogInterface;                                                        // DialogInterface
 import android.widget.EditText;                                                                // EditText
 import us.wallet.trader.endpoint_t;                                                            // endpoint_t
-import com.google.firebase.crashlytics.FirebaseCrashlytics;                                    // FirebaseCrashlytics
+//import com.google.firebase.crashlytics.FirebaseCrashlytics;                                    // FirebaseCrashlytics
 import java.util.HashMap;                                                                      // HashMap
 import us.gov.crypto.ripemd160.hash_t;                                                         // hash_t
 import android.widget.ImageView;                                                               // ImageView
@@ -96,7 +96,6 @@ public final class nodes extends activity implements datagram_dispatcher_t.handl
 
         @Override public View getView(int position, View convert_view, ViewGroup parent) {
             view_holder holder = null;
-            //View vi = convert_view;
             pair<String, bookmark_t> sbm = getItem(position);
             bookmark_t bm = sbm.second;
             if (convert_view == null) {
@@ -111,8 +110,6 @@ public final class nodes extends activity implements datagram_dispatcher_t.handl
             else {
                 holder = (view_holder) convert_view.getTag();
             }
-            log("bm.get_label() " + bm.get_label()); //--strip
-            //log("bm.qr.to_string() " + bm.qr.to_string()); //--strip
             holder.subject.setText(sbm.first);
             holder.tvitem.setText(bm.get_label());
             holder.tvitem2.setText(bm.qr.to_string());
@@ -122,53 +119,15 @@ public final class nodes extends activity implements datagram_dispatcher_t.handl
             else {
                 try {
                     Bitmap bmp = BitmapFactory.decodeByteArray(bm.ico, 0, bm.ico.length);
-//                    holder.image.setImageBitmap(Bitmap.createScaledBitmap(bmp, holder.image.getWidth(), holder.image.getHeight(), false));
                     holder.image.setImageBitmap(Bitmap.createScaledBitmap(bmp, 64, 64, false));
                 }
                 catch(Exception e) {
-                    //log("XXXXXXXXXXXXXXXXXXXXXXXXXXXXX" + e.getMessage());
                     holder.image.setImageResource(R.drawable.ic_node_busy);
                 }
             }
             return convert_view;
         }
     }
-
-/*
-/TODO wipe off this harcoded deadbeef
-            if (ep.is_valid()) {
-                String x=ep.wloc.first.encode();
- //               log("A "+x); //--strip
-                if (x.equals("2i35c5Urfa1PrUFtSzFa3eBgVasS")) {
-                    tvitem.setText("Dr Megan Hall - GP");
-                    image_view.setImageResource(R.drawable.ic_node_gp);
-                }
-                else if (x.equals("6vAWK14ssvmnDGYLxDC4sAyrR9t")) {
-                    tvitem.setText("Impact Shopping");
-                    image_view.setImageResource(R.drawable.ic_node_shop);
-                }
-                else if (x.equals("4Tr81agLbMR43goFwu4SetMqZwDa")) {
-                    tvitem.setText("Sothecam NeOS - AI");
-                    image_view.setImageResource(R.drawable.ic_node_ai);
-                }
-                else if (x.equals("2Mm1Pz3RuKQG4RSU6thuSX5fbdAg")) {
-                    tvitem.setText("Dr Joshua Warner - Dermatologist");
-                    image_view.setImageResource(R.drawable.ic_node_specialist);
-                }
-                else if (x.equals("2T1LngV2jcxVZguYY62Kf7tmUvQ3")) {
-                    tvitem.setText("Riverside Pharmacy");
-                    image_view.setImageResource(R.drawable.ic_node_pharmacy);
-                }
-                else {
-                    tvitem.setText("Wallet");
-                    image_view.setImageResource(R.drawable.ic_node_busy);
-                }
-            }
-            else {
-*/
-//                log("B ");  //--strip
-//                image_view.setImageResource(R.drawable.ic_node_busy);
-//            }
 
     ArrayList<pair<String, bookmark_t>> convert(bookmarks_t bm) {
         ArrayList<pair<String, bookmark_t>> o = new ArrayList<pair<String, bookmark_t>>();
@@ -209,12 +168,12 @@ public final class nodes extends activity implements datagram_dispatcher_t.handl
         lv.setAdapter(adapter);
         lv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override public void onItemClick(AdapterView parentView, View childView, int position, long id) {
-                assert main != null;
-                if (main._nodes_mode_custom != null) {
+                assert a.main != null;
+                if (a.main._nodes_mode_custom != null) {
                     item_click2(bookmarks.get(position), position);
                     return;
                 }
-                if (main._nodes_mode_all) {
+                if (a.main._nodes_mode_all) {
                     item_click(world.get(position));
                 }
                 else {
@@ -225,16 +184,15 @@ public final class nodes extends activity implements datagram_dispatcher_t.handl
         lv.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
             @Override
             public boolean onItemLongClick(AdapterView parentView, View childView, int position, long id) {
-                if (main._nodes_mode_custom != null) {
+                if (a.main._nodes_mode_custom != null) {
                     return true;
                 }
-                if (!main._nodes_mode_all) return true;
+                if (!a.main._nodes_mode_all) return true;
                 final EditText input = new EditText(parentView.getContext());
                 input.setOnFocusChangeListener(new OnFocusChangeListener() {
                         @Override public void onFocusChange(View v, boolean hasFocus) {
                             input.post(new Runnable() {
-                                @Override
-                                public void run() {
+                                @Override public void run() {
                                     InputMethodManager inputMethodManager= (InputMethodManager) nodes.this.getSystemService(Context.INPUT_METHOD_SERVICE);
                                     inputMethodManager.showSoftInput(input, InputMethodManager.SHOW_IMPLICIT);
                                 }
@@ -254,54 +212,76 @@ public final class nodes extends activity implements datagram_dispatcher_t.handl
                                 us.wallet.engine.rpc_peer_t.bookmark_add_in_t o = new us.wallet.engine.rpc_peer_t.bookmark_add_in_t(new string(bm.first), bm.second);
                                 string s = new string();
                                 ko r = a.hmi.rpc_peer.call_bookmark_add(o, s);
-                                if (is_ko(r)) { //--strip
-                                    log(r.msg);  //--strip
-                                }//--strip
-                                else {//--strip
-                                    log("added bookmark"); //--strip
-                                }//--strip
+                                if (is_ko(r)) {             //--strip
+                                    log(r.msg);             //--strip
+                                }                           //--strip
+                                else {                      //--strip
+                                    log("added bookmark");  //--strip
+                                }                           //--strip
                              }
                         }).setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-                            @Override public void onClick(DialogInterface dialog, int which) {
-                            }
+                            @Override public void onClick(DialogInterface dialog, int which) {}
                         }).create();
                 dialog.show();
                 return true;
             }
         });
 
-        toolbar_button refresh = findViewById(R.id.refresh);
-        refresh.setOnClickListener(new View.OnClickListener() {
+        toolbar_button refresh_btn = findViewById(R.id.refresh);
+        refresh_btn.setOnClickListener(new View.OnClickListener() {
             @Override public void onClick(View view) {
-                dorefresh();
+                refresh();
             }
         });
-        refresh.setVisibility(View.VISIBLE);
+        refresh_btn.setVisibility(View.VISIBLE);
 
         mode.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 log("TOUCHED ROLE VIEW"); //--strip
                 if (isChecked) {
                     log("checked"); //--strip
-                    main._nodes_mode_all = false;
+                    a.main._nodes_mode_all = false;
                }
                 else {
                     log("not checked"); //--strip
-                    main._nodes_mode_all = true;
+                    a.main._nodes_mode_all = true;
                 }
-                dorefresh();
+                refresh();
             }
         });
-        dispatchid = a.datagram_dispatcher.connect_sink(this);
-
-        dorefresh();
     }
+
+    @Override public void onPause() {
+        super.onPause();
+        log("onPause"); //--strip
+        if (a.hmi == null) {
+            dispatchid = -1;
+        }
+        else {
+            if (dispatchid != -1) {
+                a.hmi.dispatcher.disconnect_sink(dispatchid);
+            }
+        }
+    }
+
+    @Override public void onResume() {
+        super.onResume();
+        log("onResume"); //--strip
+        if (a.hmi == null) {
+            dispatchid = -1;
+        }
+        else {
+            log("Connecting to datagram dispatcher");//--strip
+            dispatchid = a.hmi.dispatcher.connect_sink(this);
+        }
+    }
+
 
     @Override public void onDestroy() {
         super.onDestroy();
         log("onDestroy"); //--strip
-        a.datagram_dispatcher.disconnect_sink(dispatchid);
-        main._nodes_mode_custom = null;
+        if (a.main == null) return;
+        a.main._nodes_mode_custom = null;
     }
 
     void item_click(pair<String, bookmark_t> bm) {
@@ -316,10 +296,10 @@ public final class nodes extends activity implements datagram_dispatcher_t.handl
                             qr.protocol_selection.first = "w2w";
                             qr.protocol_selection.second = "w";
                             log("selected " + qr.to_string()); //--strip
-                            main.new_trade(new hash_t(0), "", qr);
+                            a.new_trade(new hash_t(0), "", qr);
                             break;
                         case 1:
-                            main.new_trade(new hash_t(0), "", bm.second.qr);
+                            a.new_trade(new hash_t(0), "", bm.second.qr);
                             break;
                     }
                 }
@@ -334,15 +314,15 @@ public final class nodes extends activity implements datagram_dispatcher_t.handl
                 @Override public void onClick(DialogInterface dialog, int which) {
                     switch(which) {
                         case 0:
-                            main.new_trade(new hash_t(0), "", bm.second.qr);
+                            a.new_trade(new hash_t(0), "", bm.second.qr);
                             break;
                         case 1:
                             break;
                         case 2:
                             string ans = new string();
                             ko r = a.hmi.rpc_peer.call_bookmark_delete(new string(bm.first), ans);
-                            Toast.makeText(main, ans.value, Toast.LENGTH_LONG).show();
-                            dorefresh();
+                            Toast.makeText(a.main, ans.value, Toast.LENGTH_LONG).show();
+                            refresh();
                             break;
                     }
                 }
@@ -357,59 +337,16 @@ public final class nodes extends activity implements datagram_dispatcher_t.handl
                 @Override public void onClick(DialogInterface dialog, int which) {
                     switch(which) {
                         case 0:
-                            main.new_trade(new hash_t(0), "", bm.second.qr);
+                            a.new_trade(new hash_t(0), "", bm.second.qr);
                             break;
                         case 1:
                             log("Copy to my bookmarks"); //--strip
-                            a.hmi.command_trade(main._nodes_mode_custom_tid, "copybm " + (pos + 1));
-
+                            a.hmi.command_trade(a.main._nodes_mode_custom_tid, "copybm " + (pos + 1));
                             break;
                     }
                 }
             }).setIcon(R.drawable.ic_world).show();
     }
-
-/*
-    @Override    //entry point. Datagrams from the wire are processed here, called for every arriving datagram
-    public boolean dispatch(datagram d) { //returns true if the datagram has been handled
-        log("dispatch svc "+d.service); //--strip
-        switch(d.service) {
-            case protocol.wallet_daemon_list_wallets_response: {
-                log("handling svc "+d.service); //--strip
-                if (bookmarks!=null) {
-                    log("KO 2201 - Unexpected list in bookmark mode"); //--strip
-                    break;
-                }
-                final String b=d.parse_string();
-                final String[] lines = b.split("\\r?\\n");
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        ArrayList<trader_endpoint_t> al=new ArrayList<trader_endpoint_t>();
-                        if (lines.length > 0) {
-                            for (String line : lines) {
-                                try {
-                                    trader_endpoint_t t = new trader_endpoint_t(line);
-                                    al.add(t);
-                                }
-                                catch (Exception e) {
-                                    error_manager.manage(e, e.getMessage() + "    " + e.toString());
-                                    log("KO 6950 - Invalid endpoint "+line); //--strip
-                                }
-                            }
-                        }
-                        Collections.sort(al);
-                        adapter.addAll(al);
-                        progressbarcontainer.setVisibility(View.GONE);
-                    }
-                });
-                return true;
-            }
-        }
-        log("unhandled svc "+d.service); //--strip
-        return false;
-    }
-*/
 
     @Override public void on_push(hash_t target_tid, uint16_t code, byte[] payload) {
     }
@@ -417,11 +354,11 @@ public final class nodes extends activity implements datagram_dispatcher_t.handl
     void redraw() {
         log("redraw"); //--strip
         adapter.clear();
-        if (main._nodes_mode_custom != null) {
+        if (a.main._nodes_mode_custom != null) {
             adapter.addAll(bookmarks);
             return;
         }
-        if (main._nodes_mode_all) {
+        if (a.main._nodes_mode_all) {
             adapter.addAll(world);
         }
         else {
@@ -431,16 +368,15 @@ public final class nodes extends activity implements datagram_dispatcher_t.handl
 
     void load_remote() {
         set_busy(true);
-        log("load_remote " + main._nodes_mode_custom.size()); //--strip
-        bookmarks = convert(main._nodes_mode_custom);
+        log("load_remote " + a.main._nodes_mode_custom.size()); //--strip
+        bookmarks = convert(a.main._nodes_mode_custom);
         set_busy(false);
     }
 
     void load_bookmarks() {
         set_busy(true);
         Thread thread1 = new Thread(new Runnable() {
-            @Override
-            public void run() {
+            @Override public void run() {
                 log("load_bookmarks-run"); //--strip
                 bookmarks_t bm = new bookmarks_t();
                 ko r = a.hmi.rpc_peer.call_bookmark_list(bm);
@@ -464,6 +400,12 @@ public final class nodes extends activity implements datagram_dispatcher_t.handl
             @Override public void run() {
                 log("load_world-run"); //--strip
                 us.gov.io.types.vector_hash vh = new us.gov.io.types.vector_hash();
+                if (a.hmi == null || a.hmi.rpc_peer == null) {
+                    ko r = new ko("KO 70699 HMI is not on"); //--strip
+                    set_busy__worker(false);
+                    log(r.msg); //--strip
+                    return;
+                }
                 ko r = a.hmi.rpc_peer.call_world(vh);
                 if (is_ko(r)) {
                     set_busy__worker(false);
@@ -504,11 +446,16 @@ public final class nodes extends activity implements datagram_dispatcher_t.handl
         }
     }
 
-    void dorefresh() {
+    @Override public void refresh() {
         a.assert_ui_thread(); //--strip
-        Toast.makeText(this, "refresh", Toast.LENGTH_SHORT).show();
-        log("dorefresh. main._nodes_mode_all=" + main._nodes_mode_all); //--strip
-        if (main.main._nodes_mode_custom != null) {
+        if (a.hmi == null) {
+            log("Closing activity hmi is null"); //--strip
+            finish();
+            return;
+        }
+        super.refresh();
+        log("refresh. a.main._nodes_mode_all=" + a.main._nodes_mode_all); //--strip
+        if (a.main._nodes_mode_custom != null) {
             toolbar.setTitle("Listing remote bookmarks");
             mode.setVisibility(View.GONE);
             mode_cap.setVisibility(View.GONE);
@@ -517,7 +464,7 @@ public final class nodes extends activity implements datagram_dispatcher_t.handl
         }
         mode.setVisibility(View.VISIBLE);
         mode_cap.setVisibility(View.VISIBLE);
-        if (main._nodes_mode_all) {
+        if (a.main._nodes_mode_all) {
             toolbar.setTitle(R.string.world);
             mode.setChecked(false);
             mode_cap.setText("Listing all world. turn for listing my bookmarks.");

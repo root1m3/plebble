@@ -104,45 +104,44 @@ public class redirects_view extends LinearLayout {
         final app a = rf.a;
         String[] options = {a.getResources().getString(R.string.start_new_child_trade), "Copy to my bookmarks", a.getResources().getString(R.string.cancel)};
         new AlertDialog.Builder(rf.tr).setTitle(bm.second.get_label())
-                .setItems(options, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        switch(which) {
-                            case 0:
-                                data_t data = rf.tr.get_data();
-                                if (data == null) {
-                                    Toast.makeText(rf.tr.getApplicationContext(), "KO 87986 Trade data not available.", 6000).show();
-                                    return;
+            .setItems(options, new DialogInterface.OnClickListener() {
+                @Override public void onClick(DialogInterface dialog, int which) {
+                    switch(which) {
+                        case 0:
+                            data_t data = rf.tr.get_data();
+                            if (data == null) {
+                                Toast.makeText(rf.tr.getApplicationContext(), "KO 87986 Trade data not available.", 6000).show();
+                                return;
+                            }
+                            hash_t parent_tid;
+                            {
+                                String st = data.find("parent_tid");
+                                if (st == null) {
+                                    parent_tid = new hash_t(0);
                                 }
-                                hash_t parent_tid;
-                                {
-                                    String st = data.find("parent_tid");
-                                    if (st == null) {
-                                        parent_tid = new hash_t(0);
-                                    }
-                                    else {
-                                        parent_tid = new hash_t(st);
-                                    }
+                                else {
+                                    parent_tid = new hash_t(st);
                                 }
-                                log("new trade parent = " + parent_tid.encode()); //--strip
-                                rf0.tr.main.new_trade(parent_tid, "", bm.second.qr);
-                                break;
-                            case 1:
-                                log("Copy to my bookmarks"); //--strip
-                                rf0.a.hmi.command_trade(rf0.tr.tid, "copyredirect " + (pos + 1));
+                            }
+                            log("new trade parent = " + parent_tid.encode()); //--strip
+                            rf0.tr.a.new_trade(parent_tid, "", bm.second.qr);
+                            break;
+                        case 1:
+                            log("Copy to my bookmarks"); //--strip
+                            rf0.a.hmi.command_trade(rf0.tr.tid, "copyredirect " + (pos + 1));
 
-                                break;
-                        }
+                            break;
                     }
-                })
-                .setIcon(R.drawable.ic_world).show();
+                }
+            })
+            .setIcon(R.drawable.ic_world).show();
     }
 
     public void set_redirects(final bookmarks_t bookmarks) {
         redirects = convert(bookmarks);
         log("set redirects"); //--strip
-        activity.main.runOnUiThread(new Runnable() {
-            public void run() {
+        rf.tr.runOnUiThread(new Runnable() {
+            @Override public void run() {
                 refresh();
             }
         });
@@ -152,7 +151,6 @@ public class redirects_view extends LinearLayout {
         log("refresh"); //--strip
         data_t data = rf.tr.get_data();
         assert data != null;
-
         String st = data.find("local__redirects");
         if (st != null) {
             if (st.equals("Y")) {

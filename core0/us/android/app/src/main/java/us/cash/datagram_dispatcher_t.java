@@ -37,15 +37,16 @@ import java.util.concurrent.locks.ReentrantLock;                                
 
 public class datagram_dispatcher_t implements datagram.dispatcher_t, Runnable {
 
-    static void log(final String line) {                        //--strip
-       CFG.log_android("datagram_dispatcher_t: " + line);       //--strip
-    }                                                           //--strip
+    private static void log(final String line) {                        //--strip
+       CFG.log_android("datagram_dispatcher_t: " + line);               //--strip
+    }                                                                   //--strip
 
     public static interface handler_t {
         void on_push(final hash_t target_tid, final uint16_t code, final byte[] payload);
     }
 
     public datagram_dispatcher_t(int num_workers) {
+        log("Starting " + num_workers + " workers"); //--strip
         workers = new Thread[num_workers];
         for (int i = 0; i < workers.length; ++i) {
             workers[i] = new Thread(this);
@@ -53,8 +54,8 @@ public class datagram_dispatcher_t implements datagram.dispatcher_t, Runnable {
         }
     }
 
-    @Override
-    public void run() {
+    //2. push datagram picked from q by a worker thread process the datagram
+    @Override public void run() {
         lock.lock();
         try {
             while(true) {
@@ -76,7 +77,7 @@ public class datagram_dispatcher_t implements datagram.dispatcher_t, Runnable {
         }
     }
 
-    int connect_sink(handler_t s) {
+    public int connect_sink(handler_t s) {
         mx.lock();
         int id = nextid++;
         try {
@@ -89,7 +90,7 @@ public class datagram_dispatcher_t implements datagram.dispatcher_t, Runnable {
         return id;
     }
 
-    void disconnect_sink(int id) {
+    public void disconnect_sink(int id) {
         mx.lock();
         try {
             sinks.remove(id);
@@ -100,6 +101,7 @@ public class datagram_dispatcher_t implements datagram.dispatcher_t, Runnable {
         log("disconnected sink " + id); //--strip
     }
 
+    //2. push datagram enters q. Called by hmi guts
     @Override public boolean dispatch(datagram d) {
         lock.lock();
         try {
@@ -112,6 +114,7 @@ public class datagram_dispatcher_t implements datagram.dispatcher_t, Runnable {
         return true;
     }
 
+    //4. on push is called on every subscriptor (sinks)
     public void propagate(hash_t tid, uint16_t code, byte[] payload) {
         mx.lock();
         try {
@@ -128,8 +131,9 @@ public class datagram_dispatcher_t implements datagram.dispatcher_t, Runnable {
         }
     }
 
+    //3. Decodes the datagram into trade id, code m payload, and propagates it
     public void process(datagram d) {
-        log("main dispatch svc=" + d.service.value); //--strip
+        log("main propagate svc=" + d.service.value); //--strip
         try {
             switch(d.service.value) {
                 case us.gov.protocol.relay_push: {

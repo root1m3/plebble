@@ -18,53 +18,56 @@
 #define logclass "base58"
 #include "logs.inc"
 
-namespace us { namespace gov { namespace crypto { namespace b58 {
-    using namespace std;
+using namespace std;
+using namespace us::gov::crypto;
+
+namespace {
 
     static const char* pszBase58 = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
     static const int8_t mapBase58[256] = {
-    -1,-1,-1,-1,-1,-1,-1,-1, -1,-1,-1,-1,-1,-1,-1,-1,
-    -1,-1,-1,-1,-1,-1,-1,-1, -1,-1,-1,-1,-1,-1,-1,-1,
-    -1,-1,-1,-1,-1,-1,-1,-1, -1,-1,-1,-1,-1,-1,-1,-1,
-    -1, 0, 1, 2, 3, 4, 5, 6,  7, 8,-1,-1,-1,-1,-1,-1,
-    -1, 9,10,11,12,13,14,15, 16,-1,17,18,19,20,21,-1,
-    22,23,24,25,26,27,28,29, 30,31,32,-1,-1,-1,-1,-1,
-    -1,33,34,35,36,37,38,39, 40,41,42,43,-1,44,45,46,
-    47,48,49,50,51,52,53,54, 55,56,57,-1,-1,-1,-1,-1,
-    -1,-1,-1,-1,-1,-1,-1,-1, -1,-1,-1,-1,-1,-1,-1,-1,
-    -1,-1,-1,-1,-1,-1,-1,-1, -1,-1,-1,-1,-1,-1,-1,-1,
-    -1,-1,-1,-1,-1,-1,-1,-1, -1,-1,-1,-1,-1,-1,-1,-1,
-    -1,-1,-1,-1,-1,-1,-1,-1, -1,-1,-1,-1,-1,-1,-1,-1,
-    -1,-1,-1,-1,-1,-1,-1,-1, -1,-1,-1,-1,-1,-1,-1,-1,
-    -1,-1,-1,-1,-1,-1,-1,-1, -1,-1,-1,-1,-1,-1,-1,-1,
-    -1,-1,-1,-1,-1,-1,-1,-1, -1,-1,-1,-1,-1,-1,-1,-1,
-    -1,-1,-1,-1,-1,-1,-1,-1, -1,-1,-1,-1,-1,-1,-1,-1,
-};
+        -1,-1,-1,-1,-1,-1,-1,-1, -1,-1,-1,-1,-1,-1,-1,-1,
+        -1,-1,-1,-1,-1,-1,-1,-1, -1,-1,-1,-1,-1,-1,-1,-1,
+        -1,-1,-1,-1,-1,-1,-1,-1, -1,-1,-1,-1,-1,-1,-1,-1,
+        -1, 0, 1, 2, 3, 4, 5, 6,  7, 8,-1,-1,-1,-1,-1,-1,
+        -1, 9,10,11,12,13,14,15, 16,-1,17,18,19,20,21,-1,
+        22,23,24,25,26,27,28,29, 30,31,32,-1,-1,-1,-1,-1,
+        -1,33,34,35,36,37,38,39, 40,41,42,43,-1,44,45,46,
+        47,48,49,50,51,52,53,54, 55,56,57,-1,-1,-1,-1,-1,
+        -1,-1,-1,-1,-1,-1,-1,-1, -1,-1,-1,-1,-1,-1,-1,-1,
+        -1,-1,-1,-1,-1,-1,-1,-1, -1,-1,-1,-1,-1,-1,-1,-1,
+        -1,-1,-1,-1,-1,-1,-1,-1, -1,-1,-1,-1,-1,-1,-1,-1,
+        -1,-1,-1,-1,-1,-1,-1,-1, -1,-1,-1,-1,-1,-1,-1,-1,
+        -1,-1,-1,-1,-1,-1,-1,-1, -1,-1,-1,-1,-1,-1,-1,-1,
+        -1,-1,-1,-1,-1,-1,-1,-1, -1,-1,-1,-1,-1,-1,-1,-1,
+        -1,-1,-1,-1,-1,-1,-1,-1, -1,-1,-1,-1,-1,-1,-1,-1,
+        -1,-1,-1,-1,-1,-1,-1,-1, -1,-1,-1,-1,-1,-1,-1,-1,
+    };
 
+    constexpr inline bool is_space( char c ) noexcept {
+        return c == ' ' || c == '\f' || c == '\n' || c == '\r' || c == '\t' || c == '\v';
+    }
 
-string decode_string(const std::string& s) {
-    std::vector<unsigned char> v;
+}
+
+string b58::decode_string(const string& s) {
+    vector<unsigned char> v;
     if (!decode(s.c_str(), v)) return "";
     v.push_back('\0');
     return string(reinterpret_cast<const char*>(v.data()));
 }
 
-vector<unsigned char> decode(const std::string& s) {
-    std::vector<unsigned char> v;
+vector<unsigned char> b58::decode(const string& s) {
+    vector<unsigned char> v;
     if (!decode(s.c_str(), v)) return move(v);
     return v;
 }
 
-string encode(const std::string& s) {
+string b58::encode(const string& s) {
     assert(!s.empty());
     return encode(reinterpret_cast<const unsigned char*>(s.c_str()), reinterpret_cast<const unsigned char*>(s.c_str() + s.size()));
 }
 
-constexpr inline bool is_space( char c ) noexcept {
-    return c == ' ' || c == '\f' || c == '\n' || c == '\r' || c == '\t' || c == '\v';
-}
-
-bool decode( const char* psz, vector<unsigned char>& vch ) {
+bool b58::decode( const char* psz, vector<unsigned char>& vch ) {
     while (*psz && is_space(*psz)) psz++;
     int zeroes = 0;
     int length = 0;
@@ -73,12 +76,12 @@ bool decode( const char* psz, vector<unsigned char>& vch ) {
         psz++;
     }
     int size = strlen(psz) * 733 /1000 + 1;
-    std::vector<unsigned char> b256(size);
+    vector<unsigned char> b256(size);
     while (*psz && !is_space(*psz)) {
         int carry = mapBase58[(uint8_t)*psz];
         if (carry == -1) return false;
         int i = 0;
-        for (std::vector<unsigned char>::reverse_iterator it = b256.rbegin(); (carry != 0 || i < length) && (it != b256.rend()); ++it, ++i) {
+        for (vector<unsigned char>::reverse_iterator it = b256.rbegin(); (carry != 0 || i < length) && (it != b256.rend()); ++it, ++i) {
             carry += 58 * (*it);
             *it = carry % 256;
             carry /= 256;
@@ -89,7 +92,7 @@ bool decode( const char* psz, vector<unsigned char>& vch ) {
     }
     while (is_space(*psz)) psz++;
     if (unlikely(*psz!=0)) return false;
-    std::vector<unsigned char>::iterator it = b256.begin() + (size - length);
+    vector<unsigned char>::iterator it = b256.begin() + (size - length);
     while (it != b256.end() && *it == 0) it++;
     vch.reserve(zeroes + (b256.end() - it));
     vch.assign(zeroes, 0x00);
@@ -98,7 +101,7 @@ bool decode( const char* psz, vector<unsigned char>& vch ) {
     return true;
 }
 
-bool decode(const char* psz, unsigned char* dest, size_t exact_length) {
+bool b58::decode(const char* psz, unsigned char* dest, size_t exact_length) {
     while (*psz && is_space(*psz)) psz++;
     int zeroes = 0;
     int length = 0;
@@ -107,12 +110,12 @@ bool decode(const char* psz, unsigned char* dest, size_t exact_length) {
         psz++;
     }
     int size = strlen(psz) * 733 /1000 + 1;
-    std::vector<unsigned char> b256(size);
+    vector<unsigned char> b256(size);
     while (*psz && !is_space(*psz)) {
         int carry = mapBase58[(uint8_t)*psz];
         if (carry == -1) return false;
         int i = 0;
-        for (std::vector<unsigned char>::reverse_iterator it = b256.rbegin(); (carry != 0 || i < length) && (it != b256.rend()); ++it, ++i) {
+        for (vector<unsigned char>::reverse_iterator it = b256.rbegin(); (carry != 0 || i < length) && (it != b256.rend()); ++it, ++i) {
             carry += 58 * (*it);
             *it = carry % 256;
             carry /= 256;
@@ -123,7 +126,7 @@ bool decode(const char* psz, unsigned char* dest, size_t exact_length) {
     }
     while (is_space(*psz)) psz++;
     if (unlikely(*psz != 0)) return false;
-    std::vector<unsigned char>::iterator it = b256.begin() + (size - length);
+    vector<unsigned char>::iterator it = b256.begin() + (size - length);
     while (it != b256.end() && *it == 0) it++;
     if (exact_length != zeroes + (b256.end() - it)) return false;
     memset(dest, 0, zeroes);
@@ -131,7 +134,7 @@ bool decode(const char* psz, unsigned char* dest, size_t exact_length) {
     return true;
 }
 
-bool decode(const char* psz, std::array<unsigned char, 32>& vch) {
+bool b58::decode(const char* psz, array<unsigned char, 32>& vch) {
     while (*psz && is_space(*psz)) psz++;
     int zeroes = 0;
     int length = 0;
@@ -140,12 +143,12 @@ bool decode(const char* psz, std::array<unsigned char, 32>& vch) {
         psz++;
     }
     int size = strlen(psz) * 733 /1000 + 1;
-    std::vector<unsigned char> b256(size);
+    vector<unsigned char> b256(size);
     while (*psz && !is_space(*psz)) {
         int carry = mapBase58[(uint8_t)*psz];
         if (carry == -1) return false;
         int i = 0;
-        for (std::vector<unsigned char>::reverse_iterator it = b256.rbegin(); (carry != 0 || i < length) && (it != b256.rend()); ++it, ++i) {
+        for (vector<unsigned char>::reverse_iterator it = b256.rbegin(); (carry != 0 || i < length) && (it != b256.rend()); ++it, ++i) {
             carry += 58 * (*it);
             *it = carry % 256;
             carry /= 256;
@@ -156,7 +159,7 @@ bool decode(const char* psz, std::array<unsigned char, 32>& vch) {
     }
     while (is_space(*psz)) psz++;
     if (unlikely(*psz != 0)) return false;
-    std::vector<unsigned char>::iterator it = b256.begin() + (size - length);
+    vector<unsigned char>::iterator it = b256.begin() + (size - length);
     while (it != b256.end() && *it == 0) it++;
     if ((zeroes + (b256.end() - it)) != 32) return false;
     int i = 0;
@@ -165,7 +168,7 @@ bool decode(const char* psz, std::array<unsigned char, 32>& vch) {
     return true;
 }
 
-std::string encode(const unsigned char* pbegin, const unsigned char* pend) {
+string b58::encode(const unsigned char* pbegin, const unsigned char* pend) {
     // Skip & count leading zeroes.
     int zeroes = 0;
     int length = 0;
@@ -174,11 +177,11 @@ std::string encode(const unsigned char* pbegin, const unsigned char* pend) {
         zeroes++;
     }
     int size = (pend - pbegin) * 138 / 100 + 1;
-    std::vector<unsigned char> b58(size);
+    vector<unsigned char> b58(size);
     while (pbegin != pend) {
         int carry = *pbegin;
         int i = 0;
-        for (std::vector<unsigned char>::reverse_iterator it = b58.rbegin(); (carry != 0 || i < length) && (it != b58.rend()); it++, i++) {
+        for (vector<unsigned char>::reverse_iterator it = b58.rbegin(); (carry != 0 || i < length) && (it != b58.rend()); it++, i++) {
             carry += 256 * (*it);
             *it = carry % 58;
             carry /= 58;
@@ -187,24 +190,28 @@ std::string encode(const unsigned char* pbegin, const unsigned char* pend) {
         length = i;
         pbegin++;
     }
-    std::vector<unsigned char>::iterator it = b58.begin() + (size - length);
+    vector<unsigned char>::iterator it = b58.begin() + (size - length);
     while (it != b58.end() && *it == 0) it++;
-    std::string str;
+    string str;
     str.reserve(zeroes + (b58.end() - it));
     str.assign(zeroes, '1');
     while (it != b58.end()) str += pszBase58[*(it++)];
     return str;
 }
 
-std::string encode(const std::vector<unsigned char>& vch) {
-    return encode(vch.data(), vch.data() + vch.size());
+string b58::encode(const vector<unsigned char>& v) {
+    return encode(v.data(), v.data() + v.size());
 }
 
-bool decode(const std::string& str, std::vector<unsigned char>& vchRet) {
-    return decode(str.c_str(), vchRet);
+string b58::encode(const vector<uint32_t>& v) {
+    return encode((uint8_t*)v.data(), ((uint8_t*) v.data()) + (sizeof(uint32_t) * v.size()));
 }
 
-string to_hex(const unsigned char* bin, size_t sz) {
+bool b58::decode(const string& str, vector<unsigned char>& v) {
+    return decode(str.c_str(), v);
+}
+
+string b58::to_hex(const unsigned char* bin, size_t sz) {
     ostringstream os;
 
     for (int i = 0; i < sz; ++i) {
@@ -220,7 +227,7 @@ string to_hex(const unsigned char* bin, size_t sz) {
     return os.str();
 }
 
-string to_hex(const vector<uint8_t>& bin) {
+string b58::to_hex(const vector<uint8_t>& bin) {
     ostringstream os;
     for (int i = 0; i < bin.size(); ++i) {
         unsigned char x = bin[i];
@@ -235,7 +242,7 @@ string to_hex(const vector<uint8_t>& bin) {
     return os.str();
 }
 
-vector<uint8_t> from_hex(const string& hex) {
+vector<uint8_t> b58::from_hex(const string& hex) {
     vector<uint8_t> k;
     if (hex.size() & 1 != 0) {
         return k;
@@ -255,6 +262,4 @@ vector<uint8_t> from_hex(const string& hex) {
     }
     return move(k);
 }
-
-}}}}
 

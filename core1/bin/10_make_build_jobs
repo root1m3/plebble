@@ -264,7 +264,6 @@ function make_build_job {
                 echo "KO 79681 patch_src failed"
                 exit 1
             fi
-#            bin/patch_src -a $brands/$brand/source_code_header || exit 1
         popd > /dev/null
         pushd core0/us > /dev/null
             bin/apply_brand $brands/$brand $branch
@@ -280,30 +279,30 @@ function make_build_job {
                 if [[ $test -eq 1 ]]; then
                     testw="test"
                 fi
-                if [ $debug -eq 1 ]; then
+                if [[ $debug -eq 1 ]]; then
                     fgs="$fgs --${testw}debug"
                 else
                     fgs="$fgs --${testw}release"
                 fi
-                if [ $counters -eq 1 ]; then
+                if [[ $counters -eq 1 ]]; then
                     fgs="$fgs --with-counters"
                 else
                     fgs="$fgs --without-counters"
                 fi
-                if [ $fcgi -eq 1 ]; then
+                if [[ $fcgi -eq 1 ]]; then
                     fgs="$fgs --with-fcgi"
                 else
                     fgs="$fgs --without-fcgi"
                 fi
-                if [ $logs -eq 1 ]; then
-                    fgs="--with-logs"
+                if [[ $logs -eq 1 ]]; then
+                    fgs="$fgs --with-logs"
                 else
-                    fgs="--without-logs"
+                    fgs="$fgs --without-logs"
                 fi
         	    echo "brand $brand"
                 echo "configuring core0. flags: $fgs"
-    	        echo "bin/configure --release $fgs"
-                bin/configure --release $fgs
+    	        echo "bin/configure $fgs"
+                bin/configure $fgs
                 if [ $? -ne 0 ]; then
                     echo "KO 20021 Configure failed."
                     exit 1

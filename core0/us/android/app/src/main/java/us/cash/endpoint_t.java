@@ -64,7 +64,7 @@ public class endpoint_t {
             shost = new shost_t("127.0.0.1");
             port = CFG.walletd_port;
             channel = us.CFG.CHANNEL;
-            error_manager.manage(e, "KO 40937"); //--strip
+            //error_manager.manage(e, "KO 40937"); //--strip
         }
     }
 

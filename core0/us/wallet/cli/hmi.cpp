@@ -164,6 +164,8 @@ ko c::start_daemon(busyled_t::handler_t* busyled_handler_send, busyled_t::handle
     log("instantiate root wallet");
     log("set_busy_handlers send:", (busyled_handler_send == nullptr ? "null" : "not null"), "recv:", (busyled_handler_recv == nullptr ? "null" : "not null"));
     daemon->set_busy_handlers(busyled_handler_send, busyled_handler_recv);
+    log("setting dgram_roundtrip_timeout_secs", p.rpc_timeout_secs);
+    us::gov::socket::rendezvous_t::dgram_roundtrip_timeout_secs = p.rpc_timeout_secs;
     log("starting daemon");
     auto r = daemon->start();
     if (unlikely(is_ko(r))) {
@@ -248,6 +250,8 @@ ko c::start_rpc_daemon(busyled_t::handler_t* busyled_handler_send, busyled_t::ha
             return r;
         }
     }
+    log("setting dgram_roundtrip_timeout_secs", p.rpc_timeout_secs);
+    us::gov::socket::rendezvous_t::dgram_roundtrip_timeout_secs = p.rpc_timeout_secs;
     rpc_peer = static_cast<rpc_peer_t*>(rpc_daemon->peer);
     assert(rpc_peer != nullptr);
     if (rpc_daemon->connect_for_recv) {
@@ -448,10 +452,6 @@ bool c::trade_interactive(shell_args& args, const hash_t& tid) { //return: exit 
     scr << "Trading shell. Trade " << tid << '\n';
     string line = args.next_line();
     enter_trade(tid);
-    //cur = tid;
-    //curpro = "";
-    //data = data_t();
-    //roles = roles_t();
     bool ret;
     while (rpc_daemon->is_active()) {
         log("wapi.exec_trade", tid, line);
@@ -862,7 +862,8 @@ void c::tx_help(const string& ind, const params& p, ostream& os) {
     fmt::twocol(ind, "tx check <tx>", "", os);
     fmt::twocol(ind, "tx send <tx>", "", os);
     fmt::twocol(ind, "tx sign <tx> <sigcodeb58>", "", os);
-    fmt::twocol(ind, "tx decode <evidenceB58>", "", os);
+    fmt::twocol(ind, "tx decode <evidenceB58>", "Decode transaction", os);
+    fmt::twocol(ind, "tx decode -f <evidence_blob_file>", "Decode transaction", os);
 }
 
 ko c::tx(shell_args& args) {
@@ -1230,7 +1231,18 @@ ko c::tx(shell_args& args) {
         return ok;
     }
     if (command == "decode") {
-        auto blob_in = us::gov::crypto::b58::decode(args.next<string>());
+        vector<uint8_t> blob_in;
+        string msg = args.next<string>();
+        if (msg == "-f") {
+            string filename = args.next<string>();
+            auto r = us::gov::io::read_file_(filename, blob_in);
+            if (is_ko(r)) {
+                return r;
+            }
+        }
+        else {
+            blob_in = us::gov::crypto::b58::decode(args.next<string>());
+        }
         string tx_pretty;
         auto r = rpc_daemon->get_peer().call_tx_decode(blob_in, tx_pretty);
         if (is_ko(r)) {
@@ -1370,6 +1382,7 @@ void c::help(const params& p, ostream& os) { //moved
         }
         fmt::twocol(ind____, "-whost <address>", "walletd address", tostr(p.walletd_host), os);
         fmt::twocol(ind____, "-wp <port>", "walletd port", tostr(p.walletd_port), os);
+        fmt::twocol(ind____, "-t <secs>", "RPC timeout in seconds", tostr(p.rpc_timeout_secs), os);
     }
     os << '\n';
     os << "Commands:\n";
@@ -1423,7 +1436,7 @@ void c::help(const params& p, ostream& os) { //moved
         fmt::twocol(ind____, "device_id", "Show this device Id.", os);
         fmt::twocol(ind____, "pair <pubkey> [<subhome>|-] [<name>]", "Authorize a device identified by its public key", os);
         fmt::twocol(ind____, "unpair <pubkey>", "Revoke authorization to the specified device", os);
-        fmt::twocol(ind____, "prepair <pin|auto> [<subhome>|-] [<name>]", "Pre-Authorize an unknown device identified by a pin number [1-65535]", os);
+        fmt::twocol(ind____, "prepair <pin|auto> [<subhome>|-|auto] [<name>]", "Pre-Authorize an unknown device identified by a pin number [1-65535]. (auto selects a random PIN). If subhome is 'auto' a new custodial wallet is created for the device. If subhome is '-' it pairs the main wallet.", os);
         fmt::twocol(ind____, "unprepair <pin>", "Revoke Pre-authorization to the specified pin", os);
         fmt::twocol(ind____, "list_devices", "Prints the list of recognized devices, together with the list of recently unathorized attempts log", os);
         fmt::twocol(ind____, "net_info", "Prints contextual information and wallet type (root/guest)", os);
@@ -1614,8 +1627,8 @@ ko c::exec_online1(const string& cmd, shell_args& args) {
         return ok;
     }
     if (command == "sign") {
-        string msg = args.next<string>();
         vector<uint8_t> v;
+        string msg = args.next<string>();
         if (msg == "-f") {
             string filename = args.next<string>();
             auto r = us::gov::io::read_file_(filename, v);
@@ -2356,7 +2369,7 @@ bool c::dispatcher_t::dispatch(us::gov::socket::datagram* d) {
                 us::gov::io::blob_reader_t reader(*d);
                 auto r = reader.read(o_in);
                 if (is_ko(r)) {
-                    scr << "HMI " << this << ": [D " << d->service << "] " << r << '\n';
+                    scr << "HMI " << this << ": [D " << d->service << "] " << m.rewrite(r) << '\n';
                     break;
                 }
             }
@@ -2391,7 +2404,7 @@ bool c::dispatcher_t::dispatch(us::gov::socket::datagram* d) {
                         auto r = us::gov::io::blob_reader_t::parse(o_in.blob, payload);
                         if (is_ko(r)) {
                             screen::lock_t lock(scr, m.interactive);
-                            lock.os << "HMI " << this << " " << r << '\n';
+                            lock.os << "HMI " << this << " " << m.rewrite(r) << '\n';
                             break;
                         }
                         screen::lock_t lock(scr, m.interactive);
@@ -2403,7 +2416,7 @@ bool c::dispatcher_t::dispatch(us::gov::socket::datagram* d) {
                         auto r = us::gov::io::blob_reader_t::parse(o_in.blob, payload);
                         if (is_ko(r)) {
                             screen::lock_t lock(scr, m.interactive);
-                            lock.os << "HMI " << this << " " << r << '\n';
+                            lock.os << "HMI " << this << " " << m.rewrite(r) << '\n';
                             break;
                         }
                         screen::lock_t lock(scr, m.interactive);
@@ -2416,7 +2429,7 @@ bool c::dispatcher_t::dispatch(us::gov::socket::datagram* d) {
                         auto r = us::gov::io::blob_reader_t::parse(o_in.blob, payload);
                         if (is_ko(r)) {
                             screen::lock_t lock(scr, m.interactive);
-                            lock.os << r << '\n';
+                            lock.os << m.rewrite(r) << '\n';
                             break;
                         }
                         {
@@ -2434,7 +2447,7 @@ bool c::dispatcher_t::dispatch(us::gov::socket::datagram* d) {
                         auto r = us::gov::io::blob_reader_t::parse(o_in.blob, chat);
                         if (is_ko(r)) {
                             screen::lock_t lock(scr, m.interactive);
-                            lock.os << r << '\n';
+                            lock.os << m.rewrite(r) << '\n';
                             break;
                         }
                         screen::lock_t lock(scr, m.interactive);
@@ -2448,7 +2461,7 @@ bool c::dispatcher_t::dispatch(us::gov::socket::datagram* d) {
                         auto r = us::gov::io::blob_reader_t::parse(o_in.blob, m.roles);
                         if (is_ko(r)) {
                             screen::lock_t lock(scr, m.interactive);
-                            lock.os << r << '\n';
+                            lock.os << m.rewrite(r) << '\n';
                             break;
                         }
                         screen::lock_t lock(scr, m.interactive);
@@ -2461,7 +2474,7 @@ bool c::dispatcher_t::dispatch(us::gov::socket::datagram* d) {
                         auto r = us::gov::io::blob_reader_t::parse(o_in.blob, roles);
                         if (is_ko(r)) {
                             screen::lock_t lock(scr, m.interactive);
-                            lock.os << r << '\n';
+                            lock.os << m.rewrite(r) << '\n';
                             break;
                         }
                         screen::lock_t lock(scr, m.interactive);
@@ -2474,7 +2487,7 @@ bool c::dispatcher_t::dispatch(us::gov::socket::datagram* d) {
                         auto r = us::gov::io::blob_reader_t::parse(o_in.blob, roles);
                         if (is_ko(r)) {
                             screen::lock_t lock(scr, m.interactive);
-                            lock.os << r << '\n';
+                            lock.os << m.rewrite(r) << '\n';
                             break;
                         }
                         screen::lock_t lock(scr, m.interactive);
@@ -2487,7 +2500,7 @@ bool c::dispatcher_t::dispatch(us::gov::socket::datagram* d) {
                         auto r = bookmarks.read(o_in.blob);
                         if (is_ko(r)) {
                             screen::lock_t lock(scr, m.interactive);
-                            lock.os << "HMI " << this << " " << r << '\n';
+                            lock.os << "HMI " << this << " " << m.rewrite(r) << '\n';
                             break;
                         }
                         screen::lock_t lock(scr, m.interactive);
@@ -2500,7 +2513,7 @@ bool c::dispatcher_t::dispatch(us::gov::socket::datagram* d) {
                         auto r = bookmarks.read(o_in.blob);
                         if (is_ko(r)) {
                             screen::lock_t lock(scr, m.interactive);
-                            lock.os << "HMI " << this << " " << r << '\n';
+                            lock.os << "HMI " << this << " " << m.rewrite(r) << '\n';
                             break;
                         }
                         screen::lock_t lock(scr, m.interactive);
@@ -2513,7 +2526,7 @@ bool c::dispatcher_t::dispatch(us::gov::socket::datagram* d) {
                         auto r = us::gov::io::blob_reader_t::parse(o_in.blob, payload);
                         if (is_ko(r)) {
                             screen::lock_t lock(scr, m.interactive);
-                            lock.os << "HMI " << this << " " << r << '\n';
+                            lock.os << "HMI " << this << " " << m.rewrite(r) << '\n';
                             break;
                         }
                         screen::lock_t lock(scr, m.interactive);
@@ -2532,7 +2545,7 @@ bool c::dispatcher_t::dispatch(us::gov::socket::datagram* d) {
                         auto r = us::gov::io::blob_reader_t::parse(o_in.blob, payload);
                         if (is_ko(r)) {
                             screen::lock_t lock(scr, m.interactive);
-                            lock.os << "HMI " << this << " " << r << '\n';
+                            lock.os << "HMI " << this << " " << m.rewrite(r) << '\n';
                             break;
                         }
                         screen::lock_t lock(scr, m.interactive);

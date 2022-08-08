@@ -34,7 +34,7 @@ import java.nio.charset.StandardCharsets;                                       
 
 public class cfg0 {
 
-    static void log(final String line) {            //--strip
+    static private void log(final String line) {    //--strip
         CFG.log_gov_io("cfg0: " + line);            //--strip
     }                                               //--strip
 
@@ -50,7 +50,7 @@ public class cfg0 {
     }
 
     public static String abs_file(String home, String fn) {
-        return home+"/"+fn;
+        return home + "/" + fn;
     }
 
     public static boolean dir_exists(String d) {
@@ -61,7 +61,7 @@ public class cfg0 {
         return false;
     }
 
-    public static boolean file_exists(String s) {
+    public static boolean file_exists(final String s) {
         File f = new File(s);
         if (f.exists() && !f.isDirectory()) {
            return true;
@@ -180,7 +180,6 @@ public class cfg0 {
         return r;
     }
 
-
-    String home;
+    public String home;
 }
 

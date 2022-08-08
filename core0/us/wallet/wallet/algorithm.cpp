@@ -260,10 +260,14 @@ c::io_accounts_t c::select_sources_algS0(const cash_t& amount, const hash_t& tok
     return move(ans);
 }
 
-c::io_accounts_t c::select_source(const hash_t& src, const cash_t& amount, const hash_t& token) const {
+c::io_accounts_t c::select_source(const hash_t& src, cash_t amount, const hash_t& token) const {
     lock_guard<mutex> lock(mx);
     log("select_source", src, amount, token);
     io_accounts_t ans;
+    if (unlikely(data == nullptr)) {
+        log("data is null");
+        return ans;
+    }
     auto i = data->find(src);
     if (i == data->end()) {
         log("account not found in data", src);
@@ -285,7 +289,7 @@ c::io_accounts_t c::select_source(const hash_t& src, const cash_t& amount, const
         remaining = 0;
         log("taken the remainder.");
     }
-    return move(ans);
+    return ans;
 }
 
 void c::dump(ostream& os) const {

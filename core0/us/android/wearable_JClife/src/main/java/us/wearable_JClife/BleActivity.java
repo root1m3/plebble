@@ -34,14 +34,14 @@ import com.jstyle.blesdk2025.Util.BleSDK;
 import com.jstyle.blesdk2025.constant.BleConst;
 import com.jstyle.blesdk2025.constant.DeviceKey;
 import java.util.Map;
-//import butterknife.BindArray;
-//import butterknife.BindView;
-//import butterknife.ButterKnife;
-//import butterknife.OnClick;
-import io.reactivex.android.schedulers.AndroidSchedulers;
-import io.reactivex.disposables.Disposable;
-import io.reactivex.functions.Consumer;
-import io.reactivex.schedulers.Schedulers;
+import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
+//import io.reactivex.android.schedulers.AndroidSchedulers;
+//import io.reactivex.disposables.Disposable;
+import io.reactivex.rxjava3.disposables.Disposable;
+//import io.reactivex.functions.Consumer;
+import io.reactivex.rxjava3.functions.Consumer;
+//import io.reactivex.schedulers.Schedulers;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 import us.wearable_JClife.activityBle.BaseActivity;
 import us.wearable_JClife.ble.BleManager;
 import us.wearable_JClife.ble.BleService;
@@ -50,45 +50,16 @@ import us.wearable_JClife.util.RxBus;
 import us.wearable_JClife.R;
 
 public class BleActivity extends BaseActivity {
-    private static final String TAG = "MainActivity";
 
-/*
-    @BindArray(R2.array.item_options)    String[] options;
-    @BindView(R2.id.BT_CONNECT)    Button btConnect;
-    @BindView(R2.id.button_startreal)    Button buttonStartreal;
-    @BindView(R2.id.textView_step)    TextView textViewStep;
-    @BindView(R2.id.textView_cal)    TextView textViewCal;
-    @BindView(R2.id.textView_distance)    TextView textViewDistance;
-    @BindView(R2.id.textView_time)    TextView textViewTime;
-    @BindView(R2.id.textView1)    TextView textView1;
-    @BindView(R2.id.textView_heartValue)    TextView textViewHeartValue;
-    @BindView(R2.id.textView_tempValue)    TextView textViewTempValue;
-    @BindView(R2.id.textView_ActiveTime)    TextView textViewActiveTime;
-    @BindView(R2.id.SwitchCompat_temp)    SwitchCompat SwitchCompatTemp;
-*/
-    String[] options;
-    Button btConnect;
-    Button buttonStartreal;
-    TextView textViewStep;
-    TextView textViewCal;
-    TextView textViewDistance;
-    TextView textViewTime;
-    TextView textView1;
-    TextView textViewHeartValue;
-    TextView textViewTempValue;
-    TextView textViewActiveTime;
-    SwitchCompat SwitchCompatTemp;
-
-    private ProgressDialog progressDialog;
-    private Disposable subscription;
-    private String address;
-    boolean isStartReal;
-    public static int phoneDataLength = 200; //手机一个包能发送的最多数据 / The maximum amount of data a mobile phone can send in one packet
+    static void log(final String s) {               //--strip
+        //Log.i(TAG, s);                              //--strip
+        System.out.println(TAG + ": " + s);         //--strip
+    }                                               //--strip
 
     @Override protected void onCreate(Bundle savedInstanceState) {
+        log("onCreate"); //--strip
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_ble);
-//        ButterKnife.bind(this);
         options = getResources().getStringArray(R.array.item_options);
         btConnect = findViewById(R.id.BT_CONNECT);
         buttonStartreal = findViewById(R.id.button_startreal);
@@ -119,57 +90,62 @@ public class BleActivity extends BaseActivity {
     }
 
     void on_startreal_click() {
+        log("on_startreal_click"); //--strip
         isStartReal = !isStartReal;
         buttonStartreal.setText(isStartReal ? "Stop" : "Start");
         sendValue(BleSDK.RealTimeStep(isStartReal,SwitchCompatTemp.isChecked()));
     }
 
     private void connectDevice() {
+        log("connectDevice"); //--strip
         address = getIntent().getStringExtra("address");
+        name = getIntent().getStringExtra("name");
         if (TextUtils.isEmpty(address)) {
-            Log.i(TAG, "onCreate: address null ");
+            log("connectDevice: address null. Name " + name); //--strip
             return;
         }
-        Log.i(TAG, "onCreate: ");
+        log("connectDevice address:" + address + " name:" + name); //--strip
         BleManager.getInstance().connectDevice(address);
         showConnectDialog();
     }
 
     private void showConnectDialog() {
         progressDialog = new ProgressDialog(this);
-        progressDialog.setMessage(getString(R.string.connectting));
+        progressDialog.setMessage(getString(R.string.connecting));
         if (!progressDialog.isShowing()) progressDialog.show();
 
     }
 
-    private void dissMissDialog() {
+    private void dissmissDialog() {
         if (progressDialog != null && progressDialog.isShowing()) progressDialog.dismiss();
     }
 
     private void init() {
+        log("init"); //--strip
         BleManager.init(this);
         subscription = RxBus.getInstance().toObservable(BleData.class).subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread()).subscribe(new Consumer<BleData>() {
-            @Override
-            public void accept(BleData bleData) throws Exception {
+            @Override public void accept(BleData bleData) throws Exception {
                 String action = bleData.getAction();
                 if (action.equals(BleService.ACTION_GATT_onDescriptorWrite)) {
+                    log("action BleService.ACTION_GATT_onDescriptorWrite"); //--strip
                     btConnect.setEnabled(false);
                     buttonStartreal.setEnabled(true);
                     SwitchCompatTemp.setEnabled(true);
-                    dissMissDialog();
-                } else if (action.equals(BleService.ACTION_GATT_DISCONNECTED)) {
+                    dissmissDialog();
+                }
+                else if (action.equals(BleService.ACTION_GATT_DISCONNECTED)) {
+                    log("action BleService.ACTION_GATT_DISCONNECTED"); //--strip
                     btConnect.setEnabled(true);
                     buttonStartreal.setEnabled(false);
                     SwitchCompatTemp.setEnabled(false);
                     isStartReal = false;
-                    dissMissDialog();
+                    dissmissDialog();
                 }
             }
         });
         SwitchCompatTemp.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                sendValue(BleSDK.RealTimeStep(isStartReal,isChecked));
+            @Override public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                sendValue(BleSDK.RealTimeStep(isStartReal, isChecked));
             }
         });
     }
@@ -183,18 +159,20 @@ public class BleActivity extends BaseActivity {
     private void unsubscribe() {
         if (subscription != null && !subscription.isDisposed()) {
             subscription.dispose();
-            Log.i(TAG, "unSubscribe: ");
+            log("unsubscribe"); //--strip
         }
     }
 
     @Override public void dataCallback(Map<String, Object> map) {
         super.dataCallback(map);
         String dataType = getDataType(map);
-        Log.e("info",map.toString());
+        log(map.toString()); //--strip
         switch (dataType) {
+
             case BleConst.ReadSerialNumber:
                 showDialogInfo(map.toString());
                 break;
+
             case BleConst.RealTimeStep:
                 Map<String, String> maps = getData(map);
                 String step = maps.get(DeviceKey.Step);
@@ -212,25 +190,52 @@ public class BleActivity extends BaseActivity {
                 textViewActiveTime.setText(ActiveTime);
                 textViewTempValue.setText(TEMP);
                 break;
+
             case BleConst.DeviceSendDataToAPP:
                 //showDialogInfo(BleConst.DeviceSendDataToAPP);
                 break;
+
             case BleConst.FindMobilePhoneMode:
                 //showDialogInfo(BleConst.FindMobilePhoneMode);
                 break;
+
             case BleConst.RejectTelMode:
                 //showDialogInfo(BleConst.RejectTelMode);
                 break;
+
             case BleConst.TelMode:
                 //showDialogInfo(BleConst.TelMode);
                 break;
+
             case BleConst.BackHomeView:
                 showToast(map.toString());
                 break;
+
             case BleConst.Sos:
                 showToast(map.toString());
                 break;
         }
     }
+
+    private static final String TAG = "BleActivity";
+    String[] options;
+    Button btConnect;
+    Button buttonStartreal;
+    TextView textViewStep;
+    TextView textViewCal;
+    TextView textViewDistance;
+    TextView textViewTime;
+    TextView textView1;
+    TextView textViewHeartValue;
+    TextView textViewTempValue;
+    TextView textViewActiveTime;
+    SwitchCompat SwitchCompatTemp;
+
+    private ProgressDialog progressDialog;
+    private Disposable subscription;
+    private String address;
+    private String name;
+    boolean isStartReal;
+    public static int phoneDataLength = 200; //手机一个包能发送的最多数据 / The maximum amount of data a mobile phone can send in one packet
 }
 

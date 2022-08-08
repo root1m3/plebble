@@ -24,7 +24,7 @@
 
 pushd android > /dev/null
     bin/sign_apk $@
-    r = $?
+    r=$?
 popd > /dev/null
 
 exit $r

@@ -27,6 +27,7 @@ import android.app.AlertDialog;                                                 
 import java.util.Arrays;                                                                       // Arrays
 import android.os.Build;                                                                       // Build
 import java.io.ByteArrayOutputStream;                                                          // ByteArrayOutputStream
+import androidx.core.content.ContextCompat;                                                    // ContextCompat
 import android.content.Context;                                                                // Context
 import android.content.DialogInterface;                                                        // DialogInterface
 import java.io.File;                                                                           // File
@@ -37,6 +38,7 @@ import android.content.Intent;                                                  
 import static us.ko.is_ko;                                                                     // is_ko
 import us.ko;                                                                                  // ko
 import android.Manifest;                                                                       // Manifest
+import androidx.annotation.NonNull;                                                            // NonNull
 import static us.ko.ok;                                                                        // ok
 import android.content.pm.PackageManager;                                                      // PackageManager
 import us.pair;                                                                                // pair
@@ -49,24 +51,30 @@ import android.net.Uri;                                                         
 
 public class sw_updates_t {
 
-    static void log(final String line) {         //--strip
-       CFG.log_android("sw_updates: " + line);   //--strip
-    }                                            //--strip
+    private static void log(final String line) {  //--strip
+        CFG.log_android("sw_updates: " + line);   //--strip
+    }                                             //--strip
 
     void toast(String m) {
-        activity.main.runOnUiThread(new Runnable() {
+        if (activity.a.main == null) {
+            log("KO 88079 cannot toast. main is null. " + m); //--strip
+            return;
+        }
+        activity.a.main.runOnUiThread(new Runnable() {
             @Override public void run() {
-                Toast.makeText(activity.main, m, 6000).show();
+                Toast.makeText(activity.a.main, m, 6000).show();
             }
         });
     }
 
-    public sw_updates_t(app a_) {
+    public sw_updates_t(app a_, hmi_t hmi_, cfg_android_private_t cfg_private_, cfg_android_public_t cfg_public_) {
         a = a_;
+        hmi = hmi_;
+        cfg_private = cfg_private_;
+        cfg_public = cfg_public_;
         setup_curapk();
-
         log("swversion " + us.vcs.version_name); //--strip
-        log("curapk " + curapk + " curapk0 " + curapk0); //--strip
+        log("curapk '" + curapk + "'"); //--strip
         log("is_updateavailable " + is_updateavailable); //--strip
     }
 
@@ -75,87 +83,139 @@ public class sw_updates_t {
     }
 
     public void forget_curapk() {
-        curapk = curapk0;
+        curapk = "";
+        clean_update();
+    }
+
+    void clean_update() {
+        cfg_private.delete_file("newapk");
+        cfg_private.delete_file("newapk_content");
+        cfg_private.delete_file("newapk_by");
+        log("deleted files newapk, newapk_by, newapk_content"); //--strip
+        is_updateavailable = false;
+    }
+
+    void boot_first_time() {
+        log("curapk '" + curapk + "'"); //--strip
+        if (!cfg_private.file_exists2("newapk_by")) { //I must be its first launch
+            log("newapk_by doesn't exist, we're running latest version"); //--strip
+            return;
+        }
+        log("newapk_by exists!"); //--strip
+        String newapk_by = cfg_private.read_file_string("newapk_by");
+        if (newapk_by == null || newapk_by.isEmpty()) {
+            log("KO 88574 problem with newapk_by file. cleaning upgrade files."); //--strip
+            clean_update();
+            return;
+        }
+        if (newapk_by.equals(us.vcs.apkfilename())) {
+            log("We are running the same version used to download the new apk"); //--strip
+            toast("Unexpected version, did the apk fail to install? curapk " + curapk + " name " + us.vcs.version_name + " newapk_by " + newapk_by);
+            is_updateavailable = true;
+            return;
+        }
+        curapk = cfg_private.read_file_string("newapk");
+        if (curapk == null || curapk.isEmpty()) {
+            log("KO 88574 problem with newapk file. cleaning upgrade files."); //--strip
+            clean_update();
+            return;
+        }
+        log("Writing curapk: " + newapk_by + " filename curapk"); //--strip
+        {
+            ko ret = cfg_private.write_file("curapk", curapk);
+            if (is_ko(ret)) {
+                toast(ret.msg);
+                clean_update();
+                return;
+            }
+        }
+        clean_update();
+        toast("New version from apk " + curapk + " " + us.vcs.version_name + ". Release notes:");
+        is_updateavailable = false;
     }
 
     void setup_curapk() {
-        String r = hmi_t.cfg_android.read_private_file_string(a.getApplicationContext(), "curapk");
-        if (r == null) {
+        log("setup_curapk"); //--strip
+        curapk = cfg_private.read_file_string("curapk");
+        if (curapk == null || curapk.isEmpty()) {
             log("cannot read curapk"); //--strip
-            return;
-        }
-        curapk = r;
-        if (hmi_t.cfg_android.private_file_exists(a.getApplicationContext(), "newapk_by")) { //I must be its first launch
-            String newapk_by = hmi_t.cfg_android.read_private_file_string(a.getApplicationContext(), "newapk_by");
-            if (newapk_by != curapk) { //failed installation
-                log("Writing curapk: " + newapk_by + " filename curapk"); //--strip
-                curapk = newapk_by;
-                {
-                    ko ret = hmi_t.cfg_android.write_private_file(a.getApplicationContext(), "curapk", curapk);
-                    if (is_ko(ret)) {
-                        toast(ret.msg);
-                        is_updateavailable = false;
-                        return;
-                    }
-                }
-                hmi_t.cfg_android.delete_private_file(a.getApplicationContext(), "newapk");
-                hmi_t.cfg_android.delete_private_file(a.getApplicationContext(), "newapk_content");
-                hmi_t.cfg_android.delete_private_file(a.getApplicationContext(), "newapk_by");
-                toast("New version from apk " + curapk + " " + us.vcs.version_name + ". Release notes:");
-                is_updateavailable = false;
+            log("querying node for my apk hash " + us.vcs.apkfilename()); //--strip
+            us.wallet.cli.rpc_peer_t.get_component_hash_in_t o_in = new us.wallet.cli.rpc_peer_t.get_component_hash_in_t(new string("android"), new string(us.vcs.apkfilename()));
+            //us.wallet.cli.rpc_peer_t.get_component_update_out_dst_t o_out = new us.wallet.cli.rpc_peer_t.get_component_update_out_dst_t();
+            string ans = new string();
+            ko r = hmi.rpc_peer.call_get_component_hash(o_in, ans);
+            if (is_ko(r)) {
+                log(hmi.rewrite(r)); //--strip
+                curapk = "";
             }
             else {
-                toast("Unexpected version, did the apk fail to install? curapk " + curapk + " name " + us.vcs.version_name + " newapk_by " + newapk_by);
-                is_updateavailable = true;
+                curapk = ans.value;
+                log("curapk from api = " + curapk); //--strip
+                ko ret = cfg_private.write_file("curapk", curapk);
+                if (is_ko(ret)) {
+                    toast(ret.msg);
+                }
             }
         }
+        boot_first_time();
     }
 
     private static String[] PERMISSIONS_STORAGE = {Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE};
-    private static final int REQUEST_EXTERNAL_STORAGE = 1;
+    private static final int REQUEST_EXTERNAL_STORAGE = 1832;
 
-    public static boolean ask_permission(Activity ac) {
-        String[] options = {"Install now.", "Remind me later."};
-        new AlertDialog.Builder(ac).setTitle("Info about automatic updates.")
-                .setMessage("Please Grant permissions to access external storage to be able to install software updates.")
-                .setIcon(android.R.drawable.ic_dialog_info).show();
-
-        log("request Permission"); //--strip
-        ActivityCompat.requestPermissions(ac, PERMISSIONS_STORAGE, REQUEST_EXTERNAL_STORAGE);
-        int permission = ActivityCompat.checkSelfPermission(ac, Manifest.permission.WRITE_EXTERNAL_STORAGE);
-        return permission == PackageManager.PERMISSION_GRANTED;
+    public boolean verify_permissions(String[] permissions) {        // Check if we have write permission
+        for (String str : permissions) {
+            if (ContextCompat.checkSelfPermission(a.getApplicationContext(), str) != PackageManager.PERMISSION_GRANTED) {
+                return false;
+            }
+        }
+        return true;
     }
 
-    public static boolean verify_storage_permissions(final Activity ac) {        // Check if we have write permission
-        log("verify_storage_permissions"); //--strip
-        app.assert_worker_thread(); //--strip
-        
-        int permission = ActivityCompat.checkSelfPermission(ac, Manifest.permission.WRITE_EXTERNAL_STORAGE);
-        log("A"); //--strip
+//    public boolean verify_storage_permissions() {        // Check if we have write permission
+/*
+        int permission = ContextCompat.checkSelfPermission(a.getApplicationContext(), Manifest.permission.WRITE_EXTERNAL_STORAGE);
         if (permission != PackageManager.PERMISSION_GRANTED) {
-            activity.main.runOnUiThread(new Runnable() {
-                @Override public void run() {
-                    ask_permission(ac);
-                }
-            });
             return false;
         }
-        else {
-            log("Permission already granted"); //--strip
-        }
-        log("C"); //--strip
+        log("Permission already granted"); //--strip
         return true;
+*/
+//    }
+
+    public void ask_permission(int req_code, String[] permissions, String rationale) {
+        if (a.main == null) {
+            return;
+        }
+        if (ActivityCompat.shouldShowRequestPermissionRationale(a.main, permissions[0])) {
+            new AlertDialog.Builder(a.main).setTitle("Info about automatic updates.")
+                .setMessage(rationale)
+                .setIcon(android.R.drawable.ic_dialog_info).show();
+        }
+        log("request Permission"); //--strip
+        ActivityCompat.requestPermissions(a.main, permissions, req_code);
+
+        //int permission = ActivityCompat.checkSelfPermission(ac, Manifest.permission.WRITE_EXTERNAL_STORAGE);
+        //return permission == PackageManager.PERMISSION_GRANTED;
     }
 
     ko download_apk() {
         log("download_apk"); //--strip
         a.assert_worker_thread(); //--strip
-        if (!verify_storage_permissions(activity.main)) {
+        if (!verify_permissions(PERMISSIONS_STORAGE)) {
+            if (a.main != null) {
+                a.main.runOnUiThread(new Runnable() {
+                    @Override public void run() {
+                        ask_permission(REQUEST_EXTERNAL_STORAGE, PERMISSIONS_STORAGE, "Please Grant access to external storage. This is needed for temporary storage of apk files (software updates).");
+                    }
+                });
+            }
+
             ko r = new ko("KO 60599 Permissions problem");
             log(r.msg); //--strip
             return r;
         }
-        if (!hmi_t.cfg_android.is_external_storage_writable()) {
+        if (!cfg_public.is_external_storage_writable()) {
             ko r = new ko("KO 78695 External storage is not writable");
             log(r.msg); //--strip
             return r;
@@ -164,29 +224,39 @@ public class sw_updates_t {
         log(Arrays.toString(Thread.currentThread().getStackTrace())); //--strip
         log("Checking for updates."); //--strip
         log("get_updat. curapk " + curapk); //--strip
-        is_updateavailable = false;
-        if (a.hmi == null || a.hmi.rpc_peer == null) {
+        if (hmi == null || hmi.rpc_peer == null) {
             ko r0 = new ko("KO 60069 HMI is not active. Aborting download sw-updates.");
             log(r0.msg); //--strip
             return r0;
         }
+        if (is_updateavailable) {
+            log("apk is locally available"); //--strip
+            return ok;
+        }
+        if (cfg_private.file_exists2("newapk_by")) {
+            is_updateavailable = true;
+            return ok;
+        }
+/*
+boolean b = true;
+if (b) {
+    log("SALIENDO");
+    System.exit(1);
+    return ok;
+}
+*/
+        log("querying node for updates"); //--strip
         ByteArrayOutputStream os = new ByteArrayOutputStream();
         log("get_component_update android " + curapk + " blob_id: " + CFG.blob_id); //--strip
         string blob_id = new string(CFG.blob_id);
         us.wallet.cli.rpc_peer_t.get_component_update_in_t o_in = new us.wallet.cli.rpc_peer_t.get_component_update_in_t(blob_id, new string("android"), new string(curapk));
         us.wallet.cli.rpc_peer_t.get_component_update_out_dst_t o_out = new us.wallet.cli.rpc_peer_t.get_component_update_out_dst_t();
         {
-            ko r = a.hmi.rpc_peer.call_get_component_update(o_in, o_out);
+            ko r = hmi.rpc_peer.call_get_component_update(o_in, o_out);
             if (is_ko(r)) {
-                log(a.hmi.rewrite(r)); //--strip
+                log(hmi.rewrite(r)); //--strip
                 return r;
             }
-        }
-        log("Comparing versions apk in disc: " + curapk + "; from api: " + o_out.file.value); //--strip
-        if (o_out.file.value.equals(curapk)) {
-            log("Same version."); //--strip
-            is_updateavailable = !curapk.equals(curapk0);
-            return ok;
         }
         if (o_out.file.value.isEmpty()) {
             ko r = new ko("KO 10992 Unexpected empty filename.");
@@ -198,56 +268,50 @@ public class sw_updates_t {
             log(r.msg); //--strip
             return r;
         }
-        log("Saving content to newapk_content. size=" + o_out.bin_pkg.value.length + " bytes."); //--strip
-        {
-            ko r = hmi_t.cfg_android.write_public_file(activity.main, "newapk_content", o_out.bin_pkg.value);
+        if (o_out.file.value.equals(curapk)) {
+            log("Same version."); //--strip
+            is_updateavailable = false; //!curapk.equals(curapk0);
+            return ok;
+        }
+        synchronized (cfg_android_public_t.downloads_dir_lock_t) {
+            log("Saving content to newapk_content. size=" + o_out.bin_pkg.value.length + " bytes."); //--strip
+            ko r = cfg_public.write_public_file("newapk_content", o_out.bin_pkg.value);
             if (is_ko(r)) {
                 return r;
             }
         }
         log("Writing newapk: " + o_out.file.value + " filename newapk"); //--strip
         {
-            ko r = hmi_t.cfg_android.write_private_file(a.getApplicationContext(), "newapk", o_out.file.value);
+            ko r = cfg_private.write_file("newapk", o_out.file.value);
             if (is_ko(r)) {
                 return r;
             }
         }
-        log("Writing newapk_by: " + curapk + " filename newapk_by"); //--strip
+        log("Writing newapk_by: " + us.vcs.apkfilename()); //--strip
         {
-            ko r = hmi_t.cfg_android.write_private_file(a.getApplicationContext(), "newapk_by", curapk);
+            ko r = cfg_private.write_file("newapk_by", us.vcs.apkfilename());
             if (is_ko(r)) {
                 return r;
             }
         }
         log("updating var"); //--strip
-        curapk = o_out.file.value;
-        is_updateavailable = true; //!curapk.equals(curapk0);
+        //curapk = o_out.file.value;
+        is_updateavailable = true;
         return ok;
-    }
-
-    static class NextTask extends TimerTask {
-        NextTask(sw_updates_t i_) {
-            i = i_;
-        }
-        sw_updates_t i;
-
-        @Override
-        public void run() {
-            i.check(false);
-        }
     }
 
     void check(boolean informok) {
         a.assert_worker_thread(); //--strip
-        if (activity.main == null) {
-            return;
-        }
         final ko r = download_apk();
         log("Timer: download_apk? " + is_updateavailable); //--strip
-        activity.main.runOnUiThread(new Runnable() {
+        if (a.main == null) {
+            return;
+        }
+        a.main.runOnUiThread(new Runnable() {
             @Override public void run() {
-                if (r != ok) {
-                    Toast.makeText(activity.main, r.msg, 6000).show();
+                if (is_ko(r)) {
+//                    Toast.makeText(a.main, r.msg, 6000).show();
+                    toast(hmi.rewrite(r));
                 }
                 else {
                     if (is_updateavailable) {
@@ -255,7 +319,8 @@ public class sw_updates_t {
                     }
                     else {
                         if (informok) {
-                            Toast.makeText(activity.main, a.getResources().getString(R.string.systemisuptodate), 6000).show();
+//                            Toast.makeText(a.main, a.getResources().getString(R.string.systemisuptodate), 6000).show();
+                            toast(a.getResources().getString(R.string.systemisuptodate));
                         }
                     }
                 }
@@ -265,25 +330,30 @@ public class sw_updates_t {
     }
 
     Timer timer;
-    public void start() {
-        a.assert_ui_thread(); //--strip
+
+    public ko start() {
         log("Start automatic updates"); //--strip
         timer = new Timer();
-        timer.schedule(new NextTask(this), 2 * 1000, 8 * 60 * 60 * 1000); //check on start app and every 8 hours
+        timer.schedule(new TimerTask() {
+                @Override public void run() {
+                    check(false);
+                }
+            }, 2 * 1000, 8 * 60 * 60 * 1000); //check on start app and every 8 hours
+        return ok;
     }
 
     public void stop() {
-        a.assert_ui_thread(); //--strip
-        if (timer != null) {
-            timer.cancel();
-            timer = null;
-        }
+        if (timer == null) return;
+        timer.cancel();
+        timer = null;
+    }
+
+    public void join() {
     }
 
     public boolean need_install_apk() {
         log("wallet::need_install_apk()?"); //--strip
-        hmi_t.cfg_android.logfiles(a.getApplicationContext());  //--strip
-        if (!hmi_t.cfg_android.public_file_exists(a.getApplicationContext(), "newapk_content")) {
+        if (!cfg_public.public_file_exists("newapk_content")) {
             log("newapk_content doesn't exist."); //--strip
             return false;
         }
@@ -296,43 +366,42 @@ public class sw_updates_t {
         String[] options = {"Install now.", "Remind me later."};
         final sw_updates_t i = this;
         new AlertDialog.Builder(a.active_ac).setTitle("An update of the app " + CFG.app_name + " is ready to install...")
-                .setItems(options, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        switch(which) {
-                            case 0:
-                                i.do_inst_ask_permission(a.active_ac);
-                                break;
-                            case 1:
-                                break;
-                        }
+            .setItems(options, new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    switch(which) {
+                        case 0:
+                            i.do_inst_ask_permission(a.active_ac);
+                            break;
+                        case 1:
+                            break;
                     }
-                })
-                .setIcon(android.R.drawable.ic_dialog_alert).show();
+                }
+            })
+            .setIcon(android.R.drawable.ic_dialog_alert).show();
     }
 
     public void show_ui(final activity ac) {
-        String[] options = {a.getResources().getString(R.string.checkforupdates), a.getResources().getString(R.string.forgetapknash) + " " + (curapk.equals(curapk0) ? "[0] " : "[+] ") + get_curapk(), a.getResources().getString(R.string.installupdates), a.getResources().getString(R.string.cancel)};
+        String[] options = {a.getResources().getString(R.string.checkforupdates), a.getResources().getString(R.string.forgetapknash) + " " + get_curapk(), a.getResources().getString(R.string.installupdates), a.getResources().getString(R.string.cancel)};
         final sw_updates_t i = this;
         new AlertDialog.Builder(ac).setTitle(a.getResources().getString(R.string.appupdates))
-                .setItems(options, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        switch(which) {
-                            case 0:
-                                i.check4updates(ac);
-                                break;
-                            case 1:
-                                i.forget_curapk();
-                                break;
-                            case 2:
-                                i.do_inst_ask_permission(ac);
-                                break;
-                            case 3:
-                        }
+            .setItems(options, new DialogInterface.OnClickListener() {
+                @Override public void onClick(DialogInterface dialog, int which) {
+                    switch(which) {
+                        case 0:
+                            i.check4updates(ac);
+                            break;
+                        case 1:
+                            i.forget_curapk();
+                            break;
+                        case 2:
+                            i.do_inst_ask_permission(ac);
+                            break;
+                        case 3:
                     }
-                })
-                .setIcon(android.R.drawable.ic_dialog_alert).show();
+                }
+            })
+            .setIcon(android.R.drawable.ic_dialog_alert).show();
     }
 
     public void do_inst(activity ac) {
@@ -342,7 +411,7 @@ public class sw_updates_t {
             Toast.makeText(ac, a.getResources().getString(R.string.noupgradepackages), 6000).show();
             return;
         }
-        File f = hmi_t.cfg_android.public_file(a.getApplicationContext(), "newapk_content");
+        File f = cfg_public.public_file("newapk_content");
         if (f == null) {
             log("KO 30029 newapk_content doesn't open. " + curapk); //--strip
             return;
@@ -361,25 +430,38 @@ public class sw_updates_t {
         log("Intent started"); //--strip
     }
 
-    public static final int INST_RESULT = 1;
-
     public void do_inst_ask_permission(activity ac) {
         log("do_inst_ask_permission");  //--strip
         a.assert_ui_thread(); //--strip
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            log("A");  //--strip
-            if (!a.getPackageManager().canRequestPackageInstalls()) {
-                log("B");  //--strip
-                ac.startActivityForResult(new Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES).setData(Uri.parse(String.format("package:%s", a.getPackageName()))), INST_RESULT);
-                return;
-            }
+//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+        if (a.getPackageManager().canRequestPackageInstalls()) {
+            do_inst(ac);
         }
-        do_inst(ac);
+        else {
+            log("B");  //--strip
+            Intent i = new Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES).setData(Uri.parse(String.format("package:%s", a.getPackageName())));
+            ac.startActivityForResult(i, activity.INSTALL_PACKAGES_REQUESTCODE);
+/*
+            new ActResultRequest(ac).startForResult(i, new ActForResultCallback() {
+                @Override public void onActivityResult(int resultCode, Intent data) {
+                    log("onActivityResult:" + resultCode); //--strip
+                    if (resultCode == RESULT_OK) { //granted
+                        do_inst(ac);
+                    } else { //denied
+                        log("denied"); //--strip
+                    }
+                }
+            });
+*/
+            return;
+        }
+//        }
     }
 
     void check4updates(activity ac) {
         a.assert_ui_thread(); //--strip
-        Toast.makeText(ac, "Checking for updates...", 6000).show();
+//        Toast.makeText(ac, "Checking for updates...", 6000).show();
+        toast("Checking for updates...");
         Thread thread = new Thread(new Runnable() {
             @Override public void run () {
                 check(true);
@@ -388,10 +470,13 @@ public class sw_updates_t {
         thread.start();
     }
 
-    static final String curapk0 = CFG.apkfilename;
-    String curapk = curapk0;
+    //static final String curapk0 = CFG.apkfilename;
+    String curapk = ""; //curapk0;
     public boolean is_updateavailable = false;
-    String homedir;
+//    String homedir;
     app a;
+    hmi_t hmi;
+    cfg_android_private_t cfg_private;
+    cfg_android_public_t cfg_public;
 }
 

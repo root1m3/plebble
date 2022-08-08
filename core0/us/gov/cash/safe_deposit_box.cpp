@@ -190,9 +190,9 @@ ko c::from_blob(blob_reader_t& reader) {
         }
     }
     ///TODO: delete this corrective step alpha-29.20
-    if (f != nullptr) {
-        f->del_dup();
-    }
+    //if (f != nullptr) {
+    //    f->del_dup();
+    //}
 
     {
         if ((i & (1 << 2)) == 0) {
@@ -277,21 +277,27 @@ bool c::store(const string& key, const string& value) {
     return true;
 }
 
-bool c::store(const string& path, const hash_t& filehash, const uint32_t& sz) {
+bool c::store(const string& path, const hash_t& filehash, uint32_t sz) {
+    log("store", path, filehash, sz);
     if (f == nullptr) {
+        log("f is null");
         if (unlikely(sz == 0)) return false;
         f = new f_t();
         f->emplace(filehash, fileattr_t(path, sz));
+        log("f created");
         return true;
     }
     f->delete_path(path);
     auto i = f->find(filehash);
+    log("found filehash?", filehash, i != f->end());
     if (i == f->end()) {
         if (likely(sz > 0)) {
             f->emplace(filehash, fileattr_t(path, sz));
+            log("Added entry", filehash, path, sz);
         }
     }
     if (f->empty()) {
+        log("deleted file container");
         delete f;
         f = nullptr;
     }

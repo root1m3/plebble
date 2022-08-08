@@ -50,6 +50,7 @@ public interface caller_api extends dto {
       ko call_sync(string data);
       ko call_reload_file(final string filename, string ans);
       ko call_get_component_update(final get_component_update_in_t o_in, get_component_update_out_dst_t o_out);
+      ko call_get_component_hash(final get_component_hash_in_t o_in, string curver);
       ko call_harvest(final harvest_in_t o_in, string ans);
       ko call_world(vector_hash wallets);
       ko call_lookup_wallet(final hash_t addr, lookup_wallet_out_dst_t o_out);

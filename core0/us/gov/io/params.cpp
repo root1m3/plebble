@@ -27,7 +27,7 @@
 
 #include "types.h"
 
-#define loglevel "io"
+#define loglevel "gov/io"
 #define logclass "params"
 #include "logs.inc"
 
@@ -67,6 +67,9 @@ c::params(const shell_args& a): args(a) {
         else if (command == "-e") {
             edges = args.next<int>();
         }
+        else if (command == "-E") {
+            save_evidences = (args.next<int>(0) == 1);
+        }
         else if (command == "-v") {
             devices = args.next<int>();
         }
@@ -102,6 +105,9 @@ c::params(const shell_args& a): args(a) {
         }
         else if (command == "-nb") {
             banner = false;
+        }
+        else if (command == "-t") {
+            rpc_timeout_secs = args.next<uint16_t>(CFG_DGRAM_ROUNDTRIP_TIMEOUT_SECS);
         }
         else if (!command.empty()) {
             cmd = command + " " + args.next_line();

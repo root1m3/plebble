@@ -30,15 +30,11 @@
 #include "db_t.h"
 
 namespace us::gov::peer {
-
     struct nodes_t;
-
 }
 
 namespace us::gov::engine {
-
     struct daemon_t;
-
 }
 
 namespace us::gov::traders {

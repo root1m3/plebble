@@ -29,7 +29,7 @@ import android.os.Bundle;                                                       
 import java.util.Collection;                                                                   // Collection
 import java.util.Collections;                                                                  // Collections
 import android.content.DialogInterface;                                                        // DialogInterface
-import com.google.firebase.crashlytics.FirebaseCrashlytics;                                    // FirebaseCrashlytics
+//import com.google.firebase.crashlytics.FirebaseCrashlytics;                                    // FirebaseCrashlytics
 import android.app.Fragment;                                                                   // Fragment
 import java.util.HashMap;                                                                      // HashMap
 import android.content.Intent;                                                                 // Intent
@@ -401,8 +401,7 @@ public class scan_intent_integrator {
         download_dialog.setTitle(title);
         download_dialog.setMessage(message);
         download_dialog.setPositiveButton(button_yes, new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialogInterface, int i) {
+            @Override public void onClick(DialogInterface dialogInterface, int i) {
                 String package_name;
                 if (target_applications.contains(BS_PACKAGE)) {
                     // Prefer to suggest download of BS if it's anywhere in the list
@@ -424,7 +423,7 @@ public class scan_intent_integrator {
                 }
                 catch (ActivityNotFoundException anfe) {
                     // Hmm, market is not installed
-                    FirebaseCrashlytics.getInstance().recordException(anfe); //--strip
+//                    FirebaseCrashlytics.getInstance().recordException(anfe); //--strip
                     Log.w(TAG, "Google Play is not installed; cannot install " + package_name);
                 }
             }
@@ -521,17 +520,23 @@ public class scan_intent_integrator {
             // Kind of hacky
             if (value instanceof Integer) {
                 intent.putExtra(key, (Integer) value);
-            } else if (value instanceof Long) {
+            }
+            else if (value instanceof Long) {
                 intent.putExtra(key, (Long) value);
-            } else if (value instanceof Boolean) {
+            }
+            else if (value instanceof Boolean) {
                 intent.putExtra(key, (Boolean) value);
-            } else if (value instanceof Double) {
+            }
+            else if (value instanceof Double) {
                 intent.putExtra(key, (Double) value);
-            } else if (value instanceof Float) {
+            }
+            else if (value instanceof Float) {
                 intent.putExtra(key, (Float) value);
-            } else if (value instanceof Bundle) {
+            }
+            else if (value instanceof Bundle) {
                 intent.putExtra(key, (Bundle) value);
-            } else {
+            }
+            else {
                 intent.putExtra(key, value.toString());
             }
         }

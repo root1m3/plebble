@@ -292,7 +292,7 @@ ko c::update_peer(peer_t& peer, ch_t&& ch) const {
     }
     for (auto& i: ch.updated_files) {
         log("Notifying other trades about a file update:", i.first, i.second);
-        parent.on_file_updated(i.first, i.second, this);
+        parent.on_file_updated2(i.first, i.second, this);
     }
     return ok;
 }

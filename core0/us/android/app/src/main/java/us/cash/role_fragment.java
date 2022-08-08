@@ -46,9 +46,9 @@ import android.view.View;                                                       
 
 public abstract class role_fragment extends Fragment implements datagram_dispatcher_t.handler_t {
 
-    static void log(final String line) {             //--strip
-        CFG.log_android("role_fragment: " + line);   //--strip
-    }                                                //--strip
+    private static void log(final String line) {             //--strip
+        CFG.log_android("role_fragment: " + line);           //--strip
+    }                                                        //--strip
 
     public role_fragment() {
         logo = true;
@@ -116,7 +116,7 @@ public abstract class role_fragment extends Fragment implements datagram_dispatc
             });
 
         log("connect network-datagram hose");//--strip
-        dispatchid = a.datagram_dispatcher.connect_sink(this);
+        dispatchid = a.hmi.dispatcher.connect_sink(this);
         return v;
     }
 
@@ -124,9 +124,8 @@ public abstract class role_fragment extends Fragment implements datagram_dispatc
         super.onDestroyView();
         log("onDestroyView"); //--strip
         assert a != null;
-        assert a.datagram_dispatcher != null;
-        log("disconnect network-datagram hose.");//--strip
-        a.datagram_dispatcher.disconnect_sink(dispatchid);
+        assert a.hmi.dispatcher != null;
+        a.hmi.dispatcher.disconnect_sink(dispatchid);
     }
 
     @Override public void on_push(final hash_t target_tid, final uint16_t code, final byte[] payload) {
@@ -150,7 +149,7 @@ public abstract class role_fragment extends Fragment implements datagram_dispatc
                 if (is_ko(r)) {
                     return;
                 }
-                _tip_view.set_tip(s.value);
+                _tip_view.set_tip_(s.value);
                 return;
             }
             case us.wallet.trader.workflow.trader_protocol.push_redirects: {
@@ -178,8 +177,7 @@ public abstract class role_fragment extends Fragment implements datagram_dispatc
         startActivityForResult(intent, DOC_VIEWER_RESULT);
     }
 
-    @Override
-    public void onActivityResult(int request_code, int result_code, Intent data) {
+    @Override public void onActivityResult(int request_code, int result_code, Intent data) {
         super.onActivityResult(request_code, result_code, data);
         log("onActivityResult " + request_code + " " + result_code); //--strip
         if (request_code != DOC_VIEWER_RESULT) {
@@ -254,7 +252,6 @@ public abstract class role_fragment extends Fragment implements datagram_dispatc
     int dispatchid;
     public app a;
     public trader tr;
-    //View v = null;
     public ViewGroup content = null;
 
     logo_view _logo_view;
@@ -264,7 +261,7 @@ public abstract class role_fragment extends Fragment implements datagram_dispatc
 
     public int trade_state = 0;
     public NestedScrollView scroll;
-    //archive_btn;
+
     boolean logo = true;
 }
 

@@ -22,7 +22,12 @@
 //===-
 #include "shell_args.h"
 #include <sstream>
+#include <algorithm>
+#include <cctype>
+#include <string>
+
 #include <us/gov/config.h>
+
 #include "cfg0.h"
 
 #define loglevel "io"
@@ -102,10 +107,20 @@ c::~shell_args() {
     }
 }
 
+bool c::is_root_token(string i) {
+    transform(i.begin(), i.end(), i.begin(), [](unsigned char ch){ return tolower(ch); });
+    if (i == LGAS) return true; //water
+    if (i == "w") return true;
+    if (i == "h2o") return true;
+    if (i == "agua") return true;
+    if (i == "gas") return true;
+    return false;
+}
+
 hash_t c::next_token(istream& is) {
     string s;
     is >> s;
-    if (s == LGAS || s == UGAS) return hash_t(0);
+    if (is_root_token(s)) return hash_t(0);
     return convert<hash_t>(s);
 }
 
@@ -114,7 +129,7 @@ hash_t c::next_token() {
         return hash_t(0);
     }
     string i = argv[n++];
-    if (i == LGAS || i == UGAS) return hash_t(0);
+    if (is_root_token(i)) return hash_t(0);
     return convert<hash_t>(i);
 }
 

@@ -48,9 +48,9 @@ import android.view.View;                                                       
 
 public class tip_view extends LinearLayout {
 
-    static void log(final String s) { //--strip
-        System.out.println("tip_view: " + s); //--strip
-    } //--strip
+    private static void log(final String s) {           //--strip
+        System.out.println("tip_view: " + s);           //--strip
+    }                                                   //--strip
 
     public tip_view(Context context, AttributeSet attrs) {
         super(context, attrs);
@@ -58,17 +58,17 @@ public class tip_view extends LinearLayout {
 
     public void init(role_fragment rf_) {
         rf = rf_;
+        rf.tr.a.assert_ui_thread();  //--strip
         tip_explain = findViewById(R.id.tip_explain);
         state = findViewById(R.id.state);
         card = findViewById(R.id.card);
         card.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
+            @Override public void onClick(View view) {
                 toast_info();
             }
         });
-        set_tip("");
-        set_state("0 Ready");
+        set_tip_("");
+        set_state_("0 Ready");
     }
 
     void toast_info() {
@@ -77,7 +77,6 @@ public class tip_view extends LinearLayout {
         if (!s2.isEmpty()) {
             m += getResources().getString(R.string.status) + ": " + s2 +"\n";
         }
-
         String s = tip_explain.getText().toString();
         if (!s.isEmpty()) {
             m += getResources().getString(R.string.hint) + ": " + s +"\n";
@@ -85,43 +84,55 @@ public class tip_view extends LinearLayout {
         Toast.makeText(rf.tr.getApplicationContext(), m, 6000).show();
     }
 
-    public void set_tip(final String tip) {
+    public void set_tip__worker(final String tip) {
         log("set tip:" + tip); //--strip
-        activity.main.runOnUiThread(new Runnable() {
+        rf.tr.a.assert_worker_thread();  //--strip
+        rf.tr.a.runOnUiThread(new Runnable() {
             public void run() {
-                tip_explain.setText(tip);
-                tip_explain.setVisibility(View.VISIBLE);
-//                tip_explain.setVisibility(tip.isEmpty() ? View.GONE : View.VISIBLE);
+                set_tip_(tip);
             }
         });
     }
 
-    public void set_state(final String st) {
+    public void set_tip_(final String tip) {
+        log("set tip:" + tip); //--strip
+        rf.tr.a.assert_ui_thread();  //--strip
+        tip_explain.setText(tip);
+        tip_explain.setVisibility(View.VISIBLE);
+    }
+
+    public void set_state__worker(final String st) {
+        rf.tr.a.assert_worker_thread();  //--strip
+        rf.tr.a.runOnUiThread(new Runnable() {
+            @Override public void run() {
+                set_state_(st);
+            }
+        });
+    }
+
+    public void set_state_(final String st) {
+        rf.tr.a.assert_ui_thread();  //--strip
         final String[] x = st.split(" ", 2);
         log("set state:" + x[0]); //--strip
         id = new uint32_t(x[0]);
-        activity.main.runOnUiThread(new Runnable() {
-            public void run() {
-                state.setText(x[1]);
-//                card.setVisibility(id.value == 0 ? View.GONE : View.VISIBLE);
-                card.setVisibility(View.VISIBLE);
-            }
-        });
+        state.setText(x[1]);
+        card.setVisibility(View.VISIBLE);
     }
 
     public boolean refresh() {
         log("refresh"); //--strip
+        rf.tr.a.assert_ui_thread();  //--strip
         data_t data = rf.tr.get_data();
         assert data != null;
 
         String st = data.find("trade_state");
         if (st != null) {
-            set_state(st);
+            set_state_(st);
         }
 
         String hint = data.find("user_hint");
         if (hint != null) {
-            set_tip(hint);
+            set_tip_(hint);
         }
         return true;
     }

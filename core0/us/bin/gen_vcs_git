@@ -24,9 +24,9 @@
 #execute as bin/gen_vcs_git
 override_hashname=""
 modfiles=$1
-if [ "_$modfiles" != "_" ]; then
+if [[ "_$modfiles" != "_" ]]; then
     echo "Modified files:"
-    if [ -f $modfiles ]; then
+    if [[ -f $modfiles ]]; then
         cat $modfiles
     else
         echo "KO 65834 file not found."
@@ -34,13 +34,13 @@ if [ "_$modfiles" != "_" ]; then
     fi
 fi
 . res/strings/en-uk
-if [ -f res/strings/en-uk.ovr ]; then
+if [[ -f res/strings/en-uk.ovr ]]; then
     echo "overriding env"
     . res/strings/en-uk.ovr
 fi
 gitdir=""
 devjobtag=""
-if [ -f ../../.revs ]; then
+if [[ -f ../../.revs ]]; then
     . ../../.revs
     devjob=`echo "$devjob_id" | grep "devjob_" | sed "s/devjob_\(.*\)/\1/"`
     devjobtag="dj`echo $upstream_hash | cut -c1-8`_"
@@ -48,7 +48,7 @@ fi
 gitdir="../../.git"
 
 locally_modified=""
-if [ -d $gitdir ]; then
+if [[ -d $gitdir ]]; then
     echo "git environment"
     branch=`git branch | grep '*' | awk '{print $NF}'`
     revhash=`git log | head -n1 | awk '{print $2}'`
@@ -61,7 +61,7 @@ if [ -d $gitdir ]; then
         echo "No."
     fi
 else
-    if [ -f vcs_git_env ]; then
+    if [[ -f vcs_git_env ]]; then
         echo "Not in git environment. Found existing vcs_git files."
         exit 0
     else
@@ -75,7 +75,7 @@ vcode=`date +%y%m%d%H`
 if [ -f res/strings/en-uk.ovr ]; then
     cfghash=`sha256sum res/strings/en-uk.ovr $modfiles | sha256sum | awk '{print $1}'`
 else
-    if [ "_$modfiles" == "_" ]; then
+    if [[ "_$modfiles" == "_" ]]; then
         cfghash="0"
     else
         cfghash=`sha256sum $modfiles | awk '{print $1}'`
@@ -89,6 +89,7 @@ if [[ "_$override_hashname" != "_" ]]; then
 fi
 #------------------------bash
 cat << EOF > vcs_git_env
+core0_src="$str82"
 core0_devjob="$devjob"
 core0_devjobtag="$devjobtag"
 core0_brand="$str3"
@@ -106,6 +107,7 @@ cat vcs_git_env
 . vcs_git_env
 #------------------------java
 cat << EOF > vcs_git_java
+public static final String src = "$core0_src";
 public static final String devjob = "$core0_devjob";
 public static final String devjobtag = "$core0_devjobtag";
 public static final String brand = "$core0_brand";
@@ -119,6 +121,7 @@ EOF
 echo "generated file vcs_git_java"
 #------------------------c++
 cat << EOF > vcs_git_cpp
+std::string us::vcs::src = "$core0_src";
 std::string us::vcs::devjob = "$core0_devjob";
 std::string us::vcs::devjobtag = "$core0_devjobtag";
 std::string us::vcs::brand = "$core0_brand";

@@ -118,12 +118,14 @@ c::params(const shell_args& a): args(a) {
         else if (command == "-nb") {
             banner = false;
         }
-
         #if CFG_FCGI == 1
         else if (command == "-fcgi") {
            fcgi = true;
         }
         #endif
+        else if (command == "-t") {
+            rpc_timeout_secs = args.next<uint16_t>(CFG_DGRAM_ROUNDTRIP_TIMEOUT_SECS);
+        }
         else if (!command.empty()) {
             cmd = command;
             break;

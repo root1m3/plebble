@@ -78,6 +78,9 @@ namespace us::test {
         };
         static void test();
         bookmarks_t bookmarks() const;
+        ko android_app_test__prepair(string subhome, node&);
+        ko android_app_test__pair(string subhome, node&);
+        void set_consume_pin(node&);
 
     public:
         static string OFAddress;

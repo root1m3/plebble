@@ -23,9 +23,6 @@
 package us.wearable_JClife.util;
 
 public class BleData {
-    byte[]value;
-    String action;
-    String data;
 
     public String getData() {
         return data;
@@ -50,4 +47,9 @@ public class BleData {
     public void setValue(byte[] value) {
         this.value = value;
     }
+
+    byte[] value;
+    String action;
+    String data;
 }
+

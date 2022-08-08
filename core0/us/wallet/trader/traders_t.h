@@ -41,15 +41,11 @@
 #include "personality/personality_t.h"
 
 namespace us::wallet::wallet {
-
     struct local_api;
-
 }
 
 namespace us::wallet::engine {
-
     struct daemon_t;
-
 }
 
 namespace us::wallet::trader {
@@ -121,12 +117,13 @@ namespace us::wallet::trader {
     public: /// traders < -- > traders. Untrusted peer. Secure. Encrypted communication
         /// Functions invoked by remote instances.
         ko trading_msg(peer_t&, svc_t svc, const hash_t& tid, blob_t&& msg);
-        void on_file_updated(const string& path, const string& name, const trader_t* source_trader);
+        void on_file_updated2(const string& path, const string& name, const trader_t* source_trader);
 
     public:
         ko start();
         ko wait_ready(const time_point& deadline) const;
         void stop();
+        void stop_();
         void join();
 
         struct lib_t final {
@@ -192,7 +189,6 @@ namespace us::wallet::trader {
 
         engine::daemon_t& daemon;
         string home;
-        mutable mutex mx;
 
         using funs_t = trader_t::funs_t;
         funs_t lf; //local functions
@@ -204,6 +200,9 @@ namespace us::wallet::trader {
             string logdir;
             string trades_logdir;
         #endif
+
+    private:
+        mutable mutex _mx;
 
     };
 

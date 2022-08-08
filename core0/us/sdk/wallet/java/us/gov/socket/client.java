@@ -393,7 +393,7 @@ public class client {
     public AtomicLong activity = new AtomicLong(0L);
     public daemon0_t daemon;
     AtomicBoolean finished = new AtomicBoolean(false);
-    tuple3<channel_t, seq_t, reason_t> finished_reason = null; //    pair<uint16_t, String> finished_reason = null;
+    tuple3<channel_t, seq_t, reason_t> finished_reason = null;
     public AtomicInteger sendref = new AtomicInteger(0);
     long activity_recv;
 

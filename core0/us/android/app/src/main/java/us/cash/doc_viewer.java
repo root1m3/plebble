@@ -35,7 +35,7 @@ import android.os.Environment;                                                  
 import java.io.File;                                                                           // File
 import java.io.FileNotFoundException;                                                          // FileNotFoundException
 import java.io.FileOutputStream;                                                               // FileOutputStream
-import com.google.firebase.crashlytics.FirebaseCrashlytics;                                    // FirebaseCrashlytics
+//import com.google.firebase.crashlytics.FirebaseCrashlytics;                                    // FirebaseCrashlytics
 import static us.gov.crypto.ripemd160.hash_t;                                                  // hash_t
 import static us.gov.io.types.*;                                                               // *
 import static us.ko.*;                                                                         // *
@@ -75,9 +75,6 @@ public final class doc_viewer extends activity implements datagram_dispatcher_t.
     @Override protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         set_content_layout(R.layout.activity_tx);
-//        Toolbar toolbar = findViewById(R.id.toolbar);
-//        setSupportActionBar(findViewById(R.id.toolbar));
-//        progressbarcontainer = findViewById(R.id.progressbarcontainer);
         content = findViewById(R.id.content2);
         action = findViewById(R.id.action);
         refresh = findViewById(R.id.refresh);
@@ -117,7 +114,7 @@ public final class doc_viewer extends activity implements datagram_dispatcher_t.
             }
         });
         log("connect network-datagram hose");//--strip
-        dispatchid = a.datagram_dispatcher.connect_sink(this);
+        dispatchid = a.hmi.dispatcher.connect_sink(this);
         fetch_content();
     }
 
@@ -126,7 +123,7 @@ public final class doc_viewer extends activity implements datagram_dispatcher_t.
         log("onDestroy"); //--strip
         final app a = (app)getApplication();
         log("disconnect network-datagram hose");//--strip
-        a.datagram_dispatcher.disconnect_sink(dispatchid);
+        a.hmi.dispatcher.disconnect_sink(dispatchid);
     }
 
     @Override public void onPause() {

@@ -25,48 +25,6 @@ echo "#####################"
 echo "## 80_deploy_blobs ##"
 echo "#####################"
 
-let n=0
-let x=0
-function step2 {
-    ush update_dfs_index
-    let ln=0
-    let t=10
-    while [[ true ]]; do
-        sleep $t
-        echo "Checking for ans"
-        ush ans > /tmp/xx55910 2>&1
-        let n=`cat /tmp/xx55910 | grep "waiting for" | wc -l`
-        echo "$n answers"
-        if [[ $n -ne 0 ]]; then
-            if [[ $n -eq $ln ]]; then
-                break
-            fi
-            ln=$n
-            let t=1
-        fi
-    done
-    cat /tmp/xx55910 | grep "waiting for"
-    cat /tmp/xx55910 | grep "waiting for" | wc -l
-    let x=`cat /tmp/xx55910 | grep "waiting for 0 files" | wc -l`
-    rm -f /tmp/xx55910
-    #exit 0
-}
-
-#ssh gov@pi2 bin/up_blobs 
-
-function repeat_step2 {
-    while [[ true ]]; do
-        step2
-        echo "expecting $n 0-files. found $x"
-        if [[ $x -eq $n ]]; then
-            break
-        fi
-    done
-}
-
-repeat_step2
-exit 0
-
 if [[ ! -d blobs ]]; then
    echo "KO 2291 blobs dir doesn't exists"
    exit 1
@@ -91,16 +49,12 @@ for blob in `find blobs -type f -name "*.tzst"`; do
     echo "-------------------------------------------------"
     echo "blob: $blob"
     bname=$(basename $blob)
-	brand=`echo "$bname" | tr '_' ' ' | awk '{ print $1 }'`
-	branch=`echo "$bname" | tr '_' ' ' | awk '{ print $2 }'`
-	hash=`echo "$bname" | tr '_' ' ' | awk '{ print $3 }'`
-	flags=`echo "$bname" | tr '_' ' ' | awk '{ print $4 }'`
-
-#	brand=`echo $blob | sed "s#blobs/\(.*\)_\(.*\)_\(.*\)\.tzst#\1#"`
-#	branch=`echo $blob | sed "s#blobs/\(.*\)_\(.*\)_\(.*\)\.tzst#\2#"`
-#	hash=`echo $blob | sed "s#blobs/\(.*\)_\(.*\)_\(.*\)\.tzst#\3#"`
+    brand=`echo "$bname" | tr '_' ' ' | awk '{ print $1 }'`
+    branch=`echo "$bname" | tr '_' ' ' | awk '{ print $2 }'`
+    hash=`echo "$bname" | tr '_' ' ' | awk '{ print $3 }'`
+    flags=`echo "$bname" | tr '_' ' ' | awk '{ print $4 }'`
     echo ""
- 	echo "brand $brand branch $branch hash $hash flags $flags"
+    echo "brand $brand branch $branch hash $hash flags $flags"
     if [ -f ./.cbs/config_$brand ]; then
         . ./.cbs/config_$brand
     else
@@ -126,9 +80,6 @@ for blob in `find blobs -type f -name "*.tzst"`; do
     if [[ $? -ne 0 ]]; then
         exit 1
     fi
-    #echo "xecuting ush -pkh ssh $distr_node_pkh su - gov -c \"us-upload_blob $brand $str40\""
-    #ush -pkh ssh $distr_node_pkh su - gov -c "us-upload_blob $brand $str40"
-
     echo "$node:/var/$brand/blob; ($ssh -p $port $ip) exec su gov; bin/up_blobs" >> /tmp/msg1091
 done
 
@@ -140,4 +91,3 @@ cat /tmp/msg1091
 rm -f /tmp/msg1091
 
 exit 0
-
