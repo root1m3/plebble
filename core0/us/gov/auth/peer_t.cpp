@@ -48,11 +48,12 @@ void c::verification_completed(pport_t rpport, pin_t pin) {
     #if CFG_COUNTERS == 1
         ++counters.successful_verifications;
     #endif
-    if (unlikely(!authorize(pubkey, pin))) {
+    auto r = authorizeX(pubkey, pin);
+    if (unlikely(is_ko(r))) {
         #if CFG_COUNTERS == 1
             ++counters.failed_authorizations;
         #endif
-        log("authorization denied", pubkey);
+        log("authorization denied", pubkey, r);
         return;
     }
     #if CFG_COUNTERS == 1
@@ -90,7 +91,6 @@ bool c::process_work(datagram* d) {
     #endif
     return b::process_work(d);
 }
-
 
 #ifdef has_us_gov_auth_api
 

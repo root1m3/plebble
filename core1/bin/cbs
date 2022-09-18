@@ -177,6 +177,29 @@ function mk_blobs {
     echo "CTRL-C to end here. Otherwise upload blobs to BDEs"
     read a
     bin/80_deploy_blobs build_jobs_distr
+    if [[ $? -ne 0 ]]; then
+        exit 1
+    fi
+    bin/90_propagate_blobs
+    if [[ $? -ne 0 ]]; then
+        exit 1
+    fi
+    echo "All nodes have their blob"
+    echo "Next step: command them to update (using centralized governance here until we can program brains for it)"
+    echo "ush install_blob"
+    echo "yes?"
+    read x
+    ush -yes install_blob
+    if [[ $? -ne 0 ]]; then
+        exit 1
+    fi
+    echo "Last step: git housekeeping. Archive branch and create new one"
+    echo "yes?"
+    read x
+    bin/99_postupgrade
+    if [[ $? -ne 0 ]]; then
+        exit 1
+    fi
 }
 
 function bgssh {

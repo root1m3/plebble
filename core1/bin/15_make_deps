@@ -77,7 +77,7 @@ echo "using dir $build_jobs"
 let fcgi=`cat build_jobs/build_hashes  | grep "^vhash " | sed "s/.*fcgi-\([01]\).*/\1/"`
 if [[ "_$fcgi" == "_" ]]; then
     let fcgi=0
-fi 
+fi
 cache_file="deps_fcgi-$fcgi.tgz"
 
 function do_arch {
@@ -128,9 +128,9 @@ function wait_done {
         port=${!vport}
         do_arch ${host} ${port}
     done
-    while [ true ]; do
+    while [[ true ]]; do
         echo "archs left: $archs"
-        if [ "_$archs" == "_" ]; then
+        if [[ "_$archs" == "_" ]]; then
             break
         fi
         for arch in $archs; do
@@ -141,7 +141,7 @@ function wait_done {
             #echo "querying host $host"
             s=`$ssh -p$port $host "head -n1 foo.err"`
             if [ "_$s" != "_" ]; then
-                echo "?????????Abnormally found: $s"
+                echo "?????????Abnormal finding: $s"
                 echo "$ssh -p$port $host \"killall make; killall build_job_make; killall cc1plus\""
                 $ssh -p$port $host "killall make; killall build_job_make; killall cc1plus"
                 echo "Complete cerr file: $ssh -p16671 $host \"cat foo.err\""
@@ -152,7 +152,7 @@ function wait_done {
             s=`$ssh -p$port $host "tail -n1 foo.out"`
             echo "$arch @$host: $s"
             if [[ $s = ===DONE===* ]]; then
-                echo "Detected a good smell about certain shit ending in the cryptographic pattern ===DONE==="
+                echo "===DONE=== found"
                 arch=`$ssh -p$port $host "uname -m"`
                 archs=`echo "$archs" | sed "s#$arch ##"`
                 echo "fetching $arch binaries"
@@ -210,9 +210,14 @@ rm deps -rf
 mkdir -p deps
 
 if [[ $local_build -eq 1 ]]; then
+    arch=`uname -m`
+    vhost=host_$arch
+    vport=port_ssh_$arch
+#    !vhost="localhost"
+#    !vport="16671"
     host_x86_64="localhost"
     port_ssh_x86_64="16671"
-    wait_done "x86_64 "
+    wait_done "$arch "
 else
     wait_done "x86_64 armv7l "
 fi

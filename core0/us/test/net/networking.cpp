@@ -763,8 +763,8 @@ void c::peer_t::verification_completed(pport_t rpport, pin_t pin) {
     }
 }
 
-bool c::peer_t::authorize(const pub_t& p, pin_t pin) {
-    cout << "Authorizing incoming peer pub " << p << " pin " << pin << endl;
-    return true;
+ko c::peer_t::authorizeX(const pub_t& p, pin_t pin) {
+    cout << "Authorizing incoming peer pub " << p << " pin " << pin << '\n';
+    return ok;
 }
 

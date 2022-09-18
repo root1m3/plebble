@@ -44,7 +44,6 @@ using namespace std;
 using namespace std::chrono;
 using us::ko;
 
-
 f::bookmark_info_t() {
 }
 

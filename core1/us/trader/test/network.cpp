@@ -58,27 +58,28 @@ c::~network_c1() {
 }
 
 void c::stage1_configure() {
-
-    cout << "configuring ask node" << endl;
-    dynamic_cast<node_ask*>(find("ask")->second)->create_shop("bid2ask/ask");
+    auto ask = dynamic_cast<node_ask*>(find("ask")->second);
+    auto bid = dynamic_cast<node_bid*>(find("bid")->second);
+    cout << "configuring nodes" << endl;
+    ask->create_shop("bid2ask/ask");
     {
         cout << "transfer some coins to bid node" << endl;
-        hash_t coin = dynamic_cast<node_ask&>(*find("ask")->second).recv_coin;
-        transfer_wait(*find("ask")->second, *find("bid")->second, coin, 1000000);
+        transfer_wait(*ask, *bid, ask->recv_coin, 1000000);
     }
-    cout << "configuring pat node" << endl;
     /// store one entry in the world trader-wallets database
-    find("ask")->second->register_wallet();
-    find("bid")->second->register_wallet();
+//    find("ask")->second->register_wallet();
+//    find("bid")->second->register_wallet();
 
 }
 
 void c::stage1_ff_configure() {
+    auto ask = dynamic_cast<node_ask*>(find("ask")->second);
+    //auto bid = dynamic_cast<node_bid*>(find("bid")->second);
 
-    cout << "configuring ask node" << endl;
-    assert(dynamic_cast<node_ask*>(find("ask")->second)->load_data("bid2ask/ask"));
+    //cout << "configuring ask node" << endl;
+    assert(ask->load_data("bid2ask/ask"));
 
-    cout << "configuring bid node" << endl;
-    assert(dynamic_cast<node_bid*>(find("bid")->second)->load_data("bid2ask/bid"));
+    //cout << "configuring bid node" << endl;
+    //assert(bid->load_data("bid2ask/bid"));
 }
 

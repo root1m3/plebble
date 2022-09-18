@@ -79,7 +79,7 @@ namespace {
     template<typename D, typename t>
     ko handshake(peer_t& peer, D& d, us::gov::io::blob_reader_t& reader) {
         t hs;
-        auto r = reader.read(hs); //.from_stream(is);
+        auto r = reader.read(hs);
         if (us::is_ko(r)) {
             return r;
         }
@@ -112,4 +112,39 @@ ko c::trading_msg(peer_t& peer, uint16_t svc, blob_t&& blob) {
     log(r);
     return r;
 }
+
+/*
+ko c::from_blob(blob_reader_t& reader, c*& instance) {
+    assert(instance == nullptr);
+    uint8_t pb{0};
+    auto r = reader.read(pb);
+    if (is_ko(r)) {
+        return r;
+    }
+    if (pb == initiator_t::factory_id) {
+    	auto o = new initiator_t();
+    	auto r = reader.read(*o);
+        if (is_ko(r)) {
+            delete o;
+            return r;
+        }
+        instance = o;
+    }
+    else if (pb == follower_t::factory_id) {
+    	auto o = new follower_t();
+    	auto r = reader.read(*o);
+        if (is_ko(r)) {
+            delete o;
+            return r;
+        }
+        instance = o;
+    }
+    else {
+        auto r = "KO 76093 invalid bootstrapper id";
+        log(r);
+        return r;
+    }
+    return ok;
+}
+*/
 

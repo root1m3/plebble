@@ -97,18 +97,10 @@ namespace {
 }
 
 c::network(const string& homedir, const string& logdir, const string& vardir, const string& stage1dir, ostream& os): homedir(homedir), stage1dir(stage1dir), out(os) {
-    setup_signals(this, true);
 }
 
 c::~network() {
-    out << "stopping" << endl;
-    for (auto& i: *this) {
-        i.second->stop();
-    }
-    for (auto& i: *this) {
-        i.second->join();
-    }
-    setup_signals(this, false);
+    join();
     for (auto& i: *this) {
         delete i.second;
     }
@@ -121,9 +113,59 @@ void c::add_node(const string& name, node* n) {
     emplace(name, n);
 }
 
+void c::start() {
+    tee("start");
+    if (!us::gov::io::cfg0::dir_exists(stage1dir)) {
+        tee("building", stage1dir);
+        setup_signals(this, true);
+        cout << "start_govs" << endl;
+        start_govs(true);
+        //this_thread::sleep_for(1s);
+        cout << "start_wallets" << endl;
+        start_wallets();
+        //this_thread::sleep_for(1s);
+        stage1_create();
+        stop();
+        join();
+        {
+            ostringstream os;
+            os << "mkdir " << stage1dir;
+            system(os.str().c_str());
+        }
+        //backup home dir from at point. it will resume from here on next executions.
+        {
+            ostringstream os;
+            os << "mv " << homedir << "/" << "* " << stage1dir << "/"; // -R";
+            system(os.str().c_str());
+        }
+        {
+            ostringstream os;
+            os << "find " << stage1dir << "/ -name \"*.so\" -delete";
+            system(os.str().c_str());
+        }
+
+    }
+    tee("Resuming state from", stage1dir);
+    stage1_ff();
+    setup_signals(this, true);
+    start_govs(false);
+    start_wallets();
+    test_list_protocols();
+//    this_thread::sleep_for(3s);
+}
+
 void c::stop() {
     for (auto& i: *this) {
-        if(i.second->gov != nullptr) i.second->stop();
+        //if(i.second->gov != nullptr) i.second->stop();
+        i.second->stop();
+    }
+    setup_signals(this, false);
+}
+
+void c::join() {
+    for (auto& i: *this) {
+        //if(i.second->gov != nullptr) i.second->stop();
+        i.second->join();
     }
 }
 
@@ -158,7 +200,7 @@ ko c::android_app_test_automatic_updates() {
     out << "Type something to continue" << endl;
     cin >> input;
 
-    auto& pat=*find("bid")->second;
+    auto& pat = *find("bank0")->second;
     string compdir = pat.wallet->p.downloads_dir + "/android";
     out << "Component dir: " << compdir << endl;
     us::gov::io::cfg0::ensure_dir(compdir);
@@ -413,7 +455,7 @@ void c::start_govs(bool make_stage) {
     while(!check()) {
         genesis_node->gov_cli->exec("sysop gw y");
         ++n;
-        cout << (to - n) << " to enter interactive shell" << endl;
+        cout << "Waiting for all nodes registration in the blockchain. In " << (to - n) << " secs I'd enter an interactive shell." << endl;
         if (n > to) {
             n = 0;
             setup_signals(this, false);
@@ -423,27 +465,19 @@ void c::start_govs(bool make_stage) {
         }
         this_thread::sleep_for(1s);
     }
-
 }
 
 void c::start_wallets() {
     for (auto& i: *this) {
         i.second->start_walletd_cli();
     }
-    test_list_protocols();
 }
 
-
 void c::stage1_create() {
-    cout << "start_govs" << endl;
-    start_govs(true);
-    this_thread::sleep_for(1s);
-    cout << "start_wallets" << endl;
-    start_wallets();
-    this_thread::sleep_for(1s);
-
     stage1_configure();
-
+    for (auto& i: *this) {
+        i.second->register_wallet();
+    }
     while (true) {
         vector<hash_t> w;
         auto r = genesis_node->wallet_cli->rpc_daemon->get_peer().call_world(w);
@@ -453,23 +487,6 @@ void c::stage1_create() {
         if (w.size() >= size()) break;
         this_thread::sleep_for(1s);
     }
-
-    {
-        ostringstream os;
-        os << "mkdir " << stage1dir;
-        system(os.str().c_str());
-    }
-    {
-        ostringstream os;
-        os << "cp " << homedir << "/" << "* " << stage1dir << "/ -R";
-        system(os.str().c_str());
-    }
-    {
-        ostringstream os;
-        os << "find " << stage1dir << "/ -name \"*.so\" -delete";
-        system(os.str().c_str());
-    }
-
 }
 
 void c::stage1_ff() {
@@ -486,9 +503,6 @@ void c::stage1_ff() {
         system(os.str().c_str());
     }
     stage1_ff_configure();
-
-    start_govs(false);
-    start_wallets();
 }
 
 c::bookmarks_t c::filtered_bookmarks(const string& nodename, const string& exclude_label) {
@@ -500,16 +514,6 @@ c::bookmarks_t c::filtered_bookmarks(const string& nodename, const string& exclu
         }
     }
     return filtered;
-}
-
-void c::stage1() {
-    if (us::gov::io::cfg0::dir_exists(stage1dir)) {
-        stage1_ff();
-    }
-    else {
-        stage1_create();
-        this_thread::sleep_for(3s);
-    }
 }
 
 void c::test_list_protocols() {
@@ -772,6 +776,10 @@ void c::menu() {
         out << "  " << endl;
         string input;
         getline(cin, input);
+        if (cin.fail()) {
+            cerr << "cin failed" << endl;
+            break;
+        }
         us::gov::io::cfg0::trim(input);
         if (input == "1") {
             consoles_shell();

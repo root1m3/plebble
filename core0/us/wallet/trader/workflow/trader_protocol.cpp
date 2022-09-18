@@ -476,4 +476,62 @@ void c::data(const string& lang, ostream& os) const {
     }
 }
 
+size_t c::blob_size() const {
+    size_t sz = b::blob_size() + 
+        blob_writer_t::blob_size(_workflows) +
+        blob_writer_t::blob_size(redirects) +
+        blob_writer_t::blob_size(_trade_state.first) +
+        blob_writer_t::blob_size(_trade_state.second) +
+        blob_writer_t::blob_size(_user_hint);
+    return sz;
+}
+
+void c::to_blob(blob_writer_t& writer) const {
+    b::to_blob(writer);
+    writer.write(_workflows);
+    writer.write(redirects);
+    writer.write(_trade_state.first);
+    writer.write(_trade_state.second);
+    writer.write(_user_hint);
+}
+
+ko c::from_blob(blob_reader_t& reader) {
+    {
+        auto r = b::from_blob(reader);
+        if (is_ko(r)) {
+            return r;
+        }
+    }
+    {
+        auto r = reader.read(_workflows);
+        if (is_ko(r)) {
+            return r;
+        }
+    }
+    {
+        auto r = reader.read(redirects);
+        if (is_ko(r)) {
+            return r;
+        }
+    }    
+    {
+        auto r = reader.read(_trade_state.first);
+        if (is_ko(r)) {
+            return r;
+        }
+    }    
+    {
+        auto r = reader.read(_trade_state.second);
+        if (is_ko(r)) {
+            return r;
+        }
+    }    
+    {
+        auto r = reader.read(_user_hint);
+        if (is_ko(r)) {
+            return r;
+        }
+    }    
+    return ok;
+}
 

@@ -66,7 +66,7 @@ namespace us::gov::peer {
         bool check_auth_not_granted() const;
         bool check_idle() const;
         void dump(const string& prefix, ostream&) const;
-        bool authorize(const pub_t&, pin_t) override;
+        ko authorizeX(const pub_t&, pin_t) override;
         bool process_work(datagram*) override;
 
     public:

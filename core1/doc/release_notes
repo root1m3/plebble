@@ -140,9 +140,17 @@ Production releases. beta
 
 Production releases. alpha
 --------------------------
+akpha-42 -
+    * Improved cbs with more automated steps (80, 90, 99)
+    * android AppStore first upload
 
-alpha-40 -
+alpha-41 - alpha-41_e8ceb453 2022-08-08_23-01-03 vhash e8ceb453 <- R 82ebdbb3773ec7b13122e7d0251f9ea0729b5fdc alpha-41 dbg-0 logs-0 counters-0 connlog-0 fcgi-0
+    * Fix in sw_updates algorithm
+    * fix. generation of a branded android app in git working copy (where package name is unchanged in sources) produced a compilation error bcs Manifest contained unmatched name.
+
+alpha-40 - alpha-40_66bd7f78 61e452670c9b0c2129e4bf4df4b144cdec08286d 2022-08-08_14-22-09 vhash 66bd7f78 <- R 61e452670c9b0c2129e4bf4df4b144cdec08286d alpha-40 dbg-0 logs-0 counters-0 connlog-0 fcgi-0
     * upgraded gradle scripts to use newer libraries. Andropid API level 32. Java8 -> Java12
+    * upgraded android_sdk auto-download for local android make.sh and cbs
     * android. Generation of bundles for AppStore
 
 alpha-39 - alpha-39_d9e0cf60 2022-08-06_23-09-10 vhash d9e0cf60 <- R cf16d9ef512e361fbf4cecc2a37690f060e3c825 alpha-39 dbg-0 logs-0 counters-0 connlog-0 fcgi-0

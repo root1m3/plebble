@@ -43,9 +43,7 @@
 #include "rpc_daemon_t.h"
 
 namespace us::wallet::engine {
-
     struct daemon_t;
-
 }
 
 namespace us::wallet::cli {

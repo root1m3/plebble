@@ -22,22 +22,24 @@
 //===-
 #pragma once
 #include <utility>
-#include <thread>
-#include <vector>
+//#include <thread>
+//#include <vector>
 #include <mutex>
-#include <atomic>
-#include <condition_variable>
-#include <fstream>
-#include <sstream>
-#include <cassert>
+//#include <atomic>
+//#include <condition_variable>
+//#include <fstream>
+//#include <sstream>
+//#include <cassert>
 #include <string_view>
-#include <map>
+//#include <map>
 
 #include <us/gov/crypto/ripemd160.h>
 #include <us/gov/crypto/ec.h>
 #include <us/gov/socket/datagram.h>
 #include <us/gov/socket/client.h>
 #include <us/gov/io/blob_writer_t.h>
+#include <us/gov/io/seriable.h>
+#include <us/gov/io/factory.h>
 #include <us/gov/engine/signed_data.h>
 #include <us/gov/relay/pushman.h>
 #include <us/wallet/engine/peer_t.h>
@@ -50,13 +52,10 @@
 #include "ch_t.h"
 
 namespace us::wallet::engine {
-
     struct peer_t;
-
 }
 
 namespace us::wallet::trader {
-
 /*
     /// Resposible of:
     ///   source bitmap (advertisement),
@@ -78,7 +77,7 @@ namespace us::wallet::trader {
     struct trader_t;
     struct traders_t;
 
-    struct trader_protocol {
+    struct trader_protocol: us::gov::io::seriable {
         using signed_data = us::gov::engine::signed_data;
         using pushman_t = us::gov::relay::pushman;
         using params_t = us::wallet::trader::params_t;
@@ -117,15 +116,18 @@ namespace us::wallet::trader {
             svc_r2r_begin = 300
         };
 
-        static void twocol(const string& prefix, const string_view& l, const string_view& r, ostream&);
-        static void twocol(const string& prefix, const string_view& l, const string_view& r, const string_view& r2, ostream&);
+    public:
+        static void twocol(const string& prefix, const string_view& left, const string_view& right, ostream&);
+        static void twocol(const string& prefix, const string_view& left, const string_view& right, const string_view& r2, ostream&);
         static void exec_help(const string& prefix, ostream&);
         static trader_protocol* from_stream(istream&);
         static ko exec(istream&, traders_t&, wallet::local_api&);
 
+    public:
         trader_protocol(business_t&);
         virtual ~trader_protocol();
 
+    public:
         virtual void list_trades_bit(ostream&) const = 0;
         virtual const char* get_name() const = 0;
         virtual const char* rolestr() const = 0;
@@ -177,22 +179,34 @@ namespace us::wallet::trader {
         void save_params_template();
         bool has_remote_params() const;
         string get_lang() const;
+        static ko hold_remote_params(blob_t&&);
+        static remote_params_t* remote_params_on_hold;
+
+    public:
+        using factory_id_t = protocol_selection_t;
+        static us::gov::io::factories_t<trader_protocol> factories;
+        static factory_id_t null_instance;
+
+        size_t blob_size() const override;
+        void to_blob(blob_writer_t&) const override;
+        ko from_blob(blob_reader_t&) override;
 
     public:
         local_params_t _local_params;
         mutable mutex _local_params_mx;
         remote_params_t* remote_params{nullptr};
         mutable mutex remote_params_mx;
-        business_t& business;
         string phome; //protocol home. e.g. /home/gov/.us/wallet/trader/pat2ai/ai
         string pphome; ////custom peer home. e.g. /home/gov/.us/wallet/trader/pat2ai/ai/BCnR6X64EVMPsXEFsdf3MkdMRxV
-        trader_t* tder{nullptr};
+
+    public:
         blob_t image; //remote logo
         blob_t ico; //remote ico
-        mutable mutex assets_mx;
 
-        static ko hold_remote_params(blob_t&&);
-        static remote_params_t* remote_params_on_hold;
+    public:
+        business_t& business;
+        trader_t* tder{nullptr};
+        mutable mutex assets_mx;
     };
 
 }

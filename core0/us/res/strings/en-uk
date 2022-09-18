@@ -79,7 +79,7 @@ str79=0                 #HTTPS server
 str80=1                 #enable sharding
 str81=32                #CFG_SHARD_SIZE
 str82="https://github.com/user/project"   #Repreducible builds URL
-str83=1                 #Android app SW Updated enabled; 0-off 1-on
+str83=0                 #Android AppStore build; 0-no 1-yes
 str90=0                 #Save evidences
 
 

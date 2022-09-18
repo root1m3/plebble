@@ -418,6 +418,18 @@ string c::value_type::encode() const {
     return b58::encode(&(*this)[0], &(*this)[0] + output_size);
 }
 
+string c::value_type::encode_path() const {
+    string s = encode();
+    ostringstream os;
+    for (int i = 0; i < s.size(); ++i) {
+        if (i % 2 == 2) {
+            os << '/';
+        }
+        os << s[i];
+    }
+    return os.str();
+}
+
 c::value_type c::value_type::from_b58(const string& s) {
     value_type k;
     vector<unsigned char> v;

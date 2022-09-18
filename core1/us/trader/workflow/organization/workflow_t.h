@@ -23,13 +23,15 @@
 #pragma once
 #include <vector>
 #include <string>
+
 #include <us/gov/engine/signed_data.h>
+
 #include <us/wallet/trader/workflow/workflow_t.h>
 #include <us/wallet/trader/workflow/doc0_t.h>
 #include <us/wallet/trader/trader_t.h>
 #include <us/wallet/wallet/local_api.h>
 
-namespace us { namespace trader { namespace workflow { namespace organization {
+namespace us::trader::workflow::organization {
 
     using namespace std;
 
@@ -49,7 +51,10 @@ namespace us { namespace trader { namespace workflow { namespace organization {
         using bitem = us::wallet::trader::workflow::item_t;
         using trader_t = us::wallet::trader::trader_t;
 
+    protected:
         workflow_t();
+
+    public:
         ~workflow_t() override;
 
         template<typename t> bitem* add(ch_t& ch) {
@@ -83,5 +88,5 @@ namespace us { namespace trader { namespace workflow { namespace organization {
         bitem* enable_reference(bool, ch_t&);
     };
 
-}}}}
+}
 

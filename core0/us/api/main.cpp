@@ -83,6 +83,7 @@ int main(int argc, char** argv) {
         svc0 = m.add("engine_auth", svc0);
         svc0 = m.add("traders", svc0);
         svc0 = m.add("sys", svc0);
+        m.gen_svc_lock();
         if (gencode) {
             cpp::coder(m).generate();
             java::coder(m).generate();
@@ -98,6 +99,7 @@ int main(int argc, char** argv) {
         svc0 = m.add("pairing", svc0);
         svc0 = m.add("r2r", svc0);
         svc0 = m.add_delegate("wallet", svc0);
+        m.gen_svc_lock();
         if (gencode) {
             cpp::coder(m).generate();
             java::coder(m).generate();

@@ -101,7 +101,6 @@ c::daemon_t(channel_t channel, const keys_t& k, port_t port, pport_t pport, cons
     assert(!home.empty());
     log("downloads directory:", downloads_dir);
     io::cfg0::ensure_dir(downloads_dir);
-    configure_gov_rpc_daemon(backend.first);
 }
 
 c::~daemon_t() {
@@ -245,6 +244,7 @@ ko c::start() {
         }
     }
     log("starting gov_rpc_daemon");
+    configure_gov_rpc_daemon();
     {
         auto r = gov_rpc_daemon.start();
         if (unlikely(is_ko(r))) {
@@ -294,9 +294,9 @@ socket::client* c::create_client(sock_t sock) {
     return new peer_t(*this, sock);
 }
 
-pair<bool, string> c::authorize_device(const pub_t& p, pin_t pin) {
+pair<ko, string> c::authorize_deviceX(const pub_t& p, pin_t pin) {
     log("is device authorized?", pin);
-    return devices.authorize(p, pin);
+    return devices.authorizeX(p, pin);
 }
 
 void c::on_peer_wallet(const hash_t& addr, host_t address, pport_t rpport) {
@@ -401,14 +401,14 @@ string c::wallet_home(const string& subhome) const {
     return os.str();
 }
 
-void c::configure_gov_rpc_daemon(const shost_t& shost) {
+void c::configure_gov_rpc_daemon() {
     gov_rpc_daemon.stop_on_disconnection = false;
     gov_rpc_daemon.connect_for_recv = true;
     gov_rpc_daemon.encrypt_traffic = true;
     //bool trusted_localhost = true; // disable for systems where IPC is not safe. provably true for machines controlled by the user.
     //if (trusted_localhost) {
-    if (shost == "localhost" || shost == "127.0.0.1") {
-        log("trusted_localhost is set to 1: disabling encryption on IPC calls between wallet and gov as they are in the same machine. govd at", shost);
+    if (gov_rpc_daemon.shostport.first == "localhost" || gov_rpc_daemon.shostport.first == "127.0.0.1") {
+        log("trusted_localhost is set to 1: disabling encryption on IPC calls between wallet and gov as they are in the same machine. govd at", gov_rpc_daemon.shostport.first);
         gov_rpc_daemon.encrypt_traffic = false;
     }
     //}

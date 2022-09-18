@@ -164,6 +164,7 @@ pair<ko, c::tx_t*> c::tx_charge_pay(us::wallet::wallet::local_api& w, cash_t rec
     return w.tx_charge_pay(address, recv_amount, recv_coin, 0, hash_t(0));
 }
 
+/*
 std::pair<us::ko, us::wallet::trader::trader_protocol*> c::create_protocol(protocol_selection_t&& protocol_selection) {
     log("protocol from string", protocol_selection.first, protocol_selection.second);
     if (protocol_selection.first != c::protocol::name) {
@@ -178,9 +179,10 @@ std::pair<us::ko, us::wallet::trader::trader_protocol*> c::create_protocol(proto
     }
     return create_protocol();
 }
+*/
 
 std::pair<us::ko, us::wallet::trader::trader_protocol*> c::create_opposite_protocol(protocol_selection_t&& protocol_selection) {
-    log("protocol from string", protocol_selection.first, protocol_selection.second);
+    log("create_opposite_protocol", protocol_selection.first, protocol_selection.second);
     if (protocol_selection.first != c::protocol::name) {
         auto r = "KO 20012 Invalid protocol";
         log(r, "protocol", protocol_selection.first, "not for me", c::protocol::name);
@@ -218,7 +220,7 @@ void c::invert(protocols_t& protocols) const {
 }
 
 void c::published_protocols(protocols_t& protocols, bool inverse) const {
-    protocols.emplace_back(make_pair(c::protocol::name, inverse ? "bid" : "ask")); //protocols I can talk to
+    protocols.emplace_back(c::protocol::name, inverse ? "bid" : "ask"); //protocols I can talk to
 }
 
 c::catalogue_t* c::catalogue(const string& lang) {

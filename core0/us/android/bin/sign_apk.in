@@ -25,14 +25,20 @@
 us="##str3##"
 
 inst=0
-if [ "_$1" == "_--install" ]; then
+if [[ "_$1" == "_--install" ]]; then
   inst=1
 fi
 
 if [[ ! -f /var/$us/ush_config ]]; then
     echo "KO 87036 /var/$us/ush_config must exist with envvar keyroot"
+    exit 1
 fi
 . /var/$us/ush_config
+
+if [[ "_$keyroot" == "_" ]]; then
+    echo "KO 87037 keyroot must be defined. keyroot=<directory>"
+    exit 1
+fi
 
 jarsigner="jarsigner"
 keytool="keytool"
@@ -44,7 +50,7 @@ fi
 function sign_apks {
     echo "signing APKs"
     ks=$1
-    for file in `find . -name "*-unsigned.apk"`; do
+    for file in `find app/build/outputs/apk -name "*-unsigned.apk"`; do
         echo "found unsigned apk: $file"
         newfile=`echo $file | sed "s/-unsigned//"`
         echo "using $pass"
@@ -57,7 +63,31 @@ function sign_apks {
         mv $file $newfile
         echo "signature $newfile"
         echo "$file -> $newfile"
-        $keytool -list -printcert -jarfile $newfile
+        $keytool -printcert -jarfile $newfile
+    done
+}
+
+function sign_bundles {
+    echo "signing bundles"
+    ks=$1
+    for file in `find app/build/outputs/bundle -name "*.aab"`; do
+        cert=`$keytool -printcert -jarfile $file`
+        if [[ "_$cert" != "_Not a signed jar file" ]]; then
+            echo "$file is already signed"
+            continue
+        fi
+        echo "found unsigned bundle: $file"
+        newfile=`echo $file | sed "s/-unsigned//"`
+        echo "using $pass"
+#        $jarsigner -verbose -keystore $ks $file distr <<< "$pass"
+        $jarsigner -keystore $ks $file distr <<< "$pass"
+        if [ $? -ne 0 ]; then
+            echo "signer failed" >2
+            exit 1
+        fi
+        echo "signature $newfile"
+        echo "$file -> $newfile"
+        $keytool -printcert -jarfile $file
     done
 }
 
@@ -66,19 +96,22 @@ gpg_passphrase_file="$keyroot/.gnupg/passphrase"
 gpg="gpg --homedir $keyroot/.gnupg"
 pass=`cat $gpg_passphrase_file`
 
-sign_apks $keyroot/keystore.jks
-
-echo "in "`pwd`
-find . -type f -name "*.apk"
-if [ $inst -eq 1 ]; then
-	echo "waiting for device"
-	adb wait-for-device
-	echo "installing"
-	adb install `find . -type f -name "*.apk"`
-#	reset
-#	adb logcat | grep System.out
-
+ks=$keyroot/cbs/$us/keystore.jks
+echo "using keystore at $ks in "`pwd`
+if [[ -d app/build/outputs/apk ]]; then
+    sign_apks $ks
+    echo "APKs:"
+    find app/build/outputs/apk -type f -name "*.apk"
+    if [[ $inst -eq 1 ]]; then
+        echo "waiting for device"
+        adb wait-for-device
+        echo "installing"
+        adb install `find . -type f -name "*.apk"`
+    fi
+fi
+if [[ -d app/build/outputs/bundle ]]; then
+    sign_bundles $ks
+    echo "Bundles:"
+    find app/build/outputs/bundle -type f -name "*.aab"
 fi
 exit 0
-
-

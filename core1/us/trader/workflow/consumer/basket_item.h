@@ -38,7 +38,7 @@
 #include <us/wallet/trader/business.h>
 #include <us/wallet/trader/ch_t.h>
 
-namespace us { namespace trader { namespace workflow { namespace consumer {
+namespace us::trader::workflow::consumer {
 
     struct basket_item_t: pair<cash_t, cash_t>, virtual us::gov::io::seriable { //price, reward
         inline cash_t sale_price_per_unit() const { return first; }
@@ -53,5 +53,5 @@ namespace us { namespace trader { namespace workflow { namespace consumer {
 
     };
 
-}}}}
+}
 

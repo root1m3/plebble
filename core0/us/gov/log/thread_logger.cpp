@@ -37,7 +37,6 @@ void c::set_root_logdir(const string& d) {
     instance.root_logdir = d;
 }
 
-
 c::thread_logger(): root_logdir(LOGDIR) {
     tsorig = duration_cast<nanoseconds>(steady_clock::now().time_since_epoch()).count();
 }
@@ -73,7 +72,7 @@ const task& c::get_task() const {
     lock_guard<mutex> lock(mx);
     auto i = find(id);
     if (i == end()) {
-    print_stacktrace_release(cout);
+        print_stacktrace_release(cout);
         cerr << "logs: task not found for this thread. Use log_start before logging." << endl;
         assert(false);
         exit(1);

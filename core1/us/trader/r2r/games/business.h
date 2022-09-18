@@ -53,7 +53,7 @@ namespace us::trader::r2r::games {
         ko init(const string& r2rhome) override;
         string homedir() const override;
 
-        pair<ko, trader_protocol*> create_protocol(protocol_selection_t&&) override;
+        //pair<ko, trader_protocol*> create_protocol(protocol_selection_t&&) override;
         pair<ko, trader_protocol*> create_opposite_protocol(protocol_selection_t&&) override;
         pair<ko, trader_protocol*> create_protocol() override;
         void list_protocols(ostream&) const override; //human format

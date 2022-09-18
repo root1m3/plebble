@@ -36,16 +36,20 @@ namespace us::wallet::trader::workflow {
 
     struct workflow_t;
 
-    struct item_t: virtual us::gov::io::seriable {
+    struct item_t: us::gov::io::seriable { //virtual
         using b = us::gov::io::seriable;
         using peer_t = us::wallet::engine::peer_t;
         using magic_t = doc0_t::magic_t;
         using ch_t = trader::ch_t;
 
+    protected:
         item_t(): parent(nullptr) {}
         item_t(workflow_t* parent, const string& name, const string& long_name);
+
+    public:
         virtual ~item_t();
 
+    public:
         virtual doc0_t* create_doc() const = 0;
         void set(ch_t&) const;
         void unset(ch_t&) const;
@@ -87,6 +91,10 @@ namespace us::wallet::trader::workflow {
         void set_mode(mode_t, ch_t&); //returns true:changed false:not changed
         string filename() const;
         pair<ko, doc0_t*> doc_from_blob(blob_reader_t&) const;
+
+    public:
+        using factory_id_t = uint64_t;
+        static us::gov::io::factories_t<item_t> factories;
 
     public:
         size_t blob_size() const override;

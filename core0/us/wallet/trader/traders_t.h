@@ -31,8 +31,8 @@
 #include <us/gov/crypto/ec.h>
 #include <us/gov/socket/datagram.h>
 #include <us/gov/socket/client.h>
-#include <us/gov/relay/pushman.h>
 #include <us/gov/config.h>
+#include <us/gov/io/seriable.h>
 
 #include "trader_t.h"
 #include "bookmarks_t.h"
@@ -52,7 +52,7 @@ namespace us::wallet::trader {
 
     struct business_t;
 
-    struct traders_t final: unordered_map<gov::crypto::ripemd160::value_type, trader_t*> {
+    struct traders_t final: unordered_map<gov::crypto::ripemd160::value_type, trader_t*>, us::gov::io::seriable {
         using hash_t = gov::crypto::ripemd160::value_type;
         using trade_id_t = hash_t;
         using b = unordered_map<trade_id_t, trader_t*>;
@@ -60,10 +60,6 @@ namespace us::wallet::trader {
         using personality_t = personality::personality_t;
         using protocols_t = bootstrap::protocols_t;
         using peer_t = engine::peer_t;
-
-        traders_t(engine::daemon_t&, const string& home);
-        traders_t(const traders_t&) = delete;
-        ~traders_t();
 
         enum service_t: uint16_t { //communications node-node
             svc_begin = 0,
@@ -73,9 +69,23 @@ namespace us::wallet::trader {
             svc_end
         };
 
+    public:
+        traders_t(engine::daemon_t&, const string& home);
+        traders_t(const traders_t&) = delete;
+        ~traders_t();
+
+    public:
+        size_t blob_size() const override;
+        void to_blob(blob_writer_t&) const override;
+        ko from_blob(blob_reader_t&) override;
+        string sername() const;
+        void save_state() const;
+        void load_state();
+        
+    public:
+        pair<ko, hash_t> initiate(const hash_t parent_tid, const string& datadir, qr_t&&, wallet::local_api&);
         void process_svc_ko(const hash_t& tid, const string& kostring);
         void on_destroy(peer_t&);
-        pair<ko, hash_t> initiate(const hash_t parent_tid, const string& datadir, qr_t&&, wallet::local_api&);
         trader_t* unlocked_trader_(const hash_t& trade_id);
         void erase_trader_(const hash_t& trade_id);
         trader_t* lock_trader_(const hash_t& trade_id);
@@ -99,6 +109,7 @@ namespace us::wallet::trader {
         void load_plugins();
         void load_bank();
         void load_lf();
+        
         void exec_help(const string& prefix, ostream&) const;
         static void help(const string& ind, ostream&);
         ko exec_shell(const string& cmd, ostream&) const; /// executes the given cmd in a sysyem shell collecting the output
@@ -127,11 +138,12 @@ namespace us::wallet::trader {
         void join();
 
         struct lib_t final {
-            lib_t(const string& name, const string& libfilename, const string& home);
+//            lib_t(const string& name, const string& libfilename, const string& home);
+            lib_t(const string& libfilename, const string& home);
             lib_t(business_t*);
             lib_t(const lib_t&) = delete;
             ~lib_t();
-            using pushman = us::gov::relay::pushman;
+            //using pushman = us::gov::relay::pushman;
             void dump(ostream&) const;
             void invert(protocols_t&) const;
             void published_protocols(protocols_t&, bool invert) const;
@@ -143,11 +155,12 @@ namespace us::wallet::trader {
             business_t* business;
         };
 
-        struct libs_t final: map<string, lib_t*> {
+//        struct libs_t final: map<string, lib_t*> {
+        struct libs_t final: map<protocol_selection_t, lib_t*> {
             libs_t();
             libs_t(const libs_t&) = delete;
             ~libs_t();
-            using pushman = lib_t::pushman;
+            //using pushman = lib_t::pushman;
             void dump(ostream&) const;
             void invert(protocols_t&) const;
             void published_protocols(protocols_t&, bool invert) const;
@@ -191,7 +204,7 @@ namespace us::wallet::trader {
         string home;
 
         using funs_t = trader_t::funs_t;
-        funs_t lf; //local functions
+        funs_t lf; /// local functions
 
         personality_t personality;
         bookmarksman_t bookmarks;

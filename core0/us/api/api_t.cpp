@@ -134,3 +134,5 @@ int c::svc_end(int svc_begin) const {
     return svc_begin+s;
 }
 
+void c::gen_svc_lock(ostream& os) const {
+}

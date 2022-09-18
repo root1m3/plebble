@@ -51,14 +51,16 @@ bool c::load_data(const string& r2rhome) {
     is >> recv_coin;
     is >> reward_coin;
     assert(!is.fail());
-    created = true;
+    //created = true;
     return true;
 }
 
 vector<string> c::r2r_libs(bool filter_not_active) {
+/*
     if (filter_not_active) {
         if (!created) return {};
     }
+*/
     return {"bid2ask-ask"};
 }
 
@@ -69,7 +71,7 @@ void c::vol_file(ostream& os) {
 }
 
 void c::create_shop(const string& r2rhome) {
-    assert(!created);
+//    assert(!created);
     cout << "creating shop" << endl;
     b::create_node(r2rhome);
     auto& hmi = *wallet_cli;
@@ -168,8 +170,8 @@ void c::create_shop(const string& r2rhome) {
         //pub key 21DCFrG7K1NSJKTeiGNhTvnH4y5DZr4MDmSVHf8sLBcto
         //addr zzqCyAiEUz9mrw6EX1Rdehmovpv
     }
-    created = true;
-    restart_daemons();
+    //created = true;
+    //restart_daemons();
 }
 
 void c::banner(ostream& os) const {

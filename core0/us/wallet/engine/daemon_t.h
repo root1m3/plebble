@@ -36,9 +36,7 @@
 #include "types.h"
 
 namespace us::wallet::wallet {
-
     struct local_api;
-
 }
 
 namespace us::wallet::engine {
@@ -67,7 +65,7 @@ namespace us::wallet::engine {
 
         socket::client* create_client(sock_t sock) override;
         const keys_t& get_keys() const override { return id; }
-        std::pair<bool, string> authorize_device(const pub_t&, pin_t pin);
+        std::pair<ko, string> authorize_deviceX(const pub_t&, pin_t pin);
         bool send_response(socket::peer_t*, datagram*, const string& payload);
         bool send_response(socket::peer_t*, datagram*, const vector<uint8_t>& payload);
         bool send_error_response(socket::peer_t*, datagram*, const string& error);
@@ -87,7 +85,7 @@ namespace us::wallet::engine {
         void run();
         void onwakeup();
         ko wait_auth();
-        void configure_gov_rpc_daemon(const shost_t&);
+        void configure_gov_rpc_daemon();
         string wallet_home(const string& subhome) const;
         bool has_home(const string& subhome) const;
         void on_tx_tracking_status(const track_status_t&);

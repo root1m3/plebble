@@ -62,6 +62,7 @@ namespace us::gov::crypto {
             void zero();
             string to_b58() const;
             string encode() const;
+            string encode_path() const;
             string to_hex() const;
             static value_type from_b58(const string&);
             static value_type from_hex(const string&);

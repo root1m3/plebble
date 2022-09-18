@@ -44,7 +44,7 @@
 
 #include "assert.inc"
 
-namespace us { namespace test {
+namespace us::test {
 
 using namespace std;
 using us::gov::io::cfg_daemon;
@@ -184,9 +184,8 @@ void test_wallet_rpc_keys(const string& homedir) {
     d.dump(cout);
     cout << "Random device not authorized\n";
     {
-        pair<bool,string> r = d.authorize(us::gov::crypto::ec::keys::generate().pub, 0);
-        assert(!r.first);
-        assert(r.second == us::wallet::engine::devices_t::KO_30291);
+        auto r = d.authorizeX(us::gov::crypto::ec::keys::generate().pub, 0);
+        assert(r.first == us::wallet::engine::devices_t::KO_30291);
     }
     cout << "Console entry.\n";
     string privk;
@@ -201,8 +200,8 @@ void test_wallet_rpc_keys(const string& homedir) {
     cout << "  pubkey '" << pubk << "'\n";
     cout << "  pubkeyh '" << pubk.hash() << "'\n";
     assert(d.size() == 1);
-    pair<bool, string> r = d.authorize(pubk, 0);
-    assert(r.first); //authorized
+    auto r = d.authorizeX(pubk, 0);
+    assert(r.first == ok); //authorized
     assert(r.second == ""); //given subhome
 }
 
@@ -234,12 +233,11 @@ walletx_t* start_wallet_daemon(const string& homedir) {
     p.daemon = true;
     p.homedir = homedir;
     p.channel = 123;
-    p.listening_port = p.published_port=22223;
+    p.listening_port = p.published_port = 22223;
     p.backend_host = "localhost";
     p.backend_port = 22222;
     p.downloads_dir = homedir + "/downloads";
     p.logd = logdir + "/test_wallet_rpc/wallet_daemon";
-
     walletx_t* walletx = new walletx_t(p, cout);
     assert(walletx->start() == ok);
     log("started wallet daemon");
@@ -250,7 +248,9 @@ walletx_t* start_wallet_daemon(const string& homedir) {
 void test_wallet_hmi(wallet::cli::hmi& hmi) {
     tee("test_wallet_hmi");
     tee("hmi home", hmi.home);
-    tee("hmi devices home", hmi.daemon->devices.get_home());
+    system(string("find " + hmi.home).c_str());
+    //assert(hmi.daemon != nullptr);
+    //tee("hmi devices home", hmi.daemon->devices.get_home());
     tee("exec: list_devices");
     assert(hmi.exec("list_devices") == ok);
 
@@ -311,7 +311,7 @@ void test_wallet_hmi_local(const string& homedir) {
 */
 
 void test_wallet_hmi_rpc(const string& homedir) {
-    cout << "\n\nwallet_hmi_rpc\n";
+    tee("test_wallet_hmi_rpc", homedir);
     wallet::cli::params p;
     p.daemon = false;
     p.channel = 123;
@@ -319,8 +319,10 @@ void test_wallet_hmi_rpc(const string& homedir) {
     p.walletd_host = "localhost";
     p.walletd_port = 22223;
     p.logd = logdir + "/test_hmi_rpc/walletx";
+    tee("logs at", p.logd);
     walletx_t x(p, cout);
     assert(x.start() == ok);
+    assert(x.daemon == nullptr);
     test_wallet_hmi(x);
     tee("stopping wallet cli");
     x.stop();
@@ -389,12 +391,17 @@ void test_cli_files(const string& h) {
 }
 
 void test_api(const string& homedir) {
+    tee("test_api", homedir);
     auto govxd = start_gov_daemon(homedir);
     auto walletxd = start_wallet_daemon(homedir);
+cout << "XXXXXX0" << endl;
+walletxd->daemon->devices.dump(cout);
     tee("==test_gov_daemon_files");
     test_gov_daemon_files(homedir);
-    tee("==test_wallet_daemon_files");
+    tee("==test_wallet_daemon_files", homedir);
     test_wallet_daemon_files(homedir);
+cout << "XXXXXX" << endl;
+walletxd->daemon->devices.dump(cout);
 
 //    log("test_wallet_hmi_local", homedir);
 //    test_wallet_hmi_local(homedir);
@@ -494,5 +501,5 @@ void test_node0() {
     tee("=========== end testing node ==============");
 }
 
-}}
+}
 

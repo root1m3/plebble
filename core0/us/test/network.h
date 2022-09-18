@@ -43,6 +43,7 @@ namespace us::test {
 
         void add_node(const string& id, node*);
         void stop();
+        void join();
         void mute_all();
         ko blobfeed_upload();
         ko blobfeed_install();
@@ -55,7 +56,7 @@ namespace us::test {
         virtual void stage1_ff_configure() = 0;
         void stage1_create();
         void stage1_ff();
-        void stage1();
+        void start();
         void test_list_protocols();
         void watch();
         size_t nh(const us::gov::engine::auth::db_t&) const;

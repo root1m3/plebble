@@ -62,18 +62,18 @@ public abstract class peer_t extends us.gov.id.peer_t implements api {
         super(rpc_daemon, sock);
     }
 
-    @Override
-    public void verification_completed(final pport_t rpport, final pin_t pin) {
+    @Override public void verification_completed(final pport_t rpport, final pin_t pin) {
         if (!verification_is_fine()) {
             return;
         }
-        if (!authorize(pubkey, pin)) {
+        ko r = authorizeX(pubkey, pin);
+        if (ko.is_ko(r)) {
             return;
         }
         stage = stage_t.authorized;
     }
 
-    public abstract boolean authorize(final PublicKey pub, final pin_t pin);
+    public abstract ko authorizeX(final PublicKey pub, final pin_t pin);
 
     @Override public boolean process_work(datagram d) {
         switch (d.service.value) {

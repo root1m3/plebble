@@ -73,7 +73,7 @@ namespace us::test {
         walletx_t* wallet{nullptr};
         walletx_t* wallet_cli{nullptr};
         dispatcher_t* wallet_cli_dis{nullptr};
-        bool created{false};
+        //bool created{false};
         hash_t wallet_pkh;
     };
 

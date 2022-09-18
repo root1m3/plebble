@@ -22,6 +22,7 @@
 //===-
 #pragma once
 #include <map>
+#include <set>
 #include <tuple>
 #include <string>
 #include <string_view>
@@ -39,11 +40,16 @@ namespace us::gov::io {
         using blob_header_t = blob_reader_t::blob_header_t;
 
         struct writable {
+        public:
             virtual ~writable() {}
-            virtual serid_t serial_id() const { return 0; }
-            size_t tlv_size() const;
+
+        public:
             virtual size_t blob_size() const = 0;
             virtual void to_blob(blob_writer_t&) const = 0;
+            virtual serid_t serial_id() const { return 0; }
+
+        public:
+            size_t tlv_size() const;
             void write(blob_t&) const;
             datagram* get_datagram(channel_t, svc_t svc, seq_t seq) const;
             void write(string& encoded) const;
@@ -72,6 +78,38 @@ namespace us::gov::io {
         template<typename t>
         void write(const t& o) {
             o.to_blob(*this);
+        }
+
+        template<typename t>
+        static size_t blob_size(t* o) {
+            if (o == nullptr) return 1;
+            return 1 + o->blob_size();
+        }
+
+        template<typename t>
+        void write(t* o) {
+            uint8_t x = (o == nullptr ? 0 : 1);
+            write(x);
+            if (x == 1) {
+                write(*o);
+            }
+        }
+
+
+        template<typename t>
+        static size_t blob_size(t* o, const factories_t<t>& f) {
+            if (o == nullptr) return blob_size(t::null_instance);
+            return blob_size(t::null_instance) + o->blob_size();
+        }
+
+        template<typename t>
+        void write(t* o, const factories_t<t>& f) {
+            typename t::factory_id_t x = (o == nullptr ? t::null_instance : o->factory_id());
+            write(x);
+            if (x == t::null_instance) {
+                return;
+            }
+            write(*o);
         }
 
         static size_t blob_size(const char* s);
@@ -171,6 +209,23 @@ namespace us::gov::io {
             }
         }
 
+        template<typename k>
+        static size_t blob_size(const set<k>& o) {
+            size_t sz = sizet_size(o.size());
+            for (auto& i: o) {
+                sz += blob_size(i);
+            }
+            return sz;
+        }
+
+        template<typename k>
+        void write(const set<k>& o) {
+            write_sizet(o.size());
+            for (auto& i: o) {
+                write(i);
+            }
+        }
+
         blob_t& blob;
         uint8_t* cur;
     };
@@ -220,6 +275,9 @@ namespace us::gov::io {
 
     template<> constexpr size_t blob_writer_t::blob_size(const priv_t&) { return priv_t::ser_size; }
     template<> void blob_writer_t::write(const priv_t&);
+
+    template<> constexpr size_t blob_writer_t::blob_size(const keys& o) { return blob_size(o.priv) + blob_size(o.pub); }
+    template<> void blob_writer_t::write(const keys&);
 
     template<> size_t blob_writer_t::blob_size(const sig_t&);
     template<> void blob_writer_t::write(const sig_t&);

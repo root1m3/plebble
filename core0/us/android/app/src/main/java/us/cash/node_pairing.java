@@ -456,10 +456,10 @@ public final class node_pairing extends activity /* implements device_endpoint_t
         }
     }
 
-    public void ask_permission() {
+    public void ask_permission0() {
         log("ask_permission"); //--strip
         String[] options = {"Proceed to FINE_LOCATION permissions.", a.getResources().getString(R.string.cancel)};
-        new AlertDialog.Builder(this).setTitle("Access to WIFI network name (SSID).")
+        new AlertDialog.Builder(this).setTitle("KATLASNET collects location data to enable dynamic parameter selection even when the app is closed or not in use. Grant access to WIFI network name (SSID) in order to ebanle this feature.")
             .setItems(options, new DialogInterface.OnClickListener() {
                 @Override public void onClick(DialogInterface dialog, int which) {
                     if (which == 0) {
@@ -470,6 +470,21 @@ public final class node_pairing extends activity /* implements device_endpoint_t
             .setIcon(android.R.drawable.ic_dialog_info).show();
     }
 
+    private void ask_permission() {
+        log("ask_permission"); //--strip
+        AlertDialog dialog = new AlertDialog.Builder(new ContextThemeWrapper(this, R.style.myDialog))
+            .setTitle("FINE_LOCATION permissions.")
+            .setMessage("This app collects location data to enable dynamic parameter selection even when the app is closed or not in use. The app maintains a user-defined list of connections and uses the network id (SSID) to select the most appropriate one based on this value. This data is never transmitted nor stored in public storage. Please grant access to your WIFI network name (SSID) in the following dialogue in order to enable this feature...")
+            .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+                    @Override public void onClick(DialogInterface dialog, int which) {
+                        log("user clicked ok"); //--strip
+                        ask_permission_continue();
+                    }
+                })
+            .create();
+        dialog.show();
+    }
+    
     public ko verify_ssid_permissions() {        // Check if we have write permission
         a.assert_ui_thread(); //--strip
         log("verify_ssid_permissions"); //--strip

@@ -26,6 +26,7 @@
 #include <vector>
 #include <functional>
 #include <map>
+#include <set>
 #include <limits>
 #include <unordered_map>
 #include <tuple>
@@ -36,6 +37,7 @@
 #include <us/gov/crypto/types.h>
 #include <us/gov/socket/types.h>
 
+#include "factory.h"
 #include "types.h"
 
 #ifdef DEBUG
@@ -64,9 +66,11 @@ namespace us::gov::io {
         struct readable {
             virtual ~readable() {}
 
+        public:
             virtual ko from_blob(blob_reader_t&) = 0;
             virtual serid_t serial_id() const { return 0; }
 
+        public:
             ko read(const blob_t&);
             ko read(const datagram&);
             ko read(const string& blob_b58);
@@ -97,6 +101,54 @@ namespace us::gov::io {
         ko read(t& o) {
             return o.from_blob(*this);
         }
+
+        template<typename t>
+        ko read(t*& o) {
+            assert(o = nullptr);
+            {
+                uint8_t x;
+                auto r = read(x);
+                if (is_ko(r)) return r;
+                if (x == 0) {
+                    o = nullptr;
+                    return ok;
+                }
+            }
+            o = new t();
+            auto r = read(*o);
+            if (is_ko(r)) {
+                delete o;
+                o = nullptr;
+                return r;
+            }
+            return ok;
+        }
+
+        template<typename t>
+        ko read(t*& o, const factories_t<t>& f) {
+            assert(o = nullptr);
+            typename t::factory_id_t factory_id;
+            {
+                auto r = read(factory_id);
+                if (is_ko(r)) return r;
+                if (factory_id == t::null_instance) {
+                    o = nullptr;
+                    return ok;
+                }
+            }
+            o = f.create(factory_id);
+            if (unlikely(o == nullptr)) {
+                return "KO 65028 Invalid factory id";
+            }
+            auto r = read(*o);
+            if (is_ko(r)) {
+                delete o;
+                o = nullptr;
+                return r;
+            }
+            return ok;
+        }
+
 
         template<typename t>
         ko read(vector<t>& o) {
@@ -189,6 +241,24 @@ namespace us::gov::io {
             return ok;
         }
 
+        template<typename k>
+        ko read(set<k>& o) {
+            o.clear();
+            uint64_t sz;
+            auto r = read_sizet(sz);
+            if (is_ko(r)) return r;
+            if (unlikely(sz > max_sizet_containers)) return KO_75643;
+            for (uint64_t i = 0; i < sz; ++i) {
+                k a;
+                {
+                    auto r = read(a);
+                    if (is_ko(r)) return r;
+                }
+                o.emplace(move(a));
+            }
+            return ok;
+        }
+
         ko read_header(serid_t);
         ko read_header();
         static ko read_header(const string& file, blob_header_t&);
@@ -224,6 +294,7 @@ namespace us::gov::io {
     template<> ko blob_reader_t::read(sigmsg_hash_t&);
     template<> ko blob_reader_t::read(pub_t&);
     template<> ko blob_reader_t::read(priv_t&);
+    template<> ko blob_reader_t::read(keys&);
     template<> ko blob_reader_t::read(sig_t&);
     template<> ko blob_reader_t::read(time_point&);
     template<> ko blob_reader_t::read(char&);

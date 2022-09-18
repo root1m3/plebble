@@ -40,6 +40,7 @@ namespace us::wallet::trader {
         protocol_selection_t(const protocol_selection_t&);
 
         protocol_selection_t& operator = (const protocol_selection_t&);
+        bool operator < (const protocol_selection_t& other) const;
 
         void dump(const string& prefix, ostream&) const;
 
@@ -48,12 +49,17 @@ namespace us::wallet::trader {
         void to_blob(blob_writer_t&) const override;
         ko from_blob(blob_reader_t&) override;
 
+    public:
+        static protocol_selection_t from_string2(const string&);
+        string to_string2() const;
+
     public: //serialization string
         string to_string() const;
         static void to_streamX(const string&, ostream&);
         static ko from_streamX(istream&, string&);
         void to_streamX(ostream&) const;
         ko from_streamX(istream&);
+
     };
 
 }

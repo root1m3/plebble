@@ -34,6 +34,9 @@ using namespace std::chrono;
 using us::ko;
 
 olog_t::~olog_t() {
+    if (logos != nullptr) {
+        *logos << ts() << ' ' << "Closed\n";
+    }
     delete logos;
 }
 
@@ -71,7 +74,7 @@ void c::init_olog(const string& home, const string& filename) {
     assert(logos == nullptr);
     logos = new ofstream(ologfile, ios::app);
     assert(logos->good());
-    *logos << ts() << ' ' << "Create\n";
+    *logos << ts() << ' ' << "Opened\n";
     logos->flush();
 }
 

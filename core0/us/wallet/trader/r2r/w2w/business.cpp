@@ -62,7 +62,8 @@ string c::homedir() const {
     return os.str();
 }
 
-std::pair<ko, us::wallet::trader::trader_protocol*> c::create_protocol(protocol_selection_t&& protocol_selection) {
+/*
+std::pair<ko, us::wallet::trader::trader_protocol*> c::create_protocol() {
     log("protocol from string", protocol_selection.first, protocol_selection.second);
     if (protocol_selection.first != c::protocol::name) {
         log("not recognized", protocol_selection.first);
@@ -78,9 +79,15 @@ std::pair<ko, us::wallet::trader::trader_protocol*> c::create_protocol(protocol_
     log("creating protocol", c::protocol::name, protocol_selection.second);
     return create_protocol();
 }
+*/
 
 std::pair<ko, us::wallet::trader::trader_protocol*> c::create_opposite_protocol(protocol_selection_t&& protocol_selection) {
-    return create_protocol(move(protocol_selection));
+    if (protocol_selection.first == "w2w") {
+        return create_protocol();
+    }
+    auto r = "KO 30195";
+    log(r);
+    return make_pair(r, nullptr);
 }
 
 std::pair<ko, us::wallet::trader::trader_protocol*> c::create_protocol() {
@@ -99,7 +106,7 @@ void c::invert(protocols_t&) const { //w2w is symmetric
 }
 
 void c::published_protocols(protocols_t& protocols, bool inverse) const {
-    protocols.emplace_back(make_pair(c::protocol::name, "w"));
+    protocols.emplace_back(protocol_selection_t(c::protocol::name, "w"));
 }
 
 void c::exec_help(const string& prefix , ostream& os) const {

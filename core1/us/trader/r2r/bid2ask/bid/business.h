@@ -56,7 +56,7 @@ namespace us::trader::r2r::bid2ask::bid {
         string homedir() const override;
 
     public:
-        pair<ko, trader_protocol*> create_protocol(protocol_selection_t&&) override;
+        //pair<ko, trader_protocol*> create_protocol(protocol_selection_t&&) override;
         pair<ko, trader_protocol*> create_opposite_protocol(protocol_selection_t&&) override;
         pair<ko, trader_protocol*> create_protocol() override;
         void list_protocols(ostream&) const override; //human format

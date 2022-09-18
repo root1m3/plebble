@@ -24,6 +24,7 @@
 #include <set>
 #include <fstream>
 #include <b64/decode.h>
+
 #include <us/gov/crypto/base64.h>
 
 #define loglevel "wallet/trader"

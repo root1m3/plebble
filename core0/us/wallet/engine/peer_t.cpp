@@ -72,7 +72,6 @@ bool c::process_work(datagram* d) {
     static_assert(engine_end <= pairing_end);
     static_assert(pairing_end <= r2r_end);
     static_assert(r2r_end <= wallet_end);
-
     log("process_work svc", d->service);
     if (d->service < us::gov::protocol::relay_end) {
         return b::process_work(d);
@@ -113,26 +112,25 @@ bool c::process_work(datagram* d) {
     return false;
 }
 
-bool c::authorize(const pub_t& p, pin_t pin) {
+ko c::authorizeX(const pub_t& p, pin_t pin) {
     log("authorize", p, pin);
     if (is_role_peer() || is_role_sysop()) {
         log("role peer or sysop", "authorized", is_role_peer(), is_role_sysop());
-        return true;
+        return ok;
     }
     if (is_role_device()) {
         log("role device");
-        auto r = static_cast<daemon_t&>(daemon).authorize_device(p, pin);
-        if (r.first) {
-            log("subhome", r.second);
-            wallet = static_cast<daemon_t&>(daemon).users.get_wallet(r.second);
+        auto r = static_cast<daemon_t&>(daemon).authorize_deviceX(p, pin);
+        if (is_ko(r.first)) {
+            return r.first;
         }
-        else {
-            log("not authorized. reason:", r.second);
-        }
-        return r.first;
+        log("subhome", r.second);
+        wallet = static_cast<daemon_t&>(daemon).users.get_wallet(r.second);
+        return ok;
     }
-    log("not authorized", "unknown role");
-    return false;
+    auto r = "KO 40938 Unknown role";
+    log(r, "not authorized");
+    return r;
 }
 
 void c::announce(pport_t rpport) const {

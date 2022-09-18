@@ -1,0 +1,80 @@
+#!/bin/bash
+#===-                           P L E B B L E
+#===-                         https://plebble.us
+#===-
+#===-              Copyright (C) 2017-2022 root1m3@plebble.us
+#===-
+#===-                      GNU GENERAL PUBLIC LICENSE
+#===-                       Version 3, 29 June 2007
+#===-
+#===-    This program is free software: you can redistribute it and/or modify
+#===-    it under the terms of the GPLv3 License as published by the Free
+#===-    Software Foundation.
+#===-
+#===-    This program is distributed in the hope that it will be useful,
+#===-    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#===-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+#===-
+#===-    You should have received a copy of the General Public License
+#===-    along with this program, see LICENCE file.
+#===-    see https://www.gnu.org/licenses
+#===-
+#===----------------------------------------------------------------------------
+#===-
+
+. .cbs/config
+
+if [[ -d $brach ]]; then
+    echo "KO 33928 $branch exists"
+    exit 1
+fi
+if [[ ! -d distr ]]; then
+    echo "KO 20199 distr doesn't exists"
+    exit 1
+fi
+let ne=`cat distr/build_hashes | grep "$branch" | wc -l`
+if [[ $ne -ne 5 ]]; then
+    echo "KO 43398 expecting 5 entries containing $branch in distr/build_hashes"
+    exit 1
+fi
+if [[ ! -d blobs ]]; then
+    echo "KO 40398 blobs doesn't exists"
+    exit 1
+fi
+let ne=`ls blobs -1 | grep "$branch" | wc -l`
+let ene=`ls ../core2/brands -1 | wc -l`
+if [[ $ne -ne $ene ]]; then
+    echo "KO 43398 expecting $ene blobs containing $branch in blobs/"
+    exit 1
+fi
+
+echo "Network should now be running $branch"
+echo -n "enter new branch: "
+newb=""
+read newb
+
+echo "New branch: $newb"
+echo "yes?"
+read x
+
+echo "archiving distr files"
+dir=release_history/$branch
+mkdir -p $dir
+mv distr $dir/
+mv blobs $dir/
+
+curgit=`git branch | grep "^\* " | awk '{ print $2}'`
+if [[ "_$curgit" == "_$branch" ]]; then
+    echo "creating new git branch $newb"
+    git checkout -b $newb
+fi
+
+echo "updating new branch in cbs/config"
+sed -i "s/^branch=\"$branch\"/branch=\"$newb\"/" .cbs/config
+
+. release_history/$branch/distr/us/src/core0/us/vcs_git_env
+echo "info for core1/doc/release_notes"
+echo -n "${core0_branch}_${core0_hashname} ${core0_build_date} " 
+cat release_history/$branch/distr/build_hashes | grep vhash | sort | uniq
+
+exit 0

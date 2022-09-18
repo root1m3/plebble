@@ -31,13 +31,15 @@
 using c = us::test::node_bank;
 using namespace std;
 
-c::node_bank(const string& id, const string& homedir, const string& logdir, const string& vardir, uint16_t gport, uint16_t wport): node(id, homedir, logdir, vardir, gport, wport) {
+c::node_bank(const string& id, const string& homedir, const string& logdir, const string& vardir, port_t gport, port_t wport): node(id, homedir, logdir, vardir, gport, wport) {
 }
 
+/*
 bool c::load_data(const string& r2rhome) {
     created = true;
     return true;
 }
+*/
 
 string c::desc() const {
     return "Banksy";
@@ -49,13 +51,12 @@ vector<string> c::r2r_libs(bool filter_not_active) {
 
 void c::create_bank(const string& r2rhome) {
     b::create_node(r2rhome);
-    using doctype_processors_t = us::wallet::trader::workflow::doctype_processors_t;
-    assert(!created);
+    //using doctype_processors_t = us::wallet::trader::workflow::doctype_processors_t;
+    //assert(!created);
     cout << "creating bank" << endl;
-    auto& hmi = *wallet_cli;
-
-    created = true;
-    restart_daemons();
+    //auto& hmi = *wallet_cli;
+    //created = true;
+    //restart_daemons();
 }
 
 void c::banner(ostream& os) const {

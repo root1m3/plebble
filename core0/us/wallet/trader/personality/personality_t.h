@@ -25,12 +25,13 @@
 #include <string>
 #include <us/gov/crypto/ec.h>
 #include <us/gov/crypto/ripemd160.h>
+#include <us/gov/io/seriable.h>
 
 namespace us::wallet::trader::personality {
 
     using namespace std;
 
-    struct personality_t {
+    struct personality_t: us::gov::io::seriable {
         using keys = us::gov::crypto::ec::keys;
         using priv_t = keys::priv_t;
         using pub_t = keys::pub_t;
@@ -42,12 +43,14 @@ namespace us::wallet::trader::personality {
 
         static constexpr uint8_t version{0};
 
+    public:
         personality_t();
         personality_t(const personality_t&);
         personality_t(const priv_t&, const moniker_t&);
 
         personality_t& operator = (const personality_t&);
 
+    public:
         static challenge_t gen_challenge();
         static personality_t generate(const moniker_t&);
 
@@ -63,6 +66,11 @@ namespace us::wallet::trader::personality {
         inline const priv_t& private_key() const { return k.priv; }
         inline const pub_t& public_key() const { return k.pub; }
         proof_t gen_proof(const challenge_t&) const;
+
+    public:
+        size_t blob_size() const override;
+        void to_blob(blob_writer_t&) const override;
+        ko from_blob(blob_reader_t&) override;
 
     public:
         moniker_t moniker;

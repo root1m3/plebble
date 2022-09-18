@@ -146,7 +146,7 @@ void c::test_0_1(node& bid, node& ask) {
                 Check_s_contains(payload, "created 16");
                 Check_s_contains(payload, "activity 16");
                 Check_s_contains(payload, "logfile ");
-                Check_s_contains(payload, "test_r2r/home/node_bid/123/wallet/trader/log/trade_16");
+                Check_s_contains(payload, "test_l2/home/node_bid/123/wallet/trader/log/trade_16");
                 Check_s_contains(payload, "state req_offline");
                 Check_s_not_contains(payload, "online_age ");
                 Check_s_contains(payload, "local_endpoint ");
@@ -187,7 +187,7 @@ void c::test_0_1(node& bid, node& ask) {
                 Check_s_contains(payload, "created 16");
                 Check_s_contains(payload, "activity 16");
                 Check_s_contains(payload, "logfile ");
-                Check_s_contains(payload, "test_r2r/home/node_ask/123/wallet/trader/log/trade_16");
+                Check_s_contains(payload, "test_l2/home/node_ask/123/wallet/trader/log/trade_16");
                 Check_s_contains(payload, "local_endpoint ");
                 Check_s_contains(payload, "remote_endpoint ");
                 Check_s_contains(payload, "remote_ip4 ");
@@ -205,7 +205,7 @@ void c::test_0_1(node& bid, node& ask) {
                 Check_s_contains(payload, "created 16");
                 Check_s_contains(payload, "activity 16");
                 Check_s_contains(payload, "logfile ");
-                Check_s_contains(payload, "test_r2r/home/node_ask/123/wallet/trader/log/trade_16");
+                Check_s_contains(payload, "test_l2/home/node_ask/123/wallet/trader/log/trade_16");
                 Check_s_contains(payload, "local_endpoint ");
                 Check_s_contains(payload, "remote_endpoint ");
                 Check_s_contains(payload, "my_personality anonymous");
@@ -498,7 +498,7 @@ void c::test_10(node& bid, node& ask) {
             assert(tid == trade_id);
             Check_s_contains(payload, "created 1");
             Check_s_contains(payload, "activity 1");
-            Check_s_contains(payload, "test_r2r/home/node_bid/123/wallet/trader/log/trade_");
+            Check_s_contains(payload, "test_l2/home/node_bid/123/wallet/trader/log/trade_");
             Check_s_contains(payload, "state online");
             Check_s_contains(payload, "online_age 00:00:");
             Check_s_contains(payload, "local_endpoint ");
@@ -565,7 +565,7 @@ void c::test_10(node& bid, node& ask) {
             Check_s_contains(payload, "activity 1");
             Check_s_contains(payload, "bootstrapped_by ");
             Check_s_contains(payload, "logfile ");
-            Check_s_contains(payload, "test_r2r/home/node_ask/123/wallet/trader/log/trade_");
+            Check_s_contains(payload, "test_l2/home/node_ask/123/wallet/trader/log/trade_");
             Check_s_contains(payload, "state online");
             Check_s_contains(payload, "online_age 00:00:");
             Check_s_contains(payload, "remote_endpoint ");
@@ -579,9 +579,9 @@ void c::test_10(node& bid, node& ask) {
             Check_s_contains(payload, "initiator N");
             Check_s_contains(payload, "protocol bid2ask ask");
             Check_s_contains(payload, "pphome ");
-            Check_s_contains(payload, "test_r2r/home/node_ask/123/wallet/trader/bid2ask/ask/zzqCyAiEUz9mrw6EX1Rdehmovpv/11111111111111111111");
+            Check_s_contains(payload, "test_l2/home/node_ask/123/wallet/trader/bid2ask/ask/zzqCyAiEUz9mrw6EX1Rdehmovpv/11111111111111111111");
             Check_s_contains(payload, "datadir ");
-            Check_s_contains(payload, string("test_r2r/home/node_ask/123/wallet/trader/trade_data/") + to_string(trade_id));
+            Check_s_contains(payload, string("test_l2/home/node_ask/123/wallet/trader/trade_data/") + to_string(trade_id));
             Check_s_contains(payload, "logo N");
             Check_s_contains(payload, "local__doctypes_consumer 291 ");
             Check_s_contains(payload, "local__doctypes_producer 288 290 292 ");
@@ -726,7 +726,7 @@ void c::test_14(node& bid, node& ask) {
                 Check_s_contains(payload, "created 1");
                 Check_s_contains(payload, "activity 1");
                 Check_s_contains(payload, "logfile ");
-                Check_s_contains(payload, "test_r2r/home/node_bid/123/wallet/trader/log/trade_1");
+                Check_s_contains(payload, "test_l2/home/node_bid/123/wallet/trader/log/trade_1");
                 Check_s_contains(payload, "state online");
                 Check_s_contains(payload, "online_age 00:00:");
                 Check_s_contains(payload, "remote_endpoint ");
@@ -740,9 +740,9 @@ void c::test_14(node& bid, node& ask) {
                 Check_s_contains(payload, "initiator Y");
                 Check_s_contains(payload, "protocol bid2ask bid");
                 Check_s_contains(payload, "pphome ");
-                Check_s_contains(payload, "test_r2r/home/node_bid/123/wallet/trader/bid2ask/bid/11111111111111111111/zzqCyAiEUz9mrw6EX1Rdehmovpv");
+                Check_s_contains(payload, "test_l2/home/node_bid/123/wallet/trader/bid2ask/bid/11111111111111111111/zzqCyAiEUz9mrw6EX1Rdehmovpv");
                 Check_s_contains(payload, "datadir ");
-                Check_s_contains(payload, string("test_r2r/home/node_bid/123/wallet/trader/trade_data/") + to_string(trade_id));
+                Check_s_contains(payload, string("test_l2/home/node_bid/123/wallet/trader/trade_data/") + to_string(trade_id));
                 Check_s_contains(payload, "logo Y");
                 Check_s_contains(payload, "local__basket_serial 1");
                 Check_s_contains(payload, "local__doctypes_consumer 288 290 292 ");
@@ -800,9 +800,9 @@ void c::test_14(node& bid, node& ask) {
                 Check_s_contains(payload, "initiator N");
                 Check_s_contains(payload, "protocol bid2ask ask");
                 Check_s_contains(payload, "pphome");
-                Check_s_contains(payload, "test_r2r/home/node_ask/123/wallet/trader/bid2ask/ask/zzqCyAiEUz9mrw6EX1Rdehmovpv/11111111111111111111");
+                Check_s_contains(payload, "test_l2/home/node_ask/123/wallet/trader/bid2ask/ask/zzqCyAiEUz9mrw6EX1Rdehmovpv/11111111111111111111");
                 Check_s_contains(payload, "datadir ");
-                Check_s_contains(payload, string("test_r2r/home/node_ask/123/wallet/trader/trade_data/") + to_string(trade_id));
+                Check_s_contains(payload, string("test_l2/home/node_ask/123/wallet/trader/trade_data/") + to_string(trade_id));
                 Check_s_contains(payload, "logo N");
                 Check_s_contains(payload, "local__doctypes_consumer 291 ");
                 Check_s_contains(payload, "local__doctypes_producer 288 290 292 ");
@@ -893,7 +893,7 @@ void c::test_15(node& bid, node& ask) {
                 Check_s_contains(payload, "created 1");
                 Check_s_contains(payload, "activity 1");
                 Check_s_contains(payload, "logfile ");
-                Check_s_contains(payload, "test_r2r/home/node_bid/123/wallet/trader/log/trade_1");
+                Check_s_contains(payload, "test_l2/home/node_bid/123/wallet/trader/log/trade_1");
                 Check_s_contains(payload, "state online");
                 Check_s_contains(payload, "online_age 00:00:");
                 Check_s_contains(payload, "remote_endpoint ");
@@ -907,9 +907,9 @@ void c::test_15(node& bid, node& ask) {
                 Check_s_contains(payload, "initiator Y");
                 Check_s_contains(payload, "protocol bid2ask bid");
                 Check_s_contains(payload, "pphome ");
-                Check_s_contains(payload, "test_r2r/home/node_bid/123/wallet/trader/bid2ask/bid/11111111111111111111/zzqCyAiEUz9mrw6EX1Rdehmovpv");
+                Check_s_contains(payload, "test_l2/home/node_bid/123/wallet/trader/bid2ask/bid/11111111111111111111/zzqCyAiEUz9mrw6EX1Rdehmovpv");
                 Check_s_contains(payload, "datadir ");
-                Check_s_contains(payload, string("test_r2r/home/node_bid/123/wallet/trader/trade_data/") + to_string(trade_id));
+                Check_s_contains(payload, string("test_l2/home/node_bid/123/wallet/trader/trade_data/") + to_string(trade_id));
                 Check_s_contains(payload, "logo Y");
                 Check_s_contains(payload, "local__doctypes_consumer 288 290 292 ");
                 Check_s_contains(payload, "local__doctypes_producer 291 ");
@@ -963,9 +963,9 @@ void c::test_15(node& bid, node& ask) {
                 Check_s_contains(payload, "initiator N");
                 Check_s_contains(payload, "protocol bid2ask ask");
                 Check_s_contains(payload, "pphome");
-                Check_s_contains(payload, "test_r2r/home/node_ask/123/wallet/trader/bid2ask/ask/zzqCyAiEUz9mrw6EX1Rdehmovpv/11111111111111111111");
+                Check_s_contains(payload, "test_l2/home/node_ask/123/wallet/trader/bid2ask/ask/zzqCyAiEUz9mrw6EX1Rdehmovpv/11111111111111111111");
                 Check_s_contains(payload, "datadir ");
-                Check_s_contains(payload, string("test_r2r/home/node_ask/123/wallet/trader/trade_data/") + to_string(trade_id));
+                Check_s_contains(payload, string("test_l2/home/node_ask/123/wallet/trader/trade_data/") + to_string(trade_id));
                 Check_s_contains(payload, "logo N");
                 Check_s_contains(payload, "local__doctypes_consumer 291 ");
                 Check_s_contains(payload, "local__doctypes_producer 288 290 292 ");
@@ -1040,7 +1040,7 @@ void c::test_16(node& bid, node& ask) {
                 Check_s_contains(payload, "created 1");
                 Check_s_contains(payload, "activity 1");
                 Check_s_contains(payload, "logfile ");
-                Check_s_contains(payload, "test_r2r/home/node_bid/123/wallet/trader/log/trade_1");
+                Check_s_contains(payload, "test_l2/home/node_bid/123/wallet/trader/log/trade_1");
                 Check_s_contains(payload, "state online");
                 Check_s_contains(payload, "online_age 00:00:");
                 Check_s_contains(payload, "remote_endpoint ");
@@ -1054,9 +1054,9 @@ void c::test_16(node& bid, node& ask) {
                 Check_s_contains(payload, "initiator Y");
                 Check_s_contains(payload, "protocol bid2ask bid");
                 Check_s_contains(payload, "pphome ");
-                Check_s_contains(payload, "test_r2r/home/node_bid/123/wallet/trader/bid2ask/bid/11111111111111111111/zzqCyAiEUz9mrw6EX1Rdehmovpv");
+                Check_s_contains(payload, "test_l2/home/node_bid/123/wallet/trader/bid2ask/bid/11111111111111111111/zzqCyAiEUz9mrw6EX1Rdehmovpv");
                 Check_s_contains(payload, "datadir ");
-                Check_s_contains(payload, string("test_r2r/home/node_bid/123/wallet/trader/trade_data/") + to_string(trade_id));
+                Check_s_contains(payload, string("test_l2/home/node_bid/123/wallet/trader/trade_data/") + to_string(trade_id));
                 Check_s_contains(payload, "logo Y");
                 Check_s_contains(payload, "local__doctypes_consumer 288 290 292 ");
                 Check_s_contains(payload, "local__doctypes_producer 291 ");
@@ -1130,9 +1130,9 @@ void c::test_16(node& bid, node& ask) {
                 Check_s_contains(payload, "initiator N");
                 Check_s_contains(payload, "protocol bid2ask ask");
                 Check_s_contains(payload, "pphome");
-                Check_s_contains(payload, "test_r2r/home/node_ask/123/wallet/trader/bid2ask/ask/zzqCyAiEUz9mrw6EX1Rdehmovpv/11111111111111111111");
+                Check_s_contains(payload, "test_l2/home/node_ask/123/wallet/trader/bid2ask/ask/zzqCyAiEUz9mrw6EX1Rdehmovpv/11111111111111111111");
                 Check_s_contains(payload, "datadir ");
-                Check_s_contains(payload, string("test_r2r/home/node_ask/123/wallet/trader/trade_data/") + to_string(trade_id));
+                Check_s_contains(payload, string("test_l2/home/node_ask/123/wallet/trader/trade_data/") + to_string(trade_id));
                 Check_s_contains(payload, "logo N");
                 Check_s_contains(payload, "local__doctypes_consumer 291 ");
                 Check_s_contains(payload, "local__doctypes_producer 288 290 292 ");
@@ -1394,7 +1394,7 @@ void c::test_19(node& bid, node& ask) {
             Check_s_contains(payload, "created 1");
             Check_s_contains(payload, "activity 1");
             Check_s_contains(payload, "logfile ");
-            Check_s_contains(payload, "test_r2r/home/node_bid/123/wallet/trader/log/trade_1");
+            Check_s_contains(payload, "test_l2/home/node_bid/123/wallet/trader/log/trade_1");
             Check_s_contains(payload, "state online");
             Check_s_contains(payload, "online_age 00:00:");
             Check_s_contains(payload, "remote_endpoint ");
@@ -1408,9 +1408,9 @@ void c::test_19(node& bid, node& ask) {
             Check_s_contains(payload, "initiator Y");
             Check_s_contains(payload, "protocol bid2ask bid");
             Check_s_contains(payload, "pphome ");
-            Check_s_contains(payload, "test_r2r/home/node_bid/123/wallet/trader/bid2ask/bid/11111111111111111111/zzqCyAiEUz9mrw6EX1Rdehmovpv");
+            Check_s_contains(payload, "test_l2/home/node_bid/123/wallet/trader/bid2ask/bid/11111111111111111111/zzqCyAiEUz9mrw6EX1Rdehmovpv");
             Check_s_contains(payload, "datadir ");
-            Check_s_contains(payload, string("test_r2r/home/node_bid/123/wallet/trader/trade_data/") + to_string(trade_id));
+            Check_s_contains(payload, string("test_l2/home/node_bid/123/wallet/trader/trade_data/") + to_string(trade_id));
             Check_s_contains(payload, "logo Y");
             Check_s_contains(payload, "local__doctypes_consumer 288 290 292 ");
             Check_s_contains(payload, "local__doctypes_producer 291 ");
@@ -1595,9 +1595,9 @@ void c::test_19(node& bid, node& ask) {
             Check_s_contains(payload, "initiator N");
             Check_s_contains(payload, "protocol bid2ask ask");
             Check_s_contains(payload, "pphome");
-            Check_s_contains(payload, "test_r2r/home/node_ask/123/wallet/trader/bid2ask/ask/zzqCyAiEUz9mrw6EX1Rdehmovpv/11111111111111111111");
+            Check_s_contains(payload, "test_l2/home/node_ask/123/wallet/trader/bid2ask/ask/zzqCyAiEUz9mrw6EX1Rdehmovpv/11111111111111111111");
             Check_s_contains(payload, "datadir ");
-            Check_s_contains(payload, string("test_r2r/home/node_ask/123/wallet/trader/trade_data/") + to_string(trade_id));
+            Check_s_contains(payload, string("test_l2/home/node_ask/123/wallet/trader/trade_data/") + to_string(trade_id));
             Check_s_contains(payload, "logo N");
             Check_s_contains(payload, "local__doctypes_consumer 291 ");
             Check_s_contains(payload, "local__doctypes_producer 288 290 292 ");

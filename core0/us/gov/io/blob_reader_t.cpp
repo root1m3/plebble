@@ -218,6 +218,12 @@ template<> ko c::read(priv_t& o) {
     return ok;
 }
 
+template<> ko c::read(keys& o) {
+    auto r = read(o.priv);
+    if (is_ko(r)) return r;
+    return read(o.pub);
+}
+
 template<> ko c::read(sig_t& o) {
     if (header.version == 7) {
         if ((cur + 1) > end) {

@@ -24,7 +24,7 @@
 
 function help {
     echo "./make.sh <options> <command>"
-    echo "Comnmands:"
+    echo "Commands:"
     echo "    all|<empty>"
     echo "    clean"
     echo "    clean_deps"
@@ -46,6 +46,7 @@ fi
 dbg=$str29
 logs=$str33
 us=$str3
+appstore=$str83
 
 if [[ ! -f app/src/main/res/values/settings.xml ]]; then
     echo "KO 44372 Not configured."
@@ -53,7 +54,7 @@ if [[ ! -f app/src/main/res/values/settings.xml ]]; then
 fi
 
 cmd=""
-let bundle=0
+let bundle=$appstore
 while [[ true ]]; do
     opt=$1
     shift
@@ -77,13 +78,18 @@ fi
 echo "dbg=$dbg"
 echo "logs=$logs"
 flags=""
-gradlecmd="assembleDebug"
+
+gcmd="assemble"
+if [[ $bundle -eq 1 ]]; then
+    gcmd="bundle"
+fi
+gradlecmd="${gcmd}Debug"
 if [[ $dbg -eq 0 ]]; then
-    gradlecmd="assembleRelease"
+    gradlecmd="${gcmd}Release"
     flags="$flags --warning-mode none"
 else
-#    flags="$flags --warning-mode all --stacktrace --console=verbose"
-    flags="$flags --warning-mode all"
+    flags="$flags --warning-mode all --full-stacktrace --console=verbose"
+#    flags="$flags --warning-mode all"
 fi
 
 if [[ "_$cmd" == "_clean" ]]; then
@@ -101,6 +107,7 @@ fi
 
 if [[ "_$cmd" != "_" ]]; then
 if [[ "_$cmd" != "_all" ]]; then
+    help
     echo "KO 89799 Invalid command $cmd"
     exit 1
 fi
@@ -153,6 +160,15 @@ if [[ $r -ne 0 ]]; then
     exit $r
 fi
 
+if [[ $str83 -eq 1 ]]; then
+    echo "Files are for Android AppStore"
+fi
+
+echo "OK"
+
+exit 0
+
+
 if [[ ! $bundle -eq 1 ]]; then
     echo "OK"
     exit 0
@@ -200,7 +216,5 @@ pushd bundle > /dev/null
     --auto-add-overlay
 
 popd > /dev/null
-
-
 
 exit 0

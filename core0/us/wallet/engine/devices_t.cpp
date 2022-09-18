@@ -47,12 +47,12 @@ c::devices_t(const string& home): home(home) {
     log("constructor", home);
     assert(!home.empty());
     string filename = home + "/d";
-    if (us::gov::io::cfg0::file_exists(filename)) {
-        load();
-    }
-    else {
+    if (!us::gov::io::cfg0::file_exists(filename)) {
         save();
     }
+    load();
+    log("size", size());
+    assert(!empty());
 }
 
 void c::load() {
@@ -65,29 +65,31 @@ void c::save() const {
     save_();
 }
 
+/*
 void c::load_v1_() {
     clear();
     ifstream is(home + "/d");
     log("loading authorized devices", home + "/d");
     string ver;
     is >> ver;
-    log("devices file version",ver);
-    bool prev=false;
-    if (!ver.empty()) {
-        if (ver[0] != '1') {
-            log("prev mode");
-            prev = true;
-        }
-    }
+    log("devices file version", ver);
+    //bool prev = false;
+//    if (ver.empty()) {
+//    }
+//        if (ver[0] != '1') {
+//            log("prev mode");
+//            prev = true;
+//        }
+//    }
     while (is.good()) {
-        std::pair<bool, device_t> d;
-        if (prev) {
-            d = device_t::from_stream_prev(is);
-        }
-        else {
-            d = device_t::from_stream(is);
-        }
-        if (!d.first) {
+        //std::pair<ko, device_t> d;
+        //if (prev) {
+        //    d = device_t::from_stream_prev(is);
+        //}
+        //else {
+        auto d = device_t::from_streamX(is);
+        //}
+        if (is_ko(d.first)) {
             log("error loading device.");
             break;
         }
@@ -112,18 +114,18 @@ void c::load_v1_() {
         delete f.second;
         return;
     }
-    if (prev) {
-        save_();
-        return;
-    }
+//    if (prev) {
+//        save_();
+//        return;
+//    }
 }
+*/
 
 void c::load_() {
     string filename = home + "/d";
-    log("load file ", filename);
     clear();
+    log("load authorized devices and config from", filename);
     ifstream is(filename);
-    log("loading authorized devices", home + "/d");
     string ver;
     is >> ver;
     log("devices file version", ver);
@@ -134,12 +136,17 @@ void c::load_() {
     log("authorize_and_create_guest_wallet", authorize_and_create_guest_wallet);
     is >> consume_pin;
     log("consume_pin", consume_pin);
-    bool prev = false;
+    {
+        string eol;
+        getline(is, eol);
+        log("eol", eol);
+        assert(eol.empty());
+    }
     while (is.good()) {
-        std::pair<bool, device_t> d;
-        d = device_t::from_stream(is);
-        if (!d.first) {
-            log("error loading device.");
+        //std::pair<bool, device_t> d;
+        auto d = device_t::from_streamX(is);
+        if (is_ko(d.first)) {
+            log("error loading device.", d.first);
             break;
         }
         if (!d.second.pub.valid) {
@@ -150,11 +157,11 @@ void c::load_() {
         emplace(d.second.pub.hash(), d.second);
     }
     if (empty()) {
-        log("white list is empty","adding console key");
+        log("white list is empty", "adding console key");
         using io::cfg_id;
         auto f = cfg_id::load(home + "/rpc_client", true);
         if (is_ko(f.first)) {
-            cerr << (const char*)f.first << '\n';
+            cerr << f.first << '\n';
             exit(1);
         }
         emplace(f.second->keys.pub.hash(), device_t(f.second->keys.pub, "", "console"));
@@ -184,7 +191,7 @@ void c::save_() const {
     log("saved devices file", file);
 }
 
-pair<bool, string> c::authorize(const pub_t& p, pin_t pin) {
+pair<ko, string> c::authorizeX(const pub_t& p, pin_t pin) {
     log("authorization request for device", p, "using pin", pin);
     lock_guard<mutex> lock(mx);
     attempts.purge();
@@ -192,7 +199,7 @@ pair<bool, string> c::authorize(const pub_t& p, pin_t pin) {
     if (i != end()) {
         log("found in lookup table", p, "authorized!");
         attempts.purge(p);
-        return make_pair(true, i->second.subhome);
+        return make_pair(ok, i->second.subhome);
     }
     log("not found in pairing table", p);
     auto j = prepaired.find(pin);
@@ -207,7 +214,7 @@ pair<bool, string> c::authorize(const pub_t& p, pin_t pin) {
         }
         auto r = device_pair_(p, subhome, j->second.name, false);
         if (is_ko(r)) {
-            return make_pair(false, r);
+            return make_pair(r, "");
         }
         log("paired device", p, subhome, j->second.name);
         if (consume_pin) {
@@ -217,7 +224,7 @@ pair<bool, string> c::authorize(const pub_t& p, pin_t pin) {
         log("authorized for the first time.", "used pin", pin, "pubkey", p, "subhome", subhome);
         save_();
         attempts.purge(p);
-        return make_pair(true, subhome);
+        return make_pair(ok, subhome);
     }
     log("not found in prepairing table", p);
     if (authorize_and_create_guest_wallet) {
@@ -227,10 +234,10 @@ pair<bool, string> c::authorize(const pub_t& p, pin_t pin) {
         auto r = device_pair_(p, newuserdir.str(), "guest first seen device");
         if (is_ko(r)) {
             log(r, p, newuserdir.str());
-            return make_pair(false, r);
+            return make_pair(r, "");
         }
         attempts.purge(p);
-        return make_pair(true, newuserdir.str());
+        return make_pair(ok, newuserdir.str());
     }
     log("user used pin", pin);
     if (pin != 0) {
@@ -238,7 +245,7 @@ pair<bool, string> c::authorize(const pub_t& p, pin_t pin) {
     }
     attempts.add(p);
     log("not authorized. registered attempt.", p);
-    return make_pair(false, KO_30291);
+    return make_pair(KO_30291, "");
 }
 
 pair<ko, pin_t> c::device_prepair_(pin_t pin, string subhome, string name) {

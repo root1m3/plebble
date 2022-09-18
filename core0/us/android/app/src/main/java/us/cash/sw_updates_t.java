@@ -141,7 +141,6 @@ public class sw_updates_t {
             log("cannot read curapk"); //--strip
             log("querying node for my apk hash " + us.vcs.apkfilename()); //--strip
             us.wallet.cli.rpc_peer_t.get_component_hash_in_t o_in = new us.wallet.cli.rpc_peer_t.get_component_hash_in_t(new string("android"), new string(us.vcs.apkfilename()));
-            //us.wallet.cli.rpc_peer_t.get_component_update_out_dst_t o_out = new us.wallet.cli.rpc_peer_t.get_component_update_out_dst_t();
             string ans = new string();
             ko r = hmi.rpc_peer.call_get_component_hash(o_in, ans);
             if (is_ko(r)) {
@@ -172,17 +171,6 @@ public class sw_updates_t {
         return true;
     }
 
-//    public boolean verify_storage_permissions() {        // Check if we have write permission
-/*
-        int permission = ContextCompat.checkSelfPermission(a.getApplicationContext(), Manifest.permission.WRITE_EXTERNAL_STORAGE);
-        if (permission != PackageManager.PERMISSION_GRANTED) {
-            return false;
-        }
-        log("Permission already granted"); //--strip
-        return true;
-*/
-//    }
-
     public void ask_permission(int req_code, String[] permissions, String rationale) {
         if (a.main == null) {
             return;
@@ -194,33 +182,30 @@ public class sw_updates_t {
         }
         log("request Permission"); //--strip
         ActivityCompat.requestPermissions(a.main, permissions, req_code);
-
-        //int permission = ActivityCompat.checkSelfPermission(ac, Manifest.permission.WRITE_EXTERNAL_STORAGE);
-        //return permission == PackageManager.PERMISSION_GRANTED;
     }
 
     ko download_apk() {
         log("download_apk"); //--strip
         a.assert_worker_thread(); //--strip
-        if (!verify_permissions(PERMISSIONS_STORAGE)) {
-            if (a.main != null) {
-                a.main.runOnUiThread(new Runnable() {
-                    @Override public void run() {
-                        ask_permission(REQUEST_EXTERNAL_STORAGE, PERMISSIONS_STORAGE, "Please Grant access to external storage. This is needed for temporary storage of apk files (software updates).");
-                    }
-                });
+	if (CFG.appstore_edition == 0) {
+            if (!verify_permissions(PERMISSIONS_STORAGE)) {
+                if (a.main != null) {
+                    a.main.runOnUiThread(new Runnable() {
+                        @Override public void run() {
+                            ask_permission(REQUEST_EXTERNAL_STORAGE, PERMISSIONS_STORAGE, "Please Grant access to external storage. This is needed for temporary storage of apk files (software updates).");
+                        }
+                    });
+                }
+                ko r = new ko("KO 60599 Permissions problem");
+                log(r.msg); //--strip
+                return r;
             }
-
-            ko r = new ko("KO 60599 Permissions problem");
-            log(r.msg); //--strip
-            return r;
+            if (!cfg_public.is_external_storage_writable()) {
+                ko r = new ko("KO 78695 External storage is not writable");
+                log(r.msg); //--strip
+                return r;
+            }
         }
-        if (!cfg_public.is_external_storage_writable()) {
-            ko r = new ko("KO 78695 External storage is not writable");
-            log(r.msg); //--strip
-            return r;
-        }
-
         log(Arrays.toString(Thread.currentThread().getStackTrace())); //--strip
         log("Checking for updates."); //--strip
         log("get_updat. curapk " + curapk); //--strip
@@ -237,14 +222,6 @@ public class sw_updates_t {
             is_updateavailable = true;
             return ok;
         }
-/*
-boolean b = true;
-if (b) {
-    log("SALIENDO");
-    System.exit(1);
-    return ok;
-}
-*/
         log("querying node for updates"); //--strip
         ByteArrayOutputStream os = new ByteArrayOutputStream();
         log("get_component_update android " + curapk + " blob_id: " + CFG.blob_id); //--strip
@@ -263,21 +240,28 @@ if (b) {
             log(r.msg); //--strip
             return r;
         }
+        if (o_out.file.value.equals(curapk)) {
+            log("Same version."); //--strip
+            is_updateavailable = false;
+            return ok;
+        }
+        if (o_out.bin_pkg.value == null) {
+            ko r = new ko("KO 10993 file is null.");
+            log(r.msg); //--strip
+            return r;
+        }
         if (o_out.bin_pkg.value.length < 1000000) {
             ko r = new ko("KO 10994 Suspicious length suggests truncated file." + o_out.bin_pkg.value.length);
             log(r.msg); //--strip
             return r;
         }
-        if (o_out.file.value.equals(curapk)) {
-            log("Same version."); //--strip
-            is_updateavailable = false; //!curapk.equals(curapk0);
-            return ok;
-        }
-        synchronized (cfg_android_public_t.downloads_dir_lock_t) {
-            log("Saving content to newapk_content. size=" + o_out.bin_pkg.value.length + " bytes."); //--strip
-            ko r = cfg_public.write_public_file("newapk_content", o_out.bin_pkg.value);
-            if (is_ko(r)) {
-                return r;
+	if (CFG.appstore_edition == 0) {
+            synchronized (cfg_android_public_t.downloads_dir_lock_t) {
+                log("Saving content to newapk_content. size=" + o_out.bin_pkg.value.length + " bytes."); //--strip
+                ko r = cfg_public.write_public_file("newapk_content", o_out.bin_pkg.value);
+                if (is_ko(r)) {
+                    return r;
+                }
             }
         }
         log("Writing newapk: " + o_out.file.value + " filename newapk"); //--strip
@@ -295,7 +279,6 @@ if (b) {
             }
         }
         log("updating var"); //--strip
-        //curapk = o_out.file.value;
         is_updateavailable = true;
         return ok;
     }
@@ -432,6 +415,16 @@ if (b) {
 
     public void do_inst_ask_permission(activity ac) {
         log("do_inst_ask_permission");  //--strip
+	if (CFG.appstore_edition == 1) {
+            final String appPackageName = ac.getPackageName(); // getPackageName() from Context or Activity object
+            try {
+                ac.startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=" + appPackageName)));
+            } catch (android.content.ActivityNotFoundException anfe) {
+                ac.startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("https://play.google.com/store/apps/details?id=" + appPackageName)));
+            }
+            return;
+        }
+
         a.assert_ui_thread(); //--strip
 //        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
         if (a.getPackageManager().canRequestPackageInstalls()) {
@@ -463,7 +456,7 @@ if (b) {
 //        Toast.makeText(ac, "Checking for updates...", 6000).show();
         toast("Checking for updates...");
         Thread thread = new Thread(new Runnable() {
-            @Override public void run () {
+            @Override public void run() {
                 check(true);
             }
         });

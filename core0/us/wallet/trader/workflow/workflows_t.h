@@ -22,20 +22,21 @@
 //===-
 #pragma once
 #include <tuple>
+#include <us/gov/io/seriable.h>
 #include <us/wallet/trader/params_t.h>
 #include "workflow_t.h"
 
 namespace us::wallet::trader::workflow {
-
     using namespace std;
 
-    struct workflows_t: private vector<workflow_t*> {
+    struct workflows_t final: private vector<workflow_t*>, public us::gov::io::seriable {
         using doctypes_t = workflow_t::doctypes_t;
         using peer_t = workflow_t::peer_t;
         using ch_t = trader::ch_t;
 
         ~workflows_t();
 
+    public:
         pair<workflow_t*, item_t*> find(const string& name) const;
         tuple<workflow_t*, item_t*, doc0_t*> read_item(const blob_t&) const;
         bool requires_online(const string& cmd) const;
@@ -53,6 +54,11 @@ namespace us::wallet::trader::workflow {
         ko rehome(const string& home, ch_t&);
         void doctypes(doctypes_t&) const; //consumer, producer
         ko update_item(const blob_t&, ch_t&);
+
+    public:
+        size_t blob_size() const override;
+        void to_blob(blob_writer_t&) const override;
+        ko from_blob(blob_reader_t&) override;
 
     public:
         string home;

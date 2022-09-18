@@ -54,6 +54,11 @@ c& c::operator = (const c& other) {
     return *this;
 }
 
+bool c::operator < (const c& other) const {
+    if (first != other.first) return first < other.first;
+    return second < other.second;
+}
+
 size_t c::blob_size() const {
     return blob_writer_t::blob_size(first) + blob_writer_t::blob_size(second);
 }
@@ -89,6 +94,27 @@ void c::to_streamX(const string& o, ostream& os) {
     else {
         os << o << ' ';
     }
+}
+
+string c::to_string2() const {
+    ostringstream os;
+    os << first << '-' << second;
+    return os.str();
+}
+
+c c::from_string2(const string& s) {
+    c o;
+    log("from_string2", s);
+    auto x = s.find('-');
+    if (x == string::npos) {
+        o.first = s;
+        return o;
+    }
+    o.first = s.substr(0, x);
+    if (++x < s.size()) {
+        o.second = s.substr(x);
+    }
+    return o;
 }
 
 string c::to_string() const {

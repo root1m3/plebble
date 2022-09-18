@@ -178,3 +178,38 @@ c::challenge_t c::gen_challenge() {
     return o;
 }
 
+size_t c::blob_size() const {
+    size_t sz = blob_writer_t::blob_size(moniker) +
+        blob_writer_t::blob_size(id) +
+        blob_writer_t::blob_size(k);
+    return sz;
+}
+
+void c::to_blob(blob_writer_t& writer) const {
+    writer.write(moniker);
+    writer.write(id);
+    writer.write(k);
+}
+
+ko c::from_blob(blob_reader_t& reader) {
+    {
+        auto r = reader.read(moniker);
+        if (is_ko(r)) {
+            return r;
+        }
+    }
+    {
+        auto r = reader.read(id);
+        if (is_ko(r)) {
+            return r;
+        }
+    }    
+    {
+        auto r = reader.read(k);
+        if (is_ko(r)) {
+            return r;
+        }
+    }    
+    return ok;
+}
+

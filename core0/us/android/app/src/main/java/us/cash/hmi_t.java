@@ -268,18 +268,16 @@ public class hmi_t extends us.wallet.cli.hmi {
         set_status(leds_t.led_amber, "Loading previous network info for channel " + p.channel.value);
         update_network_info_from_cache(p.channel);
         set_status(leds_t.led_amber, (seeds == null ? "0" : "" + seeds.size()) + " seeds");
-        if (CFG.sw_updates_on == 1) {
-            cfg_android_public_t cfg_pub = new cfg_android_public_t(a, get_cfg().home);
-            sw_updates = new sw_updates_t(a, this, get_cfg(), cfg_pub);
-            r = sw_updates.start();
-            if (is_ko(r)) {
-                set_status(leds_t.led_red, r.msg);
-                on_hmi__worker(r);
-                sw_updates = null;
-                super.stop();
-                super.join();
-                return r;
-            }
+        cfg_android_public_t cfg_pub = new cfg_android_public_t(a, get_cfg().home);
+        sw_updates = new sw_updates_t(a, this, get_cfg(), cfg_pub);
+        r = sw_updates.start();
+        if (is_ko(r)) {
+            set_status(leds_t.led_red, r.msg);
+            on_hmi__worker(r);
+            sw_updates = null;
+            super.stop();
+            super.join();
+            return r;
         }
         set_status(leds_t.led_amber, "HMI running. Peer " + endpoint.to_string());
         log("super returned ok"); //--strip

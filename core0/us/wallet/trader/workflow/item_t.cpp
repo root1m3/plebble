@@ -40,6 +40,8 @@
 using namespace us::wallet::trader::workflow;
 using c = us::wallet::trader::workflow::item_t;
 
+us::gov::io::factories_t<c> c::factories;
+
 c::item_t(workflow_t* parent, const string& name, const string& long_name): parent(parent), name(name), long_name(long_name) {
 }
 

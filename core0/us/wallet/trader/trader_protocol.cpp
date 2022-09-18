@@ -50,7 +50,10 @@ using namespace us::wallet::trader;
 using c = us::wallet::trader::trader_protocol;
 
 const char* c::WP_29101 = "WP 29101 Nothing done here."; //WayPoint
-const char* c::KO_29100 = "KO 29100 Invalid command."; //Error
+const char* c::KO_29100 = "KO 29100 Invalid command.";
+
+us::gov::io::factories_t<c> c::factories;
+c::factory_id_t c::null_instance;
 
 remote_params_t* c::remote_params_on_hold{nullptr};
 
@@ -739,5 +742,65 @@ bool c::underride_default_params(local_params_t& lp) const { //returns if priv_p
 chat_t::entry c::AI_chat(const chat_t&, peer_t&) {
     chat_t::entry ans;
     return ans;
+}
+
+size_t c::blob_size() const {
+    size_t sz = blob_writer_t::blob_size(_local_params) +
+        blob_writer_t::blob_size(remote_params) +
+        blob_writer_t::blob_size(phome) +
+        blob_writer_t::blob_size(pphome) +
+        blob_writer_t::blob_size(image) +
+        blob_writer_t::blob_size(ico);
+
+    return sz;
+}
+
+void c::to_blob(blob_writer_t& writer) const {
+    writer.write(_local_params);
+    writer.write(remote_params);
+    writer.write(phome);
+    writer.write(pphome);
+    writer.write(image);
+    writer.write(ico);
+}
+
+ko c::from_blob(blob_reader_t& reader) {
+    {
+        auto r = reader.read(_local_params);
+        if (is_ko(r)) {
+            return r;
+        }
+    }
+    {
+        auto r = reader.read(remote_params);
+        if (is_ko(r)) {
+            return r;
+        }
+    }    
+    {
+        auto r = reader.read(phome);
+        if (is_ko(r)) {
+            return r;
+        }
+    }    
+    {
+        auto r = reader.read(pphome);
+        if (is_ko(r)) {
+            return r;
+        }
+    }    
+    {
+        auto r = reader.read(image);
+        if (is_ko(r)) {
+            return r;
+        }
+    }    
+    {
+        auto r = reader.read(ico);
+        if (is_ko(r)) {
+            return r;
+        }
+    }    
+    return ok;
 }
 

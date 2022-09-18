@@ -40,7 +40,6 @@ c::bitem* c::enable_parcel(bool b, ch_t& ch) {
     return b ? add<parcel_t>(ch) : remove<parcel_t>(ch);
 }
 
-
 c::bitem* c::enable_shipping_receipt(bool b, ch_t& ch) {
     return b ? add<shipping_receipt_t>(ch) : remove<shipping_receipt_t>(ch);
 }

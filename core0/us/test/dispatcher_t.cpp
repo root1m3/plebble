@@ -131,12 +131,11 @@ bool c::dispatch(us::gov::socket::datagram* d0) {
                     data_seq.dump(out);
                 }
                 else {
-                    out << "empty data arrived at node " << id << '\n';
+                    out << "WARNING: DUPLICATE DATA. data arrived at node " << id << " producing empty diff\n";
                 }
                 out << "=========/=DATA summary" << endl;
             }
             expected_code.arrived(o_in.tid, o_in.code, o_in.blob);
-
         }
         break;
         default:

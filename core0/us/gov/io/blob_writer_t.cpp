@@ -195,15 +195,20 @@ template<> void c::write(const sigmsg_hash_t& o) {
 }
 
 template<> void c::write(const pub_t& o) {
-    log("write at blob offset", (uint64_t)(cur - blob.data()));
+    log("write pub at blob offset", (uint64_t)(cur - blob.data()));
     o.write(cur);
     cur += o.ser_size;
 }
 
 template<> void c::write(const priv_t& o) {
-    log("write at blob offset", (uint64_t)(cur - blob.data()));
+    log("write priv at blob offset", (uint64_t)(cur - blob.data()));
     o.write(cur);
     cur += o.ser_size;
+}
+
+template<> void c::write(const keys& o) {
+    write(o.priv);
+    write(o.pub);
 }
 
 template<> size_t c::blob_size(const sig_t& o) {

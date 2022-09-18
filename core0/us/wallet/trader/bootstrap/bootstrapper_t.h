@@ -24,6 +24,8 @@
 
 #include "handshake_t.h"
 
+#include "us/gov/io/seriable.h"
+
 #include <us/wallet/trader/params_t.h>
 #include <us/wallet/trader/trader_protocol.h>
 #include <us/wallet/trader/ch_t.h>
@@ -33,19 +35,14 @@
 #include "dialogue_c_t.h"
 
 namespace us::wallet::engine {
-
     struct peer_t;
-
 }
 
 namespace us::wallet::trader {
-
     struct trader_t;
-
 }
 
 namespace us::wallet::trader::bootstrap {
-
     using namespace std;
 
     struct bootstrapper_t {
@@ -55,6 +52,7 @@ namespace us::wallet::trader::bootstrap {
         using personality_proof_t = trader::personality::proof_t;
         using ch_t = trader::ch_t;
         using peer_t = engine::peer_t;
+        using blob_reader_t = us::gov::io::blob_reader_t;
 
         bootstrapper_t();
         virtual ~bootstrapper_t();
@@ -67,6 +65,10 @@ namespace us::wallet::trader::bootstrap {
         virtual ko on_a(int) = 0;
         virtual ko on_c(int) = 0;
 
+    //public:
+        //static ko from_blob(blob_reader_t&, bootstrapper_t*&);
+    
+    public:
         dialogue_a_t dialogue_a;
         dialogue_b_t dialogue_b;
         dialogue_c_t dialogue_c;

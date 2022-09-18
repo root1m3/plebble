@@ -56,3 +56,11 @@ int c::add_delegate(const string& name, int svc0) {
     return a->svc_end(svc0);
 }
 
+void c::gen_svc_lock() {
+//    ostringstream file;
+//    file << "svc_lock_" << process;
+//    ofstream os(file.str());
+//    for (auto& i: *this) {
+//        i.first->gen_svc_lock(os);
+//    }
+}

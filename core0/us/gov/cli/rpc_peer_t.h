@@ -31,7 +31,7 @@ namespace us::gov::cli {
 
         void dump(const string& prefix, ostream&) const;
         void dump_all(const string& prefix, ostream&) const override;
-        inline bool authorize(const pub_t&, pin_t) override { return true; } //Improve this to authenticate our connection against gov daemon
+        inline ko authorizeX(const pub_t&, pin_t) override { return ok; } //Improve this to authenticate our connection against gov daemon
         void on_peer_disconnected(const reason_t&) override;
 
     };

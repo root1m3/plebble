@@ -53,6 +53,8 @@ ko c::connect() {
 
 void c::stop() {
     log("stop");
+    stop_on_disconnection = true;
+    connect_for_recv = false;
     b::stop();
     log("stopping thread: recv");
     cv_recv.notify_all();

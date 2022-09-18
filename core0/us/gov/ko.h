@@ -23,6 +23,7 @@
 #pragma once
 #include <iostream>
 #include <string>
+#include "likely.h"
 
 namespace us {
 
@@ -33,7 +34,7 @@ namespace us {
     static constexpr ko ok = nullptr;
 
     static inline bool is_ko(const string& s) {
-        if (s.size() < 3) return false;
+        if (unlikely(s.size() < 3)) return false;
         return s[0] == 'K' && s[1] == 'O' && s[2] == ' ';
     }
 

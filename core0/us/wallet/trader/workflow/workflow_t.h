@@ -26,6 +26,9 @@
 #include <map>
 
 #include <us/gov/engine/signed_data.h>
+#include <us/gov/io/seriable.h>
+#include <us/gov/io/factory.h>
+
 #include <us/wallet/engine/peer_t.h>
 #include <us/wallet/trader/kv.h>
 #include <us/wallet/trader/ch_t.h>
@@ -33,28 +36,52 @@
 #include "item_t.h"
 
 namespace us::wallet::trader {
-
     struct trader_t;
     struct trader_protocol;
-
 }
 
 namespace us::wallet::trader::workflow {
-
     struct workflows_t;
 
-    struct workflow_t: map<string, item_t*> {
+    struct workflow_t: map<string, item_t*>, us::gov::io::seriable {
         using b = map<string, item_t*>;
-
         using peer_t = engine::peer_t;
         using trader_t = us::wallet::trader::trader_t;
         using trader_protocol = us::wallet::trader::trader_protocol;
         using doctypes_t = item_t::doctypes_t;
         using ch_t = trader::ch_t;
 
-        workflow_t();
+    protected: //create instances using workflow_t::factories.create(); 
+       workflow_t();
+
+    public:
         virtual ~workflow_t();
 
+    public:
+/*
+        using factory_id_t = uint64_t;
+
+        struct factory_t: us::factory_t<workflow_t> {
+            static constexpr factory_id_t id{0};
+
+            workflow_t* create(workflow_t::factory_id_t factory_id) override {
+                if (factory_id == id) {
+                    return new workflow_t();
+                }
+                return nullptr;
+            }
+        };
+
+        struct factories_t final: us::factories_t<workflow_t> {
+            factories_t() {
+                register_factory(new factory_t()); 
+            }
+        };
+
+        virtual factory_id_t get_factory_id() const { return factory_t::id; }     
+*/   
+
+    public:
         const string& datadir() const { return home; }
         virtual trader_t& trader() const = 0;
         bool requires_online(const string& cmd) const;
@@ -67,7 +94,6 @@ namespace us::wallet::trader::workflow {
         ko load_all(ch_t&);
         ko unload_all(ch_t&);
         ko save(const string& name);
-        //ko load(const string& name, istream&, ch_t&);
         void set(ch_t&) const;
         bool sig_hard_reset(ostream&);
         bool sig_reset(ostream&);
@@ -79,6 +105,14 @@ namespace us::wallet::trader::workflow {
         ko send_request_to(peer_t&, const string& name) const;
         ko push(const string& name, bool compact) const;
         ko push_(const_iterator, bool compact) const;
+
+    public:
+        using factory_id_t = uint64_t;
+        static us::gov::io::factories_t<workflow_t> factories;
+
+        size_t blob_size() const override;
+        void to_blob(blob_writer_t&) const override;
+        ko from_blob(blob_reader_t&) override;
 
     public:
         workflows_t* parent{nullptr};

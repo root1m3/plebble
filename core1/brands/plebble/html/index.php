@@ -144,6 +144,13 @@ software version: <b><?=$swver?></b> [<a class="hdl" href="pub/release_notes.txt
 
 
 <br/>
+<button type="button" class="collapsible">Inspirational books.</button>
+<div class="content">
+<ul>
+<li>Mastering Bitcoin</li>
+</ul>
+</div>
+
 <button type="button" class="collapsible">Introduction.</button>
 <div class="content">
 <p>P2P Network of computers running the Plebble software (100% free/open source).

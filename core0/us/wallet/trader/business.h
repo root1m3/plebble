@@ -59,20 +59,21 @@ namespace us::wallet::trader {
 
         static const char* KO_50100; //exec ignored
 
-        static constexpr int interface_version{8};
+        static constexpr int interface_version{9};
         business_t();
         virtual ~business_t() {}
         virtual ko init(const string& r2rhome);
         virtual string homedir() const = 0;
-        virtual std::pair<ko, trader_protocol*> create_protocol(protocol_selection_t&& protocol_selection) = 0;
-        virtual std::pair<ko, trader_protocol*> create_opposite_protocol(protocol_selection_t&& protocol_selection) = 0;
         virtual std::pair<ko, trader_protocol*> create_protocol() = 0;
+        virtual std::pair<ko, trader_protocol*> create_opposite_protocol(protocol_selection_t&& protocol_selection) = 0;
+//        virtual std::pair<ko, trader_protocol*> create_protocol() = 0;
         virtual void list_protocols(ostream&) const = 0; //human format
         virtual void invert(protocols_t&) const = 0;
         virtual void published_protocols(protocols_t&, bool inverse) const = 0;
         virtual void exec_help(const string& prefix, ostream&) const;
         virtual ko exec(istream&, traders_t&, wallet::local_api&);
         pair<protocol_selection_t, bookmark_info_t> bookmark_info() const;
+        protocol_selection_t protocol_selection() const;
 
     public:
         blob_t ico;

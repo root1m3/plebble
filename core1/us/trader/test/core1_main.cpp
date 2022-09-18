@@ -49,26 +49,18 @@ using us::ko;
 using us::ok;
 
 bool batch = false;
+bool only_interactive_shell = false;
 
 void test_r2r(const string& homedir, const string& logdir, const string& vardir) {
     us::gov::engine::auth::collusion_control_t::max_nodes_per_ip = 255;
     ostream& os = cout;
 
     network_c1 n(homedir, logdir, vardir, "test-c1_r2r_stage1", os);
+    n.start();
 
-    cout << "stage1" << endl;
-    n.stage1();
+    //us::test::r2r_t::wait_from_seq = 0; //120
 
-/*
-    {
-      w2w_t o(n);
-      o.run();
-    }
-*/
-
-    us::test::r2r_t::wait_from_seq = 0; //120
-
-    {
+    if (!only_interactive_shell) {
         bid2ask_t o(n);
         o.run();
     }
@@ -76,52 +68,14 @@ void test_r2r(const string& homedir, const string& logdir, const string& vardir)
     auto b = n.bookmarks();
     b.dump("bookmarks>", cout);
 
+    cout << "CORE1-L2 TESTS PASS" << endl;
+
     if (!batch) {
         n.menu();
     }
 
-    /*
-    cout << "=software updates=====================================================================" << endl;
-    //software updates account
-    {
-        auto a=bid.wallet_cli->api().new_address();
-        assert(a.first==ok);
-        cout << "software updates account: " << a.second << ". @ bid wallet" << endl;
-
-        {
-        cout << "list addresses:" << endl;
-        auto l=bid.wallet_cli->api().list(1);
-        assert(l.first==ok);
-        cout << l.second << endl;
-        }
-
-        gov::engine::evidence* ev;
-        {
-            auto am=1000000;
-            auto t=bid.wallet_cli->api().transfer(a.second, am, hash_t(0));
-            if (t.first!=ok) cout << t.first << endl;
-            assert(t.first==ok);
-            cout << "transfer " << am << " to address " << a.second << endl;
-            cout << t.second << endl;
-            ev=gov::engine::evidence::from_b58(t.second);
-        }
-        uint64_t ts=ev->ts;
-
-        wait_settlement(*bid.gov_cli, ts);
-        delete ev;
-
-        cout << "balance account " << a.second << ":" << endl;
-        auto t=bid.wallet_cli->api().balance(1);
-        if (t.first!=ok) {
-            cout << t.first << endl;
-        }
-        else {
-            cout << t.second << endl;
-        }
-
-    }
-*/
-    cout << "ended" << endl;
+    n.stop();
+    n.join();
 }
 
 #if CFG_LOGS == 0
@@ -129,16 +83,15 @@ void test_r2r(const string& homedir, const string& logdir, const string& vardir)
 namespace {
     string log_dir() {
         ostringstream os;
-        os << "logs/us-trader_" << getpid() << '/' << "test_r2r";
+        os << "logs/us-trader_" << getpid();
         return os.str();
     }
 }
 #endif
 
-void test_nodes_main() {
-    string logdir0 = "test_r2r";
+void test_l2_main(string logdir0) {
     log_start(logdir0, "main");
-    tee("=================test_nodes========================");
+    tee("=================test_l2========================");
 
     string homedir = log_dir() + "/home";
     string vardir = log_dir() + "/var";
@@ -146,19 +99,20 @@ void test_nodes_main() {
     network::test();
 
     test_r2r(homedir, logdir0, vardir);
-    tee("=========== end testing nodes ==============");
+    tee("=========== end testing l2 ==============");
 }
 
-void test_nodes() {
-    tee("=================test_nodes========================");
+void test_l2() {
     log("starting thread");
-    thread th(&test_nodes_main); //start new log file
+    string logdir0 = log_dir() + "/test_l2";
+    thread th(&test_l2_main, logdir0); //start new log file
     th.join();
-    tee("=========== end testing nodes ==============");
 }
 
 void help() {
     cout << "--batch        Unattended/not interactive" << endl;
+    cout << "--shell        Bootstrap network and start interactive shell." << endl;
+    cout << "--wait-between-steps     capture unexpected push_data datagrams before entering next step.\n";
 }
 
 int core1_main(int argc, char** argv) {
@@ -169,8 +123,16 @@ int core1_main(int argc, char** argv) {
         if (command == "--batch") {
             batch = true;
         }
+        else if (command == "--shell") {
+            only_interactive_shell = true;
+            batch = false;
+        }
         else if (command.empty()) {
             break;
+        }
+        else if (command == "--wait-between-steps") {
+            cout << "waiting between steps\n";
+            us::test::r2r_t::enable_wait = true;
         }
         else {
             help();
@@ -179,7 +141,6 @@ int core1_main(int argc, char** argv) {
         }
     }
 
-
     if (argc > 1) {
         string arg = argv[1];
         if (arg == "--batch") {
@@ -187,7 +148,8 @@ int core1_main(int argc, char** argv) {
         }
     }
 
-    test_nodes();
+    test_l2();
+
     tee("TEST SUCCEED");
     us::gov::cli::hmi::process_cleanup();
     us::wallet::cli::hmi::process_cleanup();

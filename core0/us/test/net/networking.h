@@ -54,7 +54,7 @@ namespace us::test {
 
             bool process_work(datagram* d) override;
             void verification_completed(pport_t rpport, pin_t pin) override;
-            bool authorize(const pub_t& p, pport_t pport) override;
+            ko authorizeX(const pub_t&, pin_t) override;
 
         };
 

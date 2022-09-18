@@ -62,6 +62,7 @@ string c::homedir() const {
     return os.str();
 }
 
+/*
 std::pair<ko, us::wallet::trader::trader_protocol*> c::create_protocol(protocol_selection_t&& protocol_selection) {
     log("protocol from string", protocol_selection.first, protocol_selection.second);
     if (protocol_selection.first != c::protocol::name) {
@@ -78,9 +79,22 @@ std::pair<ko, us::wallet::trader::trader_protocol*> c::create_protocol(protocol_
     log("creating protocol", c::protocol::name, protocol_selection.second);
     return create_protocol();
 }
+*/
 
 std::pair<ko, us::wallet::trader::trader_protocol*> c::create_opposite_protocol(protocol_selection_t&& protocol_selection) {
-    return create_protocol(move(protocol_selection));
+    log("create_opposite_protocol", protocol_selection.first, protocol_selection.second);
+    if (protocol_selection.first != protocol::name) {
+        log("not recognized", protocol_selection.first);
+        auto r = "KO 41867 Unsupported protocol.";
+        log(r);
+        return make_pair(r, nullptr);
+    }
+    if (protocol_selection.second != "player") {
+        auto r = "KO 91472 player: I only match player.";
+        log(r);
+        return make_pair(r, nullptr);
+    }
+    return create_protocol();
 }
 
 std::pair<ko, us::wallet::trader::trader_protocol*> c::create_protocol() {
@@ -99,7 +113,7 @@ void c::invert(protocols_t&) const { //games is symmetric
 }
 
 void c::published_protocols(protocols_t& protocols, bool inverse) const {
-    protocols.emplace_back(make_pair(c::protocol::name, "player"));
+    protocols.emplace_back(c::protocol::name, "player");
 }
 
 void c::exec_help(const string& prefix , ostream& os) const {

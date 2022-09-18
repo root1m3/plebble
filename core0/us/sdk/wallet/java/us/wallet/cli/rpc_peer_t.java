@@ -45,7 +45,7 @@ public class rpc_peer_t extends us.wallet.engine.rpc_peer_t {
         super(rpc_daemon, sock);
     }
 
-    @Override public boolean authorize(PublicKey p, pin_t pin) { return true; }
+    @Override public ko authorizeX(PublicKey p, pin_t pin) { return ko.ok; }
 
     @Override public void on_peer_disconnected(final reason_t reason) {
         super.on_peer_disconnected(reason);

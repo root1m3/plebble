@@ -81,10 +81,18 @@ pair<c::protocol_selection_t, c::bookmark_info_t> c::bookmark_info() const {
     protocols_t p;
     published_protocols(p, false);
     assert(!p.empty());
-    r.first.first = p.begin()->first;
-    r.first.second = p.begin()->second;
+    r.first = *p.begin();
+//    r.first.first = p.begin()->first;
+//    r.first.second = p.begin()->second;
     r.second.label = name;
     r.second.ico = ico;
     return move(r);
+}
+
+c::protocol_selection_t c::protocol_selection() const {
+    protocols_t p;
+    published_protocols(p, false);
+    assert(!p.empty());
+    return *p.begin();
 }
 

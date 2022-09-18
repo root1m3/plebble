@@ -25,6 +25,7 @@ import us.CFG;                                                                  
 import static us.gov.crypto.types.*;                                                           // *
 import static us.gov.id.types.*;                                                               // *
 import static us.gov.socket.types.*;                                                           // *
+import us.ko;                                                           // *
 import java.io.PrintStream;                                                                    // PrintStream
 import java.security.PublicKey;                                                                // PublicKey
 import java.net.Socket;                                                                        // Socket
@@ -48,7 +49,7 @@ public class rpc_peer_t extends us.gov.engine.rpc_peer_t {
         super.dump(prefix, os);
     }
 
-    @Override public boolean authorize(final PublicKey p, final pin_t pin) { return true; }
+    @Override public ko authorizeX(final PublicKey p, final pin_t pin) { return ko.ok; }
 
     @Override public void on_peer_disconnected(final reason_t reason) {
         super.on_peer_disconnected(reason);

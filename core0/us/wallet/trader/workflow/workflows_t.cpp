@@ -205,3 +205,42 @@ void c::doctypes(doctypes_t& r) const {
     }
 }
 
+size_t c::blob_size() const {
+    size_t sz = blob_writer_t::sizet_size(size());
+    for (auto& i: *this) {
+        sz += blob_writer_t::blob_size(*i);
+    }
+    return sz;
+}
+
+void c::to_blob(blob_writer_t& writer) const {
+    writer.write_sizet(size());
+    for (auto& i: *this) {
+        writer.write(*i);
+    }
+}
+
+ko c::from_blob(blob_reader_t& reader) {
+    uint64_t sz;
+    auto r = reader.read_sizet(sz);
+    if (is_ko(r)) return r;
+    //if (unlikely(sz > max_sizet_containers)) return KO_75643;
+    assert(empty());
+    reserve(sz);
+    for (int i = 0; i < sz; ++i) {
+        workflow_t::factory_id_t id;
+        auto r = reader.read(id);
+        if (is_ko(r)) {
+            return r;
+        }
+        log("loading workflow id", id);
+        auto o = workflow_t::factories.create(id);
+        if (o == nullptr) {
+            auto r = "KO 70216 workflow load failed";
+            log(r);
+            return r;
+        }
+    }
+    return ok;
+}
+

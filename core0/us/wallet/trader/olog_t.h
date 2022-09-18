@@ -45,7 +45,7 @@ namespace us::wallet::trader {
 
         void init_olog(const string& home, const string& filename);
         void show_data(ostream&) const;
-        bool need_init() const { return logos == nullptr; }
+        inline bool need_init() const { return logos == nullptr; }
         static string ts(uint64_t);
         static string ts();
         void show_log(const hash_t& id, ostream&) const;

@@ -102,15 +102,14 @@ import java.io.UnsupportedEncodingException;                                    
 import java.net.URL;                                                                           // URL
 import android.net.wifi.WifiInfo;                                                              // WifiInfo
 import android.net.wifi.WifiManager;                                                           // WifiManager
+import us.gov.io.blob_reader_t;
+import static us.gov.io.types.blob_t;
 
-public final class app extends Application {
+public final class app extends Application implements datagram_dispatcher_t.handler_t {
 
-    public static String KO_68874 = "KO 68874 Invalid endpoint.";
-    public static String KO_89700 = "KO 89700 HMI is off.";
-
-    static void log(final String line) {          //--strip
-        CFG.log_android("app: " + line);          //--strip
-    }                                             //--strip
+    private static void log(final String line) {          //--strip
+        CFG.log_android("app: " + line);                  //--strip
+    }                                                     //--strip
 
     public static void assert_ui_thread() {                                 //--strip
         if (!Looper.getMainLooper().isCurrentThread()) {                    //--strip
@@ -855,6 +854,61 @@ CFG.sdk_logs = true; //--strip
         return x;
     }
 
+    public void toast__worker(final String msg) {
+        log("toast__worker " + msg); //--strip
+        lock_active_ac.lock();
+        try {
+            if (active_ac == null) {
+            	log("Could not toast, active activity = null. " + msg); //--strip
+            }
+            active_ac.toast__worker(msg);
+        }
+        finally {
+            lock_active_ac.unlock();
+        }
+    }
+
+    @Override public void on_push(hash_t target_tid, uint16_t code, byte[] payload) {
+        log("on_push " + target_tid.encode() + " code " + code.value + " payload BIN sz: " + payload.length + " bytes"); //--strip
+        switch(code.value) {
+            case us.wallet.trader.trader_t.push_trade: {
+                log("a new trade for me"); //--strip
+                go_trade__worker(target_tid);
+                return;
+            }
+            case us.wallet.trader.trader_t.push_chat: {
+                runOnUiThread(new Runnable() {
+                    @Override public void run() {
+                        call_human(1, target_tid.encode());
+                    }
+                });
+                break;
+            }
+            case us.gov.relay.pushman.push_ko: {
+                string s = new string();
+                blob_reader_t rder = new blob_reader_t(new blob_t(payload));
+                ko r = rder.read(s);
+                if (is_ko(r)) {
+                    toast__worker("KO decode payload trade " + target_tid.encode() + ": " + r.msg);
+                    return;
+                }
+                toast__worker("KO trade " + target_tid.encode() + ": " + s.value);
+                return;
+            }
+            case us.gov.relay.pushman.push_ok: {
+                string s = new string();
+                blob_reader_t rder = new blob_reader_t(new blob_t(payload));
+                ko r = rder.read(s);
+                if (is_ko(r)) {
+                    toast__worker("OK. later got " + r.msg);
+                    return;
+                }
+                //toast__worker("OK trade " + target_tid.encode() + ": " + s.value);
+                return;
+            }
+        }
+    }
+
     public void HMI_power_on__worker(int pos, final pin_t pin, progress_t progress) {
         assert_worker_thread();  //--strip
         set_walletd_leds_off();
@@ -872,17 +926,23 @@ CFG.sdk_logs = true; //--strip
             return;
         }
         hmi = device_endpoints.poweron(this, pos, pin, progress);
+        if (hmi != null) {
+            dispatchid = hmi.dispatcher.connect_sink(this);
+        }
+
     }
 
     public void HMI_power_off__worker(final int pos, final progress_t progress) {
         assert_worker_thread();  //--strip
         log("HMI_power_off__worker"); //--strip
         if (hmi == null) {
+            dispatchid = -1;
             return;
         }
-//        if (main != null) {
-//            main.on_hmi_power_off__worker();
-//        }
+        if (dispatchid != -1) {
+            hmi.dispatcher.disconnect_sink(dispatchid);
+            dispatchid = -1;
+        }
         log("set leds off"); //--strip
         device_endpoints.poweroff(this, pos, progress);
         set_walletd_leds_off();
@@ -988,6 +1048,9 @@ CFG.sdk_logs = true; //--strip
         return "unknown";
     }
 
+    public static String KO_68874 = "KO 68874 Invalid endpoint.";
+    public static String KO_89700 = "KO 89700 HMI is off.";
+
     device_endpoints_t device_endpoints = null;
     //device_endpoint_t cur;
     //ArrayList<cryptocurrency> shit
@@ -996,6 +1059,7 @@ CFG.sdk_logs = true; //--strip
 //    public ArrayList<String> notification_trades_id =  new ArrayList<String>();
     public i18n_t i18n;
     ToneGenerator tone;
+    int dispatchid = -1;
 
 }
 

@@ -241,6 +241,9 @@ clean_bz:
 	$(MAKE) clean -C bz;
 	$(MAKE) clean -C bzx;
 
+clean_sdk:
+	$(MAKE) clean -C sdk/wallet/java;
+
 clean_test:
 	$(MAKE) clean -C test;
 	$(MAKE) clean -C testx;
@@ -252,12 +255,11 @@ clean: clean_gov clean_wallet clean_bz clean_test clean_api
 	$(MAKE) clean -C logtool;
 	rm -rf distr
 
-clean_java:
-	$(MAKE) clean -C sdk/wallet/java;
+clean_java: clean_sdk
 	$(MAKE) clean -C android;
 
 clean_conf: clean clean_java
 	$(RM) res/strings/*.ovr
 	$(RM) vcs_git_*
 
-.PHONY: all wallet gov debug release sdk image res clean distr-common warndistr android sdk-spongy clean_gov clean_wallet clean_bz clean_crypto clean_java clean_test clean_api clean_conf
+.PHONY: all wallet gov debug release sdk image res clean distr-common warndistr android sdk-spongy clean_gov clean_wallet clean_bz clean_crypto clean_java clean_test clean_api clean_conf clean_sdk

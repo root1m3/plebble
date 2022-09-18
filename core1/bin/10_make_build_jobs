@@ -32,6 +32,7 @@ else
 	echo "KO 8585 Missing .cbs/config."
 	exit 1
 fi
+brands=`realpath $brands`
 
 abrands=`find $brands -maxdepth 1 -mindepth 1 -type d | sed "s~$brands/~~" | xargs`
 
@@ -40,7 +41,9 @@ function help {
 	echo "existing brands: $abrands"
 	echo "--release implies --without-logs --without-counters --without-connlog"
 	echo "--debug implies --with-logs --with-counters --with-connlog"
-    echo "--test. build for tunning tests"
+    echo "--test      build for tunning tests"
+    echo "--batch     no interaction with user"
+    echo "--only_deps  no core0"
 	echo "Positional options. They override the setting left by previously appearing options."
 }
 
@@ -55,8 +58,10 @@ counters=0
 connlog=0
 bjdir="build_jobs"
 test=0
-ignore_cache=0
+ignore_cache=0 
 fcgi=0
+let batch=0
+let only_deps=0
 
 while [[ true ]]; do
     opt=$1
@@ -131,6 +136,12 @@ while [[ true ]]; do
         shift
         echo "output flag -o=$bjdir"
         continue
+    elif [[ "_$opt" == "_--batch" ]]; then
+        let batch=1
+        continue
+    elif [[ "_$opt" == "_--only_deps" ]]; then
+        let only_deps=1
+        continue
     elif [[ _$opt == _-* ]]; then
         echo "KO 60594 Invalid flag $opt"
         help
@@ -170,8 +181,10 @@ echo ""
 echo "Output:"
 echo "  bjdir=$bjdir"
 echo "--------------------------------------"
-echo "yes?"
-read x
+if [[ $batch -eq 0 ]]; then
+    echo "yes?"
+    read x
+fi
 
 hash=""
 
@@ -216,14 +229,14 @@ function make_build_job {
     brand=$1
     dryrun=$2
     echo "make_build_job $brand $dryrun"
-    if [ "_$dryrun" != "_" ]; then
+    if [[ "_$dryrun" != "_" ]]; then
     	echo "brand $brand"
     	return
     fi
     set +e
     donebrand=`cat /tmp/done_brands | grep $brand`
     set -e
-    if [ "_$donebrand" == "_$brand" ]; then
+    if [[ "_$donebrand" == "_$brand" ]]; then
         echo "brand $brand already done"
         return;
     fi
@@ -406,9 +419,13 @@ function ec_sources {
     #libsecp256k1
     echo "git clone -q ${secp256k1_git}"
     git clone -q ${secp256k1_git}
+    if [[ $? -ne 0 ]]; then
+        echo "KO 50445 Cannot clone ${secp256k1_git}."
+        exit 1
+    fi        
     pushd secp256k1 > /dev/null
         git checkout -q $secp256k1_hash
-        rm .git -r
+        rm .git -rf
     popd > /dev/null
 }
 
@@ -428,9 +445,13 @@ function fcgi_sources {
     #fcgi
     echo "git clone -q ${fcgi_git} fastcgi++"
     git clone -q ${fcgi_git} fastcgi++
+    if [[ $? -ne 0 ]]; then
+        echo "KO 50445 Cannot clone ${fcgi_git}."
+        exit 1
+    fi        
     pushd fastcgi++
         git checkout -q $fcgi_hash
-        rm .git -r
+        rm .git -rf
     popd
 }
 
@@ -452,6 +473,10 @@ function make_build_jobs {
         pushd "$bjdir"/fcgi_src > /dev/null
             fcgi_sources
         popd  > /dev/null
+    fi
+    if [[ $only_deps -eq 1 ]]; then
+        echo "skipping core0"
+        return
     fi
     mkdir -p $bjdir/$branch
     pushd "$bjdir" > /dev/null

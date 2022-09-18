@@ -34,12 +34,14 @@ EOF
 }
 
 strset="en-uk"
-if [ ! -f res/strings/$strset ]; then
+if [[ ! -f res/strings/$strset ]]; then
     echo "unknown set $strset"
     exit 1
 fi
 . res/strings/$strset
-if [ -f res/strings/${strset}.ovr ]; then
+androidname0=${str28}
+
+if [[ -f res/strings/${strset}.ovr ]]; then
     echo "found override string set"
     . res/strings/${strset}.ovr
 fi
@@ -52,9 +54,10 @@ connlog=$str42
 fcgi=$str45
 brand=$str3
 test=$str62
+let appstore=$str83
 
 function help {
-    echo "bin/configure [--strset en-uk] [--with[out]-logs] [--[test]debug | --[test]release] [--with[out]-counters] [--with[out]-connlog ] [--with[out]-fcgi ] [--brand-dir <brand-dir>] [--help]"
+    echo "bin/configure [--strset en-uk] [--with[out]-logs] [--[test]debug | --[test]release] [--with[out]-counters] [--with[out]-connlog ] [--with[out]-fcgi ] [--brand-dir <brand-dir>] [--appstore] [--help]"
     echo "dbg $dbg"
     echo "logs $logs"
     echo "counters $counters"
@@ -108,6 +111,9 @@ while [[ true ]]; do
         fcgi=0
     elif [[ "_$x" == "_--brand-dir" ]]; then
         branddir=$1
+        shift
+    elif [[ "_$x" == "_--appstore" ]]; then
+        let appstore=1
         shift
     elif [[ "_$x" == "_--help" ]]; then
         help
@@ -199,6 +205,12 @@ else
     str62=0
 fi
 
+if [[ $appstore -eq 1 ]]; then
+    str83=1
+else
+    str83=0
+fi
+
 if [[ ! -f res/strings/${strset}.ovr ]]; then
     cp res/strings/${strset} res/strings/${strset}.ovr
 fi
@@ -209,6 +221,7 @@ sed -i "s/^str41=.*//" res/strings/${strset}.ovr
 sed -i "s/^str42=.*//" res/strings/${strset}.ovr
 sed -i "s/^str45=.*//" res/strings/${strset}.ovr
 sed -i "s/^str62=.*//" res/strings/${strset}.ovr
+sed -i "s/^str83=.*//" res/strings/${strset}.ovr
 
 echo "str29=$str29 #dbg" >> res/strings/${strset}.ovr
 echo "str33=$str33 #logs" >> res/strings/${strset}.ovr
@@ -216,9 +229,20 @@ echo "str41=$str41 #counters" >> res/strings/${strset}.ovr
 echo "str42=$str42 #connlog" >> res/strings/${strset}.ovr
 echo "str45=$str45 #fcgi" >> res/strings/${strset}.ovr
 echo "str62=$str62 #test" >> res/strings/${strset}.ovr
+echo "str83=$str83 #appstore" >> res/strings/${strset}.ovr
 
 cat res/strings/${strset}.ovr | grep -v "^$" > res/strings/${strset}.ovr_
 mv res/strings/${strset}.ovr_ res/strings/${strset}.ovr
+
+function checkbin {
+    which make
+    if [[ $? -ne 0 ]]; then
+        echo "KO 44921 run bin/apt first"
+        exit 1
+    fi
+}
+
+checkbin
 
 function gen_api {
     echo "generating API code snippets "
@@ -377,6 +401,7 @@ echo " counters $counters"
 echo " connlog $connlog"
 echo " fcgi $fcgi"
 echo " tests $test"
+echo " android: google appstore $appstore"
 
 progress_reset
 javapkgdir=`echo $str28 | sed "s#\.#/#g"`
@@ -445,9 +470,18 @@ patch etc/home_skel/rest/timeseries/index.php
 #---------------------------------------------------------------
 
 echo ""
+androidname=${str28}
+if [[ "_${androidname}" != "_${androidname0}" ]]; then
+    if [[ -f ../../.git/config ]]; then
+        echo "git environment: android app name remains ${androidname0}"
+        sed -i "s/package=\"${androidname}\"/package=\"${androidname0}\"/" android/app/src/main/AndroidManifest.xml
+        androidname=${androidname0}
+    fi
+fi
+
 echo "VCS"
 bin/gen_vcs_git
-if [ ! -f vcs_git_env ]; then
+if [[ ! -f vcs_git_env ]]; then
     echo "KO 30219 configure finished with error."
     exit 1
 fi
@@ -521,16 +555,17 @@ $brand successfully configured with flags: (see bin/configure --help)
   fcgi $fcgi
   instrumentation $instr
   tests $test
+  android: google appstore $appstore
 Sources are ready.
 
 Build:
 EOF
 
 pdots "  C++:  core programs ($str3-gov, $str3-wallet):" "make"
-pdots "  java: SDK for console apps:" "cd sdk/wallet/java; make bouncy"
+pdots "  java: ${androidname} (SDK+android app):" "make android"
+pdots "        SDK for console apps:" "cd sdk/wallet/java; make bouncy"
 pdots "        SDK for android apps:" "cd sdk/wallet/java; make spongy"
 #pdots "        wallet java console client ($str3-walletj):" "cd walletj; make"
-pdots "        $str28 (SDK+android app):" "cd android; make"
 echo ""
 
 exit 0

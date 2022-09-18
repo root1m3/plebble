@@ -49,7 +49,7 @@ namespace us::gov::engine {
         void dump(const string& prefix, ostream&) const;
         void dump_all(const string& prefix, ostream&) const override;
         void verification_completed(pport_t, pin_t) override;
-        bool authorize(const pub_t&, pin_t) override;
+        ko authorizeX(const pub_t&, pin_t) override;
         daemon_t& engine_daemon();
         const daemon_t& engine_daemon() const;
 

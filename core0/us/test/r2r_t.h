@@ -82,6 +82,7 @@ namespace us::test {
         ostream& out;
         network& n;
         static int wait_from_seq;
+        static bool enable_wait;
     };
 
 }

@@ -65,14 +65,32 @@ namespace us::wallet::trader {
 
         static constexpr const char* statestr[num_states] = {"off", "offline", "req_online", "connect_failed", "connected", "online", "req_offline", "gone_offline", "dying"};
 
+    public:
         conman(engine::daemon_t& demon);
         virtual ~conman();
 
+    public:
+        virtual ko exec_online(peer_t&, const string&, ch_t&) = 0;
+        virtual ko exec_offline(const string&, ch_t&) = 0;
+        virtual bool requires_online(const string& cmd) const = 0;
+        virtual void on_KO(ko, const string&) = 0;
+        virtual const endpoint_t& local_endpoint() const = 0;
+        virtual pair<ko, pair<uint32_t, uint16_t>> resolve_ip_address(const hash_t& address) const = 0;
+        virtual ko update_peer(peer_t&, ch_t&&) const = 0;
+        virtual void dispose() = 0;
+        virtual void saybye(peer_t&) = 0;
+
+    public:
+        virtual void die(const string& reason);
+        virtual void offline();
+        virtual void online(peer_t&);
+        virtual void on_start();
+
+    public:
         void onwakeup();
         void run();
         ko start();
         void join();
-
         pair<bool, state_t> connection_supervisor();
         bool set_state(state_t);
         bool set_state_(state_t);
@@ -84,22 +102,10 @@ namespace us::wallet::trader {
         void update_ip();
         state_t initiate_connection();
         void schedule_exec(string cmd);
-        virtual void die(const string& reason);
-        virtual void offline();
-        virtual void online(peer_t&);
-        virtual ko exec_online(peer_t&, const string&, ch_t&) = 0;
-        virtual ko exec_offline(const string&, ch_t&) = 0;
-        virtual bool requires_online(const string& cmd) const = 0;
-        virtual void on_KO(ko, const string&) = 0;
-        virtual const endpoint_t& local_endpoint() const = 0;
-        virtual pair<ko, pair<uint32_t, uint16_t>> resolve_ip_address(const hash_t& address) const = 0;
-        virtual ko update_peer(peer_t&, ch_t&&) const = 0;
-        virtual void dispose() = 0;
-        virtual void saybye(peer_t&) = 0;
-        virtual void on_start();
 
         template<typename... Args> void olog(const Args&... args) const;
 
+    public:
         state_t state{state_off};
         condition_variable cv;
         atomic<int> busyref{0};
@@ -115,6 +121,7 @@ namespace us::wallet::trader {
         peer_t* cli{nullptr};
         mutable mutex mx;
         engine::daemon_t& daemon;
+        
         queue<string> cmdq;
         mutable mutex mx_cmdq;
 

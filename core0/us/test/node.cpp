@@ -67,9 +67,15 @@ string c::thome() const {
 }
 
 void c::create_node(const string& r2rhome) {
+    if (!us::gov::io::cfg0::dir_exists("nodes/" + id)) {
+        cerr << "KO 68403 missing conf dir for node " << id << endl;
+        assert(false);
+    }
+
+    ostringstream f;
+    f << thome() << "/" << r2rhome;
+    us::gov::io::cfg0::ensure_dir(f.str());
     {
-        ostringstream f;
-        f << thome() << "/" << r2rhome;
         ostringstream cmd;
         cmd << "cp nodes/" << id << "/logo.png  " << f.str() << "/";
         cout << "logotype:" << endl;
@@ -77,8 +83,6 @@ void c::create_node(const string& r2rhome) {
         system(cmd.str().c_str());
     }
     {
-        ostringstream f;
-        f << thome() << "/" << r2rhome;
         ostringstream cmd;
         cmd << "cp nodes/" << id << "/ico.png  " << f.str() << "/";
         cout << "ico:" << endl;
@@ -86,14 +90,14 @@ void c::create_node(const string& r2rhome) {
         system(cmd.str().c_str());
     }
     {
-        ostringstream f;
-        f << thome() << "/" << r2rhome;
         ostringstream cmd;
         cmd << "cp nodes/" << id << "/name  " << f.str() << "/";
         cout << "name:" << endl;
         cout << cmd.str() << endl;
         system(cmd.str().c_str());
     }
+    cout << "files created at " << f.str() << '\n';
+    system((string("find ") + f.str()).c_str());
 }
 
 c::bookmarks_t c::bookmarks() const {
@@ -158,9 +162,11 @@ vector<string> c::r2r_libs(bool filter_not_active) {
 }
 
 void c::install_r2r_libs() {
+    tee("install_r2r_libs");
     vector<string> libs = r2r_libs(false);
     ostringstream so;
     for (auto& l: libs) {
+        if (l == "w2w-w") continue;
         ostringstream file;
         file << "../libustrader-" << l << ".so";
         ostringstream dir;
@@ -190,7 +196,6 @@ void c::gov_cli_start() {
 
 void c::create_wallet_cli() {
     us::wallet::cli::params p;
-    //p.local = false;
     p.daemon = false;
     p.channel = 123;
     p.homedir = homedir;
@@ -307,7 +312,7 @@ void c::test_list_protocols() {
         cout << "insert " << pr << "-" << role << endl;
         p.insert(pr + "-" + role);
     }
-    cout << "que tenemos:" << endl;
+    cout << "call_list_protocols returned:" << endl;
     for (auto& i: p) {
         cout << "  " << i << endl;
     }
@@ -456,7 +461,6 @@ void c::register_wallet() {
         if (w.size() > 0) break;
         this_thread::sleep_for(1s);
     }
-
 }
 
 void c::banner(ostream& os) const {
@@ -464,3 +468,4 @@ void c::banner(ostream& os) const {
     os << "     logdir = " << logdir << '\n';
     os << "     vardir = " << vardir << '\n';
 }
+

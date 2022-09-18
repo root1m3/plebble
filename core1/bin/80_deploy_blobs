@@ -41,7 +41,7 @@ grootkey=`ush show_groot_key`
 ssh="ssh -i ${grootkey}"
 scp="scp -i ${grootkey}"
 
-rm -f /tmp/msg1091
+#rm -f /tmp/msg1091
 
 set -x
 
@@ -80,14 +80,19 @@ for blob in `find blobs -type f -name "*.tzst"`; do
     if [[ $? -ne 0 ]]; then
         exit 1
     fi
-    echo "$node:/var/$brand/blob; ($ssh -p $port $ip) exec su gov; bin/up_blobs" >> /tmp/msg1091
+#    echo "$node:/var/$brand/blob; ($ssh -p $port $ip) exec su gov; bin/up_blobs" >> /tmp/msg1091
+    $ssh -p $port gov@$ip bin/up_blobs
+    if [[ $? -ne 0 ]]; then
+        echo "KO 88791 cannot ssh to BDN brand $brand"
+        exit 1
+    fi
 done
 
 set +x
 
-echo "Blobs have been delivered to BDPs:"
-echo "Next steps:"
-cat /tmp/msg1091
-rm -f /tmp/msg1091
+echo "Blobs have been delivered to BDPs, and they have uploaded the blob to blockchain."
+#echo "Next steps:"
+#cat /tmp/msg1091
+#rm -f /tmp/msg1091
 
 exit 0

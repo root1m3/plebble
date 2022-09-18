@@ -111,7 +111,11 @@ public final class about extends activity {
         appname.setText(CFG.app_name);
         String desc = CFG.app_name + " is a lightweight GUI for operating privacy wallets written in java for the Android platform. The backend is accessed using RPC-API library " + us.vcs.sdk_name() + " built by mm-studios/KATLAS. This is software designed for protecting individual privacy and autonomy. It only talks to your node, using encrypted E2E communication. [It can eventually and succinctly talk to any random node in the P2P network in cases where a recovery is required after sporadic changes in public IP addresses (i.e. if home had a dynamic IP)]";
         appdescription.setText(desc);
-        swv.setText(us.vcs.name_date() + " b: " + CFG.blob_id);
+        String swvt = us.vcs.name_date() + " b: " + CFG.blob_id;
+        if (CFG.appstore_edition == 1) {
+            swvt += " [appstore edition]";
+        }
+        swv.setText(swvt);
         src.setText(us.vcs.src);
 
         close.setOnClickListener(new View.OnClickListener() {

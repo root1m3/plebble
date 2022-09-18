@@ -28,7 +28,7 @@
 
 #include "basket_item.h"
 
-namespace us { namespace trader { namespace workflow { namespace consumer {
+namespace us::trader::workflow::consumer {
 
     using hash_t = us::gov::crypto::ripemd160::value_type;
 
@@ -44,5 +44,5 @@ namespace us { namespace trader { namespace workflow { namespace consumer {
 
     };
 
-}}}}
+}
 

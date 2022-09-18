@@ -35,9 +35,9 @@ namespace us {
 
 }
 
-namespace us { namespace trader { namespace workflow {
+namespace us::trader::workflow {
 
     using namespace us;
 
-}}}
+}
 

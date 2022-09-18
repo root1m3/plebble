@@ -116,7 +116,7 @@ import android.view.Window;                                                     
 import android.view.WindowManager;                                                             // WindowManager
 import org.xmlpull.v1.XmlPullParser;                                                           // XmlPullParser
 
-public final class main_activity extends activity implements datagram_dispatcher_t.handler_t /*, device_endpoint_t.hmi_power_listener_t*/ {
+public final class main_activity extends activity  /*, device_endpoint_t.hmi_power_listener_t*/ {
 
     private static void log(final String line) {             //--strip
         CFG.log_android("main_activity: " + line);           //--strip
@@ -285,6 +285,7 @@ public final class main_activity extends activity implements datagram_dispatcher
 
     @Override public void onPause() {
         super.onPause();
+/*
         log("onPause"); //--strip
         if (a.hmi == null) {
             dispatchid = -1;
@@ -294,11 +295,13 @@ public final class main_activity extends activity implements datagram_dispatcher
                 a.hmi.dispatcher.disconnect_sink(dispatchid);
             }
         }
+*/
     }
 
     @Override public void onResume() {
         super.onResume();
         log("onResume"); //--strip
+/*
         if (a.hmi == null) {
             dispatchid = -1;
         }
@@ -306,6 +309,7 @@ public final class main_activity extends activity implements datagram_dispatcher
             log("Connecting to datagram dispatcher");//--strip
             dispatchid = a.hmi.dispatcher.connect_sink(this);
         }
+*/
     }
 
     @Override public void refresh() {
@@ -501,48 +505,6 @@ public final class main_activity extends activity implements datagram_dispatcher
         //wait_handler.removeCallbacksAndMessages(null); //Remove all the callbacks otherwise navigation will execute even after activity is killed or closed.
     }
 
-    @Override public void on_push(hash_t target_tid, uint16_t code, byte[] payload) {
-        log("on_push " + target_tid.encode() + " code " + code.value + " payload BIN sz: " + payload.length + " bytes"); //--strip
-        switch(code.value) {
-            case us.wallet.trader.trader_t.push_trade: {
-                log("a new trade for me"); //--strip
-                a.go_trade__worker(target_tid);
-                return;
-            }
-            case us.wallet.trader.trader_t.push_chat: {
-                runOnUiThread(new Runnable() {
-                    @Override public void run() {
-                        a.call_human(1, target_tid.encode());
-                    }
-                });
-                break;
-            }
-            case us.gov.relay.pushman.push_ko: {
-                string s = new string();
-                blob_reader_t rder = new blob_reader_t(new blob_t(payload));
-                ko r = rder.read(s);
-                if (is_ko(r)) {
-                    toast__worker("KO decode payload trade " + target_tid.encode() + ": " + r.msg);
-                    return;
-                }
-                toast__worker("KO trade " + target_tid.encode() + ": " + s.value);
-                return;
-            }
-            case us.gov.relay.pushman.push_ok: {
-                string s = new string();
-                blob_reader_t rder = new blob_reader_t(new blob_t(payload));
-                ko r = rder.read(s);
-                if (is_ko(r)) {
-                    toast__worker("OK. later got " + r.msg);
-                    return;
-                }
-                //toast__worker("OK trade " + target_tid.encode() + ": " + s.value);
-                return;
-            }
-        }
-    }
-
-
     void new_connection() {
         if (a.device_endpoints == null) {
             toast("device_endpoints failure");
@@ -550,14 +512,6 @@ public final class main_activity extends activity implements datagram_dispatcher
         }
         a.device_endpoints.new_endpoint();
         refresh();
-    }
-
-    void toast__worker(final String msg) {
-        runOnUiThread(new Runnable() {
-            @Override public void run() {
-                Toast.makeText(main_activity.this, msg, 6000).show();
-            }
-        });
     }
 
     public static boolean isAndroidRuntime() {
@@ -694,7 +648,7 @@ public final class main_activity extends activity implements datagram_dispatcher
     Button buttonScan;
     int size = 0;
     List<ScanResult> results;
-    int dispatchid = -1;
+//    int dispatchid = -1;
     //smart_card_reader reader;
     private MenuItem updateavailable;
 

@@ -60,7 +60,7 @@ namespace us::trader::r2r::bid2ask::ask {
         void fill_stock();
         ko load_coinsx();
         pair<ko, tx_t*> tx_charge_pay(us::wallet::wallet::local_api&, cash_t recv_amount, cash_t send_amount) const;
-        pair<ko, us::wallet::trader::trader_protocol*> create_protocol(protocol_selection_t&&) override;
+        //pair<ko, us::wallet::trader::trader_protocol*> create_protocol(protocol_selection_t&&) override;
         pair<ko, us::wallet::trader::trader_protocol*> create_opposite_protocol(protocol_selection_t&&) override;
         pair<ko, us::wallet::trader::trader_protocol*> create_protocol() override;
         void list_protocols(ostream&) const override; //human format

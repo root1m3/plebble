@@ -82,17 +82,17 @@ c::~trader_t() {
 }
 
 ko c::permission_bootstrap(const peerid_t& peerid) const {
-    if (bootstrapper == nullptr) {
-        log("permission to bootstrap granted for any peer belonging to the group");
-        return ok;
-    }
-    assert(bootstrapped_by.is_not_zero());
+    assert(peerid.is_not_zero());
     if (bootstrapped_by != peerid) {
+        if (bootstrapped_by.is_zero()) {
+	    log("permission for bootstraping is granted to any peer in the group");
+	    return ok;
+        }
         auto r = "KO_60978 Peer doesn't own the bootstrapper." ;
-        log(r, "permission to re-bootstrap denied to the initiator of the current bootstrapping activity.");
+        log(r, "re-bootstrap permission is denied.");
         return r;
     }
-    log("permission to bootstrap granted ");
+    log("re-bootstrap permission is granted");
     return ok;
 }
 
@@ -118,8 +118,8 @@ void c::on_start() {
 void c::init(const hash_t& tid, const endpoint_t& rep, wallet::local_api& wallet) {
     log("init", "TRACE 8c", tid, "ep", rep.to_string(), "subhome", wallet.subhome);
     assert(bootstrapper != nullptr);
-    log("init", "remote_endpoint", remote_endpoint.to_string());
     remote_endpoint = rep;
+    log("init", "remote_endpoint", remote_endpoint.to_string());
     w = &wallet;
     if (parent_tid.is_zero()) { //users can input zero meaning root
         parent_tid = tid; // zero is root (me root)
@@ -572,7 +572,7 @@ ko c::trading_msg_trader(peer_t& peer, svc_t svc, blob_t&& blob) {
         }
         case svc_personality_and_params: {
             log("received svc_personality_and_params");
-            if (++peer_mutations > 10) { //cut potentially snowball
+            if (++peer_mutations > 10) { //cut potential snowball
                 auto r = "KO 56954 Peer mutated too many times.";
                 olog(r);
                 return r;
@@ -1503,5 +1503,199 @@ void c::help(const string& ind, ostream& os) const {
 void c::file_reloadx(const string& fqn) {
    log("raising signal 2 - reload");
    on_signal(2);
+}
+
+/*
+    public:
+        hash_t id;
+        hash_t parent_tid;
+        personality_t my_personality;
+        personality_proof_t::raw_t peer_personality;
+        protocols_t peer_protocols;
+        bookmarks_t peer_qrs;
+        ts_t ts_creation;
+        challenge_t my_challenge;
+        challenge_t peer_challenge{0};
+        bootstrapper_t* bootstrapper{nullptr};
+        peerid_t bootstrapped_by{0};
+        chat_t chat;
+        string datasubdir;
+        mutable mutex mx;
+
+        #if CFG_LOGS == 1
+            mutable data_t prev_data;
+        #endif
+
+    private:
+        hash_t endpoint_pkh;
+        funs_t rf; //remote functions
+        protocol* p{nullptr};
+        int peer_mutations{0};
+        atomic<uint64_t> ts_activity;
+        function<void(uint64_t)> pong_handler = [](uint64_t){};
+        ts_t ts_sent_ping{0};
+*/
+size_t c::blob_size() const {
+    size_t sz = blob_writer_t::blob_size(id) +
+        blob_writer_t::blob_size(parent_tid) +
+        blob_writer_t::blob_size(my_personality) +
+        blob_writer_t::blob_size(peer_personality) +
+        blob_writer_t::blob_size(peer_protocols) +
+        blob_writer_t::blob_size(peer_qrs) +
+        blob_writer_t::blob_size(ts_creation) +
+        blob_writer_t::blob_size(my_challenge) +
+        blob_writer_t::blob_size(peer_challenge) +
+        blob_writer_t::blob_size(chat) +
+        blob_writer_t::blob_size(datasubdir) +
+        blob_writer_t::blob_size(endpoint_pkh) +
+        blob_writer_t::blob_size(rf) +
+        blob_writer_t::blob_size(p) +
+        blob_writer_t::blob_size(ts_activity.load());
+    return sz;
+}
+
+void c::to_blob(blob_writer_t& writer) const {
+    writer.write(id);
+    writer.write(parent_tid);
+    writer.write(my_personality);
+    writer.write(peer_personality);
+    writer.write(peer_protocols);
+    writer.write(peer_qrs);
+    writer.write(ts_creation);
+    writer.write(my_challenge);
+    writer.write(peer_challenge);
+    writer.write(bootstrapped_by);
+    writer.write(chat);
+    writer.write(datasubdir);
+    writer.write(endpoint_pkh);
+    writer.write(rf);
+    writer.write(p);
+    writer.write(ts_activity.load());
+}
+
+ko c::from_blob(blob_reader_t& reader) {
+    {
+        auto r = reader.read(id);
+        if (is_ko(r)) {
+            return r;
+        }
+    }
+    {
+        auto r = reader.read(parent_tid);
+        if (is_ko(r)) {
+            return r;
+        }
+    }    
+    {
+        auto r = reader.read(my_personality);
+        if (is_ko(r)) {
+            return r;
+        }
+    }    
+    {
+        auto r = reader.read(peer_personality);
+        if (is_ko(r)) {
+            return r;
+        }
+    }    
+    {
+        auto r = reader.read(peer_protocols);
+        if (is_ko(r)) {
+            return r;
+        }
+    }    
+    {
+        auto r = reader.read(peer_qrs);
+        if (is_ko(r)) {
+            return r;
+        }
+    }    
+    {
+        auto r = reader.read(ts_creation);
+        if (is_ko(r)) {
+            return r;
+        }
+    }    
+    {
+        auto r = reader.read(my_challenge);
+        if (is_ko(r)) {
+            return r;
+        }
+    }    
+    {
+        auto r = reader.read(peer_challenge);
+        if (is_ko(r)) {
+            return r;
+        }
+    }    
+    {
+        auto r = reader.read(bootstrapped_by);
+        if (is_ko(r)) {
+            return r;
+        }
+    }
+    {
+        auto r = reader.read(chat);
+        if (is_ko(r)) {
+            return r;
+        }
+    }
+    {
+        auto r = reader.read(datasubdir);
+        if (is_ko(r)) {
+            return r;
+        }
+    }
+    {
+        auto r = reader.read(endpoint_pkh);
+        if (is_ko(r)) {
+            return r;
+        }
+    }
+    {
+        auto r = reader.read(rf);
+        if (is_ko(r)) {
+            return r;
+        }
+    }
+    {
+        auto r = reader.read(p, protocol::factories);
+        if (is_ko(r)) {
+            return r;
+        }
+    }
+    {
+        uint64_t ts;
+        auto r = reader.read(ts);
+        if (is_ko(r)) {
+            return r;
+        }
+        ts_activity.store(ts);
+    }
+    return ok;
+}
+
+pair<string, string> c::sername() const {
+    ostringstream os;
+    os << parent.home << "/state/" << id.encode_path();
+    return make_pair(os.str(), "state");
+}
+
+void c::load_state() {
+    log("loading active trades");
+    auto n = sername();
+    auto r = load(n.first + '/' + n.second);
+    if (is_ko(r)) {
+        log("active trades could not be loaded", n.first , n.second);
+    }
+}
+
+void c::save_state() const {
+    auto n = sername();
+    us::gov::io::cfg0::ensure_dir(n.first);
+    auto r = save(n.first + '/' + n.second);
+    if (is_ko(r)) {
+        log("active trades could not be saved", n.first , n.second);
+    }
 }
 

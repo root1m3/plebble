@@ -396,6 +396,15 @@ public class activity extends AppCompatActivity implements NavigationView.OnNavi
         }));
     }
 
+    void toast__worker(final String msg) {
+        log("Toast__worker:" + msg); //--strip
+        runOnUiThread(new Runnable() {
+            @Override public void run() {
+                Toast.makeText(activity.this, msg, 6000).show();
+            }
+        });
+    }
+
 /*
     public static void wait_main_() {
         log("waiting for main activity"); //--strip

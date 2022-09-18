@@ -96,7 +96,7 @@ function do_help {
     echo "  print_seeds              Print a sample of nodes supplying blob."
     echo "  print_blob               Print location of current blob."
     echo "  run_apt                  Run apt"
-    echo "  install_core_deps        secp&fcgi"
+    echo "  install_core0_deps       secp&fcgi"
     echo "  publish                  Write a copy of the blob in downloads dir, omiting the instalation."
     echo "  resolve_blob             Finds blob asking peers."
     echo "  scan                     Poll nodes about latest blob."

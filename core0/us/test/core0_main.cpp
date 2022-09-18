@@ -667,18 +667,18 @@ struct network_c0: network {
 
     void stage1_configure() override {
         cout << "configuring bank nodes" << endl;
-        dynamic_cast<node_bank*>(find("bank1")->second)->create_bank("w2w/bank1");
-        dynamic_cast<node_bank*>(find("bank2")->second)->create_bank("w2w/bank2");
-        find("bank1")->second->register_wallet();
-        find("bank2")->second->register_wallet();
+        dynamic_cast<node_bank*>(find("bank1")->second)->create_bank("w2w"); //symmetric protocols don't include a directory for role
+        dynamic_cast<node_bank*>(find("bank2")->second)->create_bank("w2w");
     }
 
     void stage1_ff_configure() override {
+/*
         cout << "configuring ask node" << endl;
-        assert(dynamic_cast<node_bank*>(find("bank1")->second)->load_data("w2w/bank1"));
+        assert(dynamic_cast<node_bank*>(find("bank1")->second)->load_data("w2w"));
 
         cout << "configuring pat node" << endl;
-        assert(dynamic_cast<node_bank*>(find("bank2")->second)->load_data("w2w/bank2"));
+        assert(dynamic_cast<node_bank*>(find("bank2")->second)->load_data("w2w"));
+*/
     }
 
 };
@@ -688,11 +688,9 @@ void test_r2r(const string& homedir, const string& logdir, const string& vardir)
     ostream& os = cout;
 
     network_c0 n(homedir, logdir, vardir, os);
+    n.start();
 
-    cout << "stage1" << endl;
-    n.stage1();
-
-    us::test::r2r_t::wait_from_seq = 0;
+    //us::test::r2r_t::wait_from_seq = 29;
 
     if (!only_interactive_shell) {
         {
@@ -703,10 +701,14 @@ void test_r2r(const string& homedir, const string& logdir, const string& vardir)
         b.dump("bookmarks>", cout);
     }
 
+    cout << "CORE0-L2 TESTS PASS" << endl;
+
     if (!batch) {
         n.menu();
     }
-    cout << "ended" << endl;
+
+    n.stop();
+    n.join();
 }
 
     /*
@@ -751,26 +753,24 @@ void test_r2r(const string& homedir, const string& logdir, const string& vardir)
     }
 */
 
-void test_nodes_main() {
-    string logdir0 = "test_r2r";
+void test_l2_main(string logdir0) {
     log_start(logdir0, "main");
-    tee("=================test_nodes========================");
+    tee("=================test_l2========================");
 
-    string homedir = log_dir() + "/home";
-    string vardir = log_dir() + "/var";
+    string homedir = logdir0 + "/home";
+    string vardir = logdir0 + "/var";
 
     network::test();
 
     test_r2r(homedir, logdir0, vardir);
-    tee("=========== end testing nodes ==============");
+    tee("=========== end testing l2 ==============");
 }
 
-void test_nodes() {
-    tee("=================test_nodes========================");
+void test_l2() {
     log("starting thread");
-    thread th(&test_nodes_main); //start new log file
+    string logdir0 = log_dir() + "/test_l2";
+    thread th(&test_l2_main, logdir0); //start new log file
     th.join();
-    tee("=========== end testing nodes ==============");
 }
 
 void test_l1_shard() {
@@ -786,7 +786,7 @@ void test_perf_encrypt();
 bool valgrind = false;
 bool l1_tests = true;
 bool l1_shard_tests = true;
-bool l2_tests = false;
+bool l2_tests = true;
 bool runsim = false;
 
 void test_l1() {
@@ -848,13 +848,14 @@ void test_l1() {
 }
 
 void help() {
-    cout << "--batch        Unattended/not interactive" << endl;
-    cout << "--shell        Bootstrap network and start interactive shell." << endl;
-    cout << "--only-r2r     Skip L1 tests." << endl;
-    cout << "--only-l1      Skip L2 tests." << endl;
-    cout << "--only-l1-shard" << endl;
-    cout << "--runsim       Run simulations." << endl;
-    cout << "--valgrind     Omit heavy tests." << endl;
+    cout << "--batch        Unattended/not interactive\n";
+    cout << "--shell        Bootstrap network and start interactive shell.\n";
+    cout << "--only-l1      Skip L2 tests.\n";
+    cout << "--only-l1-shard\n";
+    cout << "--only-l2      Skip L1 tests.\n";
+    cout << "--runsim       Run simulations.\n";
+    cout << "--valgrind     Omit heavy tests.\n";
+    cout << "--wait-between-steps     capture unexpected push_data datagrams before entering next step.\n";
 }
 
 int core0_main(int argc, char** argv) {
@@ -867,12 +868,14 @@ int core0_main(int argc, char** argv) {
             batch = true;
             only_interactive_shell = false;
         }
-        else if (command == "--only-r2r") {
+        else if (command == "--only-l2") {
             l1_tests = false;
+            l1_shard_tests = false;
             l2_tests = true;
         }
         else if (command == "--only-l1") {
             l1_tests = true;
+            l1_shard_tests = true;
             l2_tests = false;
         }
         else if (command == "--only-l1-shard") {
@@ -891,6 +894,10 @@ int core0_main(int argc, char** argv) {
             l2_tests = true;
             only_interactive_shell = true;
             batch = false;
+        }
+        else if (command == "--wait-between-steps") {
+            cout << "waiting between steps\n";
+            us::test::r2r_t::enable_wait = true;
         }
         else if (command.empty()) {
             break;
@@ -915,9 +922,6 @@ int core0_main(int argc, char** argv) {
         test_l1_shard();
     }
 
-    log_info(cout);
-    cout << endl;
-
 //    if (argc < 2) {
 //        cerr << "datadir" << endl;
 //        return 1;
@@ -933,9 +937,12 @@ int core0_main(int argc, char** argv) {
 
 
     if (l2_tests) {
-        cout << "r2r..." << endl;
-        test_nodes();
+        cout << "l2..." << endl;
+        test_l2();
     }
+
+    log_info(cout);
+    cout << endl;
 
     us::gov::cli::hmi::process_cleanup();
     us::wallet::cli::hmi::process_cleanup();

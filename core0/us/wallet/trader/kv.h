@@ -28,8 +28,8 @@
 #include <us/gov/crypto/ripemd160.h>
 #include <us/gov/crypto/base58.h>
 #include <us/gov/io/cfg0.h>
-#include <us/gov/cash/tx_t.h>
 #include <us/gov/io/seriable_map.h>
+#include <us/gov/cash/tx_t.h>
 
 #include "types.h"
 

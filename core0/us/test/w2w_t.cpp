@@ -283,6 +283,8 @@ void c::test(node& w1, node& w2) {
     cout << "w2 QR's" << endl;
 //    w2.wallet_cli->exec("trade qr");
 
+    curtest(w1, w2, "transfer", __FILE__, __LINE__);
+
     using bookmarks_t = us::wallet::trader::bookmarks_t;
     {
         bookmarks_t b;

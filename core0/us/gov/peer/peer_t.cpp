@@ -64,23 +64,26 @@ ko c::connect(const hostport_t& hostport, pport_t pport, pin_t pin, role_t role,
     return r;
 }
 
-bool c::authorize(const pub_t& p, pin_t) {
-    log("authorize");
+ko c::authorizeX(const pub_t& p, pin_t) {
+    log("authorize", p);
     #ifdef CFG_TOPOLOGY_RING
         const daemon_t& d = static_cast<daemon_t&>(daemon);
         if (d.pre == d.nodes.end() || d.cur == d.nodes.end()) {
-            log("not ready");
+            auto r = "KO 49984 Not ready";
+            log(r);
             disconnect(0, "Not ready");
-            return false;
+            return r;
         }
         if (d.pre->first != p.hash() && d.cur->first != p.hash()) {
             log("unexpected node", p.hash(), d.pre->first, d.cur->first);
             disconnect(0, "unexpected node");
-            return false;
+            return "KO 49884 unexpected node";
         }
-        return true;
+        return ok;
     #else
-        return false;
+        auto r = "KO 50958 auth is denied by default policy";
+        log(r);
+        return r;
     #endif
 }
 

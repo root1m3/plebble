@@ -197,8 +197,8 @@ public class blob_reader_t {
     }
 
     public blob_reader_t(final blob_t blob_) {
-        assert blob != null;
-        assert blob.value != null;
+        assert blob_ != null;
+        assert blob_.value != null;
         blob = blob_;
         cur = 0;
         end = blob.value.length;

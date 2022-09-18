@@ -43,32 +43,49 @@ void c::to_stream(ostream& os) const {
     os << (subhome.empty() ? "-" : subhome) << ' ' << name << '\n';
 }
 
-pair<bool, device_t> c::from_stream(istream& is) {
-    pair<bool, device_t> d;
-    d.first = true;
+pair<ko, device_t> c::from_streamX(istream& is0) {
+    log("from_stream", is0.tellg(), is0.good(), is0.fail(), is0.bad(), "st", is0.rdstate());
+    assert(!is0.fail());
+    pair<ko, device_t> d;
+    d.first = ok;
+    string line;
+    getline(is0, line);
+    if (is0.fail()) {
+        d.first = "KO 86742 line read error in d file";
+        log(d.first, "line", line, "g", is0.tellg(), "good", is0.good(), "fail", is0.fail(), "bad", is0.bad(), "rdstate", is0.rdstate());
+        return d;
+    }
+    istringstream is(line);
     auto g = is.tellg();
     string w;
     is >> w;
+    log("w", w);
     if (w == "pin") {
         pin_t pin;
         is >> pin;
+        log("read pin", pin);
         d.second.encode_pin(pin);
     }
     else {
         is.seekg(g);
         is >> d.second.pub;
+        log("read pubkey", d.second.pub);
+    }
+    if (is.fail()) {
+        d.first = "KO 86743 read error in d file";
+        log(d.first, "line", line);
+        return d;
     }
     is >> d.second.subhome;
     if (d.second.subhome == "-") d.second.subhome.clear();
     getline(is, d.second.name);
     io::cfg0::trim(d.second.name);
-    if (is.fail()) {
-        d.first = false;
-    }
-    return move(d);
+    log("returning device subhome", d.second.subhome, "name", d.second.name);
+    return d;
 }
 
-pair<bool, device_t> c::from_stream_prev(istream& is) {
+/*
+pair<ko, device_t> c::from_stream_prev(istream& is) {
     log("from stream prev");
     return from_stream_v1(is);
 }
@@ -85,8 +102,9 @@ pair<bool, device_t> c::from_stream_v1(istream& is) {
     if (is.fail()) {
         d.first = false;
     }
-    return move(d);
+    return d;
 }
+*/
 
 pin_t c::decode_pin() const {
     if (pub.valid) return 0;

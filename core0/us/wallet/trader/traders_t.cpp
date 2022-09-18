@@ -60,17 +60,14 @@
 using namespace us::wallet::trader;
 using c = us::wallet::trader::traders_t;
 
-c::traders_t(engine::daemon_t& daemon, const string& home):
-        daemon(daemon),
-        home(home) {
-
+c::traders_t(engine::daemon_t& daemon, const string& home): daemon(daemon), home(home) {
     log("traders_t constructor", home);
     us::gov::io::cfg0::ensure_dir(home);
     {
         log("load_personality", home + "/k");
         load_set_personality(home + "/k");
     }
-    log("loading bank pluging");
+    log("loading core0 plugins");
     load_bank();
     log("loading plugins");
     load_plugins();
@@ -78,6 +75,9 @@ c::traders_t(engine::daemon_t& daemon, const string& home):
     load_lf();
     bookmarks.init(home);
     bookmarks.load();
+    logdump("bookmarks> ", bookmarks);
+    load_state();
+    log(size(), "active trades");
 }
 
 c::~traders_t() {
@@ -96,38 +96,16 @@ c::libs_t::~libs_t() {
     for (auto& i: *this) delete i.second;
 }
 
-std::pair<ko, us::wallet::trader::trader_protocol*> c::create_protocol(protocol_selection_t&& protocol_selection) {
-    log("create_protocol A", protocol_selection.to_string());
-    if (protocol_selection.first.empty()) {
-        return make_pair(ok, nullptr);
-    }
-    return libs.create_protocol(move(protocol_selection));
-}
-
-std::pair<ko, us::wallet::trader::trader_protocol*> c::create_opposite_protocol(protocol_selection_t&& protocol_selection) {
-    log("create_opposite_protocol A", protocol_selection.to_string());
-    if (protocol_selection.first.empty()) {
-        return make_pair(ok, nullptr);
-    }
-    return libs.create_opposite_protocol(move(protocol_selection));
-}
-
-std::pair<ko, us::wallet::trader::trader_protocol*> c::create_protocol(protocol_selection_t&& protocol_selection, params_t&& remote_params) {
-    log("create_protocol B", protocol_selection.to_string());
-    if (protocol_selection.first.empty()) {
-        return make_pair(ok, nullptr);
-    }
-    auto r = libs.create_protocol(move(protocol_selection));
-    if (is_ko(r.first)) {
-        assert(r.second == nullptr);
-        return r;
-    }
-    *r.second->remote_params = move(remote_params);
-    return r;
-}
-
 std::pair<ko, us::wallet::trader::trader_protocol*> c::libs_t::create_protocol(protocol_selection_t&& protocol_selection) {
     log("libs_t::create_protocol", protocol_selection.to_string());
+    auto i = find(protocol_selection);
+    if (i == end()) {
+        auto r = "KO 7895 Protocol not available";
+        log(r);
+        return make_pair(r, nullptr);
+    }
+    return i->second->business->create_protocol();
+/*
     for (auto& i: *this) {
         log("testing a business");
         auto r = i.second->business->create_protocol(move(protocol_selection));
@@ -139,6 +117,7 @@ std::pair<ko, us::wallet::trader::trader_protocol*> c::libs_t::create_protocol(p
     auto r = "KO 7895 Protocol not available";
     log(r);
     return make_pair(r, nullptr);
+*/
 }
 
 std::pair<ko, us::wallet::trader::trader_protocol*> c::libs_t::create_opposite_protocol(protocol_selection_t&& protocol_selection) {
@@ -159,8 +138,10 @@ std::pair<ko, us::wallet::trader::trader_protocol*> c::libs_t::create_opposite_p
 c::lib_t::lib_t(business_t* bz): plugin(nullptr), business(bz) { //constructor 1
 }
 
-c::lib_t::lib_t(const string& name, const string& filename, const string& home) { //constructor 2
-    log("loading lib", name, filename, home);
+//c::lib_t::lib_t(const string& name, const string& filename, const string& home) { //constructor 2
+c::lib_t::lib_t(const string& filename, const string& home) { //constructor 2
+//    log("loading lib", name, filename, home);
+    log("loading lib", filename, home);
     plugin = ::dlopen(filename.c_str(), RTLD_LAZY);
     if (!plugin) {
         log("Cannot open library", ::dlerror());
@@ -175,6 +156,7 @@ c::lib_t::lib_t(const string& name, const string& filename, const string& home) 
         plugin = nullptr;
         return;
     }
+    log("creating business", home, business_t::interface_version);
     business = create_bz(home.c_str(), business_t::interface_version);
     if (business == nullptr) {
         log("Cannot create bz");
@@ -201,6 +183,36 @@ c::lib_t::~lib_t() {
     ::dlclose(plugin);
 }
 
+std::pair<ko, us::wallet::trader::trader_protocol*> c::create_protocol(protocol_selection_t&& protocol_selection) {
+    log("create_protocol A", protocol_selection.to_string());
+//    if (protocol_selection.first.empty()) {
+//        return make_pair(ok, nullptr);
+//    }
+    return libs.create_protocol(move(protocol_selection));
+}
+
+std::pair<ko, us::wallet::trader::trader_protocol*> c::create_opposite_protocol(protocol_selection_t&& protocol_selection) {
+    log("create_opposite_protocol A", protocol_selection.to_string());
+    if (unlikely(protocol_selection.first.empty())) {
+        return make_pair(ok, nullptr);
+    }
+    return libs.create_opposite_protocol(move(protocol_selection));
+}
+
+std::pair<ko, us::wallet::trader::trader_protocol*> c::create_protocol(protocol_selection_t&& protocol_selection, params_t&& remote_params) {
+    log("create_protocol B", protocol_selection.to_string());
+    if (protocol_selection.first.empty()) {
+        return make_pair(ok, nullptr);
+    }
+    auto r = libs.create_protocol(move(protocol_selection));
+    if (is_ko(r.first)) {
+        assert(r.second == nullptr);
+        return r;
+    }
+    *r.second->remote_params = move(remote_params);
+    return r;
+}
+
 void c::load_bank() {
     log("creating w2w");
     business_t* bz = new us::wallet::trader::r2r::w2w::business_t();
@@ -210,14 +222,15 @@ void c::load_bank() {
         return;
     }
     lib_t* l = new lib_t(bz);
-    libs.insert(make_pair(bz->name, l));
+    libs.emplace(l->business->protocol_selection(), l);
 }
 
 void c::load_plugins() {
     namespace fs = std::filesystem;
     string plugindir = home + "/lib";
     us::gov::io::cfg0::ensure_dir(plugindir);
-    vector<pair<string, string>> libfiles;
+//    vector<pair<string, string>> libfiles;
+    vector<string> libfiles;
     string uswallet = string(PLATFORM) + "trader-";
     string libuswallet = string("lib") + uswallet;
     string ext = ".so";
@@ -228,24 +241,30 @@ void c::load_plugins() {
         if (fn.size() < libuswallet.size() + ext.size()) continue;
         if (fn.substr(0, libuswallet.size()) != libuswallet ) continue;
         if (fn.substr(fn.size() - ext.size(), ext.size()) != ext) continue;
-        string libname = fn.substr(libuswallet.size(), fn.size() - libuswallet.size() - ext.size());  //libuswallet-pat2ai-ai.so
-        os << plugindir << '/' << fn;
-        libfiles.push_back(make_pair(libname, os.str()));
+//        string libname = fn.substr(libuswallet.size(), fn.size() - libuswallet.size() - ext.size()); //pat2ai-ai
+        os << plugindir << '/' << fn; //libuswallet-pat2ai-ai.so
+//        libfiles.push_back(make_pair(libname, os.str()));
+        libfiles.push_back(os.str());
     }
     if (libfiles.empty()) {
         log("no pugins found in", plugindir);
         return;
     }
     for (auto& i: libfiles) {
-        log("loading lib", i.first, i.second);
-        lib_t* l = new lib_t(i.first, i.second, home);
+//        log("loading lib", i.first, i.second);
+//        log("loading lib", i);
+//        lib_t* l = new lib_t(i.first, i.second, home);
+        lib_t* l = new lib_t(i, home);
         if (l->plugin == nullptr) {
-            log("error loading lib", i.second);
+//            log("error loading lib", i.second);
+            log("error loading lib", i);
             delete l;
             continue;
         }
-        log("added lib", i.first);
-        libs.emplace(make_pair(i.first, l));
+//        log("added lib", i.first);
+        log("added lib", i);
+//        libs.emplace(make_pair(i.first, l)); //e.g. i.first: pat2ai-ai
+        libs.emplace(l->business->protocol_selection(), l);
     }
 }
 
@@ -548,7 +567,7 @@ void c::libs_t::dump(ostream& os) const {
 void c::libs_t::exec_help(const string& prefix, ostream& os) const {
     for (auto& i: *this) {
         ostringstream p;
-        p << prefix << i.first << ' ';
+        p << prefix << i.first.to_string2() << ' ';
         i.second->exec_help(p.str(), os);
     }
 }
@@ -557,7 +576,8 @@ ko c::libs_t::exec(istream& is, traders_t& traders, wallet::local_api& w) {
     log("libs_t::exec");
     string cmd;
     is >> cmd;
-    auto i = find(cmd);
+    protocol_selection_t o = protocol_selection_t::from_string2(cmd);
+    auto i = find(o);
     if (i == end()) {
         auto r = "KO 85990 Library not found.";
         log(r);
@@ -904,23 +924,23 @@ ko c::bookmarksman_t::save() {
 
 ko c::bookmarksman_t::load_() {
     log("loading bookmarks from", home + "/bookmarks");
-    vector<uint8_t> v;
-    auto r = us::gov::io::read_file_(home + "/bookmarks", v);
+    blob_t blob;
+    auto r = us::gov::io::read_file_(home + "/bookmarks", blob);
     if (is_ko(r)) {
         return r;
     }
     clear();
-    return read(v);
+    return read(blob);
 }
 
 ko c::bookmarksman_t::save_() {
     log("saving bookmarks to", home + "/bookmarks");
-    vector<uint8_t> v;
-    write(v);
+    blob_t blob;
+    write(blob);
     ofstream os(home + "/bookmarks");
-    os.write((const char*)v.data(), v.size());
+    os.write((const char*)blob.data(), blob.size());
     if (os.fail()) {
-        auto r = "KO 60127";
+        auto r = "KO 60127 Could not write bookmarks.";
         log(r);
         return r;
     }
@@ -930,10 +950,10 @@ ko c::bookmarksman_t::save_() {
 blob_t c::bookmarksman_t::blob() const {
     log("bookmarksman_t::blob");
     lock_guard<mutex> lock(mx);
-    vector<uint8_t> v;
-    write(v);
-    log("bookmarksman_t::blob returned", v.size(), "bytes");
-    return move(v);
+    blob_t blob;
+    write(blob);
+    log("bookmarksman_t::blob returned", blob.size(), "bytes");
+    return blob;
 }
 
 ko c::bookmarksman_t::add(const string& name, bookmark_t&& bm) {
@@ -987,5 +1007,53 @@ ko c::push_OK(const string& msg, wallet::local_api& w) {
 
 ko c::push_OK(const hash_t& tid, const string& msg, wallet::local_api& w) {
     return daemon.pm.push_OK(tid, msg, w.device_filter);
+}
+
+size_t c::blob_size() const {
+    return blob_writer_t::sizet_size(size()) + size() * gov::crypto::ripemd160::output_size;
+}
+
+void c::to_blob(blob_writer_t& writer) const {
+    writer.write_sizet(size());
+    for (auto& i: *this) {
+        writer.write(i.first);
+    }
+}
+
+ko c::from_blob(blob_reader_t& reader) {
+    uint64_t sz;
+    auto r = reader.read_sizet(sz);
+    if (is_ko(r)) return r;
+    if (unlikely(sz > blob_reader_t::max_sizet_containers)) return blob_reader_t::KO_75643;
+    for (int i = 0; i < sz; ++i) {
+        hash_t h;
+        auto r = reader.read(h);
+        if (is_ko(r)) return r;
+        
+    }
+    return ok;
+}
+
+string c::sername() const {
+    return home + "/active";
+}
+
+void c::load_state() {
+    log("loading active trades");
+    auto r = load(sername());
+    if (is_ko(r)) {
+        log("active trades could not be loaded", sername());
+    }
+}
+
+void c::save_state() const {
+    log("saving active trades");
+    auto r = save(sername());
+    if (is_ko(r)) {
+        log("active trades could not be saved", sername());
+    }
+    for (auto& i: *this) {
+        i.second->save_state();
+    }
 }
 

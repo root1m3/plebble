@@ -52,7 +52,7 @@ public class rpc_peer_t extends us.gov.dfs.rpc_peer_t implements caller_api {
         super(rpc_daemon, sock);
     }
 
-    @Override public boolean authorize(final PublicKey pub, final pin_t pin) { return true; }
+    @Override public ko authorizeX(final PublicKey pub, final pin_t pin) { return ko.ok; }
 
     @Override public boolean process_work(datagram d) {
         log("process_work" + d.service.value); //--strip

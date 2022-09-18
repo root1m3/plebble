@@ -73,6 +73,12 @@ namespace us::wallet::trader::r2r::w2w {
         protocol(business_t&);
         ~protocol() override;
 
+    public:
+        size_t blob_size() const override;
+        void to_blob(blob_writer_t&) const override;
+        ko from_blob(blob_reader_t&) override;
+
+    public:
         ko trading_msg(peer_t&, svc_t, blob_t&&) override;
         void dump(ostream&) const override;
         void help_online(const string& indent, ostream&) const override;
@@ -92,7 +98,7 @@ namespace us::wallet::trader::r2r::w2w {
         uint32_t trade_state_() const;
         void judge(const string& lang) override;
 
-        mutable mutex mx;
+        //mutable mutex mx;
     };
 
 }

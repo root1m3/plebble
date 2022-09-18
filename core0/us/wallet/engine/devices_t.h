@@ -47,11 +47,12 @@ namespace us::wallet::engine {
             void dump(vector<string>&) const;
             mutable mutex mx;
         };
+
         static char d_version; //file d serialization version
         devices_t(const string& home);
         void load();
         void save() const;
-        pair<bool, string> authorize(const pub_t&, pin_t pin); //returns subhome
+        pair<ko, string> authorizeX(const pub_t&, pin_t pin); //returns subhome
         void dump(ostream&) const;
         ko device_pair(const pub_t&, string subhome, string name);
         ko device_unpair(const pub_t&);
@@ -72,6 +73,7 @@ namespace us::wallet::engine {
         pair<ko, pin_t> device_prepair_(pin_t, string subhome, string name);
         ko device_unprepair_(pin_t pin);
 
+    private:
         string file;
         mutable mutex mx;
         string home;

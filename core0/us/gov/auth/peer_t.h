@@ -50,7 +50,7 @@ namespace us::gov::auth {
 
     public:
         void verification_completed(pport_t, pin_t) override;
-        virtual bool authorize(const pub_t&, pin_t) = 0;
+        virtual ko authorizeX(const pub_t&, pin_t) = 0;
 
     public:
         void dump_all(const string& prefix, ostream&) const override;

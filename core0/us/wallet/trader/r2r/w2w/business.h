@@ -50,9 +50,9 @@ namespace us::wallet::trader::r2r::w2w {
         ko init(const string& r2rhome) override;
         string homedir() const override;
 
-        pair<ko, trader::trader_protocol*> create_protocol(protocol_selection_t&&) override;
-        pair<ko, trader::trader_protocol*> create_opposite_protocol(protocol_selection_t&&) override;
         pair<ko, trader::trader_protocol*> create_protocol() override;
+        pair<ko, trader::trader_protocol*> create_opposite_protocol(protocol_selection_t&&) override;
+        //pair<ko, trader::trader_protocol*> create_protocol() override;
         void list_protocols(ostream&) const override; //human format
         void invert(protocols_t&) const override;
         void published_protocols(protocols_t&, bool inverse) const override;

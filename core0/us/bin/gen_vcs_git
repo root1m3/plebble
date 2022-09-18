@@ -72,6 +72,9 @@ fi
 echo "generating vcs_git files $locally_modified"
 bdate=`date +%Y-%m-%d_%H-%M-%S`
 vcode=`date +%y%m%d%H`
+#if [[ "_$vcode" == "_22081115" ]]; then
+#    vcode="22081116"  #needed for a google play upload retry in the same hour
+#fi
 if [ -f res/strings/en-uk.ovr ]; then
     cfghash=`sha256sum res/strings/en-uk.ovr $modfiles | sha256sum | awk '{print $1}'`
 else

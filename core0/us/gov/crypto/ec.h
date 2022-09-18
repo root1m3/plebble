@@ -150,6 +150,7 @@ namespace us::gov::crypto {
             static pub_t get_pubkey(const priv_t&);
             static priv_t generate_priv();
 
+        public:
             priv_t priv;
             pub_t pub;
         };

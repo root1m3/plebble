@@ -23,6 +23,7 @@
 #pragma once
 #include "seriable.h"
 #include <map>
+#include <set>
 #include <unordered_map>
 
 namespace us::gov::io {
@@ -43,6 +44,15 @@ namespace us::gov::io {
         inline size_t blob_size() const override { return blob_writer_t::blob_size(static_cast<const unordered_map<k, v>&>(*this)); }
         inline void to_blob(blob_writer_t& writer) const override { writer.write(static_cast<const unordered_map<k, v>&>(*this)); }
         inline ko from_blob(blob_reader_t& reader) override { return reader.read(static_cast<unordered_map<k, v>&>(*this)); }
+    };
+
+    template<typename k>
+    struct seriable_set: set<k>, virtual seriable {
+        using b = set<k>;
+        using b::set;
+        inline size_t blob_size() const override { return blob_writer_t::blob_size(static_cast<const set<k>&>(*this)); }
+        inline void to_blob(blob_writer_t& writer) const override { writer.write(static_cast<const set<k>&>(*this)); }
+        inline ko from_blob(blob_reader_t& reader) override { return reader.read(static_cast<set<k>&>(*this)); }
     };
 
 }

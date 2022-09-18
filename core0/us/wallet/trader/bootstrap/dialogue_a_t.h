@@ -27,19 +27,14 @@
 #include "protocols_t.h"
 
 namespace us::wallet::engine {
-
     struct peer_t;
-
 }
 
 namespace us::wallet::trader {
-
     struct trader_t;
-
 }
 
 namespace us::wallet::trader::bootstrap {
-
     using namespace std;
 
     struct bootstrapper_t;

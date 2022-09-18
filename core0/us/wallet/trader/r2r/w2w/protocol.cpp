@@ -360,3 +360,22 @@ void c::judge(const string& lang) {
     }
 }
 
+size_t c::blob_size() const {
+    size_t sz = b::blob_size();
+    return sz;
+}
+
+void c::to_blob(blob_writer_t& writer) const {
+    b::to_blob(writer);
+}
+
+ko c::from_blob(blob_reader_t& reader) {
+    {
+        auto r = b::from_blob(reader);
+        if (is_ko(r)) {
+            return r;
+        }
+    }
+    return ok;
+}
+

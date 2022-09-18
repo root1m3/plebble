@@ -55,17 +55,14 @@
 #include "data_t.h"
 
 namespace us::wallet::engine {
-
     struct peer_t;
-
 }
 
 namespace us::wallet::trader {
-
     using namespace std;
     struct traders_t;
 
-    struct trader_t final: conman {
+    struct trader_t final: conman, us::gov::io::seriable {
         using b = conman;
         using protocol = trader_protocol;
         using bootstrapper_t = bootstrap::bootstrapper_t;
@@ -78,13 +75,34 @@ namespace us::wallet::trader {
         using peerid_t = hash_t;
         using blob_reader_t = us::gov::io::blob_reader_t;
         using blob_writer_t = us::gov::io::blob_writer_t;
+        using serid_t = blob_reader_t::serid_t;
 
+    public:
         trader_t(traders_t& parent, engine::daemon_t& demon, const hash_t& parent_tid, const string& datadir);
         ~trader_t();
 
-        pair<ko, hash_t> boot(const peerid_t&, bootstrapper_t*);
+    public:
         ko permission_bootstrap(const peerid_t& peer) const;
+        pair<ko, hash_t> boot(const peerid_t&, bootstrapper_t*);
         void init(const hash_t& tid, const endpoint_t&, wallet::local_api&);
+
+    public:
+        void on_KO(ko, const string&) override;
+        void online(peer_t&) override;
+        void offline() override;
+        void on_start() override;
+        void on_stop() override;
+        bool requires_online(const string& cmd) const override;
+        ko exec_online(peer_t& peer, const string&, ch_t&) override;
+        ko exec_offline(const string&, ch_t&) override;
+        const endpoint_t& local_endpoint() const override;
+        pair<ko, hostport_t> resolve_ip_address(const hash_t& address) const override;
+        void die(const string& reason) final override;
+        void dispose() final override;
+        void saybye(peer_t&) final override;
+        ko update_peer(peer_t&, ch_t&&) const override;
+
+    public:
         ko deliver(personality_proof_t&&, ch_t&);
         ko deliver(personality_proof_t&&, params_t&&, ch_t&);
         ko deliver(params_t&&, ch_t&);
@@ -97,12 +115,7 @@ namespace us::wallet::trader {
         ko set_protocol(protocol*, ch_t&);
         ko set_protocol_(protocol*, ch_t&);
         void file_reloadx(const string& fqn);
-        void on_KO(ko, const string&) override;
-        void offline() override;
-        void online(peer_t&) override;
         void update_activity();
-        ko exec_online(peer_t& peer, const string&, ch_t&) override;
-        ko exec_offline(const string&, ch_t&) override;
         ko exec_trader_(client&, const string& cmd, istream&);
         bool resume_chat(peer_t&);
         ko trading_msg(peer_t&, svc_t svc, blob_t&&);
@@ -110,18 +123,23 @@ namespace us::wallet::trader {
         void dump(const string& prefix, ostream&) const;
         void list_trades(ostream&) const;
         void help(const string& indent, ostream&) const;
-        void on_start() override;
         void flush_command_queue();
-        bool requires_online(const string& cmd) const override;
         void on_file_updated(const string& path, const string& name);
         void on_signal(int sig);
         bool sig_reset(ostream&);
         bool sig_hard_reset(ostream&);
         bool sig_reload(ostream&);
-        void on_stop() override;
-        const endpoint_t& local_endpoint() const override;
-        pair<ko, hostport_t> resolve_ip_address(const hash_t& address) const override;
 
+    public:
+        size_t blob_size() const override;
+        void to_blob(blob_writer_t&) const override;
+        ko from_blob(blob_reader_t&) override;
+        serid_t serial_id() const override { return 'T'; }
+        pair<string, string> sername() const;
+        void save_state() const;
+        void load_state();
+        
+    public:
         enum push_code_t: uint16_t { //communications node-HMI
             push_begin = 100,
             push_log = push_begin,
@@ -174,15 +192,11 @@ namespace us::wallet::trader {
         };
 
     public:
-        void die(const string& reason) final override;
-        void dispose() final override;
-        void saybye(peer_t&) final override;
         chat_t::entry AI_chat(const chat_t&, peer_t&);
         ko send_msg(peer_t&, const string&);
         ko send_msg(peer_t&, const chat_t::entry&);
         void send_msg(const string&);
-        bool has_protocol() const { return p != nullptr; }
-
+        inline bool has_protocol() const { return p != nullptr; }
         void show_data_(const string& lang, ostream&) const;
         void show_data(const string& lang, ostream&) const;
         void write_data(const string& lang, blob_t&) const;
@@ -190,7 +204,8 @@ namespace us::wallet::trader {
         void ping(peer_t&, function<void(uint64_t)> pong_handler);
         void ping(peer_t&);
         void reset_ping();
-        bool initiator() const { return bootstrapper->initiator(); }
+        inline bool initiator() const { return bootstrapper->initiator(); }
+        int set_personality(const string& sk, const string& moniker);
         void feedback_devices(const ch_t&) const;
         ko on_remote(personality_proof_t::raw_t&&, ch_t&); //returns changes as a result of re-setting peer's personality
         ko on_remote(personality_proof_t&&, ch_t&); //returns changes as a result of re-setting peer's personality, if proof validates
@@ -198,7 +213,6 @@ namespace us::wallet::trader {
         ko on_remote(personality_proof_t&&, remote_params_t *rp, ch_t&); //returns changes as a result of re-setting both peer's personality and shared params
         ko on_svc_personality_and_params(blob_reader_t&, ch_t&);
         ko on_svc_personality(blob_reader_t&, ch_t&);
-        ko update_peer(peer_t&, ch_t&&) const override;
         void update_peer(ch_t&&);
         protocol_selection_t opposite_protocol_selection() const;
         params_t shared_params() const;
@@ -206,7 +220,7 @@ namespace us::wallet::trader {
         ko create_bookmark(const string& name, string&& icofile, string&& label);
         ko create_bookmark(const string& name, const bookmark_t&);
 
-        struct funs_t: set<string> {
+        struct funs_t: us::gov::io::seriable_set<string> {
             funs_t() {}
             void dump(ostream&) const;
             void exec_help(const string& prefix, ostream&) const;
@@ -214,32 +228,18 @@ namespace us::wallet::trader {
 
         template<typename... Args> void olog(const Args&... args) const;
 
-        int set_personality(const string& sk, const string& moniker);
-
     public:
         inline void schedule_push_data(const string& lang) const { schedule_push(push_data, lang); }
         void schedule_push(datagram*) const;
         void schedule_push(uint16_t code, const string& lang) const;
         blob_t push_payload(uint16_t pc, const string& lang) const;
         datagram* get_push_datagram(uint16_t pc, const string& lang) const;
-        ko push_KO(ko) const; /// Returns same ko
+        ko push_KO(ko) const;
         ko push_OK(const string& msg) const;
 
     public:
-        chat_t chat;
-
-    private:
-        hash_t endpoint_pkh;
-        funs_t rf; //remote functions
-        protocol* p{nullptr};
-        int peer_mutations{0};
-        atomic<uint64_t> ts_activity;
-        function<void(uint64_t)> pong_handler = [](uint64_t){};
-        ts_t ts_sent_ping{0};
-
-    public:
-        hash_t parent_tid;
         hash_t id;
+        hash_t parent_tid;
         personality_t my_personality;
         personality_proof_t::raw_t peer_personality;
         protocols_t peer_protocols;
@@ -249,14 +249,28 @@ namespace us::wallet::trader {
         challenge_t peer_challenge{0};
         bootstrapper_t* bootstrapper{nullptr};
         peerid_t bootstrapped_by{0};
-        mutable mutex mx;
+        chat_t chat;
+        string datasubdir;
+
+    private:
+        hash_t endpoint_pkh;
+        funs_t rf; //remote functions
+        protocol* p{nullptr};
+        atomic<uint64_t> ts_activity;
+
+    public:
         wallet::local_api* w{nullptr};
         traders_t& parent;
-        string datasubdir;
+        mutable mutex mx;
 
         #if CFG_LOGS == 1
             mutable data_t prev_data;
         #endif
+
+    private:
+        int peer_mutations{0};
+        function<void(uint64_t)> pong_handler = [](uint64_t){};
+        ts_t ts_sent_ping{0};
 
     };
 

@@ -37,6 +37,8 @@
 using namespace us::wallet::trader;
 using c = us::wallet::trader::workflow::workflow_t;
 
+us::gov::io::factories_t<c> c::factories;
+
 c::workflow_t() {
 }
 
@@ -357,5 +359,58 @@ ko c::exec_online(peer_t& peer, const string& cmd0, ch_t& ch) {
     auto r = trader::trader_protocol::WP_29101;
     log(r);
     return move(r);
+}
+
+size_t c::blob_size() const {
+    auto sz = blob_writer_t::blob_size(home) + blob_writer_t::sizet_size(size());
+    for (auto& i: *this) {
+        sz += blob_writer_t::blob_size(i.first) + blob_writer_t::blob_size(*i.second);
+    }
+    return sz;
+}
+
+void c::to_blob(blob_writer_t& writer) const {
+    writer.write(home);
+    writer.write_sizet(size());
+    for (auto& i: *this) {
+        writer.write(i.first);
+        writer.write(*i.second);
+    }
+}
+
+ko c::from_blob(blob_reader_t& reader) {
+    {
+        auto r = reader.read(home);
+        if (is_ko(r)) {
+            return r;
+        }
+    }
+    uint64_t sz;
+    auto r = reader.read_sizet(sz);
+    if (is_ko(r)) return r;
+    //if (unlikely(sz > max_sizet_containers)) return KO_75643;
+    assert(empty());
+    for (int i = 0; i < sz; ++i) {
+        string key;
+        {
+            auto r = reader.read(key);
+            if (is_ko(r)) {
+                return r;
+            }
+        }
+        item_t::factory_id_t id;
+        auto r = reader.read(id);
+        if (is_ko(r)) {
+            return r;
+        }
+        auto o = item_t::factories.create(id);
+        if (o == nullptr) {
+            auto r = "KO 70216 workflow item load failed";
+            log(r);
+            return r;
+        }
+        emplace(key, o);
+    }
+    return ok;
 }
 

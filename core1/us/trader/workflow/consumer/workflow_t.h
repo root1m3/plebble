@@ -33,11 +33,11 @@
 #include <us/trader/workflow/types.h>
 #include <us/wallet/wallet/local_api.h>
 
-namespace us { namespace wallet { namespace trader {
+namespace us::wallet::trader {
     struct traders_t;
-}}}
+}
 
-namespace us { namespace trader { namespace workflow { namespace consumer {
+namespace us::trader::workflow::consumer {
 
     template<typename t>
     struct item_t: us::wallet::trader::workflow::item_t {
@@ -56,7 +56,10 @@ namespace us { namespace trader { namespace workflow { namespace consumer {
         using trader_t = us::wallet::trader::trader_t;
         using traders_t = us::wallet::trader::traders_t;
 
+    protected:
         workflow_t();
+
+    public:
         ~workflow_t() override;
 
         static void exec_help(const string& prefix, ostream&);
@@ -95,5 +98,5 @@ namespace us { namespace trader { namespace workflow { namespace consumer {
         bitem* enable_receipt(bool, ch_t&);
     };
 
-}}}}
+}
 

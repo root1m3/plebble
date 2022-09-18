@@ -154,10 +154,10 @@ struct test_client: peer_t {
         *os << "added to grid\n";
     }
 
-    bool authorize(const pub_t& p, pin_t pin) override {
-        auto a = b::authorize(p, pin);
-        *os << "authorize? " << boolalpha << a << '\n';
-        return a;
+    ko authorizeX(const pub_t& p, pin_t pin) override {
+        auto r = b::authorizeX(p, pin);
+        *os << "authorize? " << (r == ok ? "ok" : r) << '\n';
+        return r;
     }
 
     ofstream* os;

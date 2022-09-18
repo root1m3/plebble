@@ -42,6 +42,7 @@ namespace us::apitool {
 
         int add(const string& name, int svc0);
         int add_delegate(const string& name, int svc0);
+        void gen_svc_lock();
 
         string process;
     };

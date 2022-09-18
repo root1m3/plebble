@@ -25,7 +25,7 @@
 #include <us/wallet/trader/workflow/doc_t.h>
 #include <us/wallet/trader/workflow/signed_doc_t.h>
 
-namespace us { namespace trader { namespace workflow { namespace logistics {
+namespace us::trader::workflow::logistics {
     using magic_t = us::wallet::trader::workflow::doc0_t::magic_t;
 
     struct parcel_traits {
@@ -44,5 +44,5 @@ namespace us { namespace trader { namespace workflow { namespace logistics {
     };
     using shipping_receipt_t = us::wallet::trader::workflow::doc_t<us::wallet::trader::workflow::signed_doc_t, shipping_receipt_traits>;
 
-}}}}
+}
 

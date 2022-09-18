@@ -46,9 +46,12 @@ namespace us::apitool {
         static api_t* load(const string& process, string file);
         vector<pair<string, bool>> compute_get_protocol_vector();
         int svc_end(int svc_begin) const;
+        void gen_svc_lock(ostream&) const;
+
         bool feedback_on_ko{false};
         model* m{nullptr};
         bool delegate{false}; // false: handler impl is at peer; true: handler at daemon
+
     };
 
 }

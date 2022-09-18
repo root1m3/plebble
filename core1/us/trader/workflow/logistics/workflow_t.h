@@ -31,11 +31,11 @@
 #include <us/wallet/trader/trader_t.h>
 #include <us/wallet/wallet/local_api.h>
 
-namespace us { namespace wallet { namespace trader {
+namespace us::wallet::trader {
     struct traders_t;
-}}}
+}
 
-namespace us { namespace trader { namespace workflow { namespace logistics {
+namespace us::trader::workflow::logistics {
 
     template<typename t>
     struct item_t: us::wallet::trader::workflow::item_t {
@@ -53,7 +53,10 @@ namespace us { namespace trader { namespace workflow { namespace logistics {
         using bitem = us::wallet::trader::workflow::item_t;
         using trader_t = us::wallet::trader::trader_t;
 
+    protected:
         workflow_t();
+
+    public:
         ~workflow_t() override;
 
         template<typename t> bitem* add(ch_t& ch) {
@@ -87,5 +90,5 @@ namespace us { namespace trader { namespace workflow { namespace logistics {
         bitem* enable_shipping_receipt(bool, ch_t&);
     };
 
-}}}}
+}
 

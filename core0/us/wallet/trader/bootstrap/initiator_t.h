@@ -45,6 +45,7 @@ namespace us::wallet::trader::bootstrap {
         initiator_t(qr_t&& remote_qr, wallet::local_api&);
         ~initiator_t() ;
 
+    public:
         bool initiator() const override { return true; }
         pair<ko, hash_t> start(trader_t&) override;
         void online(peer_t&) override;
@@ -52,6 +53,7 @@ namespace us::wallet::trader::bootstrap {
         ko on_c(int) override;
         hash_t make_new_id() const;
 
+    public:
         handshake_t* handshake{nullptr};
         qr_t remote_qr;
         wallet::local_api& w;

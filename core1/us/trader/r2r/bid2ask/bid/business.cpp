@@ -59,6 +59,7 @@ string c::homedir() const {
     return os.str();
 }
 
+/*
 std::pair<us::ko,us::wallet::trader::trader_protocol*> c::create_protocol(protocol_selection_t&& protocol_selection) {
     log ("protocol from string", protocol_selection.first, protocol_selection.second);
     if (protocol_selection.first != protocol::name) {
@@ -74,9 +75,10 @@ std::pair<us::ko,us::wallet::trader::trader_protocol*> c::create_protocol(protoc
     }
     return create_protocol();
 }
+*/
 
 std::pair<us::ko,us::wallet::trader::trader_protocol*> c::create_opposite_protocol(protocol_selection_t&& protocol_selection) {
-    log ("protocol from string", protocol_selection.first, protocol_selection.second);
+    log ("create_opposite_protocol", protocol_selection.first, protocol_selection.second);
     if (protocol_selection.first != protocol::name) {
         log("not recognized", protocol_selection.first);
         auto r = "KO 49867 Unsupported protocol.";
@@ -115,6 +117,6 @@ void c::invert(protocols_t& protocols) const {
 }
 
 void c::published_protocols(protocols_t& protocols, bool inverse) const {
-    protocols.emplace_back(make_pair(c::protocol::name, inverse ? "ask" : "bid"));
+    protocols.emplace_back(c::protocol::name, inverse ? "ask" : "bid");
 }
 

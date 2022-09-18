@@ -87,19 +87,18 @@ bool c::process_work(datagram* d) {
     return false;
 }
 
-bool c::authorize(const pub_t& p, pin_t pin) {
+ko c::authorizeX(const pub_t& p, pin_t pin) {
     log("authorize?", endpoint(), sock, p, pin);
-    if (unlikely(engine_daemon().db->auth_app->node_pubkey == p)) {
-        log("sysop pubkey->sysop_intent", (is_role_sysop() ? "yes" : "no"));
-        return is_role_sysop(); //allow multiple sysop connections, reject self non-sysop connections
+    if (unlikely(engine_daemon().db->auth_app->node_pubkey != p)) {
+        return ok; //Any pubkey is welcome in the public protocol
     }
-    /*
-    if (is_role_device()) {
-        log("TODO gov hasn't got devices-acl file yet");
-        return true;
+    log("sysop pubkey->sysop_intent", (is_role_sysop() ? "yes" : "no"));
+    if (unlikely(is_role_sysop())) {
+        return ok;  //allow multiple sysop connections, reject self non-sysop connections
     }
-    */
-    return true; //Any pubkey is welcome in the public protocol
+    auto r = "KO 90483 non-sysop self connection";
+    log(r);
+    return r;
 }
 
 daemon_t& c::engine_daemon() {
