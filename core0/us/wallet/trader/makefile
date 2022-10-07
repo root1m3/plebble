@@ -26,7 +26,6 @@ OBJS := $(patsubst %.cpp, %.o, $(CPPS))
 HS := $(wildcard *.h)
 INC := ../../..
 CXXFLAGS = -O0 -g -std=c++20 -DDEBUG
-CXX:=g++
 LIBS := workflow/libtrader-workflow.o personality/libtrader-personality.o bootstrap/libtrader-bootstrap.o r2r/w2w/libtrader-r2r-w2w.o
 
 .PHONY: all clean

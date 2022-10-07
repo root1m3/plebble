@@ -29,7 +29,6 @@
 #include <us/wallet/engine/peer_t.h>
 #include <us/wallet/trader/trader_t.h>
 #include <us/wallet/trader/traders_t.h>
-#include <us/wallet/protocol.h>
 
 #include "a_t.h"
 #include "b_t.h"

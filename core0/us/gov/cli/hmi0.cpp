@@ -20,5 +20,17 @@
 //===-
 //===----------------------------------------------------------------------------
 //===-
-#include "engine/protocol.h"
+#include "hmi0.h"
+
+
+#define loglevel "us/cli"
+#define logclass "hmi"
+#include <us/gov/logs.inc>
+
+using namespace us::cli;
+using us::ko;
+using c = us::cli::hmi;
+
+c::~hmi() {
+}
 

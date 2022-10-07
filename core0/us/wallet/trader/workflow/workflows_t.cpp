@@ -26,6 +26,7 @@
 #include <us/wallet/trader/trader_t.h>
 
 #include "doc_t.h"
+#include "business.h"
 
 #define loglevel "wallet/trader/workflow"
 #define logclass "workflows_t"
@@ -33,6 +34,9 @@
 
 using namespace us::wallet::trader::workflow;
 using c = us::wallet::trader::workflow::workflows_t;
+
+c::workflows_t(business_t& bz): business(bz) {
+}
 
 c::~workflows_t() {
     for (auto& i: *this) delete i;
@@ -65,15 +69,22 @@ pair<workflow_t*, item_t*> c::find(const string& name) const {
 
 tuple<workflow_t*, item_t*, doc0_t*> c::read_item(const blob_t& blob) const {
     log("read_item. blob sz", blob.size());
-    string name;
     us::gov::io::blob_reader_t reader(blob);
+    string name;
     {
         auto r = reader.read(name);
         if (is_ko(r)) {
             return make_tuple(nullptr, nullptr, nullptr);
         }
     }
-    log("read_item", name);
+    string long_name;
+    {
+        auto r = reader.read(long_name);
+        if (is_ko(r)) {
+            return make_tuple(nullptr, nullptr, nullptr);
+        }
+    }
+    log("read_item", name, long_name);
     auto i = find(name);
     if (i.second == nullptr) {
         return make_tuple(nullptr, nullptr, nullptr);
@@ -86,7 +97,6 @@ tuple<workflow_t*, item_t*, doc0_t*> c::read_item(const blob_t& blob) const {
     log("returning doc", r.second);
     return make_tuple(i.first, i.second, r.second);
 }
-
 
 ko c::rehome(const string& dir, ch_t& ch) {
     log("set workflows home", dir);
@@ -115,18 +125,21 @@ void c::recompute_doctypes(ch_t& ch) {
 }
 
 void c::add(workflow_t* wf, ch_t& ch) {
-    log("add workflow. home", home);
+    log("add workflow. home", home, wf->size(), "items");
     assert(wf != nullptr);
-    assert(wf->parent == nullptr);
-    wf->parent = this;
-    wf->home = home;
     emplace_back(wf);
     log("set_params_new_workflow");
     if (!home.empty()) {
         wf->load_all(ch);
     }
+}
+
+/*
+void c::add(workflow_t* wf, ch_t& ch) {
+    add0(wf, ch);
     recompute_doctypes(ch);
 }
+*/
 
 void c::help_online(const string& indent, ostream& os) const {
     for (auto& i: *this) {
@@ -146,10 +159,10 @@ void c::help_show(const string& indent, ostream& os) const {
     }
 }
 
-ko c::exec_offline(const string& cmd, ch_t& ch) {
+ko c::exec_offline(trader_t& tder, const string& cmd, ch_t& ch) {
     log("exec_offline");
     for (auto& i: *this) {
-        auto r = i->exec_offline(cmd, ch);
+        auto r = i->exec_offline(tder, cmd, ch);
         if (r == trader::trader_protocol::WP_29101) {
             continue;
         }
@@ -163,10 +176,10 @@ ko c::exec_offline(const string& cmd, ch_t& ch) {
     return move(r);
 }
 
-ko c::exec_online(peer_t& peer, const string& cmd, ch_t& ch) {
+ko c::exec_online(trader_t& tder, peer_t& peer, const string& cmd, ch_t& ch) {
     log("exec_online");
     for (auto& i: *this) {
-        auto r = i->exec_online(peer, cmd, ch);
+        auto r = i->exec_online(tder, peer, cmd, ch);
         if (is_ok(r)) {
             return r;
         }
@@ -208,7 +221,7 @@ void c::doctypes(doctypes_t& r) const {
 size_t c::blob_size() const {
     size_t sz = blob_writer_t::sizet_size(size());
     for (auto& i: *this) {
-        sz += blob_writer_t::blob_size(*i);
+        sz += blob_writer_t::blob_size(i, workflow_factories);
     }
     return sz;
 }
@@ -216,28 +229,28 @@ size_t c::blob_size() const {
 void c::to_blob(blob_writer_t& writer) const {
     writer.write_sizet(size());
     for (auto& i: *this) {
-        writer.write(*i);
+        writer.write(i, workflow_factories);
     }
 }
 
 ko c::from_blob(blob_reader_t& reader) {
+    if (!empty()) {
+        for (auto& i: *this) delete i;
+        clear();
+    }
     uint64_t sz;
     auto r = reader.read_sizet(sz);
     if (is_ko(r)) return r;
     //if (unlikely(sz > max_sizet_containers)) return KO_75643;
     assert(empty());
-    reserve(sz);
-    for (int i = 0; i < sz; ++i) {
-        workflow_t::factory_id_t id;
-        auto r = reader.read(id);
+    resize(sz);
+    auto me = this;
+    for (auto& i: *this) {
+        auto r = reader.read(i, workflow_factories, [me](workflow_t& wf) {
+            wf.parent = me;
+            wf.home = me->home;
+        });
         if (is_ko(r)) {
-            return r;
-        }
-        log("loading workflow id", id);
-        auto o = workflow_t::factories.create(id);
-        if (o == nullptr) {
-            auto r = "KO 70216 workflow load failed";
-            log(r);
             return r;
         }
     }

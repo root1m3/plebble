@@ -43,11 +43,26 @@ namespace us::wallet::trader::workflow {
         using ch_t = trader::ch_t;
 
     protected:
-        item_t(): parent(nullptr) {}
-        item_t(workflow_t* parent, const string& name, const string& long_name);
+        item_t();
 
     public:
         virtual ~item_t();
+
+        void init(workflow_t* parent);
+        void init(workflow_t* parent, const string& name, const string& long_name);
+
+    public:
+        using factories_t = us::gov::io::factories_t<item_t>;
+        using factory_t = us::gov::io::factory_t<item_t>;
+        using factory_id_t = uint8_t;
+
+        static factory_id_t null_instance;
+        virtual factory_id_t factory_id() const = 0;
+
+    public:
+        size_t blob_size() const override;
+        void to_blob(blob_writer_t&) const override;
+        ko from_blob(blob_reader_t&) override;
 
     public:
         virtual doc0_t* create_doc() const = 0;
@@ -59,9 +74,9 @@ namespace us::wallet::trader::workflow {
         ko save() const;
         ko tamper(const string& w0, const string& w1);
         void help_onoffline(const string& indent, ostream&) const;
-        ko exec_offline(const string& home, const string& cmd, ch_t&);
-        ko send_to(peer_t&) const;
-        ko send_request_to(peer_t&) const;
+        ko exec_offline(trader_t& tder, const string& home, const string& cmd, ch_t&);
+        ko send_to(trader_t&, peer_t&) const;
+        ko send_request_to(trader_t&, peer_t&) const;
         inline bool has_doc() const { return doc != nullptr; }
         void replace_doc(doc0_t*, ch_t&);
         bool sig_reset(ostream&);
@@ -92,20 +107,23 @@ namespace us::wallet::trader::workflow {
         string filename() const;
         pair<ko, doc0_t*> doc_from_blob(blob_reader_t&) const;
 
-    public:
-        using factory_id_t = uint64_t;
-        static us::gov::io::factories_t<item_t> factories;
+        struct doc0_factory_t: public us::gov::io::factory_t<doc0_t> {
 
-    public:
-        size_t blob_size() const override;
-        void to_blob(blob_writer_t&) const override;
-        ko from_blob(blob_reader_t&) override;
+            doc0_factory_t(const item_t& item): item(item) {}
+
+            pair<ko, value_type*> create() const override {
+                return make_pair(ok, item.create_doc());
+            }
+
+            const item_t& item;
+        };
 
     public:
         string name;
         string long_name;
+        doc0_factory_t doc0_factory;
         doc0_t* doc{nullptr};
-        workflow_t* parent;
+        workflow_t* parent{nullptr};
         mode_t mode{mode_recv};
     };
 

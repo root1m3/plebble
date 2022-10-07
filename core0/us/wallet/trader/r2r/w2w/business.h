@@ -21,7 +21,7 @@
 //===----------------------------------------------------------------------------
 //===-
 #pragma once
-#include "protocol.h"
+
 #include <mutex>
 #include <chrono>
 #include <string>
@@ -30,12 +30,18 @@
 #include <sstream>
 
 #include <us/gov/cash/tx_t.h>
+#include <us/gov/io/factory.h>
 #include <us/gov/relay/pushman.h>
 
-namespace us::wallet::trader {
-    struct traders_t;
-    struct trader_protocol;
-}
+#include <us/wallet/trader/business.h>
+#include <us/wallet/trader/traders_t.h>
+
+#include "protocol.h"
+
+//namespace us::wallet::trader {
+    //struct traders_t;
+    //struct trader_protocol;
+//}
 
 namespace us::wallet::trader::r2r::w2w {
 
@@ -45,19 +51,30 @@ namespace us::wallet::trader::r2r::w2w {
         using b = us::wallet::trader::business_t;
         using protocol = us::wallet::trader::r2r::w2w::protocol;
 
+    public:
         business_t();
         ~business_t() override;
-        ko init(const string& r2rhome) override;
-        string homedir() const override;
 
+    private:
+        protocol_factory_id_t protocol_factory_id() const;
+
+    public:
+        void register_factories(protocol_factories_t&) override;
+
+    public:
+        ko init(const string& r2rhome, us::wallet::trader::traders_t::protocol_factories_t&) override;
+
+    public:
+        string homedir() const override;
         pair<ko, trader::trader_protocol*> create_protocol() override;
         pair<ko, trader::trader_protocol*> create_opposite_protocol(protocol_selection_t&&) override;
-        //pair<ko, trader::trader_protocol*> create_protocol() override;
         void list_protocols(ostream&) const override; //human format
         void invert(protocols_t&) const override;
         void published_protocols(protocols_t&, bool inverse) const override;
         void exec_help(const string& prefix, ostream&) const override;
         ko exec(istream&, traders_t&, wallet::local_api&) override;
+
+
     };
 
 }

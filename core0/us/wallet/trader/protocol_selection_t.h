@@ -62,5 +62,7 @@ namespace us::wallet::trader {
 
     };
 
+    ostream& operator << (ostream&, const protocol_selection_t&);
 }
+
 

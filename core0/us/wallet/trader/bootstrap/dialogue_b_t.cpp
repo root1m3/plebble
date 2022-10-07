@@ -25,7 +25,6 @@
 #include <us/gov/crypto/types.h>
 #include <us/gov/socket/datagram.h>
 
-#include <us/wallet/protocol.h>
 #include <us/wallet/engine/peer_t.h>
 #include <us/wallet/trader/trader_t.h>
 #include <us/wallet/trader/traders_t.h>

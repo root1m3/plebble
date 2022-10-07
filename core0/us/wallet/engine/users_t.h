@@ -31,9 +31,7 @@
 #include "types.h"
 
 namespace us::wallet::wallet {
-
     struct local_api;
-
 }
 
 namespace us::wallet::engine {
@@ -47,7 +45,7 @@ namespace us::wallet::engine {
 
         users_t(daemon_t&);
         ~users_t();
-        wallet::local_api* get_wallet(const string& subhome);
+        wallet::local_api* get_wallet(const string& subhome); //returns soft pointer
 
     public:
         void dump(ostream&) const;

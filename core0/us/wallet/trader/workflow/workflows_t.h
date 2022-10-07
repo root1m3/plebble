@@ -27,14 +27,20 @@
 #include "workflow_t.h"
 
 namespace us::wallet::trader::workflow {
+
     using namespace std;
 
-    struct workflows_t final: private vector<workflow_t*>, public us::gov::io::seriable {
+    struct business_t;
+
+    struct workflows_t final: vector<workflow_t*>, public us::gov::io::seriable {
+        using b = vector<workflow_t*>;
         using doctypes_t = workflow_t::doctypes_t;
         using peer_t = workflow_t::peer_t;
         using ch_t = trader::ch_t;
 
-        ~workflows_t();
+    public:
+        workflows_t(business_t&);
+        ~workflows_t() override;
 
     public:
         pair<workflow_t*, item_t*> find(const string& name) const;
@@ -49,8 +55,8 @@ namespace us::wallet::trader::workflow {
         bool sig_hard_reset(ostream&);
         void on_file_updated(const string& path, const string& name, ch_t&);
         void recompute_doctypes(ch_t&);
-        ko exec_offline(const string& cmd, ch_t&);
-        ko exec_online(peer_t&, const string& cmd, ch_t&);
+        ko exec_offline(trader_t& tder, const string& cmd, ch_t&);
+        ko exec_online(trader_t&, peer_t&, const string& cmd, ch_t&);
         ko rehome(const string& home, ch_t&);
         void doctypes(doctypes_t&) const; //consumer, producer
         ko update_item(const blob_t&, ch_t&);
@@ -61,7 +67,15 @@ namespace us::wallet::trader::workflow {
         ko from_blob(blob_reader_t&) override;
 
     public:
+        using workflow_factories_t = workflow_t::factories_t;
+        using workflow_factory_t = workflow_t::factory_t;
+        using workflow_factory_id_t = workflow_t::factory_id_t;
+
+        workflow_factories_t workflow_factories;
+
+    public:
         string home;
+        business_t& business;
     };
 
 }

@@ -35,6 +35,7 @@ using us::ko;
 
 c::follower_t(const hash_t& trade_id, peer_t& peer): peer(peer) {
     b::trade_id = trade_id;
+    assert(trade_id.is_not_zero());
     log("constructor");
 }
 

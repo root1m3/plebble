@@ -49,7 +49,7 @@
 
 #include "assert.inc"
 
-namespace us { namespace test {
+namespace us::test {
 
 using namespace std;
 using namespace us;
@@ -666,7 +666,7 @@ void test_push(const string& s) {
 void test_push() {
     test_push("");
     test_push("abracadabra-poo");
-
+    test_push("POLLAFRITA");
 }
 
 void test_blobs() {
@@ -678,103 +678,5 @@ void test_blobs() {
     test_push();
 }
 
-/*
-template<typename t>
-t create_instance() {
-    if (mode==0) return numeric_limits<t>::min();
-    if (mode==1) return numeric_limits<t>::max();
-    uniform_int_distribution<t> d(numeric_limits<t>::min(), numeric_limits<t>::max());
-    return d(rng);
 }
-
-template<> pub_t create_instance<pub_t>() {
-    auto k=crypto::ec::keys::generate();
-    return k.pub;
-}
-
-template<> priv_t create_instance<priv_t>() {
-    auto k=crypto::ec::keys::generate();
-    return k.priv;
-}
-
-template<> string create_instance<string>() {
-    if (mode==0) return string();
-    return string("The lazy dog jumped over the tiny nasty ant and ant blood stained its toes.");
-}
-
-template<> const char* create_instance<const char*>() {
-    if (mode==0) return "";
-    return "The lazy dog jumped over the tiny nasty ant and ant blood stained its toes.";
-}
-
-template<> hash_t create_instance<hash_t>() {
-    if (mode==0) {
-        hash_t h;
-        h.zero();
-        return h;
-    }
-    us::gov::crypto::ripemd160 H;
-    uniform_int_distribution<uint64_t> d(numeric_limits<uint64_t>::min(), numeric_limits<uint64_t>::max());
-    H.write(d(rng));
-    hash_t h;
-    H.finalize(h);
-    return h;
-}
-
-template<> sighash_t create_instance<sighash_t>() {
-    if (mode==0) {
-        sighash_t h;
-        h.zero();
-        return h;
-    }
-    us::gov::crypto::sha256 H;
-    uniform_int_distribution<uint64_t> d(numeric_limits<uint64_t>::min(), numeric_limits<uint64_t>::max());
-    H.write(d(rng));
-    sighash_t h;
-    H.finalize(h);
-    return h;
-}
-
-template<>
-vector<unsigned char> create_instance<vector<unsigned char>>() {
-    if (mode==0) return vector<unsigned char>();
-    uniform_int_distribution<size_t> d(1, 300);
-    vector<unsigned char> v(d(rng), create_instance<unsigned char>());
-    return v;
-}
-
-template<>
-vector<string> create_instance<vector<string>>() {
-    if (mode==0) return vector<string>();
-    uniform_int_distribution<size_t> d(1, 300);
-    vector<string> v(d(rng), create_instance<string>());
-    return v;
-}
-
-template<>
-vector<tuple<hash_t, uint32_t, uint16_t>> create_instance<vector<tuple<hash_t, uint32_t, uint16_t>>>() {
-    if (mode==0) return vector<tuple<hash_t, uint32_t, uint16_t>>();
-    uniform_int_distribution<size_t> d(1, 300);
-    vector<tuple<hash_t, uint32_t, uint16_t>> v(d(rng), make_tuple(create_instance<hash_t>(),create_instance<uint32_t>(),create_instance<uint16_t>()));
-    return v;
-}
-
-template<>
-vector<pair<hash_t, string>> create_instance<vector<pair<hash_t, string>>>() {
-    if (mode==0) return vector<pair<hash_t, string>>();
-    uniform_int_distribution<size_t> d(1, 300);
-    vector<pair<hash_t, string>> v(d(rng), make_pair(create_instance<hash_t>(), create_instance<string>()));
-    return v;
-}
-
-template<>
-vector<hash_t> create_instance<vector<hash_t>>() {
-    if (mode==0) return vector<hash_t>();
-    uniform_int_distribution<size_t> d(1, 300);
-    vector<hash_t> v(d(rng), create_instance<hash_t>());
-    return v;
-}
-*/
-
-}}
 

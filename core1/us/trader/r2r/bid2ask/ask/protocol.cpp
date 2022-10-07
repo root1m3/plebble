@@ -21,12 +21,11 @@
 //===----------------------------------------------------------------------------
 //===-
 #include "protocol.h"
-#include <fstream>
+//#include <fstream>
 
 #include <us/gov/io/cfg0.h>
 #include <us/gov/io/shell_args.h>
 
-#include <us/wallet/protocol.h>
 #include <us/wallet/wallet/local_api.h>
 #include <us/wallet/engine/daemon_t.h>
 
@@ -39,8 +38,10 @@
 #define logclass "protocol"
 #include <us/gov/logs.inc>
 
-using namespace us::trader::r2r::bid2ask;
+using namespace us::trader::r2r::bid2ask::ask;
 using c = us::trader::r2r::bid2ask::ask::protocol;
+using std::string;
+using us::ko;
 
 const char* c::rolestr() const { return "ask"; }
 const char* c::peer_rolestr() const { return "bid"; }
@@ -61,12 +62,12 @@ void c::sig_reload(ostream& os) {
 
 void c::ensure_catalogue(ch_t& ch) {
     log("ensure_catalogue");
-    assert(_workflow != nullptr);
-    assert(_workflow->cat != nullptr);
+    assert(consumer_workflow != nullptr);
+    assert(consumer_workflow->cat != nullptr);
     bool create{false};
-    if (_workflow->cat->has_doc()) {
+    if (consumer_workflow->cat->has_doc()) {
         log("existing catalog");
-        if (!_workflow->cat->verify()) {
+        if (!consumer_workflow->cat->verify()) {
             log("existing catalogue doesn't verify");
             create = true;
         }
@@ -78,7 +79,7 @@ void c::ensure_catalogue(ch_t& ch) {
     if (create) {
         log("replacing with new instance");
         auto cat = static_cast<business_t&>(business).catalogue("en");
-        _workflow->cat->replace_doc(cat, ch);
+        consumer_workflow->cat->replace_doc(cat, ch);
     }
 }
 
@@ -97,25 +98,25 @@ bool c::on_signal(int sig, ostream& os) {
     return false;
 }
 
-void c::post_configure(ch_t& ch) {
-    log("post-configure");
-    assert(!ch.closed());
-    b::post_configure(ch);
-    assert(_workflow != nullptr);
-    assert(_workflow->cat != nullptr);
-    assert(_workflow->inv != nullptr);
-    assert(_workflow->pay != nullptr);
-    assert(_workflow->rcpt != nullptr);
-    _workflow->cat->set_mode(us::wallet::trader::workflow::item_t::mode_send, ch);
-    _workflow->inv->set_mode(us::wallet::trader::workflow::item_t::mode_send, ch);
-    _workflow->pay->set_mode(us::wallet::trader::workflow::item_t::mode_recv, ch);
-    _workflow->rcpt->set_mode(us::wallet::trader::workflow::item_t::mode_send, ch);
+void c::init_workflows(ch_t& ch) {
+    assert(consumer_workflow != nullptr);
+    consumer_workflow->init_ask(ch);
+}
+
+ko c::on_attach(trader_t& tder_, ch_t& ch) {
+    log("on_attach", "trace-w8i");
+    auto r = b::on_attach(tder_, ch); //calls init_workflows
+    if (is_ko(r)) {
+        return r;
+    }
+    log("on_attach. returned", ch.to_string());
     ensure_catalogue(ch);
     ch.shared_params_changed |= ch.local_params->shared.set("coin_pay", static_cast<business_t&>(business).recv_coin);
     ch.shared_params_changed |= ch.local_params->shared.set("coin_reward", static_cast<business_t&>(business).send_coin);
+    return move(r);
 }
 
-blob_t c::push_payload(uint16_t pc) const {
+us::gov::io::blob_t c::push_payload(uint16_t pc) const {
     if (pc < push_begin) {
         return b::push_payload(pc);
     }
@@ -246,7 +247,7 @@ ko c::select(peer_t& peer, const hash_t& product, int volume, bool superuser, ch
     msg << product << ' ';
     string reason;
     if (enabled_select || superuser) {
-        if (!_workflow->pay->has_doc()) {
+        if (!consumer_workflow->pay->has_doc()) {
             reason = check_KYC(product);
         }
         else {
@@ -291,7 +292,7 @@ ko c::workflow_item_requested(workflow_item_t& i, peer_t& peer, ch_t& ch) {
         log("Not an invoice");
         return ok;
     }
-    if (_workflow->pay->has_doc()) {
+    if (consumer_workflow->pay->has_doc()) {
         auto r = "KO 67599 Payment has already been completed.";
         log(r);
         return r;
@@ -318,11 +319,11 @@ ko c::workflow_item_requested(workflow_item_t& i, peer_t& peer, ch_t& ch) {
     if (is_ko(r.first)) {
         return r.first;
     }
-    assert(_workflow != nullptr);
-    assert(_workflow->inv != nullptr);
+    assert(consumer_workflow != nullptr);
+    assert(consumer_workflow->inv != nullptr);
     invoice_t* doc = create_invoice(get_lang(), basket, *r.second);
     log("brand new invoice created");
-    _workflow->inv->replace_doc(doc, ch);
+    consumer_workflow->inv->replace_doc(doc, ch);
     log("workflow_item_requested returned ", ch.to_string());
     delete r.second;
     return ok;
@@ -330,8 +331,8 @@ ko c::workflow_item_requested(workflow_item_t& i, peer_t& peer, ch_t& ch) {
 
 ko c::on_receive(peer_t& peer, workflow_item_t& itm, workflow_doc0_t* doc0, ch_t& ch) {
     log("on_receive workflow_item", itm.name);
-    if (&itm == _workflow->pay) {
-        if (_workflow->pay->has_doc()) {
+    if (&itm == consumer_workflow->pay) {
+        if (consumer_workflow->pay->has_doc()) {
             delete doc0;
             auto r = "KO 67999 Payment has already been completed.";
             log(r);
@@ -423,10 +424,10 @@ ko c::on_receive(peer_t& peer, workflow_item_t& itm, workflow_doc0_t* doc0, ch_t
         }
         itm.replace_doc(doc, ch);
 
-        receipt_t* rdoc = create_receipt(peer.get_lang(), basket, tx, _workflow->pay->doc->params.get("message", ""), info);
+        receipt_t* rdoc = create_receipt(peer.get_lang(), basket, tx, consumer_workflow->pay->doc->params.get("message", ""), info);
         log("brand new receipt created, delivering it to peer");
-        _workflow->rcpt->replace_doc(rdoc, ch);
-        _workflow->rcpt->send_to(peer);
+        consumer_workflow->rcpt->replace_doc(rdoc, ch);
+        consumer_workflow->rcpt->send_to(*tder, peer);
         {
             ostringstream os;
             os << "Thank you for shopping at " << business.name << '.';
@@ -542,5 +543,28 @@ c::chat_t::entry c::AI_chat(const chat_t& chat, peer_t& peer) {
 
 void c::judge(const string& lang) {
     b::judge(lang);
+}
+
+size_t c::blob_size() const {
+    size_t sz = b::blob_size();
+    return sz;
+}
+
+void c::to_blob(blob_writer_t& writer) const {
+    b::to_blob(writer);
+}
+
+c::factory_id_t c::factory_id() const {
+    return protocol_selection_t("bid2ask", "ask");
+}
+
+ko c::from_blob(blob_reader_t& reader) {
+    {
+        auto r = b::from_blob(reader);
+        if (is_ko(r)) {
+            return r;
+        }
+    }
+    return ok;
 }
 

@@ -121,7 +121,7 @@ void c::load_v1_() {
 }
 */
 
-void c::load_() {
+ko c::load_() {
     string filename = home + "/d";
     clear();
     log("load authorized devices and config from", filename);
@@ -130,7 +130,9 @@ void c::load_() {
     is >> ver;
     log("devices file version", ver);
     if (ver[0] != d_version) {
-        return;
+        auto r = "KO 89899 version mismatch.";
+        log(r, d_version, ver[0]);
+        return r;
     }
     is >> authorize_and_create_guest_wallet;
     log("authorize_and_create_guest_wallet", authorize_and_create_guest_wallet);
@@ -151,13 +153,14 @@ void c::load_() {
         }
         if (!d.second.pub.valid) {
             prepaired.emplace(d.second.decode_pin(), d.second);
+            log("added prepaired device. pin", d.second.decode_pin());
             continue;
         }
         log("loaded device pubkey:", d.second.pub, "name:", d.second.name, "subhome:", d.second.subhome);
         emplace(d.second.pub.hash(), d.second);
     }
     if (empty()) {
-        log("white list is empty", "adding console key");
+        log("white list is empty.", "adding console key");
         using io::cfg_id;
         auto f = cfg_id::load(home + "/rpc_client", true);
         if (is_ko(f.first)) {
@@ -168,8 +171,8 @@ void c::load_() {
         log("added", f.second->keys.pub);
         save_();
         delete f.second;
-        return;
     }
+    return ok;
 }
 
 void c::save_() const {

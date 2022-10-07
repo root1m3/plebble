@@ -125,16 +125,15 @@ namespace us::gov::engine {
 
         static void fsinfo(const string& home, bool dot, ostream&);
 
+    public:
+        void constructor();
         daemon_t();
         daemon_t(channel_t, const keys_t&);
         daemon_t(channel_t, const keys_t&, const string& home, port_t, pport_t pport, uint8_t num_edges, uint8_t devices, int workers, const vector<hostport_t>& seed_nodes, const string& status_file);
         daemon_t(const daemon_t&) = delete;
         daemon_t(daemon_t&&) = delete;
         ~daemon_t() override;
-
         daemon_t& operator = (const daemon_t&) = delete;
-
-        void constructor();
 
     public:
         int clean_orphaned_blocks();
@@ -186,6 +185,7 @@ namespace us::gov::engine {
         void files_to_keep(vector<pair<hash_t, uint32_t>>&) const;
         void update_dfs_index();
         void update_dfs_index_delta();
+        void update_dfs_index_delta_();
         void on_block_closure(ts_t block_closure) override;
         bool ready_for_block_opening(ts_t) const override;
         static string get_blocksdir(const string& govhome);

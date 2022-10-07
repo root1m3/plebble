@@ -82,4 +82,3 @@ str82="https://github.com/user/project"   #Repreducible builds URL
 str83=0                 #Android AppStore build; 0-no 1-yes
 str90=0                 #Save evidences
 
-

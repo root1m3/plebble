@@ -24,6 +24,7 @@
 #include "node.h"
 #include "dispatcher_t.h"
 #include <us/gov/stacktrace.h>
+#include <us/wallet/engine/daemon_t.h>
 #include <iostream>
 
 #define loglevel "test"
@@ -35,7 +36,7 @@
 //////Enable wait between steps when debugging failures or extending the tests.
 //////If disabled tests go fast but failures can be originated on previous steps to those reported
 //#define ENABLE_WAIT
-#define WAIT_TIME 1s
+#define WAIT_TIME 1
 ////////////////////////////////////
 
 using c = us::test::r2r_t;
@@ -43,13 +44,14 @@ using namespace std;
 
 int c::wait_from_seq{0};
 bool c::enable_wait{false};
+bool c::test_restart_wallet{true};
 
 namespace {
 
     void gfail(const char* file, int line, ostream& os) {
         print_stacktrace(os);
         os << "At " << file << " line " << line << endl;
-        if (c::enable_wait) {
+        if (!c::enable_wait) {
             os << "Hint for debugging: run tests with again with --wait-between-steps.\n";
         }
         abort();
@@ -66,6 +68,11 @@ namespace {
 int c::testseq{0};
 
 c::r2r_t(network& n): n(n), out(n.out) {
+    n.r2r_tests = this;
+}
+
+c::~r2r_t() {
+    n.r2r_tests = nullptr;
 }
 
 void c::fail_(const char* file, int line) {
@@ -76,68 +83,58 @@ void c::fail_(bool b, const char* file, int line) {
     ::gfail(file, line, b, out);
 }
 
+static constexpr auto sw1 = " #########################Invoked with --wait-between-steps###########################################\n";
+
+void c::wait() {
+    if (!enable_wait) return;
+    if (testseq < wait_from_seq) return;
+    out << "seq " << testseq << sw1;
+    uint64_t wt = WAIT_TIME;
+    out << "wait " << wt /*.count()*/ << 's' << endl;
+    //this_thread::sleep_for(WAIT_TIME);
+//    cv_abort.wait_for(WAIT_TIME);
+    wait(WAIT_TIME);
+}
+
+void c::wait(uint64_t secs) {
+    unique_lock<mutex> lock(mx_abort);
+    if (abortsignaled) {
+        return;
+    }
+    cv_abort.wait_for(lock, chrono::seconds(secs), [&]{ return abortsignaled; });
+    abortsignaled = false;
+}
+
 void c::wait(node& n1, node& n2) {
     n1.wallet_cli_dis->expected_code.wait();
     n2.wallet_cli_dis->expected_code.wait();
-    if (enable_wait) {
-        if (testseq >= wait_from_seq) {
-            out << "seq " << testseq << " #########################comment out ENABLE_WAIT when all tests pass###########################################\n";
-            auto wt = WAIT_TIME;
-            out << "wait " << wt.count() << 's' << endl;
-            this_thread::sleep_for(WAIT_TIME);
-            out << "seq " << testseq << " #/#######################comment out ENABLE_WAIT when all tests pass###########################################\n";
-        }
-    }
+    wait();
 }
 
 void c::wait(node& n1, node& n2, uint64_t timeout_ms) {
     n1.wallet_cli_dis->expected_code.step_wait_ms = timeout_ms;
     n2.wallet_cli_dis->expected_code.step_wait_ms = timeout_ms;
     wait(n1, n2);
-    n2.wallet_cli_dis->expected_code.default_step_wait();
-    n1.wallet_cli_dis->expected_code.default_step_wait();
+    n2.wallet_cli_dis->expected_code.set_default_step_wait();
+    n1.wallet_cli_dis->expected_code.set_default_step_wait();
 }
 
 void c::wait_no_clear(node& n1, node& n2) {
     n1.wallet_cli_dis->expected_code.wait_no_clear();
     n2.wallet_cli_dis->expected_code.wait_no_clear();
-    if (enable_wait) {
-        if (testseq >= wait_from_seq) {
-            out << "seq " << testseq << " #########################comment out ENABLE_WAIT when all tests pass###########################################\n";
-            auto wt = WAIT_TIME;
-            out << "wait " << wt.count() << 's' << endl;
-            this_thread::sleep_for(WAIT_TIME);
-            out << "seq " << testseq << " #/#######################comment out ENABLE_WAIT when all tests pass###########################################\n";
-        }
-    }
+    wait();
 }
 
 void c::wait_no_clear1(node& n1, node& n2) {
     n1.wallet_cli_dis->expected_code.wait_no_clear();
     n2.wallet_cli_dis->expected_code.wait();
-    if (enable_wait) {
-        if (testseq >= wait_from_seq) {
-            out << "seq " << testseq << " #########################comment out ENABLE_WAIT when all tests pass###########################################\n";
-            auto wt = WAIT_TIME;
-            out << "wait " << wt.count() << 's' << endl;
-            this_thread::sleep_for(WAIT_TIME);
-            out << "seq " << testseq << " #/#######################comment out ENABLE_WAIT when all tests pass###########################################\n";
-        }
-    }
+    wait();
 }
 
 void c::wait_no_clear2(node& n1, node& n2) {
     n1.wallet_cli_dis->expected_code.wait();
     n2.wallet_cli_dis->expected_code.wait_no_clear();
-    if (enable_wait) {
-        if (testseq >= wait_from_seq) {
-            out << "seq " << testseq << " #########################comment out ENABLE_WAIT when all tests pass###########################################\n";
-            auto wt = WAIT_TIME;
-            out << "wait " << wt.count() << 's' << endl;
-            this_thread::sleep_for(WAIT_TIME);
-            out << "seq " << testseq << " #/#######################comment out ENABLE_WAIT when all tests pass###########################################\n";
-        }
-    }
+    wait();
 }
 
 void c::curtest_cont(node& n1, node& n2, const string& title, const char*file, int line) {
@@ -147,24 +144,35 @@ void c::curtest_cont(node& n1, node& n2, const string& title, const char*file, i
     auto f = [=](ostream& os) {
         os << "ref: testseq " << testseq << " '" << title << "' @ " << file << ":" << line << '\n';
     };
-    n1.wallet_cli_dis->expected_code.reftest = f;
-    n2.wallet_cli_dis->expected_code.reftest = f;
+    assert(n1.wallet_cli_dis != nullptr);
 
     n1.wallet_cli_dis->data_seq.clear();
     n2.wallet_cli_dis->data_seq.clear();
 
+    n1.wallet_cli_dis->expected_code.reftest = f;
+    n2.wallet_cli_dis->expected_code.reftest = f;
+
     ++testseq;
+
 }
 
-void c::curtest(node& n1, node& n2, const string& title, const char*file, int line) {
+us::ko c::curtest(node& n1, node& n2, const string& title, const char*file, int line) {
+    if (abortsignaled) {
+        return "KO 89079 Aborted";
+    }
     curtest_cont(n1, n2, title, file, line);
     Failb(!n1.wallet_cli_dis->expected_code.all_empty());
     Failb(!n2.wallet_cli_dis->expected_code.all_empty());
+    //first call of curtest after a wallet restart
+    if (flagrw2) {
+        test_restartw2(n1, n2);
+    }
+    return ok;
 }
 
 void c::test_r2r_cfg(node& n1, node& n2, function<void(node&, node&)> foo, hash_t& tid) {
     banner(n1, n2, out);
-    this_thread::sleep_for(1s);
+    //this_thread::sleep_for(1s);
 
     auto o1 = n1.wallet_cli->interactive;
     auto o2 = n1.wallet_cli->p.names;
@@ -337,14 +345,22 @@ void c::test_trade_start_dialog_a(node& bid, node& ask, hash_t& trade_id, int n1
             }
             seq++;
         });
+
     bid.wallet_cli_dis->expected_code.check.emplace(us::wallet::trader::trader_t::push_trade,
-    [&](const hash_t& tid, uint16_t code, const vector<uint8_t>& blob) {
-        cout << "new tid " << tid << endl;
-        assert(tid.is_not_zero());
-        trade_id = tid;
-    });
+        [&](const hash_t& tid, uint16_t code, const vector<uint8_t>& blob) {
+            cout << "new tid " << tid << endl;
+            assert(tid.is_not_zero());
+            trade_id = tid;
+        });
 
     ask.wallet_cli_dis->expected_code.emplace(us::wallet::trader::trader_t::push_trade, 1);
+    ask.wallet_cli_dis->expected_code.check.emplace(us::wallet::trader::trader_t::push_trade,
+        [&](const hash_t& tid, uint16_t code, const vector<uint8_t>& blob) {
+            cout << "new tid " << tid << endl;
+            assert(tid.is_not_zero());
+            //trade_id = tid;
+        });
+
     ask.wallet_cli_dis->expected_code.emplace(us::wallet::trader::trader_t::push_data, 2);
     ask.wallet_cli_dis->expected_code.check.emplace(us::wallet::trader::trader_t::push_data,
         [&](const hash_t& tid, uint16_t code, const vector<uint8_t>& blob) {
@@ -354,6 +370,7 @@ void c::test_trade_start_dialog_a(node& bid, node& ask, hash_t& trade_id, int n1
             cout << "seq " << seq << endl;
             cout << payload << endl;
             assert(tid == ask.wallet_cli->cur);
+//cout << tid << ' ' << trade_id << endl;
             assert(tid == trade_id);
             string peer_prots;
             {
@@ -621,3 +638,117 @@ void c::test_trade_start_dialog_b(node& bid, node& ask, hash_t& trade_id, int nu
     }
 }
 
+void c::abort_tests() {
+    cerr << "r2r::abort tests" << endl;
+    {
+        lock_guard<mutex> lock(mx_abort);
+        abortsignaled = true;
+        cv_abort.notify_all();
+    }
+    n.abort_tests();
+}
+
+void c::test_restartw(node& w1, node& w2) {
+    if (!test_restart_wallet) return;
+
+    if (is_ko(curtest(w1, w2, "test_restartw", __FILE__, __LINE__))) return;
+
+/*
+    w1.wallet_cli_dis->expected_code.emplace(us::wallet::trader::trader_t::push_data, 1);
+    w1.wallet_cli_dis->expected_code.check.emplace(us::wallet::trader::trader_t::push_data,
+        [&](const hash_t& tid, uint16_t code, const vector<uint8_t>& blob) {
+            string payload;
+            assert(is_ok(blob_reader_t::parse(blob, payload)));
+            Check_s_contains(payload, "state offline");
+        }
+    );
+*/
+
+    w2.wallet_cli_dis->expected_code.emplace(us::wallet::trader::trader_t::push_data, 1);
+    w2.wallet_cli_dis->expected_code.check.emplace(us::wallet::trader::trader_t::push_data,
+        [&](const hash_t& tid, uint16_t code, const vector<uint8_t>& blob) {
+            string payload;
+            assert(is_ok(blob_reader_t::parse(blob, payload)));
+            Check_s_contains(payload, "state offline");
+        }
+    );
+
+    w1.wallet_cli_dis->expected_code.enabled = true;
+    w2.wallet_cli_dis->expected_code.enabled = true;
+    w2.wallet_cli_dis->expected_code.zero_arrivals_is_good = true;
+
+    w1.wallet->daemon->traders.dump("traders w1> ", cout);
+    cout << endl;
+//    w2.wallet->daemon->traders.dump("traders w2> ", cout);
+//    cout << endl;
+
+    w1.traders_serialization_save();
+    w1.copy_state("/tmp/traders0");
+
+
+    cout << "w1 pointers:" << endl;
+    w1.print_pointers(cout);
+
+    tee("========================= restart wallet", w1.id, "====================================");
+    w1.restart_daemons();
+    tee("=/======================= restart wallet", w1.id, "====================================");
+
+    wait(w1, w2, 10000);
+
+    w1.print_pointers(cout);
+
+    w1.traders_serialization_save();
+    w1.copy_state("/tmp/traders1");
+    w1.diff_state("/tmp/traders0", "/tmp/traders1");
+
+    w1.wallet_cli_dis->expected_code.clear_all();
+    w2.wallet_cli_dis->expected_code.clear_all();
+    w1.wallet_cli_dis->expected_code.enabled = true;
+    w2.wallet_cli_dis->expected_code.enabled = true;
+
+    flagrw2 = true;
+}
+
+void c::test_restartw2(node& w1, node& w2) {
+    if (!test_restart_wallet) return;
+    tee("expecting more push_data after restart");
+    flagrw2 = false;
+    w1.wallet_cli_dis->expected_code.emplace(us::wallet::trader::trader_t::push_data, 2);
+    w1.wallet_cli_dis->expected_code.check.emplace(us::wallet::trader::trader_t::push_data,
+        [&](const hash_t& tid, uint16_t code, const vector<uint8_t>& blob) {
+            string payload;
+            assert(is_ok(blob_reader_t::parse(blob, payload)));
+            static int seq = 0;
+            cout << "seq " << seq << endl;
+            assert(tid == w1.wallet_cli->cur);
+            assert(tid == trade_id);
+            if (seq == 0) {
+                Check_s_contains(payload, "state online");
+            }
+            if (seq == 1) {
+                cout << "WARNING: extra data here" << endl;
+            }
+            seq++;
+        });
+
+    w2.wallet_cli_dis->expected_code.emplace(us::wallet::trader::trader_t::push_data, 3);
+    w2.wallet_cli_dis->expected_code.check.emplace(us::wallet::trader::trader_t::push_data,
+        [&](const hash_t& tid, uint16_t code, const vector<uint8_t>& blob) {
+            string payload;
+            assert(is_ok(blob_reader_t::parse(blob, payload)));
+            static int seq = 0;
+            cout << "seq " << seq << endl;
+            assert(tid == w1.wallet_cli->cur);
+            assert(tid == trade_id);
+            if (seq == 0) {
+                Check_s_contains(payload, "state online");
+            }
+            if (seq == 1) {
+                Check_s_contains(payload, "state online");
+            }
+            if (seq == 2) {
+                cout << "WARNING: extra data here" << endl;
+            }
+            seq++;
+        });
+}

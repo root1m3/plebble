@@ -36,18 +36,18 @@ ${OBJ}.o: ${OBJS}
 	ld -r -o ${OBJ}.o ${OBJS}
 
 %.o: %.cpp
-	g++ -fPIC -c ${CXXFLAGS} -I${INC} $^ -o $@
+	${CXX} -fPIC -c ${CXXFLAGS} -I${INC} $^ -o $@
 
 apitool: ${OBJ}.o
-	g++ ${CXXFLAGS} ${OBJ}.o -o apitool
+	${CXX} ${CXXFLAGS} ${OBJ}.o -o apitool
 
 generated: apitool
 	./apitool
 
 clean:
-	rm -f apitool
-	rm -rf generated
-	rm -f *.o
+	${RM} apitool
+	${RM} -r generated
+	${RM} *.o
 
 .phony: debug all clean
 

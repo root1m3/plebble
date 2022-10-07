@@ -65,8 +65,8 @@ namespace us::wallet::engine {
         inline const string& get_home() const { return home; }
 
     private:
-        void load_();
-        void load_v1_();
+        ko load_();
+        //void load_v1_();
         void save_() const;
         ko device_pair_(const pub_t&, string subhome, string name, bool save = true);
         ko device_unpair_(const pub_t&);

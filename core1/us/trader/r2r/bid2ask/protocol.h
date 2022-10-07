@@ -26,6 +26,7 @@
 
 #include <us/wallet/trader/trader_t.h>
 #include <us/wallet/trader/workflow/trader_protocol.h>
+#include <us/wallet/trader/workflow/business.h>
 #include <us/wallet/wallet/local_api.h>
 
 #include <us/trader/workflow/consumer/basket.h>
@@ -35,6 +36,7 @@
 #include <us/trader/workflow/logistics/docs.h>
 
 #include "types.h"
+#include "consumer_workflow_t.h"
 
 namespace us::trader::r2r::bid2ask {
 
@@ -47,25 +49,12 @@ namespace us::trader::r2r::bid2ask {
         using shipping_receipt_t = us::trader::workflow::logistics::shipping_receipt_t;
         using trader_t = us::wallet::trader::trader_t;
         using basket_t = us::trader::workflow::consumer::basket_t;
+        using business_t = us::wallet::trader::workflow::business_t;
 
-        struct workflow_t: us::trader::workflow::consumer::workflow_t {
-            using b = us::trader::workflow::consumer::workflow_t;
-
-            workflow_t(trader_t&, ch_t&);
-            ~workflow_t() override;
-            inline trader_t& trader() const override { return tder; }
-
-            bitem* cat{nullptr};
-            bitem* inv{nullptr};
-            bitem* pay{nullptr};
-            bitem* rcpt{nullptr};
-
-            trader_t& tder;
-        };
-
-        protocol(b::business_t&);
+        protocol(business_t&);
         ~protocol() override;
 
+    public:
         enum push_code_t { //communications node-HMI
             push_begin = trader_protocol::push_r2r_begin, //push 300
             push_basket = push_begin,  //push 300
@@ -102,8 +91,10 @@ namespace us::trader::r2r::bid2ask {
 
         shipping_receipt_t* ship(const shipping_options_t&, const parcel_t&);
 
-        virtual void post_configure(ch_t&);
-        ko on_attach(trader_t&, ch_t&) override;
+    public:
+        void create_workflows(ch_t&) override;
+
+    public:
         void help_show(const string& prefix, ostream&) const override;
         ko exec_offline(const string& cmd, ch_t&) override;
         void data(const string& lang, ostream&) const override;
@@ -113,8 +104,13 @@ namespace us::trader::r2r::bid2ask {
         static ko exec(istream&, ostream&);
 
     public:
+        size_t blob_size() const override;
+        void to_blob(blob_writer_t&) const override;
+        ko from_blob(blob_reader_t&) override;
+
+    public:
         basket_t basket;
-        workflow_t* _workflow{nullptr};
+        consumer_workflow_t* consumer_workflow{nullptr}; //weak ptr
     };
 
 }

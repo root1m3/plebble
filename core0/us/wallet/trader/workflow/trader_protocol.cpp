@@ -21,9 +21,12 @@
 //===----------------------------------------------------------------------------
 //===-
 #include "trader_protocol.h"
-#include "doc_t.h"
-#include "../trader_t.h"
+
+#include <us/gov/io/cfg0.h>
 #include <us/gov/socket/datagram.h>
+#include <us/wallet/trader/trader_t.h>
+
+#include "doc_t.h"
 
 #define loglevel "wallet/trader/workflow"
 #define logclass "trader_protocol"
@@ -35,7 +38,7 @@ using namespace us::wallet::trader::workflow;
 using c = us::wallet::trader::workflow::trader_protocol;
 using us::ko;
 
-c::trader_protocol(business_t& bz): b(bz) {
+c::trader_protocol(business_t& bz): b(bz), _workflows(get_business()) {
 }
 
 c::~trader_protocol() {
@@ -88,6 +91,17 @@ ko c::rehome_workflows(ch_t& ch) {
 ko c::rehome(ch_t& ch) {
     auto r = b::rehome(ch);
     return rehome_workflows(ch);
+}
+
+ko c::on_attach(trader_t& tder_, ch_t& ch) {
+    create_workflows(ch);
+    auto r = b::on_attach(tder_, ch);
+    if (is_ko(r)) {
+        return r;
+    }
+    init_workflows(ch);
+    _workflows.recompute_doctypes(ch);
+    return ok;
 }
 
 ko c::exec_offline(const string& cmd0, ch_t& ch) {
@@ -169,7 +183,7 @@ ko c::exec_offline(const string& cmd0, ch_t& ch) {
     }
 
     {
-        auto r = _workflows.exec_offline(cmd0, ch);
+        auto r = _workflows.exec_offline(*tder, cmd0, ch);
         if (is_ok(r)) {
             return move(r);
         }
@@ -200,7 +214,7 @@ ko c::exec_online(peer_t& peer, const string& cmd0, ch_t& ch) {
         }
     }
     {
-        auto r = _workflows.exec_online(peer, cmd0, ch);
+        auto r = _workflows.exec_online(*tder, peer, cmd0, ch);
         if (r != WP_29101) {
             if (is_ok(r)) { //callbacks: on_send_item
                 istringstream is(cmd0);
@@ -219,8 +233,6 @@ ko c::exec_online(peer_t& peer, const string& cmd0, ch_t& ch) {
     log(r);
     return move(r);
 }
-
-#include <us/gov/io/cfg0.h>
 
 bool c::sig_reset(ostream& os) {
     bool ch = _workflows.sig_reset(os);
@@ -268,7 +280,6 @@ ko c::on_receive(peer_t& peer, item_t& itm, doc0_t* doc, ch_t& ch) {
     itm.replace_doc(doc, ch);
     return ok;
 }
-
 
 ko c::workflow_item_requested(item_t& i, peer_t&, ch_t&) {
     log("workflow_item_requested", i.name);
@@ -338,7 +349,7 @@ ko c::trading_msg(peer_t& peer, svc_t svc, blob_t&& blob) {
             }
             {
                 lock_guard<mutex> lock2(wf.first->mx);
-                auto r = wf.second->send_to(peer);
+                auto r = wf.second->send_to(*tder, peer);
                 if (is_ko(r)) {
                     log(r);
                     return ok;
@@ -394,88 +405,6 @@ blob_t c::push_payload(uint16_t pc) const {
     return b::push_payload(pc);
 }
 
-namespace { namespace i18n {
-
-    struct r_en_t;
-    struct r_es_t;
-
-    struct r_t: unordered_map<uint32_t, const char*> {
-        using b =  unordered_map<uint32_t, const char*>;
-
-        using b::unordered_map;
-
-        const char* resolve(uint32_t n) const {
-            log("string-res. resolve", n);
-            auto i = find(n);
-            if (i == end()) return begin()->second;
-            return i->second;
-        }
-
-        static r_t& resolver(const string& lang);
-    };
-
-    struct r_en_t: r_t {
-        using b = r_t;
-
-        r_en_t(): b({
-            {0, "idle / available"}, {1, "Let's have a chat."},
-
-        }) {
-            //log("constructor 'en' string resources with", size(), "entries. Entry #0 is", resolve(0));
-        }
-
-    };
-
-    struct r_es_t: r_t {
-        using b = r_t;
-
-        r_es_t(): b({
-            {0, "disponible"}, {1, "Hablemos por chat."},
-
-        }) {
-            //log("constructor 'es' string resources with", size(), "entries. Entry #0 is", resolve(0));
-        }
-
-    };
-
-    r_en_t r_en;
-    r_es_t r_es;
-
-    r_t& r_t::resolver(const string& lang) {
-        if (lang == "es") return r_es;
-        return r_en;
-    }
-
-}}
-
-uint32_t c::trade_state_() const {
-    return 0;
-}
-
-void c::judge(const string& lang) {
-    auto st = trade_state_();
-    if (st != _trade_state.first) {
-        auto t = i18n::r_t::resolver(lang);
-        auto r = t.resolve(st);
-        log("trade_state", st, r);
-        _trade_state = make_pair(st, r);
-        _user_hint = t.resolve(_trade_state.first + 1);
-    }
-}
-
-void c::data(const string& lang, ostream& os) const {
-    b::data(lang, os);
-    {
-        lock_guard<mutex> lock(mx_user_state);
-        const_cast<c&>(*this).judge("en");
-        log("trade_state is", _trade_state.first, _trade_state.second);
-        os << "trade_state " << _trade_state.first << ' ' << _trade_state.second << '\n';
-        if (!_user_hint.empty()) {
-            os << "user_hint " << _user_hint << '\n';
-        }
-    }
-}
-
 size_t c::blob_size() const {
     size_t sz = b::blob_size() + 
         blob_writer_t::blob_size(_workflows) +
@@ -483,12 +412,14 @@ size_t c::blob_size() const {
         blob_writer_t::blob_size(_trade_state.first) +
         blob_writer_t::blob_size(_trade_state.second) +
         blob_writer_t::blob_size(_user_hint);
+    log("blob_size", sz);
     return sz;
 }
 
 void c::to_blob(blob_writer_t& writer) const {
     b::to_blob(writer);
-    writer.write(_workflows);
+    log("to_blob", "cur", (uint64_t)(writer.cur - writer.blob.data()));
+    writer.write(_workflows); 
     writer.write(redirects);
     writer.write(_trade_state.first);
     writer.write(_trade_state.second);
@@ -496,6 +427,7 @@ void c::to_blob(blob_writer_t& writer) const {
 }
 
 ko c::from_blob(blob_reader_t& reader) {
+    log("from_blob", "cur", (uint64_t)(reader.cur - reader.blob.data()));
     {
         auto r = b::from_blob(reader);
         if (is_ko(r)) {

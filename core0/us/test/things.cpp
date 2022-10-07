@@ -50,7 +50,7 @@
 
 #include "assert.inc"
 
-namespace us { namespace test {
+namespace us::test {
 
 using namespace std;
 using namespace us;
@@ -1457,7 +1457,29 @@ struct things_t: us::test::test_platform {
         test_keys();
     }
 
+    void test_pointers() { //Morello board
+        struct type_t { int x; };
+        auto i11 = new type_t();
+        auto i12 = i11;
+        auto i21 = new type_t();
+        auto i22 = i21;
+        assert(i11 == i12);
+        assert(i11 != i21);
+        assert(i11 != i22);
+        assert(i12 != i21);
+        assert(i12 != i22);
+        assert(i21 == i22);
+        assert(i21 != i11);
+        assert(i21 != i12);
+        assert(i22 != i11);
+        assert(i22 != i12);
+        delete i11;
+        delete i21;
+    }
+
     void self_test() {
+        cout << "pointers (classic/fat)" << endl;
+        test_pointers();
         cout << "trim" << endl;
         test_trim();
         cout << "path_fs" << endl;
@@ -1484,7 +1506,7 @@ struct things_t: us::test::test_platform {
     //assert(false);
         cout << "chat" << endl;
         test_chat();
-
+        
     }
 
 };
@@ -1494,5 +1516,5 @@ void test_things() {
     things.self_test();
 }
 
-}}
+}
 

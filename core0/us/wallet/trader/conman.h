@@ -84,7 +84,7 @@ namespace us::wallet::trader {
         virtual void die(const string& reason);
         virtual void offline();
         virtual void online(peer_t&);
-        virtual void on_start();
+//        virtual void on_start();
 
     public:
         void onwakeup();
@@ -102,20 +102,24 @@ namespace us::wallet::trader {
         void update_ip();
         state_t initiate_connection();
         void schedule_exec(string cmd);
+        virtual void dump(const string& pfx, ostream&) const;
+        state_t get_stateX() const;
 
         template<typename... Args> void olog(const Args&... args) const;
 
-    public:
+    private:
         state_t state{state_off};
         condition_variable cv;
-        atomic<int> busyref{0};
         atomic<bool> state_changed{false};
         static constexpr uint8_t tries_req_online_def{10};
         int tries_req_online{tries_req_online_def};
         ko ko_ip_resolution{ok};
+
+    public:
+        hostport_t remote_ip{0, 0};
         endpoint_t remote_endpoint;
         string reason; //for dying
-        hostport_t remote_ip{0, 0};
+        atomic<int> busyref{0};
 
     private:
         peer_t* cli{nullptr};

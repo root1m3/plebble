@@ -34,9 +34,9 @@ import us.string;                                                               
 
 public abstract class item_t implements us.gov.io.seriable {
 
-    static void log(final String line) {                    //--strip
-       CFG.log_wallet_trader("workflow/item_t: " + line);   //--strip
-    }                                                       //--strip
+    static void log(final String line) {                     //--strip
+        CFG.log_wallet_trader("workflow/item_t: " + line);   //--strip
+    }                                                        //--strip
 
     public abstract doc0_t create_doc();
 
@@ -64,13 +64,14 @@ public abstract class item_t implements us.gov.io.seriable {
     @Override public serid_t serial_id() { return serid_t.no_header; }
 
     @Override public int blob_size() {
-        int sz = blob_writer_t.blob_size(name) + 1;
+        int sz = blob_writer_t.blob_size(name) + blob_writer_t.blob_size(long_name) + 1;
         if (doc != null) sz += blob_writer_t.blob_size(doc);
         return sz;
     }
 
     @Override public void to_blob(blob_writer_t writer) {
         writer.write(name);
+        writer.write(long_name);
         uint8_t hasdoc = new uint8_t(doc == null ? (short)0 : (short)1);
         writer.write(hasdoc);
         if (doc != null) writer.write(doc);
@@ -95,6 +96,23 @@ public abstract class item_t implements us.gov.io.seriable {
             }
         }
         {
+            string n = new string();
+            {
+                ko r = reader.read(n);
+                if (is_ko(r)) return r;
+            }
+            if (long_name.isEmpty()) {
+                long_name = n.value;
+            }
+            else {
+                if (!n.value.equals(long_name)) {
+                    ko r = new ko("KO 40328 Workflow item long_name mismatch");
+                    log(r.msg + " " + n.value + " " + long_name); //--strip
+                    return r;
+                }
+            }
+        }
+        {
             pair<ko, doc0_t> r = doc_from_blob(reader);
             if (is_ko(r.first)) {
                 assert r.second == null;
@@ -107,6 +125,7 @@ public abstract class item_t implements us.gov.io.seriable {
     }
 
     public String name = "";
+    public String long_name = "";
     public doc0_t doc = null;
 
 }

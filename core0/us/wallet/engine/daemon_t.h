@@ -60,9 +60,11 @@ namespace us::wallet::engine {
 
         static const char* KO_20193, *KO_20197;
 
+    public:
         daemon_t(channel_t, const keys_t&, port_t, pport_t, const string& home, const shostport_t& gov, uint8_t max_trade_edges, uint8_t max_devices, uint8_t workers, const string& downloads_dir);
         virtual ~daemon_t() override;
 
+    public:
         socket::client* create_client(sock_t sock) override;
         const keys_t& get_keys() const override { return id; }
         std::pair<ko, string> authorize_deviceX(const pub_t&, pin_t pin);

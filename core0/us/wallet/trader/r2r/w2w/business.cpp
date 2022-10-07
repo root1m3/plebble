@@ -27,7 +27,6 @@
 #include <us/gov/io/shell_args.h>
 #include <us/gov/io/cfg0.h>
 
-#include <us/wallet/protocol.h>
 #include <us/wallet/engine/daemon_t.h>
 #include <us/wallet/trader/trader_t.h>
 
@@ -46,9 +45,53 @@ c::~business_t() {
     log("destroyed w2w bz", home);
 }
 
-ko c::init(const string& r2rhome) {
+c::protocol_factory_id_t c::protocol_factory_id() const {
+    return protocol_factory_id_t(c::protocol::name, "w");
+}
+
+void c::register_factories(protocol_factories_t& protocol_factories) {
+    struct my_protocol_factory_t: protocol_factory_t {
+
+        my_protocol_factory_t(c* bz): bz(bz) {}
+
+        pair<ko, value_type*> create() override {
+            auto a = new business_t::protocol(*bz);
+            log("created protocol", protocol::name, "instance at", a, 1);
+            return make_pair(ok, a);
+        }
+
+        c* bz;
+    };
+    protocol_factories.register_factory(protocol_factory_id(), new my_protocol_factory_t(this));
+    assert(protocol_factories.find(protocol_factory_id()) != protocol_factories.end());
+}
+
+/*
+void c::register_factories(workflow_factories_t& workflow_factories) {
+    struct my_workflow_factory_t: workflow_factory_t {
+        using b = workflow_factory_t;
+
+        my_workflow_factory_t(const workflow_factory_id_t& fid, c* bz): bz(bz), b(fid) {
+        }
+
+        ~my_workflow_factory_t() {
+        }
+
+        value_type* create() override {
+            return new bid2ask::workflow_t();
+        }
+
+        c* bz;
+    };
+
+    workflow_factories.register_factory(new my_workflow_factory_t(workflow_factory_id(), this));
+    assert(workflow_factories.find(workflow_factory_id()) != workflow_factories.end());
+}
+*/
+
+ko c::init(const string& r2rhome, us::wallet::trader::traders_t::protocol_factories_t& f) {
     name = "bank";
-    auto r = b::init(r2rhome);
+    auto r = b::init(r2rhome, f);
     if (is_ko(r)) {
         return r;
     }

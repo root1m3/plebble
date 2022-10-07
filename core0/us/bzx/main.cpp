@@ -23,14 +23,14 @@
 #include <string>
 #include <chrono>
 #include <thread>
+
 #include <us/gov/config.h>
 #include <us/gov/vcs.h>
 #include <us/gov/socket/datagram.h>
 #include <us/gov/io/shell_args.h>
 #include <us/gov/io/cfg.h>
-#include <us/bz/invoice.h>
-#include <us/wallet/protocol.h>
 
+#include <us/bz/invoice.h>
 
 #define loglevel "bz"
 #define logclass "main"

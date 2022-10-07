@@ -586,10 +586,14 @@ void c::dump(ostream& os) const {
     }
 
     c::counters_t::counters_t() {
-        using namespace us::gov::protocol;
-        using namespace us::wallet::protocol;
-        #include <us/api/generated/c++/gov/datagram_counters>
-        #include <us/api/generated/c++/wallet/datagram_counters>
+        {
+            using namespace us::gov::protocol;
+            #include <us/api/generated/c++/gov/datagram_counters>
+        }
+        {
+            using namespace us::wallet::protocol;
+            #include <us/api/generated/c++/wallet/datagram_counters>
+        }
     }
 
     c::counters_t::~counters_t() {

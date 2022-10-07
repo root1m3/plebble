@@ -33,12 +33,13 @@ namespace us::wallet::trader {
 
     struct local_params_t;
 
-    struct ch_t {
+    struct ch_t final {
 
-        ch_t(int);
+        explicit ch_t(int);
         ch_t(local_params_t&, mutex&);
         ~ch_t();
 
+    public:
         bool all_changed() const { return shared_params_changed && personality_changed; }
         bool changed() const { return shared_params_changed || personality_changed; }
         string to_string() const;
@@ -52,15 +53,17 @@ namespace us::wallet::trader {
         void file_updated(const string& path, const string& file);
         void open(local_params_t&, mutex&);
         void close();
-        bool closed() const { return local_params == nullptr; }
+        inline bool closed() const { return local_params == nullptr; }
+        inline bool opened() const { return local_params != nullptr; }
+
     public:
         bool priv_params_changed{false};
         bool shared_params_changed{false};
         bool personality_changed{false};
         vector<pair<string, string>> updated_files;
-
         local_params_t* local_params;
         unique_lock<mutex>* lock;
+
     private:
         int update_devices{1};
         //0 never update devices, even if params are sent to peer

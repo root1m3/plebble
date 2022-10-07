@@ -22,15 +22,16 @@
 //===-
 #pragma once
 
-#include <us/gov/socket/client.h>
-#include <atomic>
 #include <mutex>
-#include <atomic>
 #include <fstream>
 #include <condition_variable>
-#include <us/wallet/engine/peer_t.h>
+
 #include <us/gov/crypto/ripemd160.h>
+#include <us/gov/socket/client.h>
 #include <us/gov/io/blob_writer_t.h>
+
+#include <us/wallet/engine/peer_t.h>
+
 #include "endpoint_t.h"
 
 namespace us::wallet::trader {

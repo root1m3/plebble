@@ -27,7 +27,6 @@
 #include <us/gov/io/shell_args.h>
 #include <us/gov/io/cfg0.h>
 
-#include <us/wallet/protocol.h>
 #include <us/wallet/engine/daemon_t.h>
 #include <us/wallet/trader/trader_t.h>
 
@@ -46,9 +45,9 @@ c::~business_t() {
     log("destroyed games bz", home);
 }
 
-ko c::init(const string& r2rhome) {
+ko c::init(const string& r2rhome, us::wallet::trader::traders_t::protocol_factories_t& f) {
     name = "games";
-    auto r = b::init(r2rhome);
+    auto r = b::init(r2rhome, f);
     if (is_ko(r)) {
         return r;
     }

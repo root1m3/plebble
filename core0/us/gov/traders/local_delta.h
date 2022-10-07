@@ -40,7 +40,7 @@ namespace us::gov::traders {
         bool operator == (const local_delta&) = delete;
         void hash_data_to_sign(sigmsg_hasher_t&) const override;
         void hash_data(hasher_t&) const override;
-        void dump(const string& prefix, ostream&) const;
+        void dump(const string& prefix, ostream&) const override;
 
     public:
         size_t blob_size() const override;

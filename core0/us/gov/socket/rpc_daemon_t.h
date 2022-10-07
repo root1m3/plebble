@@ -50,7 +50,7 @@ namespace us::gov::socket {
         inline busyled_t& recv_led() final override { return handler::busyled; }
         inline void wakeup_handler() { handler::task_wakeup(); }
         inline void wakeup_caller() { caller::task_wakeup(); }
-        virtual void on_destroy_(client&) {}
+        void on_destroy_(client&) override {}
         virtual ko connect() = 0;
         void attach(client*) final override;
         void detach(client&) final override;
@@ -69,7 +69,7 @@ namespace us::gov::socket {
 
     public:
         void dump(const string& prefix, ostream&) const;
-        virtual void dump_all(const string& prefix, ostream&) const;
+        void dump_all(const string& prefix, ostream&) const override;
         ko wait_recv_connection(bool initiate);
 
     public:

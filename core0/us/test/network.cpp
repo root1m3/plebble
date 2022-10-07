@@ -35,6 +35,7 @@
 
 #include "node_bank.h"
 #include "dispatcher_t.h"
+#include "r2r_t.h"
 #include "main.h"
 
 #define loglevel "us/test"
@@ -56,26 +57,23 @@ namespace {
     mutex mx;
 
     void sig_handler(int s) {
-        cout << "main: received signal " << s << endl;
+        cout << "network: received signal " << s << endl;
         cout << "stopping ...\n";
-        {
         lock_guard<mutex> lock(mx);
         for (auto* i: instances) {
-            log("stopping instance", i);
-            cout << "stopping instance" << i << endl;
-            i->stop();
-        }
+            tee("stopping instance", i);
+            i->abort_tests0();
         }
         signal(SIGINT, SIG_DFL);
         signal(SIGTERM, SIG_DFL);
         signal(SIGPIPE, SIG_DFL);
     }
 
-    void setup_signals(c* inst, bool on) {
+    void setup_signals(c* inst, bool on) { //on: catches the lock; off:assumes lock is taken (at abort_tests0)
         log("setup signals", inst, "network #", instances.size());
         cout << "setup signals " << inst << " network #" << instances.size() << '\n';
-        lock_guard<mutex> lock(mx);
         if (on) {
+            lock_guard<mutex> lock(mx);
             if (instances.empty()) {
                 signal(SIGINT, sig_handler);
                 signal(SIGTERM, sig_handler);
@@ -160,6 +158,24 @@ void c::stop() {
         i.second->stop();
     }
     setup_signals(this, false);
+}
+
+void c::abort_tests0() {
+    cerr << "network::abort tests" << endl;
+    if (r2r_tests != nullptr) {
+        r2r_tests->abort_tests();
+        return;
+    }
+    abort_tests();
+}
+
+void c::abort_tests() {
+    for (auto& i: *this) {
+        //if(i.second->gov != nullptr) i.second->stop();
+        i.second->abort_tests();
+    }
+    stop();
+    join();
 }
 
 void c::join() {
@@ -436,6 +452,14 @@ void c::consoles_shell() {
     }
 }
 
+void c::sleep_for(uint64_t secs) const {
+    if (r2r_tests == nullptr) {
+        this_thread::sleep_for(chrono::seconds(secs));
+        return;
+    }
+    r2r_tests->wait(secs);
+}
+
 void c::start_govs(bool make_stage) {
     cout << "starting govs" << endl;
     genesis_node->start_gov(make_stage);
@@ -452,7 +476,7 @@ void c::start_govs(bool make_stage) {
 
     int n = 0;
     const int to = 240;
-    while(!check()) {
+    while (!check()) {
         genesis_node->gov_cli->exec("sysop gw y");
         ++n;
         cout << "Waiting for all nodes registration in the blockchain. In " << (to - n) << " secs I'd enter an interactive shell." << endl;
@@ -463,7 +487,8 @@ void c::start_govs(bool make_stage) {
             setup_signals(this, true);
             cout << "resuming test" << endl;
         }
-        this_thread::sleep_for(1s);
+//cout << "sleep 1s" << endl;
+        sleep_for(1);
     }
 }
 
@@ -485,7 +510,7 @@ void c::stage1_create() {
         assert(w.size() > 0);
         cout << "wait reg all wallets. " << w.size() << "/" << size() << endl;
         if (w.size() >= size()) break;
-        this_thread::sleep_for(1s);
+        sleep_for(1);
     }
 }
 
@@ -635,7 +660,7 @@ void c::wait_settlement(govx_t& gov_cli, uint64_t ts) {
             cout << "\ntx status changed to: " << us::gov::engine::evt_status_str[st] << '\n';
             if (st == us::gov::engine::evt_settled) break;
         }
-        this_thread::sleep_for(1s);
+        sleep_for(1);
     }
     auto t1 = chrono::system_clock::now();
     cout << "tx settled in " << chrono::duration_cast<chrono::seconds>(t1 - t0).count() << " secs\n";

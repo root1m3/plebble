@@ -26,6 +26,7 @@
 #include <us/wallet/trader/workflow/expiry_doc_t.h>
 
 namespace us::trader::workflow::organization {
+
     using magic_t = us::wallet::trader::workflow::doc0_t::magic_t;
 
     struct appointment_traits {

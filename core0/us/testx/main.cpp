@@ -31,14 +31,15 @@
 #include <us/gov/logs.inc>
 
 using namespace std;
-using namespace us;
+using namespace us::test;
 
 int main(int argc, char** argv) {
     us::dbg::thread_logger::set_root_logdir("logs");
     log_pstart(argv[0]);
     log_start("", "main");
-    log("START");
-    us::test::core0_main(argc, argv);
-    return 0;
+    tee("START");
+    log_info(cout);
+    cout << endl;
+    return core0_main(argc, argv);
 }
 

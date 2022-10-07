@@ -34,9 +34,9 @@
 #include <us/gov/crypto/base58.h>
 #include <us/gov/crypto/ripemd160.h>
 
-#include <us/wallet/protocol.h>
 #include <us/wallet/trader/trader_t.h>
 #include <us/wallet/trader/traders_t.h>
+#include <us/wallet/trader/business.h>
 #include <us/wallet/engine/daemon_t.h>
 #include <us/wallet/engine/peer_t.h>
 
@@ -52,7 +52,6 @@ using c = us::wallet::trader::trader_protocol;
 const char* c::WP_29101 = "WP 29101 Nothing done here."; //WayPoint
 const char* c::KO_29100 = "KO 29100 Invalid command.";
 
-us::gov::io::factories_t<c> c::factories;
 c::factory_id_t c::null_instance;
 
 remote_params_t* c::remote_params_on_hold{nullptr};
@@ -153,6 +152,15 @@ void c::data(const string& lang, ostream& os) const {
     {
         lock_guard<mutex> lock(remote_params_mx);
         remote_params->dump("remote__", os);
+    }
+    {
+        lock_guard<mutex> lock(mx_user_state);
+        const_cast<c&>(*this).judge("en");
+        log("trade_state is", _trade_state.first, _trade_state.second);
+        os << "trade_state " << _trade_state.first << ' ' << _trade_state.second << '\n';
+        if (!_user_hint.empty()) {
+            os << "user_hint " << _user_hint << '\n';
+        }
     }
 }
 
@@ -745,17 +753,19 @@ chat_t::entry c::AI_chat(const chat_t&, peer_t&) {
 }
 
 size_t c::blob_size() const {
-    size_t sz = blob_writer_t::blob_size(_local_params) +
+    size_t sz = 
+        blob_writer_t::blob_size(_local_params) +
         blob_writer_t::blob_size(remote_params) +
         blob_writer_t::blob_size(phome) +
         blob_writer_t::blob_size(pphome) +
         blob_writer_t::blob_size(image) +
         blob_writer_t::blob_size(ico);
-
+    log("blob_size", sz);
     return sz;
 }
 
 void c::to_blob(blob_writer_t& writer) const {
+    log("to_blob", "cur", (uint64_t)(writer.cur - writer.blob.data()));
     writer.write(_local_params);
     writer.write(remote_params);
     writer.write(phome);
@@ -765,6 +775,7 @@ void c::to_blob(blob_writer_t& writer) const {
 }
 
 ko c::from_blob(blob_reader_t& reader) {
+    log("from_blob", "cur", (uint64_t)(reader.cur - reader.blob.data()));
     {
         auto r = reader.read(_local_params);
         if (is_ko(r)) {
@@ -802,5 +813,74 @@ ko c::from_blob(blob_reader_t& reader) {
         }
     }    
     return ok;
+}
+
+namespace { namespace i18n {
+
+    struct r_en_t;
+    struct r_es_t;
+
+    struct r_t: unordered_map<uint32_t, const char*> {
+        using b =  unordered_map<uint32_t, const char*>;
+
+        using b::unordered_map;
+
+        const char* resolve(uint32_t n) const {
+            log("string-res. resolve", n);
+            auto i = find(n);
+            if (i == end()) return begin()->second;
+            return i->second;
+        }
+
+        static r_t& resolver(const string& lang);
+    };
+
+    struct r_en_t: r_t {
+        using b = r_t;
+
+        r_en_t(): b({
+            {0, "idle / available"}, {1, "Let's have a chat."},
+
+        }) {
+            //log("constructor 'en' string resources with", size(), "entries. Entry #0 is", resolve(0));
+        }
+
+    };
+
+    struct r_es_t: r_t {
+        using b = r_t;
+
+        r_es_t(): b({
+            {0, "disponible"}, {1, "Hablemos por chat."},
+
+        }) {
+            //log("constructor 'es' string resources with", size(), "entries. Entry #0 is", resolve(0));
+        }
+
+    };
+
+    r_en_t r_en;
+    r_es_t r_es;
+
+    r_t& r_t::resolver(const string& lang) {
+        if (lang == "es") return r_es;
+        return r_en;
+    }
+
+}}
+
+uint32_t c::trade_state_() const {
+    return 0;
+}
+
+void c::judge(const string& lang) {
+    auto st = trade_state_();
+    if (st != _trade_state.first) {
+        auto t = i18n::r_t::resolver(lang);
+        auto r = t.resolve(st);
+        log("trade_state", st, r);
+        _trade_state = make_pair(st, r);
+        _user_hint = t.resolve(_trade_state.first + 1);
+    }
 }
 

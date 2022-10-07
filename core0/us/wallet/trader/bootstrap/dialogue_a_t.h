@@ -21,10 +21,12 @@
 //===----------------------------------------------------------------------------
 //===-
 #pragma once
-#include "a_t.h"
 #include <mutex>
+
 #include <us/wallet/trader/endpoint_t.h>
+
 #include "protocols_t.h"
+#include "a_t.h"
 
 namespace us::wallet::engine {
     struct peer_t;

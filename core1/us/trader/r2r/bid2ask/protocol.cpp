@@ -21,7 +21,10 @@
 //===----------------------------------------------------------------------------
 //===-
 #include "protocol.h"
-#include <us/wallet/protocol.h>
+
+#include <us/wallet/trader/workflow/workflows_t.h>
+
+#include "consumer_workflow_t.h"
 
 #define loglevel "trader/r2r/bid2ask"
 #define logclass "protocol"
@@ -30,23 +33,29 @@
 using namespace us::trader::r2r::bid2ask;
 using c = us::trader::r2r::bid2ask::protocol;
 
-c::protocol(b::business_t& bz): b(bz) {
+c::protocol(business_t& bz): b(bz) {
     log("create bid2ask protocol home=", phome);
+    using workflows_t = us::wallet::trader::workflow::workflows_t;
+
+    struct my_workflow_factory_t: workflows_t::workflow_factory_t {
+
+        my_workflow_factory_t(c& p): p(p) {}
+
+        pair<ko, value_type*> create() const override {
+            auto x = new bid2ask::consumer_workflow_t();
+            ch_t ch(0);
+            x->init(p._workflows, ch);
+            return make_pair(ok, x);
+        }
+
+        c& p;
+    };
+    log("registering workflow factory. object id ", bid2ask::consumer_workflow_t::my_factory_id);
+    _workflows.workflow_factories.register_factory(bid2ask::consumer_workflow_t::my_factory_id, new my_workflow_factory_t(*this));
 }
 
 c::~protocol() {
     log("destroy bid2ask protocol");
-}
-
-c::workflow_t::workflow_t(trader_t& tder_, ch_t& ch): tder(tder_) {
-    log("constructor workflow");
-    inv = enable_invoice(true, ch);
-    cat = enable_catalogue(true, ch);
-    pay = enable_payment(true, ch);
-    rcpt = enable_receipt(true, ch);
-}
-
-c::workflow_t::~workflow_t() {
 }
 
 c::shipping_receipt_t* c::ship(const shipping_options_t& o, const parcel_t& p) {
@@ -56,13 +65,6 @@ c::shipping_receipt_t* c::ship(const shipping_options_t& o, const parcel_t& p) {
     return nullptr;
 }
 
-void c::post_configure(ch_t& ch) {
-    log("post_configure");
-    assert(_workflow == nullptr);
-    assert(tder != nullptr);
-    log("creating workflow");
-    _workflow = add(new workflow_t(*tder, ch), ch);
-}
 
 ko c::rehome(ch_t& ch) {
     auto r = b::rehome(ch);
@@ -74,15 +76,16 @@ ko c::rehome(ch_t& ch) {
     return ok;
 }
 
-ko c::on_attach(trader_t& tder_, ch_t& ch) {
-    log("on_attach", "trace-w8i");
-    auto r = b::on_attach(tder_, ch);
-    if (is_ko(r)) {
-        return r;
+void c::create_workflows(ch_t& ch) {
+    if (consumer_workflow != nullptr) {
+        return;
     }
-    post_configure(ch);
-    log("on_attach. returned", ch.to_string());
-    return move(r);
+    log("creating consumer_workflow");
+    auto wf = _workflows.workflow_factories.create(consumer_workflow_t::my_factory_id);
+    assert(is_ok(wf.first));
+    auto wf2 = static_cast<consumer_workflow_t*>(wf.second);
+    consumer_workflow = add(wf2, ch);
+    assert(consumer_workflow != nullptr);
 }
 
 void c::data(const string& lang, ostream& os) const {
@@ -96,7 +99,7 @@ void c::help_show(const string& indent, ostream& os) const {
     twocol(indent, "basket", "Print selected products", os);
 }
 
-blob_t c::push_payload(uint16_t pc) const {
+us::gov::io::blob_t c::push_payload(uint16_t pc) const {
     if (pc < push_begin) {
         return b::push_payload(pc);
     }
@@ -136,5 +139,45 @@ ko c::exec_offline(const string& cmd0, ch_t& ch) {
     auto r = WP_29101;
     log(r);
     return r;
+}
+
+size_t c::blob_size() const {
+    size_t sz = b::blob_size() + basket.blob_size();
+    log("blob_size", sz);
+    return sz;
+}
+
+void c::to_blob(blob_writer_t& writer) const {
+    log("to_blob", "cur", (uint64_t)(writer.cur - writer.blob.data()));
+    b::to_blob(writer);
+    writer.write(basket);
+}
+
+ko c::from_blob(blob_reader_t& reader) {
+    log("from_blob", "cur", (uint64_t)(reader.cur - reader.blob.data()));
+    {
+        auto r = b::from_blob(reader);
+        if (is_ko(r)) {
+            return r;
+        }
+    }
+    {
+        auto r = reader.read(basket);
+        if (is_ko(r)) {
+            return r;
+        }
+    }
+    if (_workflows.size() != 1) {
+        auto r = "KO 65092 Invalid number of workflows.";
+        log(r, _workflows.size());
+        return r;
+    }
+    consumer_workflow = dynamic_cast<consumer_workflow_t*>(*_workflows.begin());
+    if (consumer_workflow == nullptr) {
+        auto r = "KO 65093 workflow has wrong type.";
+        log(r);
+        return r;
+    }
+    return ok;
 }
 

@@ -26,7 +26,6 @@ OBJS := $(patsubst %.cpp, %.o, $(CPPS))
 HS := $(wildcard *.h)
 INC := ../../../../..
 CXXFLAGS = -O0 -g -std=c++20 -DDEBUG
-CXX:=g++
 
 ${OBJ}.o: ${OBJS} ${CPPS} ${HS}
 	ld -r -o ${OBJ}.o ${OBJS}

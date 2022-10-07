@@ -22,8 +22,6 @@
 //===-
 #pragma once
 
-#include "handshake_t.h"
-
 #include "us/gov/io/seriable.h"
 
 #include <us/wallet/trader/params_t.h>
@@ -33,6 +31,7 @@
 #include "dialogue_a_t.h"
 #include "dialogue_b_t.h"
 #include "dialogue_c_t.h"
+#include "handshake_t.h"
 
 namespace us::wallet::engine {
     struct peer_t;

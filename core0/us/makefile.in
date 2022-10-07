@@ -45,7 +45,10 @@ DEFAULTDEBUG:=##str29##
 WITHTEST:=##str62##
 TORSERVER:=##str57##
 CXXFLAGS:=${DEBUGFLAGS}
-CXX:=g++
+
+ifeq ($(CXX),)
+  CXX:=g++
+endif
 
 ifeq (${DEFAULTDEBUG},1)
     all: export CXXFLAGS:=${DEBUGFLAGS}
@@ -130,9 +133,9 @@ distr-common: | targets
 	install etc/rc.local.d/${CHANNEL}_${US}_rclocal ${DISTRDIR}/etc/rc.local.d/
 	install etc/999999999_${US}_rclocal ${DISTRDIR}/etc/rc.local.d/
 	install etc/bash_aliases ${DISTRDIR}/etc/
-	install etc/bash_profile ${DISTRDIR}/etc/
-	if [ -f etc/nodes.distr${CHANNEL} ]; then cp etc/nodes.distr${CHANNEL} ${DISTRDIR}/etc/nodes.distr${CHANNEL}; fi
-	if [ -f etc/nodes.distr ]; then cp etc/nodes.distr ${DISTRDIR}/etc/nodes.distr${CHANNEL}; fi
+	install etc/bashrc ${DISTRDIR}/etc/
+	if [[ -f etc/nodes.distr${CHANNEL} ]]; then cp etc/nodes.distr${CHANNEL} ${DISTRDIR}/etc/nodes.distr${CHANNEL}; fi
+	if [[ -f etc/nodes.distr ]]; then cp etc/nodes.distr ${DISTRDIR}/etc/nodes.distr${CHANNEL}; fi
 	install etc/motd_hdr ${DISTRDIR}/etc/
 	install etc/${US}_motd ${DISTRDIR}/etc/
 	install etc/config ${DISTRDIR}/etc/config
@@ -151,7 +154,7 @@ distr-common: | targets
 	mkdir -p ${DISTRDIR}/etc/nginx/snippets
 	install etc/nginx/snippets/snakeoil.conf ${DISTRDIR}/etc/nginx/snippets/
 	mkdir -p ${DISTRDIR}/etc/nginx/conf.d
-	[ ${TORSERVER} -eq 1 ] && install etc/nginx/conf.d/${US}-hidden.conf ${DISTRDIR}/etc/nginx/conf.d/ && mkdir -p ${DISTRDIR}/etc/tor/torrc.d && install etc/tor/torrc.d/${US}-hidden ${DISTRDIR}/etc/tor/torrc.d/
+	if [[ ${TORSERVER} -eq 1 ]]; then install etc/nginx/conf.d/${US}-hidden.conf ${DISTRDIR}/etc/nginx/conf.d/; mkdir -p ${DISTRDIR}/etc/tor/torrc.d; install etc/tor/torrc.d/${US}-hidden ${DISTRDIR}/etc/tor/torrc.d/; fi
 	mkdir -p ${DISTRDIR}/etc/ssl/certs
 	install etc/ssl/certs/ssl-cert-snakeoil.pem ${DISTRDIR}/etc/ssl/certs/
 	mkdir -p ${DISTRDIR}/etc/ssl/private
@@ -263,3 +266,4 @@ clean_conf: clean clean_java
 	$(RM) vcs_git_*
 
 .PHONY: all wallet gov debug release sdk image res clean distr-common warndistr android sdk-spongy clean_gov clean_wallet clean_bz clean_crypto clean_java clean_test clean_api clean_conf clean_sdk
+

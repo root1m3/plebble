@@ -29,6 +29,7 @@
 #include <us/gov/crypto/ec.h>
 #include <us/gov/socket/datagram.h>
 #include <us/gov/socket/busyled_t.h>
+#include <us/gov/cli/hmi0.h>
 
 #include <us/wallet/wallet/local_api.h>
 #include <us/wallet/trader/chat_t.h>
@@ -48,7 +49,7 @@ namespace us::wallet::engine {
 
 namespace us::wallet::cli {
 
-    struct hmi {
+    struct hmi: us::cli::hmi {
         using shell_args = us::gov::io::shell_args;
         using screen = us::gov::io::screen;
         using hasher_t = us::gov::crypto::ripemd160;
@@ -75,7 +76,7 @@ namespace us::wallet::cli {
         hmi(const params&, ostream&);
         hmi(const shell_args&, ostream&);
         hmi(int argc, char** argv, ostream&);
-        virtual ~hmi();
+        ~hmi() override;
 
         void constructor();
 

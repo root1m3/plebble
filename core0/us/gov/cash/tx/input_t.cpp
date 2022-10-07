@@ -40,7 +40,7 @@ c::input_t() {
 c::input_t(const hash_t& address, const cash_t& amount): address(address), amount(amount) {
 }
 
-c::input_t(const hash_t& address, const cash_t& amount, const locking_program_input_t&): address(address), amount(amount), locking_program_input(locking_program_input) {
+c::input_t(const hash_t& address, const cash_t& amount, const locking_program_input_t& locking_program_input): address(address), amount(amount), locking_program_input(locking_program_input) {
 }
 
 c::input_t(const input_t& other): address(other.address), amount(other.amount), locking_program_input(other.locking_program_input) {

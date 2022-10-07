@@ -123,7 +123,7 @@ namespace {
             return get_peer().connect0(shostport, true);
         }
 
-        virtual us::gov::socket::client* create_client() {
+        us::gov::socket::client* create_client() override {
             return new peer_t(*this);
         }
 

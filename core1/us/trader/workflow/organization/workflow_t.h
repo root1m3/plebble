@@ -30,21 +30,30 @@
 #include <us/wallet/trader/workflow/doc0_t.h>
 #include <us/wallet/trader/trader_t.h>
 #include <us/wallet/wallet/local_api.h>
+#include <us/wallet/trader/workflow/item_t.h>
 
 namespace us::trader::workflow::organization {
 
     using namespace std;
+    using factory_id_t = us::wallet::trader::workflow::item_t::factory_id_t;
 
-    template<typename t>
-    struct item_t: us::wallet::trader::workflow::item_t {
+    template<typename t, factory_id_t fid>
+    struct item_t final: us::wallet::trader::workflow::item_t {
         using b = us::wallet::trader::workflow::item_t;
+
+        void init(us::wallet::trader::workflow::workflow_t* parent) { b::init(parent, doc_type::name, doc_type::long_name); }
+
         using doc0_t = us::wallet::trader::workflow::doc0_t;
         using doc_type = t;
-        item_t(us::wallet::trader::workflow::workflow_t* parent): b(parent, doc_type::name, doc_type::long_name) {}
         doc0_t* create_doc() const override { return new doc_type(); }
         doc_type* get_doc() { return static_cast<doc_type*>(doc); }
         magic_t my_magic() const { return doc_type::magic; }
+        factory_id_t factory_id() const override { return fid; }
     };
+
+}
+
+namespace us::trader::workflow::organization {
 
     struct workflow_t: us::wallet::trader::workflow::workflow_t {
         using b = us::wallet::trader::workflow::workflow_t;
@@ -57,13 +66,16 @@ namespace us::trader::workflow::organization {
     public:
         ~workflow_t() override;
 
-        template<typename t> bitem* add(ch_t& ch) {
+    public:
+        template<typename t, factory_id_t fid> bitem* add(ch_t& ch) {
             auto i = find(t::name);
             if (i != end()) {
                 return i->second;
             }
-            auto p = new item_t<t>(this);
+            auto p = new item_t<t, fid>();
+            p->init(this);
             emplace(t::name, p);
+            if (ch.closed()) return p;
             if (home.empty()) {
                 p->set(ch);
             }
@@ -84,6 +96,12 @@ namespace us::trader::workflow::organization {
             return nullptr;
         }
 
+    public:
+        static constexpr item_factory_id_t appointment_factory_id{1};
+        static constexpr item_factory_id_t reference_factory_id{2};
+        void register_factories(item_factories_t&) const override;
+
+    public:
         bitem* enable_appointment(bool, ch_t&);
         bitem* enable_reference(bool, ch_t&);
     };

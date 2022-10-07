@@ -39,7 +39,7 @@ namespace us::gov::io {
 
     struct cfg0 {
 
-        static const char* KO_96857, *KO_60534;
+        static const char* KO_60534, *KO_84012;
 
         static void check_platform();
         static bool is_big_endian();

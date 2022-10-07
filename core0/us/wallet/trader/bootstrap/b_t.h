@@ -22,11 +22,12 @@
 //===-
 #pragma once
 #include <string>
+
+#include <us/wallet/trader/kv.h>
+#include <us/wallet/trader/protocol_selection_t.h>
+
 #include "handshake_t.h"
 #include "a_t.h"
-#include <us/wallet/trader/kv.h>
-#include <us/wallet/trader/business.h>
-#include <us/wallet/trader/protocol_selection_t.h>
 
 namespace us::wallet::trader::bootstrap {
 

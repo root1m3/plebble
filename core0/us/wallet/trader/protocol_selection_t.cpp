@@ -163,3 +163,10 @@ ko c::from_streamX(istream& is) {
     return ok;
 }
 
+namespace us::wallet::trader {
+    ostream& operator << (ostream& os, const protocol_selection_t& o) {
+        os << o.to_string2() << '\n';
+        return os;
+    }
+}
+

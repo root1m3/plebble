@@ -22,12 +22,12 @@
 #===----------------------------------------------------------------------------
 #===-
 US="##str3##"
+USER="##str11##"
 prefix="/usr/local"
 systemctl stop ${US}-wallet
 systemctl stop ${US}-gov
 
 mv -f /var/us-nets /var/us-nets.off
-
 
 rm -f $prefix/bin/${US}-uninstall
 
@@ -66,13 +66,22 @@ rm -rf /var/${US}
 rm -f /var/${US}_motd
 rm -rf /var/log/${US}
 
-cat /home/gov/.bash_aliases | grep -v "#${US}" > /tmp/xx1993
-cat /tmp/xx1993 > /home/gov/.bash_aliases
-rm /tmp/xx1993
+file=/tmp/xx1993
+if [[ -f /home/${USER}/.bash_aliases ]]; then
+    cat /home/${USER}/.bash_aliases | grep -v "#${US}" > $file
+    cat $file > /home/${USER}/.bash_aliases
+    rm $file
+fi
+
+if [[ -f /home/${USER}/.bashrc ]]; then
+    cat /home/${USER}/.bashrc | grep -v "#${US}" > $file
+    cat $file > /home/${USER}/.bashrc
+    rm $file
+fi
 
 rm -f /etc/nginx/sites-enabled/${US}.conf
 
-rm -f /etc/katlas/config
+rm -f /etc/${US}/config
 rm -f /etc/systemd/system/${US}-wallet.service
 rm -f /etc/systemd/system/${US}-gov.service
 
@@ -90,7 +99,19 @@ Debian GNU/Linux comes with ABSOLUTELY NO WARRANTY, to the extent
 permitted by applicable law.
 EOF
 
+rm /var/${US}_motd
+
+
+rm /home/${USER}/downloads/blob -r
+rm /home/${USER}/downloads/${US}_setup
+rm /home/${USER}/downloads/android -r
+
+echo "Directory /home/${USER}/.${US} left untouched."
+
+systemctl daemon-reload
+
 rm -f $prefix/bin/${US}-uninstall
-echo "TODO"
-exit 1
+
+echo "${US} uninstalled"
+exit 0
 

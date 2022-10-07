@@ -46,7 +46,7 @@ namespace us::gov::socket {
 
         bool process_unhandled(client&, datagram*) final override;
         inline busyled_t& recv_led() final override { return handler::busyled; }
-        virtual void on_destroy_(client&) {}
+        void on_destroy_(client&) override {}
         virtual client* create_client(sock_t sock);
         inline void wakeup_handler() { handler::task_wakeup(); }
         inline void wakeup_caller() { caller::task_wakeup(); }
@@ -74,7 +74,7 @@ namespace us::gov::socket {
 
     public:
         void dump(const string& prefix, ostream&) const;
-        virtual void dump_all(const string& prefix, ostream&) const;
+        void dump_all(const string& prefix, ostream&) const override;
 
     public:
         peers_t peers;

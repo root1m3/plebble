@@ -438,6 +438,7 @@ patch etc/systemd/system/us-wallet.service etc/systemd/system/${str3}-wallet.ser
 patch etc/sudoers.d/usgov
 patch bin/us-help bin/${str3}-help
 patch etc/bash_aliases
+patch etc/bashrc
 patch etc/tor/torrc.d/us-hidden etc/tor/torrc.d/${str3}-hidden
 patch etc/cron.daily/us-ports etc/cron.daily/${str3}-ports
 patch etc/cron.daily/us-seeds etc/cron.daily/${str3}-seeds
@@ -448,7 +449,6 @@ reroot var/www/html var/www/${str3}_html
 reroot var/www/html var/www/${str3}_anon
 patch bin/distr_make bin/${str3}_distr_make
 patch etc/nginx/conf.d/us-hidden.conf etc/nginx/conf.d/${str3}-hidden.conf
-patch etc/bash_profile
 patch snippet/distr_makefile snippet/${str3}_distr_makefile
 patch android/app/src/main/AndroidManifest.xml
 patch android/bin/sign_apk

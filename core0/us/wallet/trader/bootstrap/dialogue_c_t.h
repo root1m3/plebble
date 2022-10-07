@@ -22,28 +22,25 @@
 //===-
 #pragma once
 
-#include "c_t.h"
 #include <mutex>
+
 #include <us/wallet/trader/endpoint_t.h>
 #include <us/wallet/trader/protocol_selection_t.h>
+
 #include "protocols_t.h"
+#include "c_t.h"
 
 namespace us::wallet::engine {
-
     struct peer_t;
-
 }
 
 namespace us::wallet::trader {
-
     struct trader_t;
-
 }
 
 namespace us::wallet::trader::bootstrap {
 
     using namespace std;
-
     struct bootstrapper_t;
 
     struct dialogue_c_t {

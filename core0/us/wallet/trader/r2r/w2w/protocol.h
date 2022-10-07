@@ -33,7 +33,7 @@
 #include <us/gov/engine/daemon_t.h>
 #include <us/gov/engine/track_status_t.h>
 
-#include <us/wallet/trader/workflow/trader_protocol.h>
+#include <us/wallet/trader/trader_protocol.h>
 #include <us/wallet/wallet/txlog_t.h>
 
 namespace us::wallet::trader {
@@ -44,8 +44,8 @@ namespace us::wallet::trader::r2r::w2w {
 
     struct business_t;
 
-    struct protocol final: us::wallet::trader::workflow::trader_protocol {
-        using b = us::wallet::trader::workflow::trader_protocol;
+    struct protocol final: us::wallet::trader::trader_protocol {
+        using b = us::wallet::trader::trader_protocol;
         using txlog_t = us::wallet::wallet::txlog_t;
         using track_t = us::wallet::wallet::track_t;
         using tx_t = us::gov::cash::tx_t;
@@ -70,8 +70,12 @@ namespace us::wallet::trader::r2r::w2w {
             svc_end
         };
 
+    public:
         protocol(business_t&);
         ~protocol() override;
+
+    public:
+        inline factory_id_t factory_id() const override; //final seriable class
 
     public:
         size_t blob_size() const override;
@@ -98,7 +102,6 @@ namespace us::wallet::trader::r2r::w2w {
         uint32_t trade_state_() const;
         void judge(const string& lang) override;
 
-        //mutable mutex mx;
     };
 
 }

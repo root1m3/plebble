@@ -29,7 +29,6 @@
 #include <us/gov/engine/daemon_t.h>
 #include <us/gov/cli/rpc_peer_t.h>
 
-#include <us/wallet/protocol.h>
 #include <us/wallet/engine/daemon_t.h>
 #include <us/wallet/trader/trader_t.h>
 #include <us/wallet/trader/traders_t.h>
@@ -358,6 +357,10 @@ void c::judge(const string& lang) {
         _trade_state = make_pair(st, r);
         _user_hint = t.resolve(_trade_state.first + 1);
     }
+}
+
+c::factory_id_t c::factory_id() const {
+    return protocol_selection_t("w2w", "w");
 }
 
 size_t c::blob_size() const {

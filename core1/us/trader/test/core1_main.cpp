@@ -55,6 +55,10 @@ void test_r2r(const string& homedir, const string& logdir, const string& vardir)
     us::gov::engine::auth::collusion_control_t::max_nodes_per_ip = 255;
     ostream& os = cout;
 
+    tee("test_r2r", "homedir", homedir);
+    tee("test_r2r", "logdir", logdir);
+    tee("test_r2r", "vardir", vardir);
+
     network_c1 n(homedir, logdir, vardir, "test-c1_r2r_stage1", os);
     n.start();
 
@@ -79,40 +83,43 @@ void test_r2r(const string& homedir, const string& logdir, const string& vardir)
 }
 
 #if CFG_LOGS == 0
-#undef log_dir
-namespace {
-    string log_dir() {
-        ostringstream os;
-        os << "logs/us-trader_" << getpid();
-        return os.str();
+    #undef log_dir
+    namespace {
+        string log_dir() {
+            assert(false); //who's calling log_dir() with CFG_LOGS disabled?
+            ostringstream os;
+            os << "logs/us-test-c1_" << getpid();
+            return os.str();
+        }
     }
-}
 #endif
 
 void test_l2_main(string logdir0) {
-    log_start(logdir0, "main");
+    log_start("", "main");
     tee("=================test_l2========================");
 
-    string homedir = log_dir() + "/home";
-    string vardir = log_dir() + "/var";
+    string homedir = logdir0 + "/home";
+    string vardir = logdir0 + "/var";
 
     network::test();
 
-    test_r2r(homedir, logdir0, vardir);
+    test_r2r(homedir, "", vardir);
     tee("=========== end testing l2 ==============");
 }
 
 void test_l2() {
     log("starting thread");
     string logdir0 = log_dir() + "/test_l2";
+    tee("starting thread for test_l2. log_dir", logdir0);
     thread th(&test_l2_main, logdir0); //start new log file
     th.join();
 }
 
 void help() {
-    cout << "--batch        Unattended/not interactive" << endl;
-    cout << "--shell        Bootstrap network and start interactive shell." << endl;
+    cout << "--batch        Unattended/not interactive.\n";
+    cout << "--shell        Bootstrap network and start interactive shell.\n";
     cout << "--wait-between-steps     capture unexpected push_data datagrams before entering next step.\n";
+    cout << "--no_restart_wallet     Go through tests without restarting wallets .\n";
 }
 
 int core1_main(int argc, char** argv) {
@@ -133,6 +140,10 @@ int core1_main(int argc, char** argv) {
         else if (command == "--wait-between-steps") {
             cout << "waiting between steps\n";
             us::test::r2r_t::enable_wait = true;
+        }
+        else if (command == "--no_restart_wallet") {
+            cout << "no_restart_wallet\n";
+            us::test::r2r_t::test_restart_wallet = false;
         }
         else {
             help();

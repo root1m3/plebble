@@ -22,6 +22,7 @@ doc/HOWTOFAQ
 doc/support
 etc/999999999_rclocal
 etc/bash_aliases
+etc/bashrc
 etc/bash_profile
 etc/config
 etc/cron.daily/us-ports

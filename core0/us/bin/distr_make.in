@@ -76,18 +76,7 @@ tf=$(mktemp /tmp/distr_make.XXXXXX)
 
 function clean_deprecated {
     echo "clean_deprecated" #alpha-29
-    #rm -f /home/gov/id
-    #rm -f /home/.ssh/id_rsa_git.pub
-    #rm -f /home/.ssh/id_rsa_git
-    #rm -f /etc/rc.local.d/${DISTCHANNEL}_rclocal #remove in alpha-30
-    #rm -f /etc/rc.local.d/999999999_rclocal #remove in alpha-30
-    #rm -rf ${GOVHOME}/.bash_aliases.d  #delete in alpha-30
-    #rm -f /var/us_networks
-    #rm -f /usr/local/bin/proc_1.1
-    #rm -f /usr/local/lib/libfastcgipp*
-    #rm -f /usr/local/lib/libjsoncpp*
-    #rm -f /etc/tor/torrc.d/us-hidden #delete in alpha 30
-    #sed -i 's/ *Port 16671$//' /etc/ssh/sshd_config
+    rm -f /var/${GOVUSER}_changepass
 }
 
 function regenerate_motd {
@@ -161,10 +150,10 @@ function init_jail {
         mkdir -p ${JAILDIR}/etc
         cp /etc/passwd ${JAILDIR}/etc/
     fi
-    if [[ -f /var/${GOVUSER}_changepass ]]; then
-        mkdir -p ${JAILDIR}/var
-        cp /var/${GOVUSER}_changepass ${JAILDIR}/var/${GOVUSER}_changepass
-    fi
+    #if [[ -f /var/${GOVUSER}_changepass ]]; then
+    #    mkdir -p ${JAILDIR}/var
+    #    cp /var/${GOVUSER}_changepass ${JAILDIR}/var/${GOVUSER}_changepass
+    #fi
 }
 
 if [[ "_${JAILDIR}" != "_" ]]; then
@@ -369,14 +358,14 @@ if [ "_$target" == "_install-system-base" ]; then
             gov_passwd=$(< /dev/urandom tr -dc A-Za-z0-9 | head -c10)
 
             #write file prompting user to change it on next login
-            mkdir -p ${JAILDIR}/var
-            echo ${gov_passwd} > ${JAILDIR}/var/${GOVUSER}_changepass
+            #mkdir -p ${JAILDIR}/var
+            #echo ${gov_passwd} > ${JAILDIR}/var/${GOVUSER}_changepass
 
             cat << EOF >> ${JAILDIR}/tmp/post-install-system-base
 adduser --disabled-password --gecos "" $GOVUSER
 echo "$GOVUSER:${gov_passwd}" | chpasswd
-chown $GOVUSER.$GOVUSER /var/${GOVUSER}_changepass
-chmod 400 /var/${GOVUSER}_changepass
+#chown $GOVUSER.$GOVUSER /var/${GOVUSER}_changepass
+#chmod 400 /var/${GOVUSER}_changepass
 EOF
         else
             echo "user $GOVUSER already exists."
@@ -457,16 +446,23 @@ EOF
         #
         # /home/gov
         #
-        # .bash_aliases gov/wallet command aliases and first login passwd reset
         mkdir -p ${JAILDIR}${GOVHOME}
+        # .bash_aliases - gov/wallet command aliases
         file=${JAILDIR}${GOVHOME}/.bash_aliases
         touch $file
         cat $file | grep -v ".* #${US}" > $tf
         cat etc/bash_aliases >> $tf
         mv $tf $file
 
+        # .bashrc - include command aliases
+        file=${JAILDIR}${GOVHOME}/.bashrc
+        touch $file
+        cat $file | grep -v ".* #${US}" > $tf
+        cat etc/bashrc >> $tf
+        mv $tf $file
+
         # .bash_profile gov/wallet command aliases and first login passwd reset
-        install etc/bash_profile ${JAILDIR}${GOVHOME}/.bash_profile
+        #install etc/bash_profile ${JAILDIR}${GOVHOME}/.bash_profile
 
         # /home/gov/downloads
         mkdir -p ${JAILDIR}${GOVHOME}/downloads

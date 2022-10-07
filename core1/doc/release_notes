@@ -18,6 +18,7 @@ Business Patterns:
 
 
 Shortlisted features/fixes:
+    * doc. clang backend producing C++ model of the compiled program.
     * trades are lost on restarting daemons, implemented persistemce.
     * GFR - File registry. Git.
     * Address include channel to prevents cross-network tx replay attacks
@@ -44,6 +45,7 @@ Shortlisted features/fixes:
     * Fiat Currencies. Shared mints. root mints with not requiring private_key
       * Declare how much USD, EUR, GBP, ... can coin by coining them. 
 
+    * replaced protocol-role identifiers from (string,string) to hash_t (composed by concatenating half of each string hash_t
     * us wallet trader DAGchat - Integrated DAGchat in chat.   
     * us doc spec - oa/spec/model Reproducible builds - Building pipeline workflow. -> spec/model.xmi
     * us doc spec - us/doc/spec/request/AI_integration - AI API spec request
@@ -140,8 +142,12 @@ Production releases. beta
 
 Production releases. alpha
 --------------------------
-akpha-42 -
+alpha-43 -
     * Improved cbs with more automated steps (80, 90, 99)
+    * makefiles adapted for clang
+    * traders persistence. Current wallet trades runtime state is recovered from disk after wallet restart.
+
+alpha-42 - network not updated, only android app in appstore
     * android AppStore first upload
 
 alpha-41 - alpha-41_e8ceb453 2022-08-08_23-01-03 vhash e8ceb453 <- R 82ebdbb3773ec7b13122e7d0251f9ea0729b5fdc alpha-41 dbg-0 logs-0 counters-0 connlog-0 fcgi-0

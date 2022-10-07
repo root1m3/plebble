@@ -37,7 +37,6 @@
 #include <us/gov/cash/map_tx.h>
 #include <us/gov/cash/file_tx.h>
 
-#include <us/wallet/protocol.h>
 #include <us/wallet/engine/peer_t.h>
 #include <us/wallet/engine/daemon_t.h>
 
@@ -125,6 +124,7 @@ pair<bool, c::state_t> c::connection_supervisor() {
     if (state == state_offline) {
         log("state is offline");
         assert(cli == nullptr);
+        return make_pair(shch, state);
     }
     if (state == state_req_online) {
         log("Connecting. Retries left", tries_req_online);
@@ -185,19 +185,29 @@ void c::schedule_exec(string cmd) {
     task_wakeup();
 }
 
+/*
 void c::on_start() {
     log("on_start");
 }
+*/
 
 void c::run() {
     #if CFG_LOGS == 1
         log_start(logdir, logfile);
     #endif
-    log("starting trade worker thread");
-    olog("personal trader start", "initial state", statestr[state]);
+    log("starting trade worker thread", statestr[state]);
+/*
+    assert(state == state_off);
+    {
+        unique_lock<mutex> lock(mx);
+        //state = state_offline;
+    }
+    state_changed.store(false);
+*/
+    olog("Personal trader started. Initial state:", statestr[state]);
     ++busyref;
-    on_start();
-    while(t::isup()) {
+//    on_start();
+    while (t::isup()) {
         auto rcs = connection_supervisor();
         log("connection_supervisor returned", rcs.first, statestr[rcs.second]);
         state_t cur_st = rcs.second;
@@ -232,13 +242,13 @@ void c::run() {
                 log("cmd requires online", "cur_st", statestr[cur_st]);
                 if (cur_st != state_connect_failed) {
                     if (cur_st != state_online) {
-                        if (cur_st == state_offline || cur_st == state_req_offline) {
+                        if (cur_st == state_offline || cur_st == state_req_offline) { // || cur_st == state_off) {
                             log("turn online");
                             lock_guard<mutex> lock(mx);
                             state = state_req_online;
                         }
                         else {
-                            log("connected but not yet online");
+                            log("connected but not yet online. Wait for 300ms");
                             this_thread::sleep_for(300ms); //avoid fast loop during connected -> online transition
                         }
                         continue;
@@ -296,7 +306,8 @@ void c::run() {
 }
 
 ko c::start() {
-    log("starting trader");
+    log("starting conman", statestr[state]);
+    assert(state == state_off);
     return t::start();
 }
 
@@ -506,5 +517,15 @@ void c::online(peer_t& peer) {
         };
     ++cli->sendref; //prevent gc from deleting this object
     set_state_(state_online);
+}
+
+c::state_t c::get_stateX() const {
+    lock_guard<mutex> lock(mx);
+    return state;
+}
+
+void c::dump(const string& pfx, ostream& os) const {
+    lock_guard<mutex> lock(mx);
+    os << "state " << state << '\n';
 }
 

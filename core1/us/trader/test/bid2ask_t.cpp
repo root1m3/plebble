@@ -631,10 +631,10 @@ void c::test_11(node& bid, node& ask) {
     bid.wallet_cli_dis->expected_code.emplace(us::wallet::trader::workflow::trader_protocol::push_workflow_item, 1);
     bid.wallet_cli_dis->expected_code.check.emplace(us::wallet::trader::workflow::trader_protocol::push_workflow_item,
         [&](const hash_t& tid, uint16_t code, const vector<uint8_t>& blob) {
-            us::trader::workflow::consumer::item_t<us::trader::workflow::consumer::catalogue_t> item(nullptr);
+            us::trader::workflow::consumer::item_t<us::trader::workflow::consumer::catalogue_t, 1> item;
             assert(is_ok(item.read(blob)));
-            assert(tid==bid.wallet_cli->cur);
-            assert(tid==trade_id);
+            assert(tid == bid.wallet_cli->cur);
+            assert(tid == trade_id);
             assert(item.has_doc());
             ostringstream os;
             item.doc->write_pretty_en(os);
@@ -695,9 +695,9 @@ void c::test_12(node& bid, node& ask) {
     Check_data(bid, "remote_ip4", node::localip + ":22173");
 }
 
-void c::test_13(node& bid, node& ask) {
-    curtest(bid, ask, "", __FILE__, __LINE__);
-}
+//void c::test_13(node& bid, node& ask) {
+//    curtest(bid, ask, "", __FILE__, __LINE__);
+//}
 
 void c::test_14(node& bid, node& ask) {
     curtest(bid, ask, "select >0", __FILE__, __LINE__);
@@ -1994,7 +1994,7 @@ void c::test(node& bid, node& ask) {
     test_10(bid, ask);
     test_11(bid, ask);
     test_12(bid, ask);
-    test_13(bid, ask);
+    test_restartw(bid, ask);
     test_14(bid, ask);
     test_15(bid, ask);
     test_16(bid, ask);

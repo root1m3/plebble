@@ -29,7 +29,6 @@
 #include <us/gov/engine/daemon_t.h>
 #include <us/gov/cli/rpc_peer_t.h>
 
-#include <us/wallet/protocol.h>
 #include <us/wallet/engine/daemon_t.h>
 #include <us/wallet/trader/trader_t.h>
 #include <us/wallet/trader/traders_t.h>
@@ -359,4 +358,27 @@ void c::judge(const string& lang) {
     }
 }
 */
+
+size_t c::blob_size() const {
+    size_t sz = b::blob_size();
+    return sz;
+}
+
+void c::to_blob(blob_writer_t& writer) const {
+    b::to_blob(writer);
+}
+
+c::factory_id_t c::factory_id() const {
+    return protocol_selection_t("games", "player");
+}
+
+ko c::from_blob(blob_reader_t& reader) {
+    {
+        auto r = b::from_blob(reader);
+        if (is_ko(r)) {
+            return r;
+        }
+    }
+    return ok;
+}
 

@@ -39,8 +39,8 @@ namespace us::gov::sys {
         install_script_response();
         ~install_script_response() override;
 
-        void write_pretty_es(ostream&) const;
-        void write_pretty_en(ostream&) const;
+        void write_pretty_es(ostream&) const override;
+        void write_pretty_en(ostream&) const override;
         string name() const override { return "sys::install_script_response"; }
         void hash_data_to_sign(sigmsg_hasher_t&) const override;
         void hash_data(ripemd160&) const override;

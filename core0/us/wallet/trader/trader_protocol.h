@@ -22,16 +22,8 @@
 //===-
 #pragma once
 #include <utility>
-//#include <thread>
-//#include <vector>
 #include <mutex>
-//#include <atomic>
-//#include <condition_variable>
-//#include <fstream>
-//#include <sstream>
-//#include <cassert>
 #include <string_view>
-//#include <map>
 
 #include <us/gov/crypto/ripemd160.h>
 #include <us/gov/crypto/ec.h>
@@ -47,7 +39,7 @@
 
 #include "params_t.h"
 #include "protocol_selection_t.h"
-#include "business.h"
+//#include "business.h"
 #include "chat_t.h"
 #include "ch_t.h"
 
@@ -87,9 +79,10 @@ namespace us::wallet::trader {
         using peer_t = us::wallet::engine::peer_t;
         using trader_t = us::wallet::trader::trader_t;
         using ch_t = trader::ch_t;
-        using business_t = us::wallet::trader::business_t;
+        //using business_t = us::wallet::trader::business_t;
         using blob_reader_t = us::gov::io::blob_reader_t;
         using blob_writer_t = us::gov::io::blob_writer_t;
+        using protocol_selection_t = us::wallet::trader::protocol_selection_t;
 
         static const char *WP_29101, *KO_29100; //WP=WayPoint
 
@@ -183,9 +176,16 @@ namespace us::wallet::trader {
         static remote_params_t* remote_params_on_hold;
 
     public:
+        virtual void judge(const string& lang); //requires lock mx_user_state
+        uint32_t trade_state_() const;
+
+    public:
+        using factories_t = us::gov::io::factories_t<trader_protocol>;
+        using factory_t = us::gov::io::factory_t<trader_protocol>;
         using factory_id_t = protocol_selection_t;
-        static us::gov::io::factories_t<trader_protocol> factories;
+
         static factory_id_t null_instance;
+        virtual factory_id_t factory_id() const = 0;
 
         size_t blob_size() const override;
         void to_blob(blob_writer_t&) const override;
@@ -207,6 +207,12 @@ namespace us::wallet::trader {
         business_t& business;
         trader_t* tder{nullptr};
         mutable mutex assets_mx;
+
+    public:
+        mutable mutex mx_user_state;
+        pair<uint32_t, string> _trade_state{0, "idle / available"};
+        string _user_hint{"Let's have a chat."};
+
     };
 
 }

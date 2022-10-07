@@ -48,8 +48,15 @@ namespace us::trader::r2r::bid2ask::ask {
 
         static constexpr const char* name{"bid2ask"};
 
+    public:
         protocol(business_t&);
         ~protocol() override;
+
+    public:
+        size_t blob_size() const override;
+        void to_blob(blob_writer_t&) const override;
+        ko from_blob(blob_reader_t&) override;
+        factory_id_t factory_id() const override;
 
     public:
         ko trading_msg(peer_t&, svc_t, blob_t&&) override;
@@ -64,7 +71,8 @@ namespace us::trader::r2r::bid2ask::ask {
         chat_t::entry AI_chat(const chat_t&, peer_t&) override;
         ko workflow_item_requested(workflow_item_t&, peer_t&, ch_t&) override;
         ko on_receive(peer_t&, workflow_item_t&, workflow_doc0_t*, ch_t&) override;
-        void post_configure(ch_t&) override;
+//        void post_configure(ch_t&) override;
+        ko on_attach(trader_t&, ch_t&) override;
         bool on_signal(int sig, ostream&) override;
         void sig_reload(ostream&);
         void ensure_catalogue(ch_t&);
@@ -75,6 +83,9 @@ namespace us::trader::r2r::bid2ask::ask {
         void list_trades_bit(ostream&) const;
         invoice_t* create_invoice(const string& lang, const basket_t&, const tx_t&) const;
         receipt_t* create_receipt(const string& lang, const basket_t&, const tx_t&, const string& msg, const string& info) const;
+        void init_workflows(ch_t&) override;
+
+    public:
         bool enabled_select{true};
     };
 

@@ -40,7 +40,6 @@
 #include <us/wallet/trader/qr_t.h>
 #include <us/wallet/trader/r2r/w2w/protocol.h>
 
-#include <us/wallet/protocol.h>
 #include "types.h"
 
 #define loglevel "wallet/cli"
@@ -378,9 +377,11 @@ void c::stop() {
         }
     #endif
     if (daemon != nullptr) {
+        log("stoping daemon");
         daemon->stop();
     }
     if (rpc_daemon != nullptr) {
+        log("stoping rpc_daemon");
         rpc_daemon->stop();
     }
 }

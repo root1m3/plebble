@@ -247,9 +247,11 @@ string c::get_evidencesdir(const string& govhome) {
 }
 
 bool c::patch_db(vector<hash_t>& patches) {
+    log("patch_db", patches.size());
     #if CFG_COUNTERS == 1
         ++counters.patch_db;
     #endif
+    log("lock mx_import");
     lock_guard<mutex> lock(mx_import);
     for (auto i = patches.rbegin(); i != patches.rend(); ++i) {
         const hash_t& hash = *i;
@@ -264,6 +266,7 @@ bool c::patch_db(vector<hash_t>& patches) {
             });
         if (is_ko(r.first)) {
             remove(filename.str().c_str());
+            log("unlock mx_import", "t1");
             return false;
         }
         {
@@ -274,6 +277,7 @@ bool c::patch_db(vector<hash_t>& patches) {
                         ++counters.problem_importing_diff_file;
                     #endif
                     delete d;
+                    log("unlock mx_import", "t2");
                     return false;
                 }
                 delete d;
@@ -284,12 +288,14 @@ bool c::patch_db(vector<hash_t>& patches) {
             db_t* d = dynamic_cast<db_t*>(r.second);
             if (d != nullptr) {
                 replace_db(hash, d);
+                log("unlock mx_import", "t3");
                 return true;
             }
         }
         assert(false); // this shall be unreachable code
         log("KO 40399 Not a diff nor Snapshot file");
         delete r.second;
+        log("unlock mx_import", "t4");
         return false;
     }
     #if CFG_COUNTERS == 1
@@ -300,10 +306,12 @@ bool c::patch_db(vector<hash_t>& patches) {
         patches.clear();
         patches.emplace_back(h);
     }
+    log("unlock mx_import", "t5");
     return true;
 }
 
 hash_t c::get_last_delta_imported() const {
+    log("lock/unlock mx_import");
     lock_guard<mutex> lock(mx_import);
     return last_delta_imported;
 }
@@ -351,10 +359,10 @@ void c::eat_diff(const hash_t& voted_tip, diff* my_tip) {
                 ++counters.computed_right_delta;
             #endif
             save(*my_tip);
-            unique_lock<mutex>(mx_import);
+            unique_lock<mutex> lock(mx_import);
             if (likely(import_(*my_tip, tip))) {
                 snapshot(tip);
-                update_dfs_index_delta();
+                update_dfs_index_delta_();
                 set_tx_status(from, my_tip->id, evt_settled);
             }
             else {
@@ -471,11 +479,11 @@ void c::run() {
     assert(calendar_t::cycle_period == seconds(60));
     static constexpr chrono::seconds limit_local_deltas{20};
     static constexpr chrono::seconds limit_votes{10};
-    while(t::isup()) {
+    while (t::isup()) {
         diff* mydiff{nullptr};
         ts_t from{0};
         ts_t id{0};
-        while(true) {
+        while (true) {
             if (unlikely(!ready_for_consensus())) {
                 if (_local_deltas != nullptr) {
                     auto id = _local_deltas->id;
@@ -830,9 +838,12 @@ namespace {
 }
 
 pair<ko, io::cfg*> c::init_chain(channel_t channel, const string& govhome, const string& addrport) {
+    log("init_chain", channel, govhome, addrport);
     using io::cfg;
     if (addrport.empty()) {
-        return make_pair("KO 20548 I need the address of the genesis node.", nullptr);
+        auto r = "KO 20548 I need the address of the genesis node.";
+        log(r);
+        return make_pair(r, nullptr);
     }
     if (cfg::dir_exists(govhome + "/blocks")) {
         auto r = "KO 12002 Cannot start a new blockchain if blocks dir exists.";
@@ -845,7 +856,7 @@ pair<ko, io::cfg*> c::init_chain(channel_t channel, const string& govhome, const
         return make_pair(r, nullptr);
     }
     auto conf = cfg::load(channel, govhome, true);
-    if (conf.first != ok) {
+    if (is_ko(conf.first)) {
         return conf;
     }
     if (!conf.second->keys.pub.valid) {
@@ -981,12 +992,22 @@ void c::files_to_keep(vector<pair<hash_t, uint32_t>>& v) const {
         log("not in sync");
         return;
     }
-    lock_guard<mutex> lock(mx_import);
-    db->cash_app->db.accounts->get_files(v);
+    log("lock mx_import");
+    {
+        lock_guard<mutex> lock(mx_import);
+        db->cash_app->db.accounts->get_files(v);
+    }
+    log("unlock mx_import");
 }
 
 void c::update_dfs_index_delta() {
+    log("lock mx_import");
     lock_guard<mutex> lock(mx_import);
+    update_dfs_index_delta_();
+    log("unlock mx_import");
+}
+
+void c::update_dfs_index_delta_() {
     for (auto& i: db->cash_app->old_files) {
         peerd.index_rm(i.first);
     }
@@ -1043,16 +1064,20 @@ void c::set_last_delta_imported_(const hash_t& h, ts_t id) {
 }
 
 void c::set_last_delta_imported(const hash_t& h, ts_t id) {
+    log("lock mx_import");
     lock_guard<mutex> lock(mx_import);
     set_last_delta_imported_(h, id);
+    log("unlock mx_import");
 }
 
 void c::clear() {
+    log("lock mx_import");
     {
         lock_guard<mutex> lock(mx_import);
         clear_();
     }
     peerd.index_clear();
+    log("unlock mx_import");
 }
 
 void c::clear_() {
@@ -1071,9 +1096,15 @@ unsigned int c::rng_seed() const {
     return *reinterpret_cast<const unsigned int*>(&last_delta_imported);
 }
 
-bool c::import(const diff& b, const hash_t&h) {
-    lock_guard<mutex> lock(mx_import);
-    return import_(b, h);
+bool c::import(const diff& b, const hash_t& h) {
+    log("lock mx_import", h, "id", b.id);
+    bool r;
+    {
+        lock_guard<mutex> lock(mx_import);
+        r = import_(b, h);
+    }
+    log("unlock mx_import");
+    return r;
 }
 
 bool c::import_(const diff& b, const hash_t& h) {

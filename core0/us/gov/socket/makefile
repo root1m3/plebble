@@ -27,7 +27,6 @@ SUBOBJS:= single/socket_single.o multipeer/socket_multipeer.o outbound/socket_ou
 HS:= $(wildcard *.h)
 INC:= ../../..
 CXXFLAGS=-O0 -g -std=c++20 -DDEBUG -Wno-psabi
-CXX:=g++
 
 ${OBJ}.o: deps ${OBJS}
 	ld -r -o ${OBJ}.o ${OBJS} ${SUBOBJS}

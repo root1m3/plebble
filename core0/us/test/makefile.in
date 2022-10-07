@@ -21,7 +21,6 @@
 #===----------------------------------------------------------------------------
 #===-
 CXXFLAGS=-O0 -g -std=c++20 -DDEBUG -Wno-psabi
-CXX:=g++
 CPPS:=$(wildcard *.cpp) $(wildcard net/*.cpp) $(wildcard sim/*.cpp) $(wildcard shard/*.cpp)
 OBJS:=$(CPPS:.cpp=.o)
 DEPENDS := $(patsubst %.cpp,%.d,$(CPPS))

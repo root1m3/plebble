@@ -21,9 +21,9 @@
 //===----------------------------------------------------------------------------
 //===-
 #include "basket.h"
+
 #include <fstream>
 
-#include <us/wallet/protocol.h>
 #include <us/wallet/wallet/local_api.h>
 #include <us/wallet/trader/params_t.h>
 #include <us/wallet/engine/daemon_t.h>

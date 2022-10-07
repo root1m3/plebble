@@ -23,6 +23,10 @@
 #pragma once
 #include <string>
 #include <vector>
+
+#include <us/wallet/trader/traders_t.h>
+#include <us/wallet/trader/trader_t.h>
+
 #include "main.h"
 
 namespace us::test {
@@ -33,8 +37,12 @@ namespace us::test {
 
     struct node {
         using bookmarks_t = us::wallet::trader::bookmarks_t;
+        using traders_t = us::wallet::trader::traders_t;
+        using trader_t = us::wallet::trader::trader_t;
 
         node(const string& id, const string& root_homedir, const string& root_logdir, const string& root_vardir, uint16_t gport, uint16_t wport);
+        virtual ~node() {}
+
         virtual string desc() const = 0;
         virtual void banner(ostream&) const;
 
@@ -47,6 +55,10 @@ namespace us::test {
         string thome() const;
 
         void install_r2r_libs();
+        void traders_serialization_save(const traders_t&);
+        void traders_serialization_save();
+        void copy_state(const string& dest) const;
+        void diff_state(const string& st0, const string& st2) const;
 
         void gov_cli_start();
         void create_wallet_cli();
@@ -58,9 +70,21 @@ namespace us::test {
         void test_list_protocols();
         hash_t create_coin(int64_t supply);
         void restart_daemons();
+        //void restart_wallet_daemon();
         bookmarks_t bookmarks() const;
         void register_wallet();
+        void print_pointers(ostream&) const;
+        void sleep_for(uint64_t secs) const;
+        void wait(uint64_t secs) const;
 
+    public:
+        void abort_tests();
+
+        mutable condition_variable cv_abort;
+        mutable mutex mx_abort;
+        mutable bool abortsignaled{false};
+
+    public:
         static string localip;
         string homedir;
         string logdir;

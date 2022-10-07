@@ -157,7 +157,7 @@ void c::dump(const string& pfx, ostream& os) const {
 //----------------------------------------------------------------------------
 
 size_t s::blob_size() const {
-     size_t sz = blob_writer_t::sizet_size(size()); //sizeof(uint32_t);
+     size_t sz = blob_writer_t::sizet_size(size());
      for (auto& i: *this) {
         sz += blob_writer_t::blob_size(i.first);
         sz += blob_writer_t::blob_size(i.second);

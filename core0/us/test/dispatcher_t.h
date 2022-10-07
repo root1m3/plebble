@@ -41,35 +41,46 @@ namespace us::test {
         static string codename(uint16_t code);
         static void print(const string& id, const hash_t& tid, uint16_t code, const vector<uint8_t>&, ostream&);
         bool dispatch(us::gov::socket::datagram*);
+        void abort_tests();
 
         struct expected_code_t: map<uint16_t, int> { //num ocurrences, mode 0:exact, 1:minimum
+            using b = map<uint16_t, int>;
+
             expected_code_t(const string& id, ostream&);
 
+            void emplace(uint16_t, int);
             void arrived(const hash_t& h, uint16_t code, const vector<uint8_t>& s);
             void dump(ostream& os) const;
             void arrived(uint16_t code);
             void check_payload(const hash_t& tid, uint16_t code, const vector<uint8_t>&, ostream&);
             void wait();
             void wait_no_clear();
+            void wait_no_clear_(unique_lock<mutex>&);
             void decrement(uint16_t code);
             void increase(uint16_t code);
+            void increment(uint16_t code) { return increase(code); }
             void increase_or_set_1_if_nonpos(uint16_t code);
             void add_exact_occurrences(uint16_t code, int);
             void add_minimum_occurrences(uint16_t code, int);
             bool all_empty() const;
             void clear_all();
-            void check_not_expecting() const;
-            int num_expected() const;
-            void default_step_wait() { step_wait_ms = 20000; }
+            void clear_all_();
+            void check_not_expecting_() const;
+            int num_expected_() const;
+            void set_default_step_wait() { step_wait_ms = 20000; }
+            void abort_tests();
 
-            struct check_t: map<uint16_t, function<void(const hash_t&, uint16_t code, const vector<uint8_t>&)>> {
+            struct check_t: map<uint16_t, vector<function<void(const hash_t&, uint16_t code, const vector<uint8_t>&)>>> {
+                using b = map<uint16_t, vector<function<void(const hash_t&, uint16_t code, const vector<uint8_t>&)>>>;
+                void emplace(uint16_t, function<void(const hash_t&, uint16_t code, const vector<uint8_t>&)>);
             };
 
             ostream& out;
             string id;
             check_t check;
             bool enabled{false};
-            mutex mx;
+            bool zero_arrivals_is_good{false};
+            mutable mutex mx;
             condition_variable cv;
             function<void(ostream&)> reftest{[](ostream&){}}; //prints reference to the current test
             set<uint16_t> marked_minimum;
@@ -82,6 +93,8 @@ namespace us::test {
         static atomic<int> dgram_count;
         static atomic<int> dgram_count_test;
         expected_code_t expected_code;
+        bool ignore_dupl_data{false};
+        int dupl_data_count{0};
 
         using data_t = us::wallet::trader::data_t;
         struct data_seq_t: vector<data_t> {

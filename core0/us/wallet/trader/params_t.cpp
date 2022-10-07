@@ -55,16 +55,19 @@ void c::clear() {
 }
 
 size_t c::blob_size() const {
-    return priv.blob_size() + shared.blob_size();
+    auto sz = priv.blob_size() + shared.blob_size();
+    log("blob_size", sz);
+    return sz;
 }
 
 void c::to_blob(blob_writer_t& writer) const {
+    log("to_blob", "cur", (uint64_t)(writer.cur - writer.blob.data()));
     writer.write(priv);
     writer.write(shared);
 }
 
 ko c::from_blob(blob_reader_t& reader) {
-    log("params_t::from_blob");
+    log("from_blob", "cur", (uint64_t)(reader.cur - reader.blob.data()));
     {
         auto r = reader.read(priv);
         if (is_ko(r)) {

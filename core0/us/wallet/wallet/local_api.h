@@ -32,14 +32,11 @@
 #include "types.h"
 
 namespace us::wallet::engine {
-
         struct daemon_t;
 }
 
 namespace us::wallet::trader {
-
         struct traders_t;
-
 }
 
 namespace us::wallet::wallet {

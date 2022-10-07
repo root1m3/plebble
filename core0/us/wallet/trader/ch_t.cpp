@@ -32,7 +32,6 @@ using c = us::wallet::trader::ch_t;
 
 c::ch_t(int n): local_params(nullptr), lock(nullptr) {
     log("new ch_t");
-
 }
 
 c::ch_t(local_params_t& lp, mutex& mx): local_params(&lp), lock(new unique_lock(mx)) {

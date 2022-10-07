@@ -33,6 +33,7 @@ namespace us::test {
     using namespace std;
 
     struct node;
+    struct r2r_t;
 
     struct network: map<string, node*> {
         using bookmarks_t = us::wallet::trader::bookmarks_t;
@@ -82,6 +83,9 @@ namespace us::test {
         ko android_app_test__prepair(string subhome, node&);
         ko android_app_test__pair(string subhome, node&);
         void set_consume_pin(node&);
+        void sleep_for(uint64_t secs) const;
+        void abort_tests();
+        void abort_tests0();
 
     public:
         static string OFAddress;
@@ -93,6 +97,7 @@ namespace us::test {
         doctype_processors_t doctype_processors;
         string stage1dir;
         ostream& out;
+        r2r_t* r2r_tests{nullptr};
     };
 
 }

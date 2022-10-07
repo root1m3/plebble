@@ -42,10 +42,15 @@ using namespace std;
 void test_db_analyst_set(const string& set) {
 //cout << "------------------ set " << set << endl;
     db_analyst::chains_t a;
-    vector<string> f=a.files(set);
-    random_shuffle(f.begin(),f.end());
+    vector<string> f = a.files(set);
+//    random_shuffle(f.begin(),f.end());
+    {
+        std::random_device rd;
+        std::mt19937 g(rd());
+        shuffle(f.begin(), f.end(), g);
+    }
 //for (auto i:f) cout << i << endl;
-    a.load(set,f);
+    a.load(set, f);
     ostringstream os;
     a.dot(os);
 //cout << os.str() << endl;

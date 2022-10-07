@@ -37,14 +37,15 @@
 #include <us/wallet/trader/business.h>
 
 #include <us/trader/r2r/bid2ask/protocol.h>
+#include <us/trader/r2r/bid2ask/business.h>
 #include <us/trader/r2r/bid2ask/types.h>
 
 #include "protocol.h"
 
 namespace us::trader::r2r::bid2ask::bid {
 
-    struct business_t: us::wallet::trader::business_t {
-        using b = us::wallet::trader::business_t;
+    struct business_t: us::trader::r2r::bid2ask::business_t {
+        using b = us::trader::r2r::bid2ask::business_t;
         using wallet_local_api = us::wallet::wallet::local_api;
         using trader_protocol = us::wallet::trader::trader_protocol;
         using protocol = bid::protocol;
@@ -52,8 +53,14 @@ namespace us::trader::r2r::bid2ask::bid {
     public:
         business_t();
         ~business_t() override;
-        ko init(const string& r2rhome) override;
+
+    public:
+        //ko init(const string& r2rhome, us::wallet::trader::traders_t::protocol_factories_t&) override;
         string homedir() const override;
+
+    public:
+        protocol_factory_id_t protocol_factory_id() const;
+        void register_factories(protocol_factories_t&) override;
 
     public:
         //pair<ko, trader_protocol*> create_protocol(protocol_selection_t&&) override;

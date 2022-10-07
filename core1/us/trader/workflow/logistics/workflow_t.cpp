@@ -27,7 +27,7 @@
 #define logclass "workflow_t"
 #include <us/gov/logs.inc>
 
-using namespace us::trader::workflow;
+using namespace us::trader::workflow::logistics;
 using c = us::trader::workflow::logistics::workflow_t;
 
 c::workflow_t() {
@@ -37,10 +37,29 @@ c::~workflow_t() {
 }
 
 c::bitem* c::enable_parcel(bool b, ch_t& ch) {
-    return b ? add<parcel_t>(ch) : remove<parcel_t>(ch);
+    return b ? add<parcel_t, 1>(ch) : remove<parcel_t>(ch);
 }
 
 c::bitem* c::enable_shipping_receipt(bool b, ch_t& ch) {
-    return b ? add<shipping_receipt_t>(ch) : remove<shipping_receipt_t>(ch);
+    return b ? add<shipping_receipt_t, 2>(ch) : remove<shipping_receipt_t>(ch);
+}
+
+namespace {
+
+    using namespace std;
+    using namespace us;
+
+    template<typename a, c::item_factory_id_t item_factory_id>
+    struct my_item_factory_t: c::item_factory_t {
+        pair<ko, value_type*> create() const override {
+            return make_pair(ok, new item_t<a, item_factory_id>());
+        }
+    };
+
+}
+
+void c::register_factories(item_factories_t& item_factories) const {
+    item_factories.register_factory(parcel_factory_id, new my_item_factory_t<parcel_t, parcel_factory_id>());
+    item_factories.register_factory(shipping_receipt_factory_id, new my_item_factory_t<shipping_receipt_t, shipping_receipt_factory_id>());
 }
 

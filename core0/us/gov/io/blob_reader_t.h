@@ -30,6 +30,8 @@
 #include <limits>
 #include <unordered_map>
 #include <tuple>
+#include <functional>
+#include <utility>
 
 #include <us/gov/config.h>
 #include <us/gov/likely.h>
@@ -104,7 +106,9 @@ namespace us::gov::io {
 
         template<typename t>
         ko read(t*& o) {
-            assert(o = nullptr);
+            if (o != nullptr) {
+                delete o;
+            }
             {
                 uint8_t x;
                 auto r = read(x);
@@ -125,18 +129,26 @@ namespace us::gov::io {
         }
 
         template<typename t>
-        ko read(t*& o, const factories_t<t>& f) {
-            assert(o = nullptr);
-            typename t::factory_id_t factory_id;
+        ko read(t*& o, const factory_t<t>& f) {
+            if (o != nullptr) {
+                delete o;
+            }
+            uint8_t factory_id;
             {
                 auto r = read(factory_id);
                 if (is_ko(r)) return r;
-                if (factory_id == t::null_instance) {
+                if (factory_id == 0) {
                     o = nullptr;
                     return ok;
                 }
             }
-            o = f.create(factory_id);
+            {
+                auto p = f.create();
+                if (is_ko(p.first)) {
+                    return p.first;
+                }
+                o = p.second;
+            }
             if (unlikely(o == nullptr)) {
                 return "KO 65028 Invalid factory id";
             }
@@ -149,6 +161,71 @@ namespace us::gov::io {
             return ok;
         }
 
+        template<typename t>
+        ko read(t*& o, const factories_t<t>& f) {
+            if (o != nullptr) {
+                delete o;
+            }
+            typename t::factory_id_t factory_id;
+            {
+                auto r = read(factory_id);
+                if (is_ko(r)) return r;
+                if (factory_id == t::null_instance) {
+                    o = nullptr;
+                    return ok;
+                }
+            }
+            {
+                auto p = f.create(factory_id);
+                if (is_ko(p.first)) {
+                    return p.first;
+                }
+                o = p.second;
+            }
+            if (unlikely(o == nullptr)) {
+                return "KO 65028 Invalid factory id";
+            }
+            auto r = read(*o);
+            if (is_ko(r)) {
+                delete o;
+                o = nullptr;
+                return r;
+            }
+            return ok;
+        }
+
+        template<typename t, typename init_t>
+        ko read(t*& o, const factories_t<t>& f, init_t&& init) {
+            if (o != nullptr) {
+                delete o;
+            }
+            typename t::factory_id_t factory_id;
+            {
+                auto r = read(factory_id);
+                if (is_ko(r)) return r;
+                if (factory_id == t::null_instance) {
+                    o = nullptr;
+                    return ok;
+                }
+            }
+            {
+                auto p = f.create(factory_id, forward<init_t>(init));
+                if (is_ko(p.first)) {
+                    return p.first;
+                }
+                o = p.second;
+            }
+            if (unlikely(o == nullptr)) {
+                return "KO 65028 Invalid factory id";
+            }
+            auto r = read(*o);
+            if (is_ko(r)) {
+                delete o;
+                o = nullptr;
+                return r;
+            }
+            return ok;
+        }
 
         template<typename t>
         ko read(vector<t>& o) {

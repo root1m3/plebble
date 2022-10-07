@@ -26,7 +26,6 @@ CPPS:= $(wildcard *.cpp)
 OBJS:= $(patsubst %.cpp, %.o, $(CPPS))
 HS:= $(wildcard *.h)
 CXXFLAGS=-O0 -g -std=c++17 -DDEBUG -Wno-psabi
-CXX:=g++
 
 ${OBJ}.o: deps ${OBJS}
 	ld -r -o ${OBJ}.o ${OBJS}

@@ -36,9 +36,10 @@
 
 #include <us/gov/config.h>
 #include <us/gov/bgtask.h>
-#include "us/gov/io/seriable.h"
+#include <us/gov/io/seriable.h>
 
 #include "trader_protocol.h"
+
 #include "chat_t.h"
 #include "endpoint_t.h"
 #include "bootstrap/bootstrapper_t.h"
@@ -84,13 +85,14 @@ namespace us::wallet::trader {
     public:
         ko permission_bootstrap(const peerid_t& peer) const;
         pair<ko, hash_t> boot(const peerid_t&, bootstrapper_t*);
+        ko boot(const hash_t& trade_id, wallet::local_api&);
         void init(const hash_t& tid, const endpoint_t&, wallet::local_api&);
 
     public:
         void on_KO(ko, const string&) override;
         void online(peer_t&) override;
         void offline() override;
-        void on_start() override;
+//        void on_start() override;
         void on_stop() override;
         bool requires_online(const string& cmd) const override;
         ko exec_online(peer_t& peer, const string&, ch_t&) override;
@@ -120,7 +122,7 @@ namespace us::wallet::trader {
         bool resume_chat(peer_t&);
         ko trading_msg(peer_t&, svc_t svc, blob_t&&);
         ko trading_msg_trader(peer_t&, svc_t svc, blob_t&&);
-        void dump(const string& prefix, ostream&) const;
+        void dump(const string& prefix, ostream&) const override;
         void list_trades(ostream&) const;
         void help(const string& indent, ostream&) const;
         void flush_command_queue();
@@ -162,10 +164,10 @@ namespace us::wallet::trader {
         };
 
         enum service_t: uint16_t { //communications node-node
-            svc_begin = 100,
-            svc_ping = svc_begin,
+                svc_begin = 100,
+            svc_ping = svc_begin, //100
             svc_pong,
-            svc_handshake_begin,
+                svc_handshake_begin,
             svc_handshake_a1 = svc_handshake_begin,
             svc_handshake_a2,
             svc_handshake_a3,
@@ -176,7 +178,7 @@ namespace us::wallet::trader {
             svc_handshake_c2,
             svc_handshake_c3,
             svc_handshake_c4,
-            svc_handshake_end,
+                svc_handshake_end,
             svc_roles_request = svc_handshake_end,
             svc_roles,
             svc_qr_request,
@@ -204,7 +206,7 @@ namespace us::wallet::trader {
         void ping(peer_t&, function<void(uint64_t)> pong_handler);
         void ping(peer_t&);
         void reset_ping();
-        inline bool initiator() const { return bootstrapper->initiator(); }
+        inline bool initiator() const { return bootstrapper == nullptr ? true : bootstrapper->initiator(); }
         int set_personality(const string& sk, const string& moniker);
         void feedback_devices(const ch_t&) const;
         ko on_remote(personality_proof_t::raw_t&&, ch_t&); //returns changes as a result of re-setting peer's personality

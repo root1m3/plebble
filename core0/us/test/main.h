@@ -22,12 +22,12 @@
 //===-
 #pragma once
 
+#include <iostream>
 #include <cassert>
+
 #include <us/gov/crypto/ripemd160.h>
 #include <us/gov/cli/hmi.h>
 #include <us/wallet/cli/hmi.h>
-
-//int core1_main(int argc, char** argv);
 
 namespace us::test {
 
@@ -44,9 +44,12 @@ namespace us::test {
         void on_stop() override {
             b::on_stop();
             if (_assert_on_stop) {
+                cerr << "Unexpectedly hmi instance " << this << " stopped" << endl;
                 assert(false);
             }
         }
+
+        void setup_signals(bool) override {}
 
         bool _assert_on_stop = true;
     };
@@ -59,9 +62,12 @@ namespace us::test {
         void on_stop() override {
             b::on_stop();
             if (_assert_on_stop) {
+                cerr << "Unexpectedly hmi instance " << this << " stopped" << endl;
                 assert(false);
             }
         }
+
+        void setup_signals(bool) override {}
 
         bool _assert_on_stop = true;
     };

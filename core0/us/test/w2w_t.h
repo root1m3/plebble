@@ -23,6 +23,7 @@
 #pragma once
 #include "r2r_t.h"
 #include <us/wallet/wallet/txlog_t.h>
+#include <us/gov/crypto/ripemd160.h>
 
 namespace us::test {
 
@@ -34,6 +35,7 @@ namespace us::test {
     struct w2w_t: r2r_t {
         using b = r2r_t;
         using track_t = us::wallet::wallet::track_t;
+        using hash_t = us::gov::crypto::ripemd160::value_type;
 
         w2w_t(network& n): b(n) {}
 
@@ -43,9 +45,13 @@ namespace us::test {
         void confirm_transfer(node& sender, node& rcpt, track_t track);
 
         void test(node&, node&);
-        void run();
 
-        hash_t trade_id{0};
+        void test_10(node&, node&);
+        //void test_20(node&, node&);
+        //void test_25(node&, node&);
+        void test_30(node&, node&);
+
+        void run();
 
     };
 

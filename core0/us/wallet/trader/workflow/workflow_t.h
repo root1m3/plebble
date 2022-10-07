@@ -41,6 +41,7 @@ namespace us::wallet::trader {
 }
 
 namespace us::wallet::trader::workflow {
+
     struct workflows_t;
 
     struct workflow_t: map<string, item_t*>, us::gov::io::seriable {
@@ -52,41 +53,25 @@ namespace us::wallet::trader::workflow {
         using ch_t = trader::ch_t;
 
     protected: //create instances using workflow_t::factories.create(); 
-       workflow_t();
+        workflow_t();
 
     public:
         virtual ~workflow_t();
+        virtual void init(workflows_t& parent_, ch_t&);
 
     public:
-/*
-        using factory_id_t = uint64_t;
+        using factories_t = us::gov::io::factories_t<workflow_t>;
+        using factory_t = us::gov::io::factory_t<workflow_t>;
+        using factory_id_t = uint8_t;
 
-        struct factory_t: us::factory_t<workflow_t> {
-            static constexpr factory_id_t id{0};
-
-            workflow_t* create(workflow_t::factory_id_t factory_id) override {
-                if (factory_id == id) {
-                    return new workflow_t();
-                }
-                return nullptr;
-            }
-        };
-
-        struct factories_t final: us::factories_t<workflow_t> {
-            factories_t() {
-                register_factory(new factory_t()); 
-            }
-        };
-
-        virtual factory_id_t get_factory_id() const { return factory_t::id; }     
-*/   
+        static factory_id_t null_instance;
+        virtual factory_id_t factory_id() const = 0;
 
     public:
         const string& datadir() const { return home; }
-        virtual trader_t& trader() const = 0;
         bool requires_online(const string& cmd) const;
-        ko exec_online(peer_t&, const string& cmd, ch_t&);
-        ko exec_offline(const string& cmd, ch_t&);
+        ko exec_online(trader_t&, peer_t&, const string& cmd, ch_t&);
+        ko exec_offline(trader_t&, const string& cmd, ch_t&);
         void help_online(const string& indent, ostream&) const;
         void help_onoffline(const string& indent, ostream&) const;
         void help_show(const string& indent, ostream&) const;
@@ -101,18 +86,26 @@ namespace us::wallet::trader::workflow {
         bool has_doc(const string& name) const;
         ko rehome(const string& dir, ch_t&);
         void doctypes(doctypes_t&) const; //consumer, producer
-        ko send_to(peer_t&, const string& name) const;
-        ko send_request_to(peer_t&, const string& name) const;
-        ko push(const string& name, bool compact) const;
-        ko push_(const_iterator, bool compact) const;
+        ko send_to(trader_t&, peer_t&, const string& name) const;
+        ko send_request_to(trader_t&, peer_t&, const string& name) const;
+
+    private:
+        ko push_(trader_t&, const_iterator, bool compact) const;
 
     public:
-        using factory_id_t = uint64_t;
-        static us::gov::io::factories_t<workflow_t> factories;
-
         size_t blob_size() const override;
         void to_blob(blob_writer_t&) const override;
         ko from_blob(blob_reader_t&) override;
+
+    public:
+        using item_factories_t = item_t::factories_t;
+        using item_factory_t = item_t::factory_t;
+        using item_factory_id_t = item_t::factory_id_t;
+
+        virtual void register_factories(item_factories_t&) const = 0;
+
+    public:
+        item_factories_t item_factories;
 
     public:
         workflows_t* parent{nullptr};

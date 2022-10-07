@@ -21,6 +21,8 @@
 //===----------------------------------------------------------------------------
 //===-
 #pragma once
+#include "trader_protocol.h"
+
 #include <map>
 #include <utility>
 #include <mutex>
@@ -60,6 +62,7 @@ namespace us::wallet::trader {
         using personality_t = personality::personality_t;
         using protocols_t = bootstrap::protocols_t;
         using peer_t = engine::peer_t;
+        using protocol_factories_t = trader_protocol::factories_t;
 
         enum service_t: uint16_t { //communications node-node
             svc_begin = 0,
@@ -81,6 +84,10 @@ namespace us::wallet::trader {
         string sername() const;
         void save_state() const;
         void load_state();
+
+    protected:
+        void save_state_() const;
+        void load_state_();
         
     public:
         pair<ko, hash_t> initiate(const hash_t parent_tid, const string& datadir, qr_t&&, wallet::local_api&);
@@ -89,8 +96,8 @@ namespace us::wallet::trader {
         trader_t* unlocked_trader_(const hash_t& trade_id);
         void erase_trader_(const hash_t& trade_id);
         trader_t* lock_trader_(const hash_t& trade_id);
-        ko follow_a(peer_t& peer, const hash_t& trade_id, const string& handshake);
-        ko follow_b(peer_t& peer, const hash_t& trade_id, const string& handshake);
+        ko follow_a(peer_t&, const hash_t& trade_id, const string& handshake);
+        ko follow_b(peer_t&, const hash_t& trade_id, const string& handshake);
         void list_trades(const hash_t& subhomeh, ostream&) const;
         void api_list_protocols(ostream&) const;
         void published_protocols(protocols_t&, bool invert) const;
@@ -137,13 +144,13 @@ namespace us::wallet::trader {
         void stop_();
         void join();
 
+    public:
         struct lib_t final {
-//            lib_t(const string& name, const string& libfilename, const string& home);
-            lib_t(const string& libfilename, const string& home);
+            lib_t(const string& libfilename, const string& home, protocol_factories_t&);
             lib_t(business_t*);
             lib_t(const lib_t&) = delete;
             ~lib_t();
-            //using pushman = us::gov::relay::pushman;
+
             void dump(ostream&) const;
             void invert(protocols_t&) const;
             void published_protocols(protocols_t&, bool invert) const;
@@ -155,16 +162,15 @@ namespace us::wallet::trader {
             business_t* business;
         };
 
-//        struct libs_t final: map<string, lib_t*> {
         struct libs_t final: map<protocol_selection_t, lib_t*> {
             libs_t();
             libs_t(const libs_t&) = delete;
             ~libs_t();
-            //using pushman = lib_t::pushman;
+
             void dump(ostream&) const;
             void invert(protocols_t&) const;
             void published_protocols(protocols_t&, bool invert) const;
-            pair<ko, trader_protocol*> create_protocol(protocol_selection_t&&);
+            //pair<ko, trader_protocol*> create_protocol(protocol_selection_t&&);
             pair<ko, trader_protocol*> create_opposite_protocol(protocol_selection_t&&);
             void exec_help(const string& prefix, ostream&) const;
             ko exec(istream&, traders_t&, wallet::local_api&);
@@ -199,6 +205,8 @@ namespace us::wallet::trader {
 
     public:
         libs_t libs;
+        protocol_factories_t protocol_factories;
+
 
         engine::daemon_t& daemon;
         string home;

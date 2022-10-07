@@ -23,6 +23,9 @@
 #pragma once
 #include <string>
 #include <functional>
+#include <condition_variable>
+#include <mutex>
+#include <chrono>
 
 #include <us/gov/io/seriable.h>
 
@@ -58,13 +61,16 @@ namespace us::test {
         using blob_reader_t = us::gov::io::blob_reader_t;
 
         r2r_t(network&);
+        virtual ~r2r_t();
 
+        void wait();
+        void wait(uint64_t secs);
         void wait(node&, node&);
         void wait(node&, node&, uint64_t timeout_ms);
         void wait_no_clear(node&, node&);
         void wait_no_clear1(node&, node&);
         void wait_no_clear2(node&, node&);
-        void curtest(node&, node&, const string& title, const char*file, int line);
+        ko curtest(node&, node&, const string& title, const char*file, int line);
         void curtest_cont(node&, node&, const string& title, const char*file, int line);
         void test_r2r_cfg(node&, node&, function<void(node&, node&)> foo, hash_t& tid);
         void banner(node&, node&, ostream& os);
@@ -83,6 +89,20 @@ namespace us::test {
         network& n;
         static int wait_from_seq;
         static bool enable_wait;
+
+        void abort_tests();
+        //void on_network_stop() { abort_test(); }
+        void test_restartw(node&, node&);
+        void test_restartw2(node&, node&);
+        bool flagrw2{false};
+
+        condition_variable cv_abort;
+        mutable mutex mx_abort;
+        bool abortsignaled{false};
+        hash_t trade_id{0};
+
+        static bool test_restart_wallet;
+
     };
 
 }

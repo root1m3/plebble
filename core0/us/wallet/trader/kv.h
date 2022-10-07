@@ -50,7 +50,7 @@ namespace us::wallet::trader {
         using b::size;
 
         bool override_with(const kv&);
-        kv& operator = (const kv& other) { static_cast<b&>(*this) = static_cast<const b&>(other); return *this; }
+        inline kv& operator = (const kv& other) { static_cast<b&>(*this) = static_cast<const b&>(other); return *this; }
         bool operator != (const kv&) const;
         void hash(sigmsg_hasher_t&) const;
         void hash(hasher_t&) const;

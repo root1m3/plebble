@@ -53,9 +53,17 @@ namespace us::trader::r2r::bid2ask::bid {
 
         static const char *KO_30291;
 
+    public:
         protocol(business_t&);
         ~protocol() override {}
 
+    public:
+        size_t blob_size() const override;
+        void to_blob(blob_writer_t&) const override;
+        ko from_blob(blob_reader_t&) override;
+        factory_id_t factory_id() const override;
+
+    public:
         ko trading_msg(peer_t&, svc_t, blob_t&&) override;
         void dump(ostream&) const override;
         void help_online(const string& indent, ostream&) const override;
@@ -67,12 +75,12 @@ namespace us::trader::r2r::bid2ask::bid {
         static constexpr auto name{"bid2ask"};
         string authorize_invoice(const string& txb58) const;
         chat_t::entry AI_chat(const chat_t&, peer_t&) override;
-        void post_configure(ch_t&) override;
         payment_t* create_payment(const tx_t&, const string& msg) const;
         uint32_t trade_state_() const;
         ko exec_online(peer_t&, const string& cmd, ch_t&) override;
         bool requires_online(const string& cmd) const override;
         void judge(const string& lang) override;
+        void init_workflows(ch_t&) override;
 
     public:
         bool autopay{false};

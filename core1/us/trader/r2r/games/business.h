@@ -30,6 +30,7 @@
 #include <sstream>
 
 #include <us/wallet/trader/traders_t.h>
+#include <us/wallet/trader/business.h>
 #include <us/gov/relay/pushman.h>
 
 namespace us::wallet::trader {
@@ -48,12 +49,15 @@ namespace us::trader::r2r::games {
         using wallet_local_api = us::wallet::wallet::local_api;
         using protocol = us::trader::r2r::games::protocol;
 
+    public:
         business_t();
         ~business_t() override;
-        ko init(const string& r2rhome) override;
+
+    public:
+        ko init(const string& r2rhome, us::wallet::trader::traders_t::protocol_factories_t&) override;
         string homedir() const override;
 
-        //pair<ko, trader_protocol*> create_protocol(protocol_selection_t&&) override;
+    public:
         pair<ko, trader_protocol*> create_opposite_protocol(protocol_selection_t&&) override;
         pair<ko, trader_protocol*> create_protocol() override;
         void list_protocols(ostream&) const override; //human format

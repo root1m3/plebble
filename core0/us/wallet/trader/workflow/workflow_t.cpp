@@ -22,7 +22,6 @@
 //===-
 #include "workflow_t.h"
 
-#include <us/wallet/protocol.h>
 #include <us/wallet/trader/business.h>
 #include <us/wallet/trader/trader_t.h>
 #include <us/wallet/trader/traders_t.h>
@@ -37,7 +36,7 @@
 using namespace us::wallet::trader;
 using c = us::wallet::trader::workflow::workflow_t;
 
-us::gov::io::factories_t<c> c::factories;
+c::factory_id_t c::null_instance{0};
 
 c::workflow_t() {
 }
@@ -45,6 +44,13 @@ c::workflow_t() {
 c::~workflow_t() {
     lock_guard<mutex> lock(mx);
     for (auto& i: *this) delete i.second;
+}
+
+void c::init(workflows_t& parent_, ch_t&) {
+    assert(parent == nullptr);
+    parent = &parent_;
+    home = parent->home;
+    register_factories(item_factories);
 }
 
 void c::on_file_updated(const string& path, const string& name, ch_t& ch) {
@@ -70,7 +76,10 @@ ko c::load_all(ch_t& ch) {
         log("loading", i.first);
         auto r = i.second->load(ch);
         if (is_ko(r)) {
-            return move(r);
+            if (r != us::gov::io::cfg0::KO_84012) {
+                return r;
+            }
+            log("file not available, no document has been loaded for this workflow item.");
         }
     }
     return ok;
@@ -145,33 +154,37 @@ bool c::has_doc(const string& name) const {
     return find(name) != end();
 }
 
-ko c::push_(const_iterator i, bool compact) const {
+ko c::push_(trader_t& tder, const_iterator i, bool compact) const {
+    log("push_", i->second->name,  compact);
     using datagram = us::gov::socket::datagram;
     if (i->second->doc == nullptr) {
         auto r = "KO 30947 Document not available.";
         log(r);
         return r;
     }
-    auto& tder = trader();
+//    auto& tder = trader();
     auto tid = tder.id;
     log("tid", tid);
     log("trade id", tder.id);
     datagram* d;
     if (compact) {
+        log("compact form");
         blob_t blob;
         i->second->write(blob);
         d = peer_t::push_in_t(tid, workflow::trader_protocol::push_workflow_item, blob).get_datagram(tder.parent.daemon.channel, 0);
     }
     else {
+        log("dumping content");
         ostringstream os;
         i->second->doc->write_pretty(os);
         blob_t blob = io::blob_writer_t::make_blob(os.str());
         d = peer_t::push_in_t(tid, workflow::trader_protocol::push_doc, blob).get_datagram(tder.parent.daemon.channel, 0);
     }
-    trader().schedule_push(d);
+    tder.schedule_push(d);
     return ok;
 }
 
+/*
 ko c::push(const string& name, bool compact) const {
     lock_guard<mutex> lock(mx);
     auto i = find(name);
@@ -182,8 +195,9 @@ ko c::push(const string& name, bool compact) const {
     }
     return push_(i, compact);
 }
+*/
 
-ko c::send_to(peer_t& peer, const string& name) const {
+ko c::send_to(trader_t& tder, peer_t& peer, const string& name) const {
     lock_guard<mutex> lock(mx);
     auto i = find(name);
     if (i == end()) {
@@ -191,10 +205,10 @@ ko c::send_to(peer_t& peer, const string& name) const {
         log(r);
         return r;
     }
-    return i->second->send_to(peer);
+    return i->second->send_to(tder, peer);
 }
 
-ko c::send_request_to(peer_t& peer, const string& name) const {
+ko c::send_request_to(trader_t& tder, peer_t& peer, const string& name) const {
     lock_guard<mutex> lock(mx);
     auto i = find(name);
     if (i == end()) {
@@ -202,7 +216,7 @@ ko c::send_request_to(peer_t& peer, const string& name) const {
         log(r);
         return r;
     }
-    return i->second->send_request_to(peer);
+    return i->second->send_request_to(tder, peer);
 }
 
 ko c::save(const string& name) {
@@ -271,7 +285,7 @@ ko c::rehome(const string& dir, ch_t& ch) {
     return ok;
 }
 
-ko c::exec_offline(const string& cmd0, ch_t& ch) {
+ko c::exec_offline(trader_t& tder, const string& cmd0, ch_t& ch) {
     log("exec_offline", cmd0);
     istringstream is(cmd0);
     string cmd;
@@ -280,7 +294,7 @@ ko c::exec_offline(const string& cmd0, ch_t& ch) {
     if (cmd == "show") {
         string cmd;
         is >> cmd;
-        log("exec_online show", cmd);
+        log("exec_offline show", cmd, "sz", size());
         auto i = find(cmd);
         if (i == end()) {
             auto r = us::wallet::trader::trader_protocol::WP_29101;
@@ -290,10 +304,10 @@ ko c::exec_offline(const string& cmd0, ch_t& ch) {
         string pretty;
         is >> pretty;
         if (pretty == "-p") {
-            return push_(i, false);
+            return push_(tder, i, false);
         }
         else if (pretty.empty()) {
-            return push_(i, true);
+            return push_(tder, i, true);
         }
         else {
             auto r = "KO 22712 Invalid option.";
@@ -309,7 +323,7 @@ ko c::exec_offline(const string& cmd0, ch_t& ch) {
     }
     cmd.clear();
     getline(is, cmd);
-    return i->second->exec_offline(home, cmd, ch);
+    return i->second->exec_offline(tder, home, cmd, ch);
 }
 
 bool c::requires_online(const string& cmd) const {
@@ -318,7 +332,7 @@ bool c::requires_online(const string& cmd) const {
     return false;
 }
 
-ko c::exec_online(peer_t& peer, const string& cmd0, ch_t& ch) {
+ko c::exec_online(trader_t& tder, peer_t& peer, const string& cmd0, ch_t& ch) {
     log("exec_online", cmd0);
     istringstream is(cmd0);
     string cmd;
@@ -334,11 +348,11 @@ ko c::exec_online(peer_t& peer, const string& cmd0, ch_t& ch) {
             log(r);
             return move(r);
         }
-        auto r = i->second->send_to(peer);
+        auto r = i->second->send_to(tder, peer);
         if (is_ko(r)) {
             return move(r);
         }
-        return trader().push_OK("Document has been sent to your peer.");
+        return tder.push_OK("Document has been sent to your peer.");
     }
     if (cmd == "request") {
         log("request");
@@ -350,11 +364,11 @@ ko c::exec_online(peer_t& peer, const string& cmd0, ch_t& ch) {
             log(r);
             return move(r);
         }
-        auto r = i->second->send_request_to(peer);
+        auto r = i->second->send_request_to(tder, peer);
         if (is_ko(r)) {
             return move(r);
         }
-        return trader().push_OK("Document requested. I expect it to be delivered...");
+        return tder.push_OK("Document requested. I expect it to be delivered...");
     }
     auto r = trader::trader_protocol::WP_29101;
     log(r);
@@ -364,21 +378,24 @@ ko c::exec_online(peer_t& peer, const string& cmd0, ch_t& ch) {
 size_t c::blob_size() const {
     auto sz = blob_writer_t::blob_size(home) + blob_writer_t::sizet_size(size());
     for (auto& i: *this) {
-        sz += blob_writer_t::blob_size(i.first) + blob_writer_t::blob_size(*i.second);
+        sz += blob_writer_t::blob_size(i.first) + blob_writer_t::blob_size(i.second, item_factories);
     }
+    log("blob_size", sz);
     return sz;
 }
 
 void c::to_blob(blob_writer_t& writer) const {
+    log("to_blob", "cur", (uint64_t)(writer.cur - writer.blob.data()));
     writer.write(home);
     writer.write_sizet(size());
     for (auto& i: *this) {
         writer.write(i.first);
-        writer.write(*i.second);
+        writer.write(i.second, item_factories);
     }
 }
 
 ko c::from_blob(blob_reader_t& reader) {
+    log("from_blob", "cur", (uint64_t)(reader.cur - reader.blob.data()));
     {
         auto r = reader.read(home);
         if (is_ko(r)) {
@@ -389,7 +406,10 @@ ko c::from_blob(blob_reader_t& reader) {
     auto r = reader.read_sizet(sz);
     if (is_ko(r)) return r;
     //if (unlikely(sz > max_sizet_containers)) return KO_75643;
-    assert(empty());
+    if (!empty()) {
+        for (auto& i: *this) delete i.second;
+        clear();
+    }
     for (int i = 0; i < sz; ++i) {
         string key;
         {
@@ -398,19 +418,18 @@ ko c::from_blob(blob_reader_t& reader) {
                 return r;
             }
         }
-        item_t::factory_id_t id;
-        auto r = reader.read(id);
-        if (is_ko(r)) {
-            return r;
+        item_t* o{nullptr};
+        {
+            auto r = reader.read(o, item_factories);
+            if (is_ko(r)) {
+                return r;
+            }
+            o->init(this);
         }
-        auto o = item_t::factories.create(id);
-        if (o == nullptr) {
-            auto r = "KO 70216 workflow item load failed";
-            log(r);
-            return r;
-        }
+        assert(o != nullptr);
         emplace(key, o);
     }
     return ok;
 }
+
 

@@ -31,6 +31,7 @@
 #include <us/gov/config.h>
 #include <us/gov/socket/datagram.h>
 
+#include "hmi0.h"
 #include "rpc_daemon_t.h"
 #include "rpc_peer_t.h"
 
@@ -44,7 +45,7 @@ namespace us::gov::cli {
     struct screen;
     struct printer_t;
 
-    struct hmi {
+    struct hmi: us::cli::hmi {
         using params = us::gov::io::params;
         using shell_args = us::gov::io::shell_args;
         using cfg_daemon = us::gov::io::cfg_daemon;
@@ -65,7 +66,7 @@ namespace us::gov::cli {
         hmi(int argc, char** argv, ostream&);
         hmi(const shell_args&, ostream&);
         hmi(const params&, ostream&);
-        virtual ~hmi();
+        ~hmi() override;
 
         void constructor();
         static string parse_options(shell_args& args, params&);

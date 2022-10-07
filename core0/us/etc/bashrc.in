@@ -1,0 +1,4 @@
+
+if [ -f ~/.bash_aliases ]; then  ###str3##
+.  ~/.bash_aliases               ###str3##
+fi                               ###str3##

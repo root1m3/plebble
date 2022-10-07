@@ -38,11 +38,11 @@
 #include <us/gov/cash/map_tx.h>
 #include <us/gov/cash/file_tx.h>
 #include <us/gov/io/cfg0.h>
-#include <us/wallet/protocol.h>
+
 #include <us/wallet/engine/daemon_t.h>
 #include <us/wallet/engine/peer_t.h>
-#include <us/wallet/trader/r2r/w2w/business.h>
 #include <us/wallet/wallet/local_api.h>
+#include <us/wallet/trader/r2r/w2w/business.h>
 
 #include "trader_protocol.h"
 #include "trader_t.h"
@@ -53,7 +53,7 @@
 #include "bootstrap/b_t.h"
 #include "types.h"
 
-#define loglevel "wallet"
+#define loglevel "wallet/trader"
 #define logclass "traders"
 #include <us/gov/logs.inc>
 
@@ -83,7 +83,10 @@ c::traders_t(engine::daemon_t& daemon, const string& home): daemon(daemon), home
 c::~traders_t() {
     join();
     log("destroying traders");
-    for (auto& i: *this) delete i.second;
+    for (auto& i: *this) {
+        assert(i.second->busyref.load() == 0);
+        delete i.second;
+    }
     clear();
 }
 
@@ -96,6 +99,7 @@ c::libs_t::~libs_t() {
     for (auto& i: *this) delete i.second;
 }
 
+/*
 std::pair<ko, us::wallet::trader::trader_protocol*> c::libs_t::create_protocol(protocol_selection_t&& protocol_selection) {
     log("libs_t::create_protocol", protocol_selection.to_string());
     auto i = find(protocol_selection);
@@ -105,20 +109,8 @@ std::pair<ko, us::wallet::trader::trader_protocol*> c::libs_t::create_protocol(p
         return make_pair(r, nullptr);
     }
     return i->second->business->create_protocol();
-/*
-    for (auto& i: *this) {
-        log("testing a business");
-        auto r = i.second->business->create_protocol(move(protocol_selection));
-        if (r.first == ok) {
-            log("found");
-            return r;
-        }
-    }
-    auto r = "KO 7895 Protocol not available";
-    log(r);
-    return make_pair(r, nullptr);
-*/
 }
+*/
 
 std::pair<ko, us::wallet::trader::trader_protocol*> c::libs_t::create_opposite_protocol(protocol_selection_t&& protocol_selection) {
     log("libs_t::create_opposite_protocol", protocol_selection.to_string());
@@ -139,7 +131,7 @@ c::lib_t::lib_t(business_t* bz): plugin(nullptr), business(bz) { //constructor 1
 }
 
 //c::lib_t::lib_t(const string& name, const string& filename, const string& home) { //constructor 2
-c::lib_t::lib_t(const string& filename, const string& home) { //constructor 2
+c::lib_t::lib_t(const string& filename, const string& home, protocol_factories_t& protocol_factories) { //constructor 2
 //    log("loading lib", name, filename, home);
     log("loading lib", filename, home);
     plugin = ::dlopen(filename.c_str(), RTLD_LAZY);
@@ -157,9 +149,19 @@ c::lib_t::lib_t(const string& filename, const string& home) { //constructor 2
         return;
     }
     log("creating business", home, business_t::interface_version);
-    business = create_bz(home.c_str(), business_t::interface_version);
+    business = create_bz(business_t::interface_version);
     if (business == nullptr) {
-        log("Cannot create bz");
+        auto r = "KO 59982 Cannot create bz";
+        log(r);
+        ::dlclose(plugin);
+        plugin = nullptr;
+        return;
+    }
+    auto r = business->init(home, protocol_factories);
+    if (is_ko(r)) {
+        log(r, "Business could not init.");
+        delete business;
+        business = nullptr;
         ::dlclose(plugin);
         plugin = nullptr;
         return;
@@ -183,13 +185,16 @@ c::lib_t::~lib_t() {
     ::dlclose(plugin);
 }
 
+
 std::pair<ko, us::wallet::trader::trader_protocol*> c::create_protocol(protocol_selection_t&& protocol_selection) {
     log("create_protocol A", protocol_selection.to_string());
 //    if (protocol_selection.first.empty()) {
 //        return make_pair(ok, nullptr);
 //    }
-    return libs.create_protocol(move(protocol_selection));
+    return protocol_factories.create(protocol_selection);
+//    return libs.create_protocol(move(protocol_selection));
 }
+
 
 std::pair<ko, us::wallet::trader::trader_protocol*> c::create_opposite_protocol(protocol_selection_t&& protocol_selection) {
     log("create_opposite_protocol A", protocol_selection.to_string());
@@ -204,7 +209,8 @@ std::pair<ko, us::wallet::trader::trader_protocol*> c::create_protocol(protocol_
     if (protocol_selection.first.empty()) {
         return make_pair(ok, nullptr);
     }
-    auto r = libs.create_protocol(move(protocol_selection));
+    auto r = protocol_factories.create(protocol_selection);
+//    auto r = libs.create_protocol(move(protocol_selection));
     if (is_ko(r.first)) {
         assert(r.second == nullptr);
         return r;
@@ -216,7 +222,7 @@ std::pair<ko, us::wallet::trader::trader_protocol*> c::create_protocol(protocol_
 void c::load_bank() {
     log("creating w2w");
     business_t* bz = new us::wallet::trader::r2r::w2w::business_t();
-    auto r = bz->init(home);
+    auto r = bz->init(home, protocol_factories);
     if (is_ko(r)) {
         delete bz;
         return;
@@ -254,7 +260,7 @@ void c::load_plugins() {
 //        log("loading lib", i.first, i.second);
 //        log("loading lib", i);
 //        lib_t* l = new lib_t(i.first, i.second, home);
-        lib_t* l = new lib_t(i, home);
+        lib_t* l = new lib_t(i, home, protocol_factories);
         if (l->plugin == nullptr) {
 //            log("error loading lib", i.second);
             log("error loading lib", i);
@@ -305,7 +311,12 @@ ko c::wait_ready(const time_point& deadline) const {
 }
 
 void c::stop_() {
-    for (auto& i: *this) i.second->stop();
+    save_state_();
+    log("stopping traders");
+    for (auto& i: *this) {
+        log("stopping trade ", i.first);
+        i.second->stop();
+    }
 }
 
 void c::stop() {
@@ -314,8 +325,12 @@ void c::stop() {
 }
 
 void c::join() {
+    log("join");
     lock_guard<mutex> lock(_mx);
-    for (auto& i: *this) i.second->join();
+    for (auto& i: *this) {
+        log("waiting for trade ", i.first);
+        i.second->join();
+    }
 }
 
 pair<string, string> c::load_personality(const string& file) const {
@@ -374,10 +389,12 @@ pair<ko, hash_t> c::initiate(const hash_t parent_tid, const string& datadir, qr_
 }
 
 void c::erase_trader_(const hash_t& trade_id) {
-    log("Erase trade.");
+    log("Erase trade.", trade_id);
     trader_t* tder;
     auto i = find(trade_id);
     if (i == end()) return;
+    assert(i->second->busyref.load() == 0);
+    log("delete trade.", trade_id);
     delete i->second;
     erase(i);
 }
@@ -449,24 +466,21 @@ ko c::trading_msg(peer_t& peer, svc_t svc, const hash_t& trade_id, blob_t&& blob
                     log("boot with follower bootstrapper", trade_id, tder);
                     auto r = tder->boot(peer.pubkey.hash(), new bootstrap::follower_t(trade_id, peer));
                     if (is_ko(r.first)) {
-                        log("Oo");
-                        {
-                            lock_guard<mutex> lock(_mx);
-                            erase_trader_(trade_id);
-                        }
                         log("--busyref", trade_id);
                         --tder->busyref;
+                        lock_guard<mutex> lock(_mx);
+                        erase_trader_(trade_id);
                         return r.first;
                     }
                 }
                 auto r = tder->trading_msg(peer, svc, move(blob));
+                log("--busyref", trade_id);
+                --tder->busyref;
                 if (is_ko(r)) {
                     log("Oo2", r);
                     lock_guard<mutex> lock(_mx);
                     erase_trader_(trade_id);
                 }
-                log("--busyref", trade_id);
-                --tder->busyref;
                 return r;
             }
             break;
@@ -630,7 +644,6 @@ void c::local_functions(ostream& os) const {
 }
 
 void c::kill(const hash_t& id, const string& source) {
-
     log("spawned assassin thread");
     thread killwork([&, id, source]() {
         #if CFG_LOGS == 1
@@ -988,7 +1001,6 @@ void c::reload_file(const string& fqn) {
     on_file_updated2(r.second.first, r.second.second, nullptr);
 }
 
-
 void c::schedule_push(socket::datagram* d, wallet::local_api& w) {
     return daemon.pm.schedule_push(d, w.device_filter);
 }
@@ -1010,35 +1022,75 @@ ko c::push_OK(const hash_t& tid, const string& msg, wallet::local_api& w) {
 }
 
 size_t c::blob_size() const {
-    return blob_writer_t::sizet_size(size()) + size() * gov::crypto::ripemd160::output_size;
+    auto sz = blob_writer_t::sizet_size(size()) + size() * gov::crypto::ripemd160::output_size;
+    for (auto& i: *this) {
+        sz += blob_writer_t::blob_size(i.second->w->subhome);
+    }
+    log("blob_size", sz);
+    return sz;
 }
 
 void c::to_blob(blob_writer_t& writer) const {
-    writer.write_sizet(size());
+    auto n = size();
+    log("to_blob", "cur", (uint64_t)(writer.cur - writer.blob.data()), "list size", n);
+    writer.write_sizet(n);
     for (auto& i: *this) {
         writer.write(i.first);
+        writer.write(i.second->w->subhome);
     }
 }
 
 ko c::from_blob(blob_reader_t& reader) {
+    log("from_blob", "cur", (uint64_t)(reader.cur - reader.blob.data()));
     uint64_t sz;
     auto r = reader.read_sizet(sz);
     if (is_ko(r)) return r;
     if (unlikely(sz > blob_reader_t::max_sizet_containers)) return blob_reader_t::KO_75643;
     for (int i = 0; i < sz; ++i) {
-        hash_t h;
-        auto r = reader.read(h);
-        if (is_ko(r)) return r;
-        
+        log("loading trade #", i);
+        hash_t trade_id;
+        {
+            auto r = reader.read(trade_id);
+            if (is_ko(r)) return r;
+            log("read tradeid", trade_id);
+        }
+        string subhome;
+        {
+            auto r = reader.read(subhome);
+            if (is_ko(r)) return r;
+            log("read subhome", subhome);
+        }
+        trader_t* tder = lock_trader_(trade_id);
+        assert(tder != nullptr);
+        {
+            log("boot with no bootstrapper", trade_id, subhome);
+            auto w = daemon.users.get_wallet(subhome);
+            if (w == nullptr) {
+                auto r = "KO 87868 wallet could not be instantiated.";
+                log(r, "subhome", subhome);
+                log("--busyref", trade_id);
+                --tder->busyref;
+                erase_trader_(trade_id);
+                continue;
+            }
+            auto r = tder->boot(trade_id, *w);
+            log("--busyref", trade_id);
+            --tder->busyref;
+            if (is_ko(r)) {
+                log(r, trade_id);
+                erase_trader_(trade_id);
+                continue;
+            }
+        }
     }
     return ok;
 }
 
 string c::sername() const {
-    return home + "/active";
+    return home + "/active" + "_off";
 }
 
-void c::load_state() {
+void c::load_state_() {
     log("loading active trades");
     auto r = load(sername());
     if (is_ko(r)) {
@@ -1046,14 +1098,21 @@ void c::load_state() {
     }
 }
 
-void c::save_state() const {
+void c::load_state() {
+    lock_guard<mutex> lock(_mx);
+    load_state_();
+}
+
+void c::save_state_() const { //assume mx is taken
     log("saving active trades");
     auto r = save(sername());
     if (is_ko(r)) {
         log("active trades could not be saved", sername());
     }
-    for (auto& i: *this) {
-        i.second->save_state();
-    }
+}
+
+void c::save_state() const { //assume mx is taken
+    lock_guard<mutex> lock(_mx);
+    save_state_();
 }
 

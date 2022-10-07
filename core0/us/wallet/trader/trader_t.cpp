@@ -35,7 +35,6 @@
 #include <us/gov/cash/map_tx.h>
 #include <us/gov/cash/file_tx.h>
 
-#include <us/wallet/protocol.h>
 #include <us/wallet/engine/peer_t.h>
 #include <us/wallet/engine/daemon_t.h>
 #include <us/wallet/wallet/local_api.h>
@@ -85,8 +84,8 @@ ko c::permission_bootstrap(const peerid_t& peerid) const {
     assert(peerid.is_not_zero());
     if (bootstrapped_by != peerid) {
         if (bootstrapped_by.is_zero()) {
-	    log("permission for bootstraping is granted to any peer in the group");
-	    return ok;
+	        log("permission for bootstraping is granted to any peer in the group");
+	        return ok;
         }
         auto r = "KO_60978 Peer doesn't own the bootstrapper." ;
         log(r, "re-bootstrap permission is denied.");
@@ -96,8 +95,17 @@ ko c::permission_bootstrap(const peerid_t& peerid) const {
     return ok;
 }
 
+ko c::boot(const hash_t& trade_id, wallet::local_api& wallet) {
+    log("boot 0", "TRACE 8c");
+    delete bootstrapper;
+    bootstrapper = nullptr;
+    init(trade_id, remote_endpoint, wallet);
+    olog("boot from state read from disk.");
+    return ok;
+}
+
 pair<ko, hash_t> c::boot(const peerid_t& peerid, bootstrapper_t* bs) {
-    log("boot", "TRACE 8c", bs);
+    log("boot 1", "TRACE 8c", bs);
     ts_activity.store(duration_cast<nanoseconds>(system_clock::now().time_since_epoch()).count());
     auto r = permission_bootstrap(peerid);
     if (is_ko(r)) {
@@ -111,13 +119,14 @@ pair<ko, hash_t> c::boot(const peerid_t& peerid, bootstrapper_t* bs) {
     return bootstrapper->start(*this);
 }
 
+/*
 void c::on_start() {
     b::on_start();
 }
+*/
 
 void c::init(const hash_t& tid, const endpoint_t& rep, wallet::local_api& wallet) {
     log("init", "TRACE 8c", tid, "ep", rep.to_string(), "subhome", wallet.subhome);
-    assert(bootstrapper != nullptr);
     remote_endpoint = rep;
     log("init", "remote_endpoint", remote_endpoint.to_string());
     w = &wallet;
@@ -129,8 +138,10 @@ void c::init(const hash_t& tid, const endpoint_t& rep, wallet::local_api& wallet
         datasubdir = parent_tid.encode();
         log("datasubdir was empty.", "Now is", datasubdir);
     }
+    id = tid;
+    load_state();
     if (need_init()) { //olog decides
-        id = tid;
+//        assert(id == tid);
         #if CFG_LOGS == 1
             ostringstream os;
             os << "trade_" << id;
@@ -148,13 +159,15 @@ void c::init(const hash_t& tid, const endpoint_t& rep, wallet::local_api& wallet
         schedule_push(push_trade, "en");
     }
     else {
-        olog("New bootstrapper");
+//        id = tid;
+        olog("New bootstrapper called init");
     }
     olog("Remote: ", remote_endpoint.to_string());
     olog("Side", initiator() ? "Initiator" : "Follower");
 }
 
 void c::on_stop() {
+    save_state();
     b::on_stop();
     if (p != nullptr) p->on_finish();
 }
@@ -802,7 +815,7 @@ void c::dump(const string& pfx, ostream& os) const {
         os << "null";
     }
     os << '\n';
-    os << "state " << state << '\n';
+    b::dump(pfx, os);
 }
 
 void c::list_trades(ostream& os) const {
@@ -1439,7 +1452,7 @@ void c::help(const string& ind, ostream& os) const {
     os << ind << "Trade id: " << id << '\n';
     os << ind << "Personality: " << my_personality.id << ' ' << my_personality.moniker << '\n';
     os << ind << "Trader commands:\n";
-    if (state == state_offline) {
+    if (get_stateX() == state_offline) {
         fmt::twocol(ind2, "connect", "Go online", os);
     }
     else {
@@ -1545,16 +1558,21 @@ size_t c::blob_size() const {
         blob_writer_t::blob_size(ts_creation) +
         blob_writer_t::blob_size(my_challenge) +
         blob_writer_t::blob_size(peer_challenge) +
+        blob_writer_t::blob_size(bootstrapped_by) +
         blob_writer_t::blob_size(chat) +
         blob_writer_t::blob_size(datasubdir) +
         blob_writer_t::blob_size(endpoint_pkh) +
+        blob_writer_t::blob_size(remote_endpoint) +
         blob_writer_t::blob_size(rf) +
-        blob_writer_t::blob_size(p) +
+        blob_writer_t::blob_size(p, parent.protocol_factories) +
         blob_writer_t::blob_size(ts_activity.load());
+    log("blob_size", sz);
     return sz;
 }
 
 void c::to_blob(blob_writer_t& writer) const {
+    log("to_blob", "cur", (uint64_t)(writer.cur - writer.blob.data()));
+    log("id", id);
     writer.write(id);
     writer.write(parent_tid);
     writer.write(my_personality);
@@ -1565,15 +1583,22 @@ void c::to_blob(blob_writer_t& writer) const {
     writer.write(my_challenge);
     writer.write(peer_challenge);
     writer.write(bootstrapped_by);
+    log("chat");
     writer.write(chat);
     writer.write(datasubdir);
+    log("endpoint_pkh");
     writer.write(endpoint_pkh);
+    writer.write(remote_endpoint);
+    log("rf");
     writer.write(rf);
-    writer.write(p);
+    log("protocol");
+    writer.write(p, parent.protocol_factories);
+    log("ts_activity");
     writer.write(ts_activity.load());
 }
 
 ko c::from_blob(blob_reader_t& reader) {
+    log("from_blob", "cur", (uint64_t)(reader.cur - reader.blob.data()));
     {
         auto r = reader.read(id);
         if (is_ko(r)) {
@@ -1653,15 +1678,24 @@ ko c::from_blob(blob_reader_t& reader) {
         }
     }
     {
+        auto r = reader.read(remote_endpoint);
+        if (is_ko(r)) {
+            return r;
+        }
+    }
+    {
         auto r = reader.read(rf);
         if (is_ko(r)) {
             return r;
         }
     }
     {
-        auto r = reader.read(p, protocol::factories);
+        auto r = reader.read(p, parent.protocol_factories);
         if (is_ko(r)) {
             return r;
+        }
+        if (p != nullptr) {
+            p->tder = this;
         }
     }
     {
@@ -1682,18 +1716,32 @@ pair<string, string> c::sername() const {
 }
 
 void c::load_state() {
-    log("loading active trades");
+    if (id.is_zero()) {
+        return;
+    }
+    log("load_state", sername().first);
     auto n = sername();
+    lock_guard<mutex> lock(mx);
     auto r = load(n.first + '/' + n.second);
     if (is_ko(r)) {
-        log("active trades could not be loaded", n.first , n.second);
+        log("trade could not be loaded", n.first , n.second);
+        if (r != us::gov::io::cfg0::KO_84012) { //file does not exist
+            log(r);
+            cerr << r << endl;
+            assert(false);
+        }
     }
 }
 
 void c::save_state() const {
+    if (id.is_zero()) {
+        return;
+    }
+    log("save_state", sername().first);
     auto n = sername();
     us::gov::io::cfg0::ensure_dir(n.first);
-    auto r = save(n.first + '/' + n.second);
+    lock_guard<mutex> lock(mx);
+    auto r = save(n.first + '/' + n.second + "_off");
     if (is_ko(r)) {
         log("active trades could not be saved", n.first , n.second);
     }

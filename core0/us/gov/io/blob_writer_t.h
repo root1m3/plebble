@@ -99,14 +99,15 @@ namespace us::gov::io {
         template<typename t>
         static size_t blob_size(t* o, const factories_t<t>& f) {
             if (o == nullptr) return blob_size(t::null_instance);
-            return blob_size(t::null_instance) + o->blob_size();
+            return blob_size(o->factory_id()) + o->blob_size();
         }
 
         template<typename t>
         void write(t* o, const factories_t<t>& f) {
+//cout << "wcur=" << (uint64_t)(cur - blob.data()) << endl;
             typename t::factory_id_t x = (o == nullptr ? t::null_instance : o->factory_id());
             write(x);
-            if (x == t::null_instance) {
+            if (o == nullptr) {
                 return;
             }
             write(*o);

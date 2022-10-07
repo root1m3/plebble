@@ -23,6 +23,7 @@
 #pragma once
 #include <us/wallet/trader/trader_protocol.h>
 #include "workflows_t.h"
+#include "business.h"
 
 namespace us::wallet::trader::workflow {
     using namespace std;
@@ -34,6 +35,7 @@ namespace us::wallet::trader::workflow {
         using workflow_item_t = workflow::item_t;
         using workflow_doc0_t = workflow::doc0_t;
 
+    public:
         trader_protocol(business_t&);
         ~trader_protocol() override;
 
@@ -56,6 +58,9 @@ namespace us::wallet::trader::workflow {
         bool sig_hard_reset(ostream&);
         void sig_reload(ostream&);
         virtual void on_send_item(const string& what) {}
+        ko on_attach(trader_t&, ch_t&) override;
+        virtual void create_workflows(ch_t&) = 0;
+        virtual void init_workflows(ch_t&) = 0;
 
         enum push_code_t: uint16_t { //communications node-HMI
             push_begin = b::push_end,
@@ -80,17 +85,19 @@ namespace us::wallet::trader::workflow {
             svc_r2r_begin = b::svc_r2r_begin
         };
 
-        template<typename t>
-        t* add(t* workflow, ch_t& ch) {
+        template<typename t> t* add(t* workflow, ch_t& ch) {
             _workflows.add(workflow, ch);
             return workflow;
         }
-
-        void data(const string& lang, ostream&) const override;
-        virtual void judge(const string& lang); //requires lock mx_user_state
-        uint32_t trade_state_() const;
-
+/*
+        template<typename t> t* add0(t* workflow, ch_t& ch) {
+            _workflows.add0(workflow, ch);
+            return workflow;
+        }
+*/
     public:
+        inline business_t& get_business() { return static_cast<business_t&>(business); }
+
         size_t blob_size() const override;
         void to_blob(blob_writer_t&) const override;
         ko from_blob(blob_reader_t&) override;
@@ -100,9 +107,6 @@ namespace us::wallet::trader::workflow {
         bookmarks_t redirects;
         mutable mutex redirects_mx;
 
-        mutable mutex mx_user_state;
-        pair<uint32_t, string> _trade_state{0, "idle / available"};
-        string _user_hint{"Let's have a chat."};
     };
 
 }

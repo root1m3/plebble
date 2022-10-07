@@ -21,18 +21,20 @@
 //===----------------------------------------------------------------------------
 //===-
 #pragma once
-#include "handshake_t.h"
 #include <string>
-#include <us/gov/engine/signed_data.h>
-#include <us/wallet/trader/params_t.h>
 #include <iostream>
 #include <string>
 #include <vector>
-#include "protocols_t.h"
-#include "b_t.h"
+
+#include <us/gov/engine/signed_data.h>
+
+#include <us/wallet/trader/params_t.h>
 #include <us/wallet/trader/personality/proof_t.h>
 #include <us/wallet/trader/protocol_selection_t.h>
-#include <us/wallet/trader/business.h>
+
+#include "protocols_t.h"
+#include "b_t.h"
+#include "handshake_t.h"
 
 namespace us::wallet::trader::bootstrap {
 

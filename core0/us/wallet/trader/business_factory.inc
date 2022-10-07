@@ -22,20 +22,13 @@
 //===-
 extern "C" {
 
-    c* uswallet_business_create(char* r2rhome, int if_version) {
+    c* uswallet_business_create(int if_version) {
         if (if_version != us::wallet::trader::business_t::interface_version) {
             auto r = "KO 43731 Interfaces mismatch.";
             log(r, "Requested interface", if_version, "but I expose version", us::wallet::trader::business_t::interface_version);
             return nullptr;
         }
-        auto i = new c();
-        auto r = i->init(r2rhome);
-        if (us::is_ko(r)) {
-            log(r, "Business could not init.");
-            delete i;
-            return nullptr;
-        }
-        return i;
+        return new c();
     }
 
     void uswallet_business_destroy(c* p) {

@@ -28,16 +28,15 @@
 #include <us/gov/logs.inc>
 
 using namespace std;
+using namespace us::test;
 
 int main(int argc, char** argv) {
-    cout << "START" << endl;
     us::dbg::thread_logger::set_root_logdir("logs");
-    log_pstart("us-trader_test-c1");
+    log_pstart(argv[0]);
     log_start("", "main");
-
+    tee("START");
     log_info(cout);
     cout << endl;
-
     return core1_main(argc, argv);
 }
 

@@ -76,7 +76,7 @@ namespace us::test {
         void test(node&, node&);
         void run();
 
-        hash_t trade_id{0};
+        //hash_t trade_id{0};
 
     };
 

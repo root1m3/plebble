@@ -30,13 +30,16 @@
 #include <unordered_map>
 
 #include <us/gov/cash/tx_t.h>
+#include <us/gov/io/factory.h>
 
 #include <us/wallet/trader/business.h>
 #include <us/wallet/trader/ch_t.h>
 #include <us/wallet/trader/trader_t.h>
 #include <us/wallet/wallet/local_api.h>
+#include <us/wallet/trader/workflow/workflow_t.h>
 
 #include <us/trader/r2r/bid2ask/types.h>
+#include <us/trader/r2r/bid2ask/business.h>
 #include <us/trader/workflow/consumer/docs.h>
 #include <us/trader/workflow/consumer/basket.h>
 
@@ -44,23 +47,26 @@
 
 namespace us::trader::r2r::bid2ask::ask {
 
-    struct business_t: us::wallet::trader::business_t {
-        using b = us::wallet::trader::business_t;
-        using ch_t = us::wallet::trader::ch_t;
-        using catalogue_t = us::trader::workflow::consumer::catalogue_t;
-        using basket_t = us::trader::workflow::consumer::basket_t;
+    struct business_t: us::trader::r2r::bid2ask::business_t {
+        using b = us::trader::r2r::bid2ask::business_t;
         using protocol = ask::protocol;
-        using tx_t = us::gov::cash::tx_t;
 
+    public:
         business_t();
         ~business_t() override;
-        ko init(const string& r2rhome) override;
-        string homedir() const override;
 
+    public:
+        protocol_factory_id_t protocol_factory_id() const;
+        void register_factories(protocol_factories_t&) override;
+
+    public:
+        ko init(const string& r2rhome, us::wallet::trader::traders_t::protocol_factories_t&) override;
+
+    public:
+        string homedir() const override;
         void fill_stock();
         ko load_coinsx();
         pair<ko, tx_t*> tx_charge_pay(us::wallet::wallet::local_api&, cash_t recv_amount, cash_t send_amount) const;
-        //pair<ko, us::wallet::trader::trader_protocol*> create_protocol(protocol_selection_t&&) override;
         pair<ko, us::wallet::trader::trader_protocol*> create_opposite_protocol(protocol_selection_t&&) override;
         pair<ko, us::wallet::trader::trader_protocol*> create_protocol() override;
         void list_protocols(ostream&) const override; //human format
@@ -68,11 +74,15 @@ namespace us::trader::r2r::bid2ask::ask {
         void published_protocols(protocols_t&, bool inverse) const override;
         catalogue_t* catalogue(const string& lang);
 
+        //using workflow_factories_t = us::gov::io::factories_t<workflow_t>;
+        //using workflow_factory_t = us::gov::io::factory_t<workflow_t>;
+
     public:
         basket_t stock;
         hash_t address;
         hash_t recv_coin;
         hash_t send_coin;
+
     };
 
 }

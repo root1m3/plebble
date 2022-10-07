@@ -27,11 +27,9 @@
 #include <us/gov/socket/datagram.h>
 
 namespace us::gov::socket {
-
     struct rpc_daemon_t;
     struct peer_t;
     struct client;
-
 }
 
 namespace us::gov::socket::single {
@@ -76,7 +74,7 @@ namespace us::gov::socket::single {
         mutable mutex mx_connect;
 
         busyled_t busyled;
-        dispatcher_t* dispatcher;
+        dispatcher_t* dispatcher; //deleted in destructor
         rpc_daemon_t& daemon;
 
         #if CFG_COUNTERS == 1

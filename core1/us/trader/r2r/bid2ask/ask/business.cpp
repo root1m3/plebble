@@ -26,8 +26,7 @@
 #include <us/gov/io/shell_args.h>
 #include <us/gov/io/cfg0.h>
 
-#include <us/wallet/protocol.h>
-#include <us/wallet/wallet/local_api.h>
+//#include <us/wallet/wallet/local_api.h>
 #include <us/wallet/engine/daemon_t.h>
 #include <us/wallet/engine/daemon_t.h>
 #include <us/trader/r2r/bid2ask/types.h>
@@ -37,15 +36,18 @@
 #define logclass "business_t"
 #include <us/gov/logs.inc>
 
-using namespace us::trader::r2r::bid2ask;
+using namespace us::trader::r2r::bid2ask::ask;
 using c = us::trader::r2r::bid2ask::ask::business_t;
+using std::string;
+using std::pair;
+using us::ko;
 
 c::business_t() {
     name = "seller";
 }
 
-ko c::init(const string& r2rhome) {
-    auto r = b::init(r2rhome);
+ko c::init(const string& r2rhome, us::wallet::trader::traders_t::protocol_factories_t& f) {
+    auto r = b::init(r2rhome, f);
     if (is_ko(r)) {
         return r;
     }
@@ -58,7 +60,29 @@ ko c::init(const string& r2rhome) {
     }
     fill_stock();
     log("shop initiated @", home);
+
     return ok;
+}
+
+c::protocol_factory_id_t c::protocol_factory_id() const {
+    return protocol_factory_id_t(c::protocol::name, "ask");
+}
+
+void c::register_factories(protocol_factories_t& protocol_factories) {
+    struct my_protocol_factory_t: protocol_factory_t {
+
+        my_protocol_factory_t(c* bz): bz(bz) {}
+
+        pair<ko, value_type*> create() override {
+            auto a = new business_t::protocol(*bz);
+            log("created protocol", protocol::name, "instance at", a);
+            return make_pair(ok, a);
+        }
+
+        c* bz;
+    };
+    protocol_factories.register_factory(protocol_factory_id(), new my_protocol_factory_t(this));
+    assert(protocol_factories.find(protocol_factory_id()) != protocol_factories.end());
 }
 
 string c::homedir() const { /// home is homedir() cached

@@ -26,7 +26,6 @@
 
 #include <us/gov/socket/datagram.h>
 #include <us/wallet/trader/trader_t.h>
-#include <us/wallet/protocol.h>
 #include <us/wallet/trader/business.h>
 
 #include "workflow_t.h"
@@ -40,16 +39,27 @@
 using namespace us::wallet::trader::workflow;
 using c = us::wallet::trader::workflow::item_t;
 
-us::gov::io::factories_t<c> c::factories;
+c::factory_id_t c::null_instance{0};
 
-c::item_t(workflow_t* parent, const string& name, const string& long_name): parent(parent), name(name), long_name(long_name) {
+c::item_t(): doc0_factory(*this) {
 }
 
 c::~item_t() {
     delete doc;
 }
 
+void c::init(workflow_t* parent_) { //seriable
+    parent = parent_;
+}
+
+void c::init(workflow_t* parent_, const string& name_, const string& long_name_) {
+    parent = parent_;
+    name = name_;
+    long_name = long_name_;
+}
+
 void c::set(ch_t& ch) const {
+    assert(ch.opened());
     ostringstream os;
     os << "wf_" << name;
     string n = os.str();
@@ -211,7 +221,7 @@ bool c::verify() const {
     return doc->verify();
 }
 
-ko c::send_to(peer_t& peer) const {
+ko c::send_to(trader_t& tder, peer_t& peer) const {
     log("send_to");
     if (doc == nullptr) {
         auto r = "KO 30918 Document not available.";
@@ -225,10 +235,10 @@ ko c::send_to(peer_t& peer) const {
     }
     blob_t blob;
     write(blob);
-    return peer.call_trading_msg(peer_t::trading_msg_in_t(parent->trader().id, workflow::trader_protocol::svc_workflow_item, blob));
+    return peer.call_trading_msg(peer_t::trading_msg_in_t(tder.id, workflow::trader_protocol::svc_workflow_item, blob));
 }
 
-ko c::send_request_to(peer_t& peer) const {
+ko c::send_request_to(trader_t& tder, peer_t& peer) const {
     if (mode != mode_recv) {
         auto r = "KO 30931 Document not expected to be received.";
         log(r);
@@ -240,7 +250,7 @@ ko c::send_request_to(peer_t& peer) const {
         blob_writer_t w(blob, blob_writer_t::blob_size(name));
         w.write(name);
     }
-    return peer.call_trading_msg(peer_t::trading_msg_in_t(parent->trader().id, workflow::trader_protocol::svc_workflow_item_request, blob));
+    return peer.call_trading_msg(peer_t::trading_msg_in_t(tder.id, workflow::trader_protocol::svc_workflow_item_request, blob));
 }
 
 bool c::sig_reset(ostream& os) {
@@ -270,7 +280,7 @@ void c::help_onoffline(const string& indent, ostream& os) const {
     fmt::twocol(indent, "tamper <w0> <w1>", "Change (maliciously) the document", "[Academic/Demo purposes]", os);
 }
 
-ko c::exec_offline(const string& home, const string& cmd0, ch_t& ch) {
+ko c::exec_offline(trader_t& tder, const string& home, const string& cmd0, ch_t& ch) {
     istringstream is(cmd0);
     string cmd;
     is >> cmd;
@@ -286,7 +296,7 @@ ko c::exec_offline(const string& home, const string& cmd0, ch_t& ch) {
         }
         ostringstream os;
         os << "Item saved as " << fname;
-        return parent->trader().push_OK(os.str());
+        return tder.push_OK(os.str());
     }
     if (cmd == "iload") {
         string fname;
@@ -300,7 +310,7 @@ ko c::exec_offline(const string& home, const string& cmd0, ch_t& ch) {
         }
         ostringstream os;
         os << "Item loaded from file " << fname;
-        return parent->trader().push_OK(os.str());
+        return tder.push_OK(os.str());
     }
     if (cmd == "save") {
         string fname;
@@ -319,7 +329,7 @@ ko c::exec_offline(const string& home, const string& cmd0, ch_t& ch) {
         }
         ostringstream os;
         os << "Document saved as " << fname;
-        return parent->trader().push_OK(os.str());
+        return tder.push_OK(os.str());
     }
     if (cmd == "load") {
         string fname;
@@ -337,7 +347,7 @@ ko c::exec_offline(const string& home, const string& cmd0, ch_t& ch) {
         replace_doc(d, ch);
         ostringstream os;
         os << "Document loaded from file " << fname;
-        return parent->trader().push_OK(os.str());
+        return tder.push_OK(os.str());
     }
     if (cmd == "tamper") {
         string w0, w1;
@@ -352,7 +362,7 @@ ko c::exec_offline(const string& home, const string& cmd0, ch_t& ch) {
         if (is_ko(r)) {
             return r;
         }
-        return parent->trader().push_OK("Document has been modified.");
+        return tder.push_OK("Document has been modified.");
     }
     auto r = trader::trader_protocol::WP_29101; //"WP 40392 Invalid workflow-item command";
     log(r);
@@ -367,6 +377,15 @@ ko c::api_exec(const string& scope, const string& fn, const string& args, ostrea
 }
 
 pair<ko, doc0_t*> c::doc_from_blob(blob_reader_t& reader) const {
+    doc0_t* d{nullptr};
+    auto r = reader.read(d, doc0_factory);
+    if (is_ko(r)) {
+        return make_pair(r, nullptr);
+    }
+    return make_pair(ok, d);
+}
+
+/*
     uint8_t hasdoc;
     {
         auto r = reader.read(hasdoc);
@@ -394,18 +413,18 @@ pair<ko, doc0_t*> c::doc_from_blob(blob_reader_t& reader) const {
     }
     return make_pair(ok, d);
 }
+*/
 
 size_t c::blob_size() const {
-    size_t sz = blob_writer_t::blob_size(name) + 1;
+    size_t sz = blob_writer_t::blob_size(name) + blob_writer_t::blob_size(long_name) + 1;
     if (doc != nullptr) sz += blob_writer_t::blob_size(*doc);
     return sz;
 }
 
 void c::to_blob(blob_writer_t& writer) const {
     writer.write(name);
-    uint8_t hasdoc = doc == nullptr ? 0 : 1;
-    writer.write(hasdoc);
-    if (doc != nullptr) writer.write(*doc);
+    writer.write(long_name);
+    writer.write(doc);
 }
 
 ko c::from_blob(blob_reader_t& reader) {
@@ -426,12 +445,27 @@ ko c::from_blob(blob_reader_t& reader) {
         }
     }
     {
+        if (long_name.empty()) {
+            auto r = reader.read(long_name);
+            if (is_ko(r)) return r;
+        }
+        else {
+            string n;
+            auto r = reader.read(n);
+            if (is_ko(r)) return r;
+            if (n != long_name) {
+                auto r = "KO 40328 Workflow item long_name mismatch";
+                log(r, n, long_name);
+                return r;
+            }
+        }
+    }
+    {
         auto r = doc_from_blob(reader);
         if (is_ko(r.first)) {
             assert(r.second == nullptr);
             return r.first;
         }
-        assert(r.second != nullptr);
         delete doc;
         doc = r.second;
     }

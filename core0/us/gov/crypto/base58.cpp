@@ -244,7 +244,7 @@ string b58::to_hex(const vector<uint8_t>& bin) {
 
 vector<uint8_t> b58::from_hex(const string& hex) {
     vector<uint8_t> k;
-    if (hex.size() & 1 != 0) {
+    if ((hex.size() & 1) != 0) {
         return k;
     }
     int j = 0;

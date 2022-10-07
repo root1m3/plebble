@@ -37,11 +37,30 @@ c::~workflow_t() {
 }
 
 c::bitem* c::enable_appointment(bool b, ch_t& ch) {
-    return b ? add<appointment_t>(ch) : remove<appointment_t>(ch);
+    return b ? add<appointment_t, 1>(ch) : remove<appointment_t>(ch);
 }
 
 
 c::bitem* c::enable_reference(bool b, ch_t& ch) {
-    return b ? add<reference_t>(ch) : remove<reference_t>(ch);
+    return b ? add<reference_t, 2>(ch) : remove<reference_t>(ch);
+}
+
+namespace {
+
+    using namespace std;
+    using namespace us;
+
+    template<typename a, c::item_factory_id_t item_factory_id>
+    struct my_item_factory_t: c::item_factory_t {
+        pair<ko, value_type*> create() const override {
+            return make_pair(ok, new item_t<a, item_factory_id>());
+        }
+    };
+
+}
+
+void c::register_factories(item_factories_t& item_factories) const {
+    item_factories.register_factory(appointment_factory_id, new my_item_factory_t<appointment_t, appointment_factory_id>());
+    item_factories.register_factory(reference_factory_id, new my_item_factory_t<reference_t, reference_factory_id>());
 }
 

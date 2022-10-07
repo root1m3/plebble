@@ -21,6 +21,14 @@
 #===-
 #===----------------------------------------------------------------------------
 #===-
+###########################################################
+# ##str1##
+# ##str2##
+# ##str63##
+# ##str64##
+# 
+# system install/update/uninstall and maintenance utilities
+###########################################################
 
 JAILDIR=""
 
@@ -35,7 +43,6 @@ SEEDS=""
 function cfg_vars0 {
     STATIC_US="##str3##"
     let STATIC_FCGI=##str45##
-
     STATIC_CHANNEL=##str6##
     STATIC_BLOB_ADDR="##str39##"
     STATIC_BLOB_ID="##str40##"
@@ -71,7 +78,7 @@ function do_help {
     echo ""
     echo "flags:"
     echo "  --blob <file>        Blob file is given manually. /var/${US}/installed_blob__pinned is created."
-    echo "  --rebrand            Replace the brand."
+    echo "  --rebrand <node ip>  Clone the given node (rebrand)."
 #    echo "  --append             Give permission to append a new entry in /var/us_nets."
     echo "  --skip-seeds         In case the blob needs to be fetched, it is done trying only the BDE (brand distribution end),"
     echo "                           skipping going through a number of random nodes."
@@ -85,7 +92,7 @@ function do_help {
     echo ""
     echo "commands:"
     echo "  install/{nothing}        Fetchs the latest blob and installs it."
-    echo "  uninstall                removes the software from the system, leaving user data intact."
+    echo "  uninstall                removes the software from the system, leaving user data untouched."
     echo "  bootstrap_home <homedir> Installs wallet-rpc for a new system user."
     echo "  make                     Blob makefile."
     echo "  extract_r2r_sdk          Obtains the R2R SDK from the blob."
@@ -175,53 +182,52 @@ function parse_input {
         cmd="install"
     fi
     cmdargs="$@"
-    #echo "cmd=$cmd"
 }
 
 function cfg_vars {
-    if [[ $append -eq 0 ]]; then
-        if [[ -f /var/us_nets ]]; then
-            let n=`cat /var/us_nets | grep "^[0-9]* .*" | wc -l`
-            if [[ $n -gt 1 ]]; then
-                echo "Found more than one entry in /us/nets"
-                cat /var/us_nets | grep "^[0-9]* .*" | grep " ${US} " > /tmp/x918274
-                mv /tmp/x918274 /var/us_nets
-                let n=`cat /var/us_nets | grep "^[0-9]* .*" | wc -l`
-                if [[ $n -eq 1 ]]; then
-                    echo "KO 78674 Unexpected content in /var/us_nets"
-                    exit 1
-                fi
-            fi
-            CHANNEL=`cat /var/us_nets | grep "^[0-9]* .*" | awk {'print $1'}`
-            US=`cat /var/us_nets | grep "^[0-9]* .*" | awk {'print $2'}`
-            BLOB_ADDR=`cat /var/us_nets | grep "^[0-9]* .*" | awk {'print $3'}`
-            BLOB_ID=`cat /var/us_nets | grep "^[0-9]* .*" | awk {'print $4'}`
-            if [[ "_${US}" != "_${STATIC_US}" ]]; then
-                if [[ $rebrand -eq 1 ]]; then
-                    echo "rebranding. Aborted. TODO"
-                    exit 1
-                else
-                    UPSTREAM_URL=""
-                    SEEDS=""
-                fi
-            fi
-        fi
-        datadir=/home/${GOVUSER}/.${US}
-        if [[ "_$CHANNEL" != "_0" ]]; then
-            datadir=${datadir0}/$CHANNEL
-        fi
-        cat ${datadir}/gov/nodes.* 2>/dev/null > /tmp/x5833677
-        echo ${SEEDS} | xargs -n1 >> /tmp/x5833677
-        ns=`cat /tmp/x5833677 | wc -l`
-        SEEDS="`cat /tmp/x5833677 | sed 's/72$/80/' | sort | uniq  | grep -v '^$' | shuf | xargs`"
-        rm -f /tmp/x5833677
-        if [[ $maxpeers -gt 0 ]]; then
-            #echo "limit of $maxpeers seeds applied"
-            SEEDS="`echo "$SEEDS" | xargs -n1 | head -n$maxpeers | xargs`"
-        fi
-    else
-        echo "KO 69078 append is disabled."
+    if [[ $append -eq 1 ]]; then
+        echo "KO 69078 append mode is a TODO."
         exit 1
+    fi
+    if [[ -f /var/us_nets ]]; then
+        let n=`cat /var/us_nets | grep "^[0-9]* .*" | wc -l`
+        if [[ $n -gt 1 ]]; then
+            echo "Found more than one entry in /us/nets"
+            cat /var/us_nets | grep "^[0-9]* .*" | grep " ${US} " > /tmp/x918274
+            mv /tmp/x918274 /var/us_nets
+            let n=`cat /var/us_nets | grep "^[0-9]* .*" | wc -l`
+            if [[ $n -eq 1 ]]; then
+                echo "KO 78674 Unexpected content in /var/us_nets"
+                exit 1
+            fi
+        fi
+        CHANNEL=`cat /var/us_nets | grep "^[0-9]* .*" | awk {'print $1'}`
+        US=`cat /var/us_nets | grep "^[0-9]* .*" | awk {'print $2'}`
+        BLOB_ADDR=`cat /var/us_nets | grep "^[0-9]* .*" | awk {'print $3'}`
+        BLOB_ID=`cat /var/us_nets | grep "^[0-9]* .*" | awk {'print $4'}`
+        if [[ "_${US}" != "_${STATIC_US}" ]]; then
+            if [[ $rebrand -eq 1 ]]; then
+                echo "rebranding. Aborted. TODO"
+                exit 1
+            else
+                UPSTREAM_URL=""
+                SEEDS=""
+            fi
+        fi
+    fi
+    datadir=/home/${GOVUSER}/.${US}
+    if [[ "_$CHANNEL" != "_0" ]]; then
+        datadir=${datadir0}/$CHANNEL
+    fi
+    #cat ${datadir}/gov/nodes.* 2>/dev/null > /tmp/x5833677
+    file=/tmp/x5833677
+    echo ${SEEDS} | xargs -n1 > ${file}
+    ns=`cat ${file} | wc -l`
+    SEEDS="`cat ${file} | sed 's/72$/80/' | sort | uniq  | grep -v '^$' | shuf | xargs`"
+    rm -f ${file}
+    if [[ $maxpeers -gt 0 ]]; then
+        #echo "limit of $maxpeers seeds applied"
+        SEEDS="`echo "$SEEDS" | xargs -n1 | head -n$maxpeers | xargs`"
     fi
     cat << EOF
     CHANNEL=${CHANNEL}
@@ -327,31 +333,6 @@ function do_extract_r2r_sdk {
     exit 0
 }
 
-#    rm -rf tmp
-#    mkdir tmp
-#    pushd tmp > /dev/null
-#        $tar -xf ${blob_local_file}
-#        if [[ $r -ne 0 ]]; then
-#            echo "KO 76037"
-#            return 1
-#        fi
-#        dir=`find . -mindepth 1 -maxdepth 1 -type d`
-#        pushd $dir > /dev/null
-#            dname=$(basename `pwd`)
-#            bname=`echo $dname | tr '_' ' ' | awk '{ print $1 }'`
-#            if [[ "_$bname" != "_${US}" ]]; then
-#                echo "KO 43096 Blob brand $bname doesn't match ${US}. Aborting."
-#                return 1
-#            fi
-#            bin/apply_blob $opts ${JAILDIR}
-#            if [[ $r -ne 0 ]]; then
-#                echo "KO 65099"
-#                return 1
-#            fi
-#        popd > /dev/null
-#    popd > /dev/null
-#    rm -rf tmp
-
 function do_make {
     rm -rf tmp
     mkdir tmp
@@ -429,14 +410,12 @@ function inst_debs {
     fi
 }
 
-
 function run_apt_deps {
     debs_base
     inst_debs "$debs"
 }
 
 function run_apt {
-
     mkdir -p ${JAILDIR}/tmp
     cmdfile=${JAILDIR}/tmp/pre-install_blob.sh
     echo "#!/bin/bash" > $cmdfile
@@ -593,7 +572,6 @@ seeds=""
 function hash_sample {
     url_upstream="$1"
     rm -f /tmp/curhash
-#    blob=""
     echo "======Trying ${url_upstream}======"
     echo "timeout 10 wget -q \"${url_upstream}/downloads/blob/${US}/curhash\" -O /tmp/curhash"
     timeout 10 wget -q "${url_upstream}/downloads/blob/${US}/curhash" -O /tmp/curhash
@@ -613,7 +591,6 @@ function hash_sample {
     fi
     echo "curhash@${url_upstream}=$curhash"
     echo "${url_upstream} $curhash" >> /tmp/upstream_src
-#    blob=`realpath curblob`
 }
 
 function print_seeds {
@@ -638,10 +615,6 @@ function hash_sample_from_seeds2 {
             break
         fi
         hash_sample "$httpnode"
-        #if [[ "_$blob" != "_" ]]; then
-        #    echo "got $blob from $httpnode"
-        #    break
-        #fi
     done
 }
 
@@ -673,7 +646,6 @@ function fetch_from_seedX {
     url_upstream="$1"
     curhash=$2
     rm -f curblob
-    #blob=""
     echo "======Trying ${url_upstream}======"
     set -x
     timeout 10 wget -q "${url_upstream}/downloads/blob/${US}/cur" -O curblob
@@ -710,7 +682,6 @@ function fetch_from_seeds {
                 break
             fi
             fetch_from_seedX "$httpnode" $hash
-            #hash_sample $httpnode
             if [[ "_$blob" != "_" ]]; then
                 echo "got $blob from $httpnode"
                 break
@@ -727,7 +698,7 @@ function fetch_from_seeds {
         return 1
     fi
     #finally the BDE (brand distribution end)
-    hash_sample "${UPSTREAM_URL}" 
+    hash_sample "${UPSTREAM_URL}"
     if [[ "_$blob" == "_" ]]; then
         echo "KO 67925 Aborted. No blob available."
         fetch_from_seeds_cleanup
@@ -1038,7 +1009,8 @@ function do_install_core0_deps {
 function do_uninstall {
     echo -n "debs no longer needed: "
     debs_base
-    echo -n "$debs"
+    echo "$debs"
+    echo "run /usr/local/bin/${US}-uninstall"
     #TODO: call uninstall in subcomponents
     return 0
 }

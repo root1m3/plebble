@@ -41,6 +41,9 @@
 using namespace us::gov::io;
 using c = us::gov::io::cfg0;
 
+const char* c::KO_60534 = "KO 60534 Cannot create home dir.";
+const char* c::KO_84012 = "KO 84012 Likely the file doesn't exist in the local filesystem.";
+
 c::cfg0(const string& home): home(home) {
 }
 
@@ -134,7 +137,7 @@ uint32_t c::file_size(const string& f) {
 void c::mkdir_tree(string sub, string dir) {
     if (sub.length() == 0) return;
     int i = 0;
-    for (i; i < sub.length(); i++) {
+    for (; i < sub.length(); i++) {
         dir += sub[i];
         if (sub[i] == '/')
         break;
@@ -178,8 +181,6 @@ bool c::ensure_writable(const string& file) {
     return ensure_dir(dir);
 }
 
-const char* c::KO_60534 = "KO 60534 Cannot create home dir.";
-
 pair<us::ko, c> c::load(const string& home) {
     check_platform();
     if (!ensure_dir(home)) {
@@ -208,9 +209,8 @@ ko us::gov::io::write_file_(const vector<uint8_t>& v, const string& filename) {
 ko us::gov::io::read_file_(const string& filename, vector<unsigned char>& buf) {
     ifstream is(filename, ios::binary | ios::ate);
     if (is.fail()) {
-        auto r = "KO 8401 Likely the file doesn't exist in the local filesystem.";
-        log(r, filename);
-        return r;
+        log(cfg0::KO_84012, filename);
+        return cfg0::KO_84012;
     }
     return read_file_(is, buf);
 }
@@ -221,7 +221,7 @@ ko us::gov::io::read_file_(istream& is, vector<unsigned char>& buf) {
         log("size file", pos);
         buf.resize(pos);
     }
-    catch(exception e) {
+    catch (exception e) {
         auto r = "KO 84032";
         log(r);
         return r;

@@ -25,14 +25,15 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <iomanip>
+
 #include <us/gov/socket/datagram.h>
 #include <us/gov/relay/protocol.h>
 #include <us/gov/stacktrace.h>
 #include <us/gov/log/thread_logger.h>
-#include <us/wallet/trader/trader_t.h>
-#include <us/wallet/protocol.h>
-#include <us/wallet/trader/workflow/trader_protocol.h>
 #include <us/gov/io/blob_reader_t.h>
+
+#include <us/wallet/trader/trader_t.h>
+#include <us/wallet/trader/workflow/trader_protocol.h>
 
 #define loglevel "trader/test"
 #define logclass "dispatcher_t"
@@ -127,13 +128,22 @@ bool c::dispatch(us::gov::socket::datagram* d0) {
                 string payload;
                 assert(is_ok(us::gov::io::blob_reader_t::parse(o_in.blob, payload)));
                 out << "===========DATA summary for node " << id << '\n';
-                if (data_seq.add(payload)) {
-                    data_seq.dump(out);
+                bool okadd = true;
+                if (!data_seq.add(payload)) {
+                    okadd = false;
                 }
-                else {
+                data_seq.dump(out);
+                if (!okadd) {
                     out << "WARNING: DUPLICATE DATA. data arrived at node " << id << " producing empty diff\n";
+                    ++dupl_data_count;
                 }
                 out << "=========/=DATA summary" << endl;
+                if (ignore_dupl_data) {
+                    if (!okadd) {
+                        out << "ignore_dupl_data: dropping it away from tests.\n";
+                        break;
+                    }
+                }
             }
             expected_code.arrived(o_in.tid, o_in.code, o_in.blob);
         }
@@ -150,7 +160,13 @@ bool c::dispatch(us::gov::socket::datagram* d0) {
 }
 
 c::expected_code_t::expected_code_t(const string& id, ostream& os): id(id), out(os) {
-    default_step_wait();
+    set_default_step_wait();
+}
+
+void c::expected_code_t::abort_tests() {
+    cerr << "dispatcher::expected_code_t abort_tests" << endl;
+    clear_all();
+    cv.notify_all();
 }
 
 void c::expected_code_t::arrived(const hash_t& h, uint16_t code, const vector<uint8_t>& s) {
@@ -163,27 +179,34 @@ void c::expected_code_t::arrived(const hash_t& h, uint16_t code, const vector<ui
 }
 
 void c::expected_code_t::add_exact_occurrences(uint16_t code, int numo) {
+    unique_lock<mutex> lock(mx);
     emplace(code, numo);
 }
 
 void c::expected_code_t::add_minimum_occurrences(uint16_t code, int numo) {
+    unique_lock<mutex> lock(mx);
     emplace(code, numo);
     marked_minimum.emplace(code);
 }
 
 void c::expected_code_t::decrement(uint16_t code) {
+    unique_lock<mutex> lock(mx);
     auto i = find(code);
     assert(i != end());
     --i->second;
+    assert(i->second >= 0);
 }
 
 void c::expected_code_t::increase(uint16_t code) {
+    unique_lock<mutex> lock(mx);
     auto i = find(code);
     assert(i != end());
     ++i->second;
+    assert(i->second >= 0);
 }
 
 void c::expected_code_t::increase_or_set_1_if_nonpos(uint16_t code) {
+    unique_lock<mutex> lock(mx);
     auto i = find(code);
     assert(i != end());
     ++i->second;
@@ -191,26 +214,49 @@ void c::expected_code_t::increase_or_set_1_if_nonpos(uint16_t code) {
 }
 
 bool c::expected_code_t::all_empty() const {
+    unique_lock<mutex> lock(mx);
     auto b = empty() && check.empty() && marked_minimum.empty();
     return b;
 }
 
 void c::expected_code_t::clear_all() {
+    unique_lock<mutex> lock(mx);
+    clear_all_();
+}
+
+void c::expected_code_t::clear_all_() {
     clear();
     check.clear();
     marked_minimum.clear();
+    zero_arrivals_is_good = false;
 }
 
-void c::expected_code_t::check_not_expecting() const {
+void c::expected_code_t::emplace(uint16_t a, int b) {
+    assert(b > 0);
+    auto i = find(a);
+    if (i == end()) {
+        b::emplace(a, b);
+        return;
+    }
+    //assert(i->second == 0);
+    i->second += b;
+}
+
+void c::expected_code_t::check_not_expecting_() const { //assume caller takes mx
     assert(enabled);
-    if (num_expected() == 0) {
+    if (num_expected_() == 0) {
         out << ":::: "; reftest(out);
         out << ":::: All expected codes arrived for " << id << ". PASS." << endl;
         return;
     }
     dump(out);
-    out << "!::: ############# Expected more codes to arrive!!!" << endl;
-    fail(out);
+    if (!zero_arrivals_is_good) {
+        out << "!::: ############# Expected more codes to arrive!!!" << endl;
+        fail(out);
+    }
+    else {
+        out << ":::: ############# Expected more codes to arrive, but they didn't and this condition is ok (zero_arrivals_is_good=true)." << endl;
+    }
 }
 
 void c::expected_code_t::dump(ostream& os) const {
@@ -218,7 +264,7 @@ void c::expected_code_t::dump(ostream& os) const {
     string pfx = ":::: ";
     os << pfx; reftest(os);
     os << pfx << "  At node " << id << endl;
-    os << pfx << "    " << size() << " codes'" << endl;
+    os << pfx << "    " << size() << " codes" << endl;
     os << pfx << "    " << marked_minimum.size() << " codes marked 'minimum arrivals'" << endl;
     os << pfx << "    " << check.size() << " payload checkers." << endl;
     for (auto& m: *this) {
@@ -228,19 +274,33 @@ void c::expected_code_t::dump(ostream& os) const {
     }
 }
 
-int c::expected_code_t::num_expected() const {
-    int num_expected=0;
-    for (auto&xx: *this) {
-        if (xx.second>0) num_expected+=xx.second;
+int c::expected_code_t::num_expected_() const {
+    int num_expected = 0;
+    for (auto& xx: *this) {
+        assert(xx.second >= 0);
+        //if (xx.second > 0) num_expected += xx.second;
+        num_expected += xx.second;
     }
     return num_expected;
 }
 
 void c::expected_code_t::arrived(uint16_t code) {
+//    assert(num_expected_()>=0);
     log("arrived", code);
+    unique_lock<mutex> lock(mx);
     bool mmin = marked_minimum.find(code) != marked_minimum.end();
     auto i = find(code);
+    bool f = false;
     if (i == end()) {
+        f = true;
+    }
+    else if (i->second == 0) {
+        f = true;
+    }
+    else {
+        --i->second;
+    }
+    if (f) {
         ostringstream os;
         dump(os);
         os << "!::: UNEXPECTED code arrived at node " << id << ". Code " << code << " (" << dispatcher_t::codename(code) << ")\n";
@@ -248,8 +308,7 @@ void c::expected_code_t::arrived(uint16_t code) {
         out << os.str() << endl;
         fail(out);
     }
-    --i->second;
-    if (num_expected()==0) {
+    if (num_expected_() == 0) {
         ostringstream os;
         reftest(os);
         os << ":::: All expected codes arrived at node " << id << endl;
@@ -257,6 +316,10 @@ void c::expected_code_t::arrived(uint16_t code) {
         out << os.str() << "\n";
         cv.notify_all();
     }
+}
+
+void c::abort_tests() {
+    expected_code.abort_tests();
 }
 
 using hash_t = us::gov::crypto::ripemd160::value_type;
@@ -340,19 +403,36 @@ void c::expected_code_t::check_payload(const hash_t& tid, uint16_t code, const v
         ofstream ofs(fn.str());
         ofs.write((const char*)s.data(), s.size());
     }
-    i->second(tid, code, s);
+    for (auto& x: i->second) {
+        x(tid, code, s);
+    }
 }
 
 void c::expected_code_t::wait_no_clear() {
-    if (num_expected() == 0) return; //Nothing to wait for
-    std::chrono::milliseconds s{step_wait_ms};
     unique_lock<mutex> lock(mx);
-    cv.wait_for(lock, s, [&](){ return num_expected() == 0; } );
-    check_not_expecting();
+    wait_no_clear_(lock);
+}
+
+void c::expected_code_t::wait_no_clear_(unique_lock<mutex>& lock) {
+    if (!enabled) return;
+    std::chrono::milliseconds s{step_wait_ms};
+    if (num_expected_() == 0) return; //Nothing to wait for
+    cv.wait_for(lock, s, [&](){ return num_expected_() == 0; } );
+    check_not_expecting_();
 }
 
 void c::expected_code_t::wait() {
-    wait_no_clear();
-    clear_all();
+    unique_lock<mutex> lock(mx);
+    wait_no_clear_(lock);
+    clear_all_();
+}
+
+void c::expected_code_t::check_t::emplace(uint16_t a, function<void(const hash_t&, uint16_t code, const vector<uint8_t>&)> b) {
+    auto i = find(a);
+    if (i == end()) {
+        b::emplace(a, vector{b});
+        return;
+    }
+    i->second.emplace_back(b);
 }
 

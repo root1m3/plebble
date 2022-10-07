@@ -594,12 +594,14 @@ void test_syncd();
     #undef log_dir
     namespace {
         string log_dir() {
+            assert(false); //who's calling log_dir() with CFG_LOGS disabled?
             ostringstream os;
             os << "logs/us-test_" << getpid();
             return os.str();
         }
     }
 #endif
+
 void test_engine_daemon(const string& datadir) {
     using us::gov::io::cfg_daemon;
     string homedir = log_dir() + "/home/test_engine_daemon";
@@ -638,17 +640,6 @@ void test_node0();
 void test_blobs();
 void test_things();
 
-void sig_handler(int s) {
-    cout << "------------------\n";
-    cout << "main: received signal " << s << endl;
-    log_info(cout);
-    cout << "------------------\n";
-    signal(SIGINT, SIG_DFL);
-    signal(SIGTERM, SIG_DFL);
-    signal(SIGPIPE, SIG_DFL);
-    raise(s);
-}
-
 #if CFG_COUNTERS == 0
     Error. configure with counters.
     bin/configure ... --with-counters
@@ -686,6 +677,10 @@ struct network_c0: network {
 void test_r2r(const string& homedir, const string& logdir, const string& vardir) {
     us::gov::engine::auth::collusion_control_t::max_nodes_per_ip = 255;
     ostream& os = cout;
+
+    tee("test_r2r", "homedir", homedir);
+    tee("test_r2r", "logdir", logdir);
+    tee("test_r2r", "vardir", vardir);
 
     network_c0 n(homedir, logdir, vardir, os);
     n.start();
@@ -754,7 +749,7 @@ void test_r2r(const string& homedir, const string& logdir, const string& vardir)
 */
 
 void test_l2_main(string logdir0) {
-    log_start(logdir0, "main");
+    log_start("", "main");
     tee("=================test_l2========================");
 
     string homedir = logdir0 + "/home";
@@ -762,13 +757,14 @@ void test_l2_main(string logdir0) {
 
     network::test();
 
-    test_r2r(homedir, logdir0, vardir);
+    test_r2r(homedir, "", vardir);
     tee("=========== end testing l2 ==============");
 }
 
 void test_l2() {
-    log("starting thread");
     string logdir0 = log_dir() + "/test_l2";
+//    string logdir0 = "test_l2";
+    tee("starting thread for test_l2. log_dir", logdir0);
     thread th(&test_l2_main, logdir0); //start new log file
     th.join();
 }
@@ -789,10 +785,21 @@ bool l1_shard_tests = true;
 bool l2_tests = true;
 bool runsim = false;
 
+void sig_handler_l1(int s) {
+    cout << "------------------\n";
+    cout << "main: received signal " << s << endl;
+    log_info(cout);
+    cout << "------------------\n";
+    signal(SIGINT, SIG_DFL);
+    signal(SIGTERM, SIG_DFL);
+    signal(SIGPIPE, SIG_DFL);
+    raise(s);
+}
+
 void test_l1() {
     signal(SIGPIPE, SIG_IGN);
-    signal(SIGINT, sig_handler);
-    signal(SIGTERM, sig_handler);
+    signal(SIGINT, sig_handler_l1);
+    signal(SIGTERM, sig_handler_l1);
 
     cout << "auth..." << endl;
     test_auth();
@@ -856,6 +863,7 @@ void help() {
     cout << "--runsim       Run simulations.\n";
     cout << "--valgrind     Omit heavy tests.\n";
     cout << "--wait-between-steps     capture unexpected push_data datagrams before entering next step.\n";
+    cout << "--no_restart_wallet     Go through tests without restarting wallets .\n";
 }
 
 int core0_main(int argc, char** argv) {
@@ -898,6 +906,10 @@ int core0_main(int argc, char** argv) {
         else if (command == "--wait-between-steps") {
             cout << "waiting between steps\n";
             us::test::r2r_t::enable_wait = true;
+        }
+        else if (command == "--no_restart_wallet") {
+            cout << "no_restart_wallet\n";
+            us::test::r2r_t::test_restart_wallet = false;
         }
         else if (command.empty()) {
             break;

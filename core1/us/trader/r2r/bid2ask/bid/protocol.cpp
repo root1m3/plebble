@@ -26,7 +26,6 @@
 #include <us/gov/io/shell_args.h>
 #include <us/gov/io/cfg0.h>
 
-#include <us/wallet/protocol.h>
 #include <us/wallet/wallet/local_api.h>
 
 #include "business.h"
@@ -35,8 +34,10 @@
 #define logclass "protocol"
 #include <us/gov/logs.inc>
 
-using namespace us::trader::r2r::bid2ask;
+using namespace us::trader::r2r::bid2ask::bid;
 using c = us::trader::r2r::bid2ask::bid::protocol;
+using std::string;
+using us::ko;
 
 const char *c::KO_30291 = "KO 30291 Invalid subcommand.";
 
@@ -48,17 +49,9 @@ c::protocol(business_t& bz): b(bz) {
     basket.name = "customer";
 }
 
-void c::post_configure(ch_t& ch) {
-    log("post_configure");
-    b::post_configure(ch);
-    assert(_workflow->cat != nullptr);
-    assert(_workflow->inv != nullptr);
-    assert(_workflow->pay != nullptr);
-    assert(_workflow->rcpt != nullptr);
-    _workflow->cat->set_mode(us::wallet::trader::workflow::item_t::mode_recv, ch);
-    _workflow->inv->set_mode(us::wallet::trader::workflow::item_t::mode_recv, ch);
-    _workflow->pay->set_mode(us::wallet::trader::workflow::item_t::mode_send, ch);
-    _workflow->rcpt->set_mode(us::wallet::trader::workflow::item_t::mode_recv, ch);
+void c::init_workflows(ch_t& ch) {
+    assert(consumer_workflow != nullptr);
+    consumer_workflow->init_bid(ch);
 }
 
 string c::authorize_invoice(const string& txb58) const {
@@ -159,8 +152,8 @@ ko c::exec_online(peer_t& peer, const string& cmd0, ch_t& ch) {
     istringstream is(cmd0);
     is >> cmd;
     if (cmd == "select") {
-        assert(_workflow->pay != nullptr);
-        if (_workflow->pay->has_doc()) {
+        assert(consumer_workflow->pay != nullptr);
+        if (consumer_workflow->pay->has_doc()) {
             auto r = "KO 40219 Payment has been already completed. The basket cannot be changed.";
             log(r);
             return move(r);
@@ -184,43 +177,43 @@ ko c::exec_online(peer_t& peer, const string& cmd0, ch_t& ch) {
         getline(is, msg);
         us::gov::io::cfg0::trim(msg);
         log("inv_pay", "msg", msg);
-        if (_workflow->pay->has_doc()) {
+        if (consumer_workflow->pay->has_doc()) {
             auto r = "KO 40219 Payment has been already completed.";
             log(r);
             return move(r);
         }
-        if (!_workflow->cat->has_doc()) {
+        if (!consumer_workflow->cat->has_doc()) {
             auto r = "KO 40299 Catalogue not available.";
             log(r);
             return move(r);
         }
-        if (!_workflow->inv->has_doc()) {
+        if (!consumer_workflow->inv->has_doc()) {
             auto r = "KO 40399 Invoice not available.";
             log(r);
             return move(r);
         }
         {
             ostringstream os;
-            if (!_workflow->inv->verify(os)) {
+            if (!consumer_workflow->inv->verify(os)) {
                 auto r = "KO 40339 Invoice is not valid.";
                 log(r);
                 return move(r);
             }
         }
         log("analysing invoice content");
-        assert(_workflow->inv->doc != nullptr);
-        assert(_workflow->cat->doc != nullptr);
-        hash_t basket_hash=_workflow->inv->doc->params.get("basket_hash", hash_t(0));
+        assert(consumer_workflow->inv->doc != nullptr);
+        assert(consumer_workflow->cat->doc != nullptr);
+        hash_t basket_hash = consumer_workflow->inv->doc->params.get("basket_hash", hash_t(0));
         auto my_basket_hash = basket.hash_value();
         if (get<0>(my_basket_hash) != basket_hash) {
             auto r = "KO 40139 Invoice corresponds to a different basket content.";
             log(r);
             return move(r);
         }
-        hash_t cat_pay_coin = _workflow->cat->doc->params.get("pay_coin", hash_t(0));
-        hash_t cat_reward_coin = _workflow->cat->doc->params.get("reward_coin", hash_t(0));
-        hash_t inv_pay_coin = _workflow->inv->doc->params.get("pay_coin", hash_t(0));
-        hash_t inv_reward_coin = _workflow->inv->doc->params.get("reward_coin", hash_t(0));
+        hash_t cat_pay_coin = consumer_workflow->cat->doc->params.get("pay_coin", hash_t(0));
+        hash_t cat_reward_coin = consumer_workflow->cat->doc->params.get("reward_coin", hash_t(0));
+        hash_t inv_pay_coin = consumer_workflow->inv->doc->params.get("pay_coin", hash_t(0));
+        hash_t inv_reward_coin = consumer_workflow->inv->doc->params.get("reward_coin", hash_t(0));
         if (cat_pay_coin != inv_pay_coin) {
             auto r = "KO 40361 Invoice pay coin does not match the catalogue.";
             log(r);
@@ -231,8 +224,8 @@ ko c::exec_online(peer_t& peer, const string& cmd0, ch_t& ch) {
             log(r);
             return move(r);
         }
-        cash_t inv_pay_amount = _workflow->inv->doc->params.get("pay_amount", cash_t(0));
-        cash_t inv_reward_amount = _workflow->inv->doc->params.get("reward_amount", cash_t(0));
+        cash_t inv_pay_amount = consumer_workflow->inv->doc->params.get("pay_amount", cash_t(0));
+        cash_t inv_reward_amount = consumer_workflow->inv->doc->params.get("reward_amount", cash_t(0));
         if (get<1>(my_basket_hash) != inv_pay_amount) {
             auto r = "KO 40342 Invoice pay amount does not match the basket.";
             log(r);
@@ -243,7 +236,7 @@ ko c::exec_online(peer_t& peer, const string& cmd0, ch_t& ch) {
             log(r);
             return move(r);
         }
-        auto tx_encoded = _workflow->inv->doc->params.get("tx", "");
+        auto tx_encoded = consumer_workflow->inv->doc->params.get("tx", "");
         if (tx_encoded.empty()) {
             auto r = "KO 40369 Invoice does not contain transaction.";
             log(r);
@@ -278,9 +271,9 @@ ko c::exec_online(peer_t& peer, const string& cmd0, ch_t& ch) {
         payment_t* doc = create_payment(tx, msg);
         log("brand new payment created");
         {
-            lock_guard<mutex> lock2(_workflow->mx);
-            _workflow->pay->replace_doc(doc, ch);
-            _workflow->pay->send_to(peer);
+            lock_guard<mutex> lock2(consumer_workflow->mx);
+            consumer_workflow->pay->replace_doc(doc, ch);
+            consumer_workflow->pay->send_to(*tder, peer);
         }
         return ok;
     }
@@ -302,11 +295,11 @@ c::payment_t* c::create_payment(const tx_t& tx, const string& msg) const {
     o.kv.set("lang", "en");
     o.kv.set("trade_id", tder->id);
     o.kv.set("tx", tx.encode());
-    hash_t basket_hash=_workflow->inv->doc->params.get("basket_hash", hash_t(0));
-    hash_t pay_coin = _workflow->inv->doc->params.get("pay_coin", hash_t(0));
-    hash_t reward_coin = _workflow->inv->doc->params.get("reward_coin", hash_t(0));
-    cash_t pay_amount = _workflow->inv->doc->params.get("pay_amount", cash_t(0));
-    cash_t reward_amount = _workflow->inv->doc->params.get("reward_amount", cash_t(0));
+    hash_t basket_hash = consumer_workflow->inv->doc->params.get("basket_hash", hash_t(0));
+    hash_t pay_coin = consumer_workflow->inv->doc->params.get("pay_coin", hash_t(0));
+    hash_t reward_coin = consumer_workflow->inv->doc->params.get("reward_coin", hash_t(0));
+    cash_t pay_amount = consumer_workflow->inv->doc->params.get("pay_amount", cash_t(0));
+    cash_t reward_amount = consumer_workflow->inv->doc->params.get("reward_amount", cash_t(0));
     o.kv.set("basket_hash", basket_hash);
     o.kv.set("pay_coin", pay_coin);
     o.kv.set("reward_coin", reward_coin);
@@ -331,6 +324,7 @@ c::payment_t* c::create_payment(const tx_t& tx, const string& msg) const {
 
 namespace { namespace i18n {
 
+    using namespace std;
     struct r_en_t;
     struct r_es_t;
 
@@ -389,13 +383,13 @@ namespace { namespace i18n {
 }}
 
 uint32_t c::trade_state_() const {
-    if (_workflow->pay->has_doc()) {
+    if (consumer_workflow->pay->has_doc()) {
         return 1;
     }
-    if (_workflow->inv->has_doc()) {
+    if (consumer_workflow->inv->has_doc()) {
         return 3;
     }
-    if (!_workflow->cat->has_doc()) {
+    if (!consumer_workflow->cat->has_doc()) {
         return 7;
     }
     return 5;
@@ -408,5 +402,28 @@ void c::judge(const string& lang) {
     log("trade_state", st, r);
     _trade_state = make_pair(st, r);
     _user_hint = t.resolve(trade_state_() + 1);
+}
+
+size_t c::blob_size() const {
+    size_t sz = b::blob_size();
+    return sz;
+}
+
+void c::to_blob(blob_writer_t& writer) const {
+    b::to_blob(writer);
+}
+
+c::factory_id_t c::factory_id() const {
+    return protocol_selection_t("bid2ask", "bid");
+}
+
+ko c::from_blob(blob_reader_t& reader) {
+    {
+        auto r = b::from_blob(reader);
+        if (is_ko(r)) {
+            return r;
+        }
+    }
+    return ok;
 }
 

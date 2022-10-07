@@ -30,8 +30,6 @@
 #include <us/gov/cash/map_tx.h>
 #include <us/gov/cash/file_tx.h>
 
-#include <us/wallet/protocol.h>
-
 #include "tx_make_p2pkh_input.h"
 
 #define loglevel "wallet/wallet"

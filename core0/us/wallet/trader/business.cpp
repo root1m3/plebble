@@ -35,7 +35,12 @@ const char* c::KO_50100 = "KO_50100 Invalid function.";
 c::business_t() {
 }
 
-ko c::init(const string& r2rhome_) {
+c::~business_t() {
+}
+
+ko c::init(const string& r2rhome_, protocol_factories_t& f) {
+    //assert(protocol_factories == nullptr);
+    //protocol_factories = &f;
     r2rhome = r2rhome_;
     if (r2rhome.empty()) {
         auto r = "KO 20102 Homebase variable is not set.";
@@ -65,6 +70,7 @@ ko c::init(const string& r2rhome_) {
         }
     }
     log("ico sz", ico.size(), "name", name);
+    register_factories(f);
     return ok;
 }
 

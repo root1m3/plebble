@@ -56,6 +56,7 @@ c::node(const string& id, const string& root_homedir, const string& root_logdir,
     homedir = h.str();
     logdir = l.str();
     vardir = v.str();
+    tee("constructor node", id, "home:", homedir, "log:", logdir, "var:", vardir);
 }
 
 string c::ep() const {
@@ -122,12 +123,22 @@ void c::start_govd(bool init_chain) {
     p.homedir = homedir;
     if (init_chain) {
         cout << "starting new chain" << endl;
+cout << "A10" << endl;
         ostringstream ep;
         ep << localip << ":" << p.pport;
+cout << "A11" << endl;
         pair<ko, us::gov::io::cfg*> r = us::gov::engine::daemon_t::init_chain(p.channel, p.get_home_gov(), ep.str());
-        assert(r.first == ok);
+cout << "A12" << endl;
+        if (is_ko(r.first)) {
+cout << "A13" << endl;
+            cerr << r.first << endl;
+            assert(false);
+        }
+cout << "A14" << endl;
+        cout << "init chain: 1" << endl;
         delete r.second;
-        cout << "init chain: " << ep.str() << " " <<  p.homedir << '\n';
+        cout << "init chain: 2" << endl;
+        cout << "init chain: " << ep.str() << " " <<  p.homedir << endl;
     }
     assert(gov == nullptr);
     gov = new govx_t(p, cout);
@@ -137,6 +148,7 @@ void c::start_govd(bool init_chain) {
     assert(gov->start() == us::ok);
     log("started gov daemon");
     gov->daemon->db->auth_app->growth = 10.0;
+    assert(is_ok(gov->daemon->wait_ready(3)));
 }
 
 void c::create_walletd() {
@@ -191,7 +203,10 @@ void c::gov_cli_start() {
     #if CFG_LOGS == 1
         gov_cli->logdir = logdir + "/gov_cli";
     #endif
-    assert(gov_cli->start() == ok);
+    auto r = gov_cli->start();
+    if (is_ko(r)) cout << r << endl;
+    assert(r == ok);
+    assert(is_ok(gov_cli->rpc_daemon->wait_ready(3)));
 }
 
 void c::create_wallet_cli() {
@@ -210,9 +225,9 @@ void c::start_gov(bool init_chain) {
     cout << "---------------------" << endl;
     cout << "starting node " << id << " gov port " << gport << " wallet port " << wport << endl;
     start_govd(init_chain);
-    this_thread::sleep_for(1s);
+    //this_thread::sleep_for(1s);
     gov_cli_start();
-    this_thread::sleep_for(1s);
+    //this_thread::sleep_for(1s);
 }
 
 pair<vector<uint16_t>, vector<uint16_t>> c::doctypes() const {
@@ -227,11 +242,16 @@ void c::start_walletd_cli() {
     create_wallet_cli();
     assert(wallet->start() == ok);
     log("started wallet daemon");
-    this_thread::sleep_for(1s);
+    assert(is_ok(wallet->daemon->wait_ready(3)));
+//    this_thread::sleep_for(1s);
+    assert(wallet_cli_dis == nullptr);
     wallet_cli_dis = new dispatcher_t(id, *wallet_cli, cout);
+
     assert(wallet_cli->start(wallet_cli_dis) == ok);
+    assert(is_ok(wallet_cli->rpc_daemon->wait_ready(3)));
+
     log("started wallet hmi");
-    this_thread::sleep_for(1s);
+    //this_thread::sleep_for(1s);
 
     auto bm = bookmarks();
     assert(!bm.empty());
@@ -263,12 +283,23 @@ void c::stop() {
     }
 }
 
+void c::abort_tests() {
+    cerr << "node::abort tests" << endl;
+    if (wallet_cli_dis != nullptr) wallet_cli_dis->abort_tests();
+    stop();
+    lock_guard<mutex> lock(mx_abort);
+    abortsignaled = true;
+    cv_abort.notify_all();
+}
+
 void c::join() {
     if (wallet_cli) {
         tee(" waiting for wallet_cli", id);
         wallet_cli->join();
         delete wallet_cli;
         wallet_cli = nullptr;
+        //delete wallet_cli_dis;
+        wallet_cli_dis = nullptr;
         tee(" stopped. wallet cli", id);
     }
     if (gov_cli) {
@@ -297,10 +328,11 @@ void c::join() {
 void c::test_list_protocols() {
     string s;
     auto r = wallet_cli->rpc_daemon->get_peer().call_list_protocols(s);
+    if (is_ko(r)) cout << r << endl;
     assert(r == ok);
     set<string> p;
     istringstream is(s);
-    while(is.good()) {
+    while (is.good()) {
         string line;
         getline(is, line);
         if (line.empty()) continue;
@@ -323,6 +355,20 @@ void c::test_list_protocols() {
         assert(p.find(j) != p.end());
         cout << "ok\n";
     }
+}
+
+void c::wait(uint64_t secs) const {
+    unique_lock<mutex> lock(mx_abort);
+    if (abortsignaled) {
+        return;
+    }
+    cv_abort.wait_for(lock, chrono::seconds(secs), [&]{ return abortsignaled; });
+    abortsignaled = false;
+}
+
+void c::sleep_for(uint64_t secs) const {
+    //this_thread::sleep_for(chrono::seconds(secs));
+    wait(secs);
 }
 
 hash_t c::create_coin(int64_t supply) {
@@ -350,7 +396,7 @@ hash_t c::create_coin(int64_t supply) {
         ostringstream cmd;
         cmd << "data " << coin;
         int n = 0;
-        while(true) {
+        while (true) {
             cout << "exec " << cmd.str() << endl;
             auto r = gov_cli->exec_cmd(cmd.str());
             if (r.first == us::gov::socket::rendezvous_t::KO_20190) {
@@ -358,7 +404,8 @@ hash_t c::create_coin(int64_t supply) {
                 cout << "lasterror: " << gov_cli->rpc_daemon->get_peer().lasterror << endl;
                 if (gov_cli->rpc_daemon->get_peer().lasterror == "KO 69213 Address not found.") {
                     cout << ++n << " waiting until address settles... " << r.second << endl;
-                    this_thread::sleep_for(5s);
+                    //this_thread::sleep_for(5s);
+                    sleep_for(5);
                     continue;
                 }
 
@@ -370,7 +417,7 @@ hash_t c::create_coin(int64_t supply) {
             break;
         }
     }
-    while(true) {
+    while (true) {
         blob_t blob;
         auto t = wallet_cli->rpc_daemon->get_peer().call_set_supply(us::wallet::cli::rpc_peer_t::set_supply_in_t(coin, supply, 1), blob);
         if (is_ko(t)) {
@@ -409,43 +456,87 @@ hash_t c::create_coin(int64_t supply) {
     return coin;
 }
 
-void c::restart_daemons() {
-    log("restart_daemons");
-    cout << "\nrestart_daemons" << endl;
-    cout << id << "> restarting daemons\n";
-
-    cout << id << "  > stopping wallet-cli" << endl;
-    wallet_cli->_assert_on_stop = false;
-    wallet_cli->stop();
+/*
+void c::restart_wallet_daemon() {
+    tee("restart_wallet_daemon");
+    cout << id << "> restarting wallet daemon\n";
     cout << id << "  > stopping walletd" << endl;
     wallet->_assert_on_stop = false;
+    wallet_cli->_assert_on_stop = false;
     wallet->stop();
-    cout << id << "  > waiting for wallet-cli" << endl;
-    wallet_cli->join();
+    wallet_cli->stop();
     cout << id << "  > waiting for walletd" << endl;
     wallet->join();
-    cout << id << "  > sleep 3s" << endl;
-    this_thread::sleep_for(3s);
+    wallet_cli->join();
+//    cout << id << "  > sleep 3s" << endl;
+    //this_thread::sleep_for(3s);
     wallet->_assert_on_stop = true;
-    wallet_cli->_assert_on_stop = true;
     assert(wallet->daemon == nullptr);
-    assert(wallet_cli->rpc_daemon  == nullptr );
 
-    log("starting daemons");
     cout << id << "  > starting walletd" << endl;
     assert(wallet->start() == ok);
-    cout << id << "  > sleep 3s" << endl;
-    this_thread::sleep_for(1s);
-    cout << id << "  > starting wallet-cli" << endl;
-    assert(wallet_cli->start() == ok);
-    cout << id << "  > sleep 3s" << endl;
-    this_thread::sleep_for(1s);
+    assert(wallet_cli->start() == ok);//    cout << id << "  > sleep 1s" << endl;
+//    this_thread::sleep_for(1s);
+
+    assert(is_ok(wallet->daemon->wait_ready(3)));
     assert(wallet->daemon->isup());
+
+    assert(is_ok(wallet_cli->rpc_daemon->wait_ready(3)));
     assert(wallet_cli->rpc_daemon->isup());
 
     cout << id << "\n> test_list_protocols\n";
     test_list_protocols();
+    wallet->_assert_on_stop = true;
+    wallet_cli->_assert_on_stop = true;
     cout << "\ndaemons restarted" << endl;
+}
+*/
+void c::restart_daemons() {
+    log("restart_daemons");
+    cout << "\nrestart_daemons" << endl;
+    tee(id, "=========================stopping wallet-cli");
+    auto dis = wallet_cli->rpc_daemon->dispatcher;
+    assert(wallet_cli_dis == dis);
+    wallet_cli->rpc_daemon->dispatcher = nullptr;
+
+    wallet_cli->_assert_on_stop = false;
+    wallet_cli->stop();
+    tee(id, "=========================stopping walletd");
+    wallet->_assert_on_stop = false;
+    wallet->stop();
+    tee(id, "=========================waiting for wallet-cli");
+//    cout << id << "  > waiting for wallet-cli" << endl;
+    wallet_cli->join();
+    tee(id, "=========================waiting for walletd");
+    wallet->join();
+
+//    wallet_cli_dis = nullptr;
+//    cout << id << "  > sleep 3s" << endl;
+    //this_thread::sleep_for(3s);
+    wallet->_assert_on_stop = true;
+    wallet_cli->_assert_on_stop = true;
+    assert(wallet->daemon == nullptr);
+    assert(wallet_cli->rpc_daemon  == nullptr);
+
+    tee(id, "=========================starting walletd");
+//    cout << id << "  > starting walletd" << endl;
+    assert(wallet->start() == ok);
+    tee(id, "=========================starting wallet-cli");
+//    assert(wallet_cli_dis == nullptr);
+//    wallet_cli_dis = new dispatcher_t(id, *wallet_cli, cout);
+    assert(wallet_cli->start(wallet_cli_dis) == ok);
+
+    assert(is_ok(wallet->daemon->wait_ready(3)));
+    assert(is_ok(wallet_cli->rpc_daemon->wait_ready(3)));
+    //cout << id << "  > sleep 1s" << endl;
+//    this_thread::sleep_for(1s);
+    assert(wallet->daemon->isup());
+    assert(wallet_cli->rpc_daemon->isup());
+    tee(id, "=========================daemons restared");
+
+    cout << id << "\n> test_list_protocols\n";
+    test_list_protocols();
+    assert(wallet_cli_dis != nullptr);
 }
 
 void c::register_wallet() {
@@ -468,4 +559,79 @@ void c::banner(ostream& os) const {
     os << "     logdir = " << logdir << '\n';
     os << "     vardir = " << vardir << '\n';
 }
+
+/*
+void test_traders1() {
+
+    traders_t t = new traders_t();
+    t->add_trader();
+    t->add_trader();
+    auto b1 = t->to_blob(b1)
+
+    traders_t t2 = new traders_t();
+    auto b2 = taders_t::from_blob(b1)
+    assert(b1 == b2);
+    assert(*t1 == *t2);
+
+    delete t1;
+    delete t2;
+}
+*/
+
+void c::copy_state(const string& dest) const {
+    tee("copy_state", dest);
+    ostringstream cmd;
+    cmd << "cp " << wallet->daemon->traders.sername() << ' ' << dest << "__traders";
+    tee(cmd.str());
+    assert(system(cmd.str().c_str()) == 0);
+    for (auto& i: wallet->daemon->traders) {
+        if (i.second->id.is_zero()) continue;
+        ostringstream cmd;
+        cmd << "cp " << i.second->sername().first << "/" << i.second->sername().second << ' ' << dest << "__trader_" << i.second->id;
+        tee(cmd.str());
+        assert(system(cmd.str().c_str()) == 0);
+    }
+}
+
+void c::diff_state(const string& st0, const string& st1) const {
+    ostringstream cmd;
+    cmd << "diff " << st0 << "__traders " << st1 << "__traders";
+    tee(cmd.str());
+    assert(system(cmd.str().c_str()) == 0);
+    for (auto& i: wallet->daemon->traders) {
+        if (i.second->id.is_zero()) continue;
+        ostringstream cmd;
+        cmd << "diff " << st0 << "__trader_" << i.second->id << " " << st1 << "__trader_" << i.second->id;
+        tee(cmd.str());
+        assert(system(cmd.str().c_str()) == 0);
+    }
+}
+
+void c::traders_serialization_save(const traders_t& o) {
+    tee("traders_serialization");
+    tee("traders size", o.size());
+    tee("saving to", o.sername());
+    o.save_state();
+    for (auto& i: o) {
+        tee("trader serialization:");
+        i.second->save_state();
+    }
+}
+
+void c::traders_serialization_save() {
+    traders_serialization_save(wallet->daemon->traders);
+}
+
+void c::print_pointers(ostream& os) const {
+    os << "gov " << gov << '\n';
+    os << "gov->daemon " << gov->daemon << '\n';
+    os << "gov_cli " << gov_cli << '\n';
+    os << "gov_cli->rpc_daemon " << gov_cli->rpc_daemon << '\n';
+    os << "wallet " << wallet << '\n';
+    os << "wallet->daemon " << wallet->daemon << '\n';
+    os << "wallet_cli " << wallet_cli << '\n';
+    os << "wallet_cli->rpc_daemon " << wallet_cli->rpc_daemon << '\n';
+    os << "wallet_cli_dis " << wallet_cli_dis << '\n';
+}
+
 

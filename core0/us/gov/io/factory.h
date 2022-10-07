@@ -23,23 +23,24 @@
 #pragma once
 
 #include <map>
+#include <cassert>
+#include <utility>
+#include <functional>
+	
 #include <us/gov/ko.h>
 #include <us/gov/likely.h>
 
 namespace us::gov::io {
+
     using namespace std;
 
     template<typename t>
     struct factory_t {
-        factory_t(const typename t::factory_id_t& id): id(id) {
-        }
+        using value_type = t;
+        factory_t() {}
         virtual ~factory_t() {}
-
-    public:
-        virtual t* create() = 0;
-
-    public:
-        typename t::factory_id_t id;
+        virtual pair<ko, value_type*> create() const { return make_pair("KO 71012 factory not implemented.", nullptr); }
+        virtual pair<ko, value_type*> create() { return const_cast<const factory_t<t>&>(*this).create(); }
     };
 
 
@@ -56,21 +57,50 @@ namespace us::gov::io {
             }
         }
 
-        ko register_factory(factory_t<t>* f) {
-            auto i = b::find(f->id);
-            if (i == b::end()) {
+        ko register_factory(const typename t::factory_id_t& id, factory_t<t>* f) {
+            auto i = b::find(id);
+            if (i != b::end()) {
+                cerr << "factory_id_t " << id << " already created" << endl;
+                assert(false);
                 return "KO 40193 Factory already registered.";
             }
-            emplace(f->id, f);
+            b::emplace(id, f);
             return ok;
         }
 
-        t* create(const typename t::factory_id_t& id) const {
+        ko unregister_factory(const typename t::factory_id_t& id) {
+            auto i = b::find(id);
+            if (i == b::end()) {
+                cerr << "factory_id_t " << id << " not found" << endl;
+                return "KO 40192 Factory not found.";
+            }
+            delete i->second;
+            b::erase(i);
+            return ok;
+        }
+
+        pair<ko, t*> create(const typename t::factory_id_t& id) const {
             auto i = b::find(id);
             if (unlikely(i == b::end())) {
-                return nullptr;
+                cerr << "factory_id_t " << id << " not found" << endl;
+                assert(false); //--strip
+                return make_pair("KO 69243 factory not found.", nullptr);
             }
             return i->second->create();
+        }
+
+        template<typename init_t>
+        pair<ko, t*> create(const typename t::factory_id_t& id, init_t&& init) const {
+            auto i = b::find(id);
+            if (unlikely(i == b::end())) {
+                cerr << "factory_id_t " << id << " not found" << endl;
+                assert(false); //--strip
+                return make_pair("KO 69243 factory not found.", nullptr);
+            }
+            auto o = i->second->create();
+            assert(o.first == ok);
+            init(*o.second);
+            return o;
         }
 
     };

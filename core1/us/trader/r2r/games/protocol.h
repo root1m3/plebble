@@ -65,9 +65,11 @@ namespace us::trader::r2r::games {
             svc_end
         };
 
+    public:
         protocol(business_t&);
         ~protocol() override;
 
+    public:
         ko trading_msg(peer_t&, svc_t, blob_t&&) override;
         void dump(ostream&) const override;
         void help_online(const string& indent, ostream&) const override;
@@ -86,6 +88,12 @@ namespace us::trader::r2r::games {
         static ko exec(istream&, traders_t&, wallet_local_api&);
         uint32_t trade_state_() const;
         //void judge(const string& lang) override;
+
+    public:
+        size_t blob_size() const override;
+        void to_blob(blob_writer_t&) const override;
+        ko from_blob(blob_reader_t&) override;
+        factory_id_t factory_id() const override;
 
         mutable mutex mx;
     };

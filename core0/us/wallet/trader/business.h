@@ -21,6 +21,9 @@
 //===----------------------------------------------------------------------------
 //===-
 #pragma once
+#include "traders_t.h"
+extern int foo(us::wallet::trader::traders_t::protocol_factories_t&);
+
 #include <string>
 #include <iostream>
 #include <map>
@@ -43,6 +46,10 @@ namespace us::wallet::wallet {
     struct local_api;
 }
 
+namespace us::wallet::wallet {
+    struct local_api;
+}
+
 namespace us::wallet::trader {
 
     using namespace us::gov;
@@ -57,16 +64,27 @@ namespace us::wallet::trader {
         using bookmark_info_t = trader::bookmark_info_t;
         using protocols_t = trader::bootstrap::protocols_t;
 
+        using protocol_factories_t = us::wallet::trader::trader_protocol::factories_t;
+        using protocol_factory_t = us::wallet::trader::trader_protocol::factory_t;
+        using protocol_factory_id_t = us::wallet::trader::trader_protocol::factory_id_t;
+
         static const char* KO_50100; //exec ignored
 
-        static constexpr int interface_version{9};
+        static constexpr int interface_version{10};
+
+    public:
         business_t();
-        virtual ~business_t() {}
-        virtual ko init(const string& r2rhome);
+        virtual ~business_t();
+
+        virtual void register_factories(protocol_factories_t&) = 0;
+
+    public:
+        virtual ko init(const string& r2rhome, protocol_factories_t&);
+
+    public:
         virtual string homedir() const = 0;
         virtual std::pair<ko, trader_protocol*> create_protocol() = 0;
         virtual std::pair<ko, trader_protocol*> create_opposite_protocol(protocol_selection_t&& protocol_selection) = 0;
-//        virtual std::pair<ko, trader_protocol*> create_protocol() = 0;
         virtual void list_protocols(ostream&) const = 0; //human format
         virtual void invert(protocols_t&) const = 0;
         virtual void published_protocols(protocols_t&, bool inverse) const = 0;
@@ -84,6 +102,7 @@ namespace us::wallet::trader {
 
 }
 
-typedef us::wallet::trader::business_t* business_create_t(const char*, int ifversion);
+typedef us::wallet::trader::business_t* business_create_t(int ifversion);
 typedef void business_destroy_t(us::wallet::trader::business_t*);
+
 

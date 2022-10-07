@@ -58,18 +58,24 @@ us::wallet::wallet::local_api* c::get_wallet(const string& subhome) {
         trader::endpoint_t ep(daemon.id.pub.hash(), subhome);
         ep.chan = daemon.channel;
         auto whome = daemon.wallet_home(subhome);
+        log("root wallet instantiation");
         o = new us::wallet::wallet::local_api(daemon, whome, subhome, subhomeh, move(ep));
         emplace(subhomeh, o);
     }
-    if (subhome.empty()) {
-        string govhomedir = daemon.home + "../gov";
-        if (us::gov::io::cfg1::file_exists(us::gov::io::cfg_id::k_file(govhomedir))) {
-            auto k = us::gov::io::cfg1::load_sk(govhomedir);
-            if (is_ok(k.first)) {
-                hash_t addr = o->add_address(k.second);
-                log("added income address", addr);
-            }
+    if (!subhome.empty()) {
+        return o; //guest wallet
+    }
+    log("root wallet instantiation", "make sure it contains gov income address");
+    string govhomedir = daemon.home + "../gov";
+    if (us::gov::io::cfg1::file_exists(us::gov::io::cfg_id::k_file(govhomedir))) {
+        log("found gov/k file");
+        auto k = us::gov::io::cfg1::load_sk(govhomedir);
+        if (is_ko(k.first)) {
+            log("KO 79685 Could not load gov sk");
+            return o;
         }
+        hash_t addr = o->add_address(k.second);
+        log("added income address", addr);
     }
     return o;
 }

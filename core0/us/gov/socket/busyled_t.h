@@ -32,6 +32,7 @@ namespace us::gov::socket {
         ~busyled_t();
 
         struct handler_t {
+            virtual ~handler_t() {}
             virtual void on_busy() = 0;
             virtual void on_idle() = 0;
         };

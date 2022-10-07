@@ -21,15 +21,17 @@
 //===----------------------------------------------------------------------------
 //===-
 #include "peer_t.h"
-#include "daemon_t.h"
+
 #include <us/gov/relay/daemon_t.h>
 #include <us/gov/relay/protocol.h>
-#include <us/wallet/trader/trader_t.h>
 #include <us/gov/traders/wallet_address.h>
 #include <us/gov/socket/multipeer/handler_daemon_t.h>
-#include <us/wallet/protocol.h>
+
+#include <us/wallet/trader/trader_t.h>
 #include <us/wallet/wallet/local_api.h>
+
 #include "users_t.h"
+#include "daemon_t.h"
 
 #define loglevel "wallet/engine"
 #define logclass "peer_t"
