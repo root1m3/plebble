@@ -341,13 +341,13 @@ function apply1 {
 #                   ┌──────────┐
 #                   │downstream│
 #                   └──────────┘
-# 
+#
 #                   alpha-34
-# 
+#
 #                      .
-# 
-# 
-# 
+#
+#
+#
 # >                    * downstream changes
 #                      │
 #                      │
@@ -541,7 +541,7 @@ function apply_changes_upstream1 {
 #
 #   branches─►     main   hqrefactor0
 #                     .        .
-# 
+#
 #    upstream_head 125*        .
 #                     │
 #                     │        .
@@ -600,10 +600,10 @@ function apply_changes_upstream1 {
 #              ┌──────────┐
 #              │ upstream │
 #              └──────────┘
-# 
+#
 #   branches─►     main   hqrefactor0
 #                     .        .
-# 
+#
 #    upstream_head 125*        .
 #                     │
 #                     │
@@ -654,11 +654,11 @@ function apply_changes_upstream1 {
 #              ┌──────────┐
 #              │ upstream │
 #              └──────────┘
-# 
+#
 #                  main                       hqrefactor0
 #                     .
-# 
-# 
+#
+#
 #  >                  * merge + conflict
 #  >                  │     fixes
 #  >                  │
@@ -704,11 +704,11 @@ function apply_changes_upstream1 {
 #              ┌──────────┐
 #              │ upstream │
 #              └──────────┘
-# 
+#
 #                  main
 #                     .
-# 
-# 
+#
+#
 #  >                  * downstream changes
 #  >                  │
 #                     │
@@ -738,7 +738,7 @@ function apply_changes_upstream {
 #                        └──────────┘
 #   branches─►     main   hqrefactor0
 #                     .        .
-# 
+#
 #    upstream_head 125*        .
 #                     │
 #                     │        .
@@ -1203,7 +1203,10 @@ EOF
         echo "## DONE !                     ##"
         echo "################################"
     popd > /dev/null
-    echo $devjob_sync_nextsteps
+    if [[ "_$devjob_sync_nextsteps" != "_" ]]; then
+        echo "Next steps:"
+        echo $devjob_sync_nextsteps
+    fi
 }
 
 function procid {
