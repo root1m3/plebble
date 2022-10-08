@@ -36,8 +36,8 @@ public final class CFG {
     public static final String acra_connection_string = "##str48##";
     public static final String app_name = "##str32##";
     public static final String brand = vcs.brand;
-    //public static final String SDK_name = vcs.brand + "-wallet-sdk_java_" + vcs.branch;
     public static final int appstore_edition = ##str83##;
+    public static final String app_bz_desc = "##str91##";
 
     public static boolean sdk_logs = false;                                             //--strip
 

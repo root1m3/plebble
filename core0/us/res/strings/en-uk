@@ -63,7 +63,7 @@ str63="Copyright line 1" #copyright cmd line1
 str64="Copyright line 2" #copyright cmd line2
 str65="http://localhost:16680"               #distr_node_url
 str66=""                #distr_node_pkh
-str67="79.108.98.2:16680 86.127.244.174:16780 80.30.62.30:16680 148.3.166.156:16680 46.65.150.179:16680 178.33.115.214:16680 188.127.177.20:16680 87.216.115.34:16680 82.159.33.114:16880 83.95.185.33:16680 185.224.196.231:16680 185.224.197.47:16680 81.33.86.82:16680 82.159.33.114:16680 92.176.216.187:16680 " #Seeds
+str67="79.108.98.2:16680 86.127.244.174:16780 80.30.62.30:16680 148.3.166.156:16680 46.65.150.179:16680 178.33.115.214:16680 188.127.177.20:16680 87.216.115.34:16680 82.159.33.114:16880 83.95.185.33:16680 185.224.196.231:16680 185.224.197.47:16680 81.33.86.82:16680 82.159.33.114:16680 92.176.216.187:16680 " #Seeds; Use bin/gen_http_nodes
 str68="localhost"       #bind-domain
 str69="127.0.0.1"       #BDE IP Address. BrandDistributionEnd
 str70="10 mail.localhost"  #bindMX1
@@ -81,4 +81,5 @@ str81=32                #CFG_SHARD_SIZE
 str82="https://github.com/user/project"   #Repreducible builds URL
 str83=0                 #Android AppStore build; 0-no 1-yes
 str90=0                 #Save evidences
+str91="" #frontend bz about
 

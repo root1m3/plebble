@@ -27,7 +27,7 @@ prefix="/usr/local"
 systemctl stop ${US}-wallet
 systemctl stop ${US}-gov
 
-mv -f /var/us-nets /var/us-nets.off
+mv -f /var/us_nets /var/us_nets.off
 
 rm -f $prefix/bin/${US}-uninstall
 

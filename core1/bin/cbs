@@ -25,7 +25,7 @@ echo "#############################"
 echo "## Continuous Build Script ##"
 echo "#############################"
 
-if [ ! -f ./.cbs/config ]; then
+if [[ ! -f ./.cbs/config ]]; then
     echo "KO 15502 missing .cbs/config"
     exit 1
 fi
@@ -61,23 +61,23 @@ let bg=0
 let local_build=0
 brand=all
 flags10=""
-while [ true ]; do
+while [[ true ]]; do
     opt=$1
     shift
-    if [ "_$opt" == "_-b" ]; then
+    if [[ "_$opt" == "_-b" ]]; then
         echo "background flag"
         bg=1
         continue
-    elif [ "_$opt" == "_--local-build" ]; then
+    elif [[ "_$opt" == "_--local-build" ]]; then
         echo "local build"
         let local_build=1
         continue
-    elif [ "_$opt" == "_--brand" ]; then
+    elif [[ "_$opt" == "_--brand" ]]; then
         brand=$1
         echo "brand $brand"
         shift
         continue
-    elif [ "_$opt" == "_--flags" ]; then
+    elif [[ "_$opt" == "_--flags" ]]; then
         flags10="$1"
         shift
         continue
@@ -89,7 +89,7 @@ while [ true ]; do
 done
 
 function mk_blobs {
-    if [ -d distr ]; then
+    if [[ -d distr ]]; then
         echo "dir distr exists."
         exit 1
     fi
@@ -207,7 +207,7 @@ function bgssh {
     id_rsa_groot_file=$keyroot/id_rsa_groot
     ssh="ssh -i ${id_rsa_groot_file}"
     scp="scp -i ${id_rsa_groot_file}"
-	if [ $bg -eq 1 ]; then
+	if [[ $bg -eq 1 ]]; then
 		echo "Running in background. log file: $logfile"
 		$ssh $@ >$logfile 2>&1 &
 	else
@@ -294,17 +294,17 @@ echo "branch: $branch"
 echo "build in background: $bg"
 echo "cmd $cmd"
 
-if [ "_$cmd" == "_" ]; then
-    help
+if [[ "_$cmd" == "_" ]]; then
+    help]
     exit 0
 fi
 
-if [ "_$cmd" == "_status" ]; then
+if [[ "_$cmd" == "_status" ]]; then
     id=$1
     exit 0
 fi
 
-if [ "_$cmd" == "_make_blobs" ]; then
+if [[ "_$cmd" == "_make_blobs" ]]; then
     mk_blobs
     exit 0
 fi
@@ -318,7 +318,7 @@ function clear_ccache_arch {
     $ssh -p$sshport $host "ccache -C"
 }
 
-if [ "_$cmd" == "_clear_ccache" ]; then
+if [[ "_$cmd" == "_clear_ccache" ]]; then
     set -x
     ccache -C
     archs="x86_64 armv7l "
@@ -329,13 +329,11 @@ if [ "_$cmd" == "_clear_ccache" ]; then
         port=${!vport}
         clear_ccache_arch ${host} ${port}
     done
-
     exit 0
 fi
 
-
-if [ "_$cmd" == "_android" ]; then
-    if [ -d distr ]; then
+if [[ "_$cmd" == "_android" ]]; then
+    if [[ -d distr ]]; then
 	    echo "dir distr exists"
 	    exit 1
     fi
@@ -357,7 +355,7 @@ if [ "_$cmd" == "_android" ]; then
     exit 0
 fi
 
-if [ "_$cmd" == "_rel_core" ]; then
+if [[ "_$cmd" == "_rel_core" ]]; then
     brand=$1
     host=$2
     port=$3
@@ -366,7 +364,7 @@ if [ "_$cmd" == "_rel_core" ]; then
     exit 0
 fi
 
-if [ "_$cmd" == "_rel_core_r2r" ]; then
+if [[ "_$cmd" == "_rel_core_r2r" ]]; then
     brand=$1
     host=$2
     port=$3
@@ -375,7 +373,7 @@ if [ "_$cmd" == "_rel_core_r2r" ]; then
     exit 0
 fi
 
-if [ "_$cmd" == "_rel_r2r" ]; then
+if [[ "_$cmd" == "_rel_r2r" ]]; then
     brand=$1
     host=$2
     port=$3
@@ -384,7 +382,7 @@ if [ "_$cmd" == "_rel_r2r" ]; then
     exit 0
 fi
 
-if [ "_$cmd" == "_rellog_core" ]; then
+if [[ "_$cmd" == "_rellog_core" ]]; then
     brand=$1
     host=$2
     port=$3
@@ -393,7 +391,7 @@ if [ "_$cmd" == "_rellog_core" ]; then
     exit 0
 fi
 
-if [ "_$cmd" == "_rellog_core_r2r" ]; then
+if [[ "_$cmd" == "_rellog_core_r2r" ]]; then
     brand=$1
     host=$2
     port=$3
@@ -402,7 +400,7 @@ if [ "_$cmd" == "_rellog_core_r2r" ]; then
     exit 0
 fi
 
-if [ "_$cmd" == "_rellog_r2r" ]; then
+if [[ "_$cmd" == "_rellog_r2r" ]]; then
     brand=$1
     host=$2
     port=$3
@@ -411,7 +409,7 @@ if [ "_$cmd" == "_rellog_r2r" ]; then
     exit 0
 fi
 
-if [ "_$cmd" == "_dbglog_core" ]; then
+if [[ "_$cmd" == "_dbglog_core" ]]; then
     brand=$1
     host=$2
     port=$3
@@ -420,7 +418,7 @@ if [ "_$cmd" == "_dbglog_core" ]; then
     exit 0
 fi
 
-if [ "_$cmd" == "_dbglog_core_r2r" ]; then
+if [[ "_$cmd" == "_dbglog_core_r2r" ]]; then
     brand=$1
     host=$2
     port=$3
@@ -429,7 +427,7 @@ if [ "_$cmd" == "_dbglog_core_r2r" ]; then
     exit 0
 fi
 
-if [ "_$cmd" == "_dbglog_r2r" ]; then
+if [[ "_$cmd" == "_dbglog_r2r" ]]; then
     brand=$1
     host=$2
     port=$3
@@ -438,7 +436,7 @@ if [ "_$cmd" == "_dbglog_r2r" ]; then
     exit 0
 fi
 
-if [ "_$cmd" == "_dbg_core" ]; then
+if [[ "_$cmd" == "_dbg_core" ]]; then
     brand=$1
     host=$2
     port=$3
@@ -447,7 +445,7 @@ if [ "_$cmd" == "_dbg_core" ]; then
     exit 0
 fi
 
-if [ "_$cmd" == "_dbg_core_r2r" ]; then
+if [[ "_$cmd" == "_dbg_core_r2r" ]]; then
     brand=$1
     host=$2
     port=$3
@@ -456,7 +454,7 @@ if [ "_$cmd" == "_dbg_core_r2r" ]; then
     exit 0
 fi
 
-if [ "_$cmd" == "_dbg_r2r" ]; then
+if [[ "_$cmd" == "_dbg_r2r" ]]; then
     brand=$1
     host=$2
     port=$3
@@ -465,7 +463,7 @@ if [ "_$cmd" == "_dbg_r2r" ]; then
     exit 0
 fi
 
-if [ "_$cmd" == "_stop" ]; then
+if [[ "_$cmd" == "_stop" ]]; then
     id=$1
     exit 0
 fi

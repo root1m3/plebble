@@ -19,7 +19,7 @@ str63="This program comes with ABSOLUTELY NO WARRANTY. For details type 'show w'
 str64="This is free software, and you are welcome to redistribute it under certain conditions. Type 'show c' for details." #copyright cmd line2
 str65="http://plebble.net:16680" #distr_node_url
 str66="DvJNG79sxFswxyPJhm2L4hrLjhv" #distr_node_pkh
-str67="164.92.102.27:16680 122.199.2.54:16680 139.59.231.101:16680 185.224.196.231:16680 37.97.207.253:16680 81.103.21.33:16680 185.105.90.247:16680 159.223.25.177:16680" #Seeds
+str67="139.59.231.101:16680 164.92.102.27:16680 185.105.90.247:16680 185.224.196.231:16680 37.97.207.253:16680 64.226.179.115:16680 86.12.238.220:16680" #Seeds; Use bin/gen_http_nodes
 str68="thisnode.plebble.net"       #bind-domain
 str69="185.224.196.231"       #BDE IP Address. BrandDistributionEnd
 str70="10 mail.thisnode.plebble.net"  #bindMX1
@@ -30,4 +30,6 @@ str74=1                 #HTTP_ENABLED
 str75=1                 #BIND_ENABLED
 str80=0                 #enable sharding
 str82="https://github.com/root1m3/plebble"   #Repreducible builds URL
+str91="" #frontend bz about
+
 

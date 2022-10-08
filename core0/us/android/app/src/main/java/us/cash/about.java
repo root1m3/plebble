@@ -41,7 +41,6 @@ import android.text.method.DigitsKeyListener;                                   
 import android.graphics.drawable.Drawable;                                                     // Drawable
 import us.gov.crypto.ec;                                                                       // ec
 import android.widget.EditText;                                                                // EditText
-//import com.google.firebase.crashlytics.FirebaseCrashlytics;                                    // FirebaseCrashlytics
 import android.graphics.drawable.GradientDrawable;                                             // GradientDrawable
 import static us.gov.crypto.ripemd160.hash_t;                                                  // hash_t
 import static us.gov.id.types.*;                                                               // *
@@ -109,7 +108,8 @@ public final class about extends activity {
 
         toolbar.setTitle("About");
         appname.setText(CFG.app_name);
-        String desc = CFG.app_name + " is a lightweight GUI for operating privacy wallets written in java for the Android platform. The backend is accessed using RPC-API library " + us.vcs.sdk_name() + " built by mm-studios/KATLAS. This is software designed for protecting individual privacy and autonomy. It only talks to your node, using encrypted E2E communication. [It can eventually and succinctly talk to any random node in the P2P network in cases where a recovery is required after sporadic changes in public IP addresses (i.e. if home had a dynamic IP)]";
+        String desc0 = "CFG.app_bz_desc";
+        String desc = desc0 + "\n" + CFG.app_name + " app is a lightweight GUI for operating privacy wallets written in java for the Android platform. The backend is accessed using RPC-API library " + us.vcs.sdk_name() + " built by KATLAS. This is software designed for protecting individual privacy and autonomy. It only talks to your node, using encrypted E2E communication. [It can eventually and succinctly talk to any random node in the P2P network in cases where a recovery is required after sporadic changes in public IP addresses (i.e. if home had a dynamic IP)]";
         appdescription.setText(desc);
         String swvt = us.vcs.name_date() + " b: " + CFG.blob_id;
         if (CFG.appstore_edition == 1) {

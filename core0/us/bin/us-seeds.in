@@ -29,12 +29,11 @@ prefix=/usr/local
 
 . $datadir0/config
 
-if [ $CHANNEL -eq 0 ]; then
+if [[ $CHANNEL -eq 0 ]]; then
     datadir=$datadir0
 else
     datadir=$datadir0/$CHANNEL
 fi
-
 
 function cleanup {
     echo "cleanup"
@@ -65,16 +64,10 @@ date +%F_%T
 
 nodes_auto
 cleanup
-gov_owns
-
-#date +%F_%T
-#echo "sleepig random seconds 0-3600" #nodes must not restart all at once
-#sleep $[ ( $RANDOM % 3600 )  + 1 ]s
-
-#date +%F_%T
-#$prefix/bin/install_blob
+#gov_owns
 
 date +%F_%T
 echo -n "finished "
 
 exit 0
+

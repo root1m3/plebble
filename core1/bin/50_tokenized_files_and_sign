@@ -40,7 +40,7 @@ while [[ true ]]; do
     opt=$1
     echo "read opt=$opt"
     shift
-    if [ "_$opt" == "_--install" ]; then
+    if [[ "_$opt" == "_--install" ]]; then
         echo "install flag"
         let inst=0
         continue
@@ -174,7 +174,7 @@ hash=""
 branch=""
 
 nh=`cat $distr/build_hashes | grep "^vhash " | awk '{print $2}' | sort | uniq | wc -l`
-if [ $nh -ne 1 ]; then
+if [[ $nh -ne 1 ]]; then
     echo "KO 59862 Found multiple hashes in $distr/build_hashes"
     exit 1
 fi
@@ -182,11 +182,11 @@ fi
 vhash=`cat $distr/build_hashes | grep "^vhash " | awk '{print $2}' | sort | uniq`
 branch=`cat $distr/build_hashes | grep "^vhash " | sort | uniq | awk '{print $6}'`
 
-if [ "_$vhash" == "_" ]; then
+if [[ "_$vhash" == "_" ]]; then
     echo "KO 7950 cannot find hash" >&2
     exit 1
 fi
-if [ "_$branch" == "_" ]; then
+if [[ "_$branch" == "_" ]]; then
     echo "KO 7951 cannot find branch" >&2
     exit 1
 fi
@@ -278,3 +278,4 @@ rm -f sloccount.txt
 echo "Finished $distr"
 #find $distr -type f
 exit 0
+

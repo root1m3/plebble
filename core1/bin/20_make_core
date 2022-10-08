@@ -57,7 +57,7 @@ while [[ true ]]; do
 done
 
 build_jobs=$opt
-if [ "_$build_jobs" == "_" ]; then
+if [[ "_$build_jobs" == "_" ]]; then
     help
     echo -n "specify which one: "
     find . -maxdepth 1 -type d -name "build_jobs*" | sed "s~^\./~~" | xargs
@@ -91,7 +91,7 @@ pushd /root >/dev/null;
     tar -I zstd -xf distr_deps.tzst
     pushd distr/deps >/dev/null
         ./install_deps
-        if [ $? -ne 0 ]; then
+        if [[ $? -ne 0 ]]; then
             echo "Errors occurred installing deps."
             exit 1
         fi
@@ -132,9 +132,9 @@ function wait_done {
         progtot=`cat $progdbfile | wc -l`
         perc="0"
     fi
-    while [ true ]; do
+    while [[ true ]]; do
         echo "archs left: $archs"
-        if [ "_$archs" == "_" ]; then
+        if [[ "_$archs" == "_" ]]; then
             break
         fi
         for arch in $archs; do
@@ -144,7 +144,7 @@ function wait_done {
             port=${!vport}
             #echo "querying $arch host $host"
             s=`$ssh -p$port $host "cat foo.err | grep -v \"^distcc\" | head -n1"`
-            if [ "_$s" != "_" ]; then
+            if [[ "_$s" != "_" ]]; then
                 $ssh -p$port $host "killall make; killall make.sh; killall cc1plus"
                 echo "Complete cerr file: $ssh -p$port $host \"cat foo.err\""
                 echo "1st Error: $s"
@@ -207,15 +207,15 @@ function move_to_distr {
 
     #num architectures
     num=`find core -name "*-dev.tgz" | tr '/' ' ' | awk '{print $NF}' | sort | uniq | wc -l`
-    if [ $local_build -eq 0 ]; then
-        if [ $num -ne 4 ]; then
+    if [[ $local_build -eq 0 ]]; then
+        if [[ $num -ne 4 ]]; then
             echo "KO 85529 Expected 4 archs dev" >&2
             find core -name "*-dev.tgz" 1>&2
             echo "num=$num expected=3" 1>&2
             exit 1
         fi
     else
-        if [ $num -ne 1 ]; then
+        if [[ $num -ne 1 ]]; then
             echo "KO 85539 Expected 1 dev archs" >&2
             find core -name "*.tgz" 1>&2
             echo "num=$num expected=1" 1>&2

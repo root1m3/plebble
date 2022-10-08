@@ -26,7 +26,7 @@ echo "## 70_make_blobs ##"
 echo "###################"
 
 numh=`cat distr/build_hashes | grep "^vhash " | awk '{print $2}' | sort | uniq | wc -l`
-if [ $numh -ne 1 ]; then
+if [[ $numh -ne 1 ]]; then
     echo "KO 6753 multiple hashes"
     exit 1
 fi
@@ -70,7 +70,7 @@ for branddir in `find distr -maxdepth 1 -mindepth 1 -type d`; do
     echo "hash=$hash"
     echo "find $branddir -name \"core_*_$hash.tar.zst\""
     branch=`find $branddir -name "core_*_$hash.tar.zst" | sed "s#.*core_\(.*\)_${hash}.tar.zst#\1#"`
-    if [ -f distr/$brand/bin/apply_blob ]; then
+    if [[ -f distr/$brand/bin/apply_blob ]]; then #any expected-to-be-there file
         echo "brand $brand branch $branch hash $hash branddir $branddir"
         pushd distr > /dev/null
             blobdir="${brand}_${branch}_${hash}${flagscode}"
@@ -78,6 +78,10 @@ for branddir in `find distr -maxdepth 1 -mindepth 1 -type d`; do
             rm -rf $blobdir
             mkdir -p $blobdir
             cp $brand/* $blobdir/ -R
+            if [[ ! -f $blobdir/release_notes ]]; then
+                echo "KO 87945 missing release_notes."
+                exit 1
+            fi
             cp deps $blobdir/ -R
             echo "Excluding OS Image"
             rm -rf $blobdir/raspberry_pi
@@ -87,6 +91,10 @@ for branddir in `find distr -maxdepth 1 -mindepth 1 -type d`; do
                 echo "apk=$apk"
                 if [[ "_$apk" != "_" ]]; then
                     apkhash=`us-wallet digest $apk`
+                    if [[ $? -ne 0 ]]; then
+                        echo "KO 89782 need a working us-wallet program."
+                        exit 1
+                    fi
                     ln -s "$apk" blob.apk
                     echo "$apkhash" > blobhash 
                     echo "apkhash=$apkhash"
@@ -97,7 +105,7 @@ for branddir in `find distr -maxdepth 1 -mindepth 1 -type d`; do
             ls ../snippet/blob_make.sh
             echo "cp ../snippet/blob_make.sh $blobdir/make.sh"
             cp ../snippet/blob_make.sh $blobdir/make.sh
-            chmod +x make.sh           
+            chmod +x $blobdir/make.sh           
             tar -I zstd -cf $blobdir.tzst $blobdir
             mv $blobdir.tzst ../blobs/
             mv /tmp/${brand}_install_blob ../blobs/

@@ -573,8 +573,9 @@ function hash_sample {
     url_upstream="$1"
     rm -f /tmp/curhash
     echo "======Trying ${url_upstream}======"
-    echo "timeout 10 wget -q \"${url_upstream}/downloads/blob/${US}/curhash\" -O /tmp/curhash"
-    timeout 10 wget -q "${url_upstream}/downloads/blob/${US}/curhash" -O /tmp/curhash
+    cmd="timeout 10 wget -q "${url_upstream}/downloads/blob/${US}/curhash" -O /tmp/curhash"
+    echo "Exec: $cmd"
+    $cmd
     let r=$?
     if [[ $r -ne 0 ]]; then
         echo "KO 69210 could not fetch from ${url_upstream}/downloads/blob/${US}/curhash"
@@ -933,6 +934,7 @@ function post_install {
     if [[ $reboot -eq 1 ]]; then
         echo "reboot" >> ${JAILDIR}/tmp/post-install_blob
     else
+        echo "systemctl daemon-reload" >> ${JAILDIR}/tmp/post-install_blob
         echo "systemctl restart ${US}-gov" >> ${JAILDIR}/tmp/post-install_blob
         echo "systemctl restart ${US}-wallet" >> ${JAILDIR}/tmp/post-install_blob
     fi

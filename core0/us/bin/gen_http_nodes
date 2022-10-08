@@ -21,20 +21,45 @@
 #===-
 #===----------------------------------------------------------------------------
 #===-
+#
+# find brand nodes in etc/nodes.distr0 
 
+function help {
+    echo "$0 scan [brand]"
+    echo "scans nodes in etc/nodes.distr0 in search of nodes with the http port open."
+    echo "If brand is specified, also search which ones run the given brand."
+    echo ""
+    echo "Update etc/nodes.distr0 first:"
+    echo "  scp -i <identiry> <any-node>:/home/gov/.us/gov/nodes.auto etc/nodes.distr0"
+}
+
+cmd=$1
+shift
 US=$1
+shift
+
+if [[ "_$cmd" != "_scan" ]]; then
+    help
+    echo "KO 86875 Invalid command."
+    exit 1
+fi
+
 nodes0=/tmp/nodes0
 if [[ ! -f $nodes0 ]]; then
+    echo "Finding all nodes with http port open"
     echo "" > $nodes0
     for h in `cat etc/nodes.distr0 | sed 's/72$/80/'`; do
-        wget -t 1 --quiet --connect-timeout=2 -O - $h > /dev/null
+        cmd="timeout 10 wget -t 1 --quiet --connect-timeout=2 -O - $h"
+        echo "Exec: $cmd"
+        eval $cmd > /dev/null
         let r=$?
         if [[ r -eq 0 ]]; then
             echo "$h"| tee -a $nodes0
         fi
     done
+else
+    echo "/tmp/nodes0 exist"
 fi
-
 
 if [[ "_$US" == "_" ]]; then
 	echo "file $nodes0:"
@@ -45,6 +70,8 @@ fi
 
 httpnodes="`cat $nodes0 | shuf | xargs` "
 echo "httpnodes=$httpnodes"
+file="/tmp/nodes_${US}"
+echo "" > $file
 while [[ true ]]; do
     httpnode=`echo $httpnodes | tr ' ' '\n' | head -n1`
     httpnodes=`echo "$httpnodes" | sed "s#$httpnode ##"`
@@ -52,7 +79,10 @@ while [[ true ]]; do
     if [ "_$httpnode" == "_" ]; then
         break
     fi
-    wget -q "${httpnode}/blob/${US}/curhash" -o curhash
+    cmd="timeout 10 wget -q --connect-timeout=2 -O curhash \"http://${httpnode}/downloads/blob/${US}/curhash\""
+    echo "Exec: $cmd"
+    rm -f curhash
+    eval $cmd
     let r=$?
     if [[ $r -ne 0 ]]; then
         echo "${httpnode} hasn't ${US}"
@@ -65,9 +95,14 @@ while [[ true ]]; do
     curhash=`cat curhash`
     rm curhash
     echo "======================================${httpnode} has ${US}"
-    echo "$httpnode"
+    echo "$httpnode" >> $file
 done
+rm -f curhash
+echo "${US} nodes:"
+echo -n "str67=\""
+v=`cat $file | sort | xargs`
+echo -n $v
+echo "\" #Seeds; Use bin/gen_http_nodes"
 
-
-
+exit 0
 
