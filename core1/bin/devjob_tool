@@ -24,6 +24,7 @@
 echo "##################"
 echo "## devjob_tool  ##"
 echo "##################"
+# drawings made using https://asciiflow.com
 
 djactive=.cbs/devjobs_active
 
@@ -901,11 +902,11 @@ function procurl {
 # ┌──────────┐                    ┌────────┐
 # │downstream│                    │upstream│
 # └──────────┘                    └────────┘
-# 
+#
 #   alpha-34                        main
-# 
-# 
-# 
+#
+#
+#
 #   2d3* downstream_branch         125* upstream_branch
 #      │                              │
 #      │                              │
@@ -941,13 +942,13 @@ function procurl {
 #                   ┌────────────┐
 #                   │ downstream │
 #                   └────────────┘
-# 
+#
 #                  alpha-34    hqrefactor0
-# 
-# 
+#
+#
 #                      .             .
-# 
-# 
+#
+#
 # downstream_branch 2d3* ◄┐          .
 #                      │  └┐
 #                      │   │diff-d
@@ -972,7 +973,7 @@ function procurl {
 #   downstream_hash 95e*────────────*
 #                      │
 #                      │
-# 
+#
 #                                   diff-d:
 #              3c6 ─────────► 2d3  patch4upstream
 #                                  (contains core0 & core1)
@@ -1007,11 +1008,11 @@ function procurl {
 #              ┌──────────┐
 #              │ upstream │
 #              └──────────┘
-# 
+#
 #                  main
 #                     .
-# 
-# 
+#
+#
 #  >                  * downstream changes
 #  >                  │
 #                     │
@@ -1043,11 +1044,11 @@ function procurl {
 #                           ┌──────────┐
 #                           │ upstream │
 #                           └──────────┘
-# 
+#
 #                       main  hqrefactor0  hqrefactor1
 #                          .      .             .
-# 
-# 
+#
+#
 # >                        .      .             * ▼ adapt to
 # >                                             │ downstream format
 #                                               │       ▲
@@ -1099,13 +1100,13 @@ function procurl {
 #                   ┌──────────┐
 #                   │downstream│
 #                   └──────────┘
-# 
+#
 #                   alpha-34
-# 
+#
 #                      .
-# 
-# 
-# 
+#
+#
+#
 # >                    * downstream changes
 #                      │
 #                      │
@@ -1202,6 +1203,7 @@ EOF
         echo "## DONE !                     ##"
         echo "################################"
     popd > /dev/null
+    echo $devjob_sync_nextsteps
 }
 
 function procid {
@@ -1335,7 +1337,7 @@ function new_devjob {
                 fi
             popd > /dev/null
         popd > /dev/null
-        rm srctool    
+        rm srctool
         mv downstream/core0 .
         mv downstream/core1 .
 
@@ -1400,6 +1402,3 @@ else
    exit 1
 fi
 exit 0
-
-# drawings made using https://asciiflow.com
-
