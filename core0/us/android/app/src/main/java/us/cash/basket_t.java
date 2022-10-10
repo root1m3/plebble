@@ -51,10 +51,8 @@ import java.util.TreeMap;                                                       
 public class basket_t extends HashMap<hash_t, pair<types.vol_t, basket_item_t>> implements us.gov.io.seriable {
 
     public static class serial_t extends uint64_t {
-
         public serial_t() { super(); }
         public serial_t(long v) { super(v); }
-
     }
 
     static void log(final String line) {         //--strip

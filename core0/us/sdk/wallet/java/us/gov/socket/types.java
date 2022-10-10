@@ -24,6 +24,7 @@ package us.gov.socket;
 import static us.stdint.*;                                                                     // *
 import us.ko;                                                                                  // ko
 import us.pair;                                                                                // pair
+import us.string;                                                                              // string
 
 public class types {
 
@@ -48,18 +49,19 @@ public class types {
 
     }
 
-    public static class shost_t {
+    public static class shost_t extends string {
 
         public shost_t() {
-            value = "";
+            super("");
+//            value = "";
         }
 
         public shost_t(String shost) {
-            value = shost.trim();
+            super(shost.trim());
+//            value = shost.trim();
         }
 
-        public String value;
-
+        //public String value;
     }
 
     public static class host_t extends uint32_t {

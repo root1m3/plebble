@@ -71,35 +71,20 @@ public class cfg_android_private_t extends us.gov.io.cfg1 {
 
     public cfg_android_private_t(Context ctx_, PrivateKey privk, String home_) {
         super(privk, home_);
-
         if (!home.isEmpty()) {
             while (home.substring(0, 1).equals("/")) {
                 home = home.substring(1);
             }
         }
         log("home is '" + home + "'"); //--strip
-
-//        filepfx = fnpath(home);
         ctx = ctx_;
-//        log("ctx.getDataDir " + ctx.getDataDirFile().getCanonicalPath()); //--strip
         log("new cfg_android_private_t home " + home); //--strip
     }
 
     private cfg_android_private_t(cfg_android_private_t other) {
         super(other);
         ctx = other.ctx;
-//        filepfx = other.filepfx;
     }
-
-/*
-    public void logfiles(Context ctx) {             //--strip
-        String[] f = ctx.fileList();                //--strip
-        log("  Private files: ");                   //--strip
-        for (int i = 0; i < f.length; ++i) {        //--strip
-            log("    File: " + f[i]);               //--strip
-        }                                           //--strip
-    }                                               //--strip
-*/
 
     public void delete_file(final String file) {
         String filename = filecode(home, file);
@@ -163,27 +148,9 @@ public class cfg_android_private_t extends us.gov.io.cfg1 {
     }
 
     public static ko write_k(Context ctx, String home, PrivateKey priv) {
-//        String filename = "k";
-//        String filename = fnpath(home) + k_filename();
         String filename = k_filename();
         log("write_k as " + filename);  //--strip
         return write_file(ctx, home, filename, us.gov.crypto.ec.instance.to_b58(priv).getBytes());
-/*
-        try {
-            FileOutputStream os = ctx.openFileOutput(filename, Context.MODE_PRIVATE);
-            os.write(us.gov.crypto.ec.instance.to_b58(priv).getBytes());
-            os.write('\n');
-            os.close();
-        }
-        catch (Exception e) {
-            log(KO_97032 + " " + e.getMessage()); //--strip
-            return KO_97032;
-        }
-        return ok;
-    }
-
-        return read_file_string(ctx, home, file);
-*/
     }
 
     public static String read_file_string(Context ctx, final String home, final String file) {
@@ -195,29 +162,10 @@ public class cfg_android_private_t extends us.gov.io.cfg1 {
     }
 
     public String read_file_string(final String file) {
-        //String filename = filecode(home, file);
-        //log("read_file_string " + home + ' ' + file + " filename " + filename); //--strip
         byte[] content = read_file2(file);
         if (content == null) return "";
         return new String(content, StandardCharsets.UTF_8);
     }
-
-
-/*
-        try {
-            FileInputStream is = ctx.openFileInput(filename);
-            long sz = is.getChannel().size();
-            byte content[] = new byte[(int)sz];
-            is.read(content);
-            is.close();
-            return new String(content, StandardCharsets.UTF_8);
-        }
-        catch (Exception e) {
-            log(KO_97034.msg + " " + file + ". " + e.getMessage()); //--strip
-            return null;
-        }
-    }
-*/
 
     public static byte[] read_file(Context ctx, final String home, final String file) {
         String filename = filecode(home, file);
@@ -289,55 +237,6 @@ public class cfg_android_private_t extends us.gov.io.cfg1 {
         return e;
     }
 
-/*
-    public static pair<ko, PrivateKey> load_sk(Context ctx, final String home) {
-        try {
-            log("load_sk home = " + home); //--strip
-            String content = read_file_string(ctx, home, k_filename());
-            if (content == null) {
-                log(KO_96857.msg); //--strip
-                return new pair<ko, PrivateKey>(KO_96857, null);
-            }
-            PrivateKey privateKey = ec.instance.get_private_key(base58.decode(content.trim()));
-            return new pair<ko, PrivateKey>(ok, privateKey);
-        }
-        catch(Exception e) {
-            log(KO_96857.msg + " " + e.getMessage()); //--strip
-            return new pair<ko, PrivateKey>(KO_96857, null);
-        }
-    }
-*/
-/*
-    public static pair<ko, cfg_android_private_t> load(Context ctx, String home, boolean gen) {
-        pair<ko, PrivateKey> pk = load_sk(ctx, home);
-        if (pk.first != null) {
-            log("Unable to load keyfile"); //--strip
-            if (!gen) {
-                return new pair<ko, cfg_android_private_t>(KO_97832, null);
-            }
-            log("generating new keys at " + home); //--strip
-            KeyPair k;
-            try {
-                k = ec.instance.generate_keypair();
-            }
-            catch (Exception e) {
-                log(KO_60593 + " " + e.getMessage()); //--strip
-                return new pair<ko, cfg_android_private_t>(KO_60593, null);
-            }
-            ko r = write_k(ctx, home, k.getPrivate());
-            if (r != ok) {
-                return new pair<ko, cfg_android_private_t>(r, null);
-            }
-            pk = load_sk(ctx, home);
-            if (pk.first != null) {
-                return new pair<ko, cfg_android_private_t>(pk.first, null);
-            }
-        }
-        return new pair<ko, cfg_android_private_t>(ok, new cfg_android_private_t(ctx, pk.second, home));
-    }
-*/
-
     Context ctx;
-//    String filepfx = null;
 }
 

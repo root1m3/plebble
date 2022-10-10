@@ -167,7 +167,7 @@ public class activity extends AppCompatActivity implements NavigationView.OnNavi
                 });
             }
         };
-        a.HMI_power_off(a.device_endpoints.cur_index, progress);
+        a.HMI_power_off(a.device_endpoints.cur_index.value, progress);
         Timer timer = new Timer();
         timer.schedule(new TimerTask() {
           @Override public void run() {
@@ -303,12 +303,11 @@ public class activity extends AppCompatActivity implements NavigationView.OnNavi
                     break;
 */
                 case R.id.nav_manage_connections:
+                    manage_connections();
                     break;
 
                 case R.id.nav_newconnection:
-                    if (a.main != null) {
-                        a.main.new_connection();
-                    }
+                    new_connection();
                     break;
 
                 case R.id.nav_language:
@@ -385,6 +384,16 @@ public class activity extends AppCompatActivity implements NavigationView.OnNavi
         }
         drawer_layout.closeDrawer(GravityCompat.START);
         return true;
+    }
+
+    void manage_connections() {
+        a.assert_ui_thread(); //--strip
+        log("launching connections..."); //--strip
+        Intent intent = new Intent(activity.this, connections.class);
+        startActivity(intent);        
+    }
+
+    void new_connection() {
     }
 
     void toast(final String s) {

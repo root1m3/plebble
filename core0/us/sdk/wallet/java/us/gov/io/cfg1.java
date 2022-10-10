@@ -23,6 +23,7 @@
 package us.gov.io;
 import us.gov.crypto.base58;                                                                   // base58
 import us.CFG;                                                                                 // CFG
+import static us.gov.socket.types.channel_t;                                                   // channel_t
 import java.nio.charset.Charset;                                                               // Charset
 import us.gov.crypto.ec;                                                                       // ec
 import java.io.File;                                                                           // File
@@ -39,7 +40,6 @@ import java.nio.file.attribute.PosixFilePermission;                             
 import java.nio.file.attribute.PosixFilePermissions;                                           // PosixFilePermissions
 import java.security.PrivateKey;                                                               // PrivateKey
 import java.util.Set;                                                                          // Set
-import static us.gov.socket.types.channel_t;
 
 public class cfg1 extends cfg0 {
 

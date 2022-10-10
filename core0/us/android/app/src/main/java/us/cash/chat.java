@@ -31,7 +31,6 @@ import android.os.Bundle;                                                       
 import us.gov.socket.datagram;                                                                 // datagram
 import java.util.Date;                                                                         // Date
 import android.widget.EditText;                                                                // EditText
-//import com.google.firebase.crashlytics.FirebaseCrashlytics;                                    // FirebaseCrashlytics
 import androidx.fragment.app.Fragment;                                                         // Fragment
 import static us.gov.crypto.ripemd160.hash_t;                                                  // hash_t
 import android.widget.ImageButton;                                                             // ImageButton
@@ -60,6 +59,8 @@ import java.util.concurrent.TimeUnit;                                           
 import java.util.TreeMap;                                                                      // TreeMap
 import android.view.ViewGroup;                                                                 // ViewGroup
 import android.view.View;                                                                      // View
+
+//import com.google.firebase.crashlytics.FirebaseCrashlytics;                                    // FirebaseCrashlytics
 
 public final class chat extends Fragment implements datagram_dispatcher_t.handler_t {
 

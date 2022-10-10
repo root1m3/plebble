@@ -26,6 +26,8 @@ import java.util.ArrayList;                                                     
 import java.util.Arrays;                                                                       // Arrays
 import android.media.AudioManager;                                                             // AudioManager
 import java.net.Authenticator;                                                                 // Authenticator
+import us.gov.io.blob_reader_t;                                                                // blob_reader_t
+import static us.gov.io.types.blob_t;                                                          // blob_t
 import java.io.BufferedInputStream;                                                            // BufferedInputStream
 import java.io.BufferedReader;                                                                 // BufferedReader
 import us.gov.socket.busyled_t;                                                                // busyled_t
@@ -38,7 +40,6 @@ import java.util.concurrent.locks.Condition;                                    
 import android.content.res.Configuration;                                                      // Configuration
 import android.net.ConnectivityManager;                                                        // ConnectivityManager
 import android.content.Context;                                                                // Context
-//import org.acra.config.CoreConfigurationBuilder;                                               // CoreConfigurationBuilder
 import us.gov.socket.datagram;                                                                 // datagram
 import java.util.Date;                                                                         // Date
 import android.app.DialogFragment;                                                             // DialogFragment
@@ -48,11 +49,8 @@ import java.io.File;                                                            
 import java.io.FileNotFoundException;                                                          // FileNotFoundException
 import java.io.FileOutputStream;                                                               // FileOutputStream
 import androidx.core.content.FileProvider;                                                     // FileProvider
-//import com.google.firebase.crashlytics.FirebaseCrashlytics;                                    // FirebaseCrashlytics
 import java.security.GeneralSecurityException;                                                 // GeneralSecurityException
 import static us.gov.crypto.ripemd160.hash_t;                                                  // hash_t
-//import org.acra.config.HttpSenderConfigurationBuilder;                                         // HttpSenderConfigurationBuilder
-//import org.acra.sender.HttpSender;                                                             // HttpSender
 import java.net.HttpURLConnection;                                                             // HttpURLConnection
 import static us.gov.id.types.*;                                                               // *
 import static us.gov.socket.types.*;                                                           // *
@@ -89,7 +87,6 @@ import java.util.concurrent.locks.ReentrantLock;                                
 import android.content.res.Resources;                                                          // Resources
 import android.content.SharedPreferences;                                                      // SharedPreferences
 import android.os.StrictMode;                                                                  // StrictMode
-//import org.acra.data.StringFormat;                                                             // StringFormat
 import us.string;                                                                              // string
 import android.net.wifi.SupplicantState;                                                       // SupplicantState
 import android.telephony.TelephonyManager;                                                     // TelephonyManager
@@ -102,8 +99,6 @@ import java.io.UnsupportedEncodingException;                                    
 import java.net.URL;                                                                           // URL
 import android.net.wifi.WifiInfo;                                                              // WifiInfo
 import android.net.wifi.WifiManager;                                                           // WifiManager
-import us.gov.io.blob_reader_t;
-import static us.gov.io.types.blob_t;
 
 public final class app extends Application implements datagram_dispatcher_t.handler_t {
 

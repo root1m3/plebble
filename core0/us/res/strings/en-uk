@@ -81,5 +81,8 @@ str81=32                #CFG_SHARD_SIZE
 str82="https://github.com/user/project"   #Repreducible builds URL
 str83=0                 #Android AppStore build; 0-no 1-yes
 str90=0                 #Save evidences
-str91="" #frontend bz about
+str91=""                #frontend bz about
+str92=1                 #FOSS
+str93="https://example.com" #Origin landing page
+str94=1                 #default node view; 0-nodes 1-bookmarks
 

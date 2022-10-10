@@ -157,7 +157,7 @@
     <string name="youhavenewdownloadedfile">You have a new file downloaded at</string>
     <string name="failingtext">Failing the test? authorize this device first using this command in your node:</string>
     <string name="select_language">Select language</string>
-    <string name="settings">Settings</string>
+    <string name="settings">Connection Settings</string>
     <string name="exit">Exit</string>
     <string name="allactivetrades">All active trades</string>
     <string name="addresscopied">Your wallet address has been copied to clipboard</string>
@@ -223,6 +223,7 @@
     <string name="nextsubmitappointmentletter">Tip: Submit an appointment letter.</string>
     <string name="nextsubmitairesults">Tip: Submit A.I. Results.</string>
     <string name="upgrade2noncustodial">Upgrade to non-custodial</string>
+    <string name="publisher">Publisher</string>
 
 
 </resources>

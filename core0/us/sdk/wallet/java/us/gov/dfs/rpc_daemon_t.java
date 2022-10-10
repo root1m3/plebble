@@ -22,11 +22,11 @@
 //===-
 package us.gov.dfs;
 import us.CFG;                                                                                 // CFG
+import static us.gov.socket.types.channel_t;                                                   // channel_t
 import us.gov.socket.client;                                                                   // client
 import static us.gov.socket.datagram.dispatcher_t;                                             // dispatcher_t
 import us.gov.crypto.ec;                                                                       // ec
 import java.io.PrintStream;                                                                    // PrintStream
-import static us.gov.socket.types.channel_t;                                             // dispatcher_t
 
 public abstract class rpc_daemon_t extends us.gov.relay.rpc_daemon_t {
 

@@ -81,7 +81,7 @@ public class blob_reader_t {
         public serid_t serial_id() { return new serid_t((short)0); }
 
         public ko read(final blob_t blob) {
-            log("readable::read from blob" + blob.size());  //--strip
+            log("readable::read from blob " + blob.size());  //--strip
             blob_reader_t reader = new blob_reader_t(blob);
             serid_t serid = serial_id();
             if (serid.value != 0) {
@@ -361,6 +361,13 @@ public class blob_reader_t {
 
     public ko read(uint16_t o) {
         if ((cur + uint16_t.size()) > end) return overflow();
+        log("read from blob offset " + cur); //--strip
+        cur = o.read(blob.value, cur);
+        return ok;
+    }
+
+    public ko read(int16_t o) {
+        if ((cur + int16_t.size()) > end) return overflow();
         log("read from blob offset " + cur); //--strip
         cur = o.read(blob.value, cur);
         return ok;

@@ -23,7 +23,6 @@
 package us.cash;
 import android.util.AttributeSet;                                                              // AttributeSet
 import android.content.Context;                                                                // Context
-//import com.google.firebase.crashlytics.FirebaseCrashlytics;                                    // FirebaseCrashlytics
 import android.widget.ImageButton;                                                             // ImageButton
 import android.view.KeyEvent;                                                                  // KeyEvent
 import android.widget.LinearLayout;                                                            // LinearLayout
@@ -33,6 +32,8 @@ import android.widget.TextView;                                                 
 import android.widget.Toast;                                                                   // Toast
 import android.content.res.TypedArray;                                                         // TypedArray
 import android.view.View;                                                                      // View
+
+//import com.google.firebase.crashlytics.FirebaseCrashlytics;                                    // FirebaseCrashlytics
 
 public class toolbar_button extends LinearLayout implements View.OnClickListener {
 

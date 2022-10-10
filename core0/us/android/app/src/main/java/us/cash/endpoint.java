@@ -33,7 +33,6 @@ import android.content.ClipboardManager;                                        
 import android.content.ClipData;                                                               // ClipData
 import android.content.Context;                                                                // Context
 import android.widget.EditText;                                                                // EditText
-//import com.google.firebase.crashlytics.FirebaseCrashlytics;                                    // FirebaseCrashlytics
 import android.view.GestureDetector;                                                           // GestureDetector
 import android.widget.ImageView;                                                               // ImageView
 import android.text.InputType;                                                                 // InputType
@@ -52,6 +51,8 @@ import android.widget.Toast;                                                    
 import androidx.appcompat.widget.Toolbar;                                                      // Toolbar
 import android.view.View;                                                                      // View
 import com.google.zxing.WriterException;                                                       // WriterException
+
+//import com.google.firebase.crashlytics.FirebaseCrashlytics;                                    // FirebaseCrashlytics
 
 public final class endpoint extends activity {
 

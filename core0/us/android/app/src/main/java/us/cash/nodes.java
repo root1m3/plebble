@@ -42,7 +42,6 @@ import static android.graphics.BitmapFactory.decodeResource;                    
 import android.content.DialogInterface;                                                        // DialogInterface
 import android.widget.EditText;                                                                // EditText
 import us.wallet.trader.endpoint_t;                                                            // endpoint_t
-//import com.google.firebase.crashlytics.FirebaseCrashlytics;                                    // FirebaseCrashlytics
 import java.util.HashMap;                                                                      // HashMap
 import us.gov.crypto.ripemd160.hash_t;                                                         // hash_t
 import android.widget.ImageView;                                                               // ImageView
@@ -182,8 +181,7 @@ public final class nodes extends activity implements datagram_dispatcher_t.handl
             }
         });
         lv.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
-            @Override
-            public boolean onItemLongClick(AdapterView parentView, View childView, int position, long id) {
+            @Override public boolean onItemLongClick(AdapterView parentView, View childView, int position, long id) {
                 if (a.main._nodes_mode_custom != null) {
                     return true;
                 }

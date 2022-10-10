@@ -25,8 +25,8 @@ import us.gov.io.blob_writer_t;                                                 
 import us.gov.socket.outbound.caller_daemon_t;                                                 // caller_daemon_t
 import us.CFG;                                                                                 // CFG
 import static us.gov.socket.types.*;                                                           // *
+import static us.ko.is_ko;                                                                     // is_ko
 import us.ko;                                                                                  // ko
-import static us.ko.is_ko;                                                                                  // ko
 import us.pair;                                                                                // pair
 import java.io.PrintStream;                                                                    // PrintStream
 import us.gov.protocol;                                                                        // protocol

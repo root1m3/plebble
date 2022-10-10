@@ -22,16 +22,20 @@
 //===-
 package us.cash;
 import java.util.ArrayList;                                                                    // ArrayList
+import us.gov.io.blob_reader_t;                                                                // blob_reader_t
+import us.gov.io.types.blob_t;                                                                 // blob_t
+import us.gov.io.blob_writer_t;                                                                // blob_writer_t
 import java.io.BufferedInputStream;                                                            // BufferedInputStream
 import java.io.BufferedReader;                                                                 // BufferedReader
 import java.util.Collections;                                                                  // Collections
 import java.util.Comparator;                                                                   // Comparator
 import android.content.Context;                                                                // Context
 import java.util.Date;                                                                         // Date
+import us.gov.crypto.ec;                                                                       // ec
 import java.io.FileNotFoundException;                                                          // FileNotFoundException
-//import com.google.firebase.crashlytics.FirebaseCrashlytics;                                    // FirebaseCrashlytics
 import static us.gov.id.types.*;                                                               // *
 import static us.gov.socket.types.*;                                                           // *
+import us.stdint.*;                                                                            // *
 import java.io.InputStream;                                                                    // InputStream
 import java.io.InputStreamReader;                                                              // InputStreamReader
 import java.io.IOException;                                                                    // IOException
@@ -44,53 +48,40 @@ import static us.ko.ok;                                                         
 import java.io.OutputStream;                                                                   // OutputStream
 import java.io.OutputStreamWriter;                                                             // OutputStreamWriter
 import us.pair;                                                                                // pair
+import static us.gov.io.types.blob_t.serid_t;                                                  // serid_t
+import us.string;                                                                              // string
 
-public final class device_endpoints_t extends ArrayList<device_endpoint_t> /*implements hmi_t.hmi_callback_t*/ {
+public final class device_endpoints_t extends ArrayList<device_endpoint_t> implements us.gov.io.seriable {
 
-    static final String SETTINGS_JSON_PRIVATE_FILE = "node_settings.json";
     static final String device_endpoints_file = "device_endpoints";
 
     private static void log(final String line) {                         //--strip
         CFG.log_android("device_endpoints_t: " + line);                  //--strip
     }                                                                    //--strip
 
-    private String import_old_k() {
-        log("import old k?"); //--strip
-        String k = cfg_android_private_t.k_filename();
-        Context ctx = a.getApplicationContext();
-        if (!cfg_android_private_t.file_exists2(ctx, "", k)) {
-            log("old k doesn't exist."); //--strip
-            return null;
-        }
-        String content = cfg_android_private_t.read_file_string(ctx, "", k);
-        if (content == null || content.isEmpty() ) {
-            log("content of old_k was unreadable."); //--strip
-            return null;
-        }
-        cfg_android_private_t.delete_file(ctx, "", k);
-        log("removed old_k."); //--strip
-        return k;
-    }
-
     public device_endpoints_t(app a_) {
         a = a_;
     }
 
     public int init() throws Exception {
-        //TODO: purge >= alpha-39
         {
+            //TODO: purge >= alpha-44
             log("import_old_settings"); //--strip
-            device_endpoint_t old = import_old_settings(a.getApplicationContext());
-            if (old != null) {
-                log("retrieved old_setting " + old.name_); //--strip
-                add(old);
-                log("overwriting settings with old_setting"); //--strip
+            pair<ko, Integer> r = import_old_settings(a.getApplicationContext());
+            if (ko.is_ok(r.first)) {
+                log("retrieved old_setting " + size()); //--strip
+                log("saving old_setting with new format"); //--strip
+                home = "device_endpoints";
                 save();
+                clear();
             }
         }
         home = "device_endpoints";
+        log("loading configuration. sz=" + size()); //--strip
         pair<ko, Integer> r = load_();
+        log("loaded configuration. sz=" + size()); //--strip
         if (isEmpty()) {
+            log("load returned empty set"); //--strip
             add(new device_endpoint_t(a, this, home));
             set_cur(0);
             return -1;
@@ -101,18 +92,6 @@ public final class device_endpoints_t extends ArrayList<device_endpoint_t> /*imp
         log("returning pwr = " + r.second.intValue()); //--strip
         return r.second.intValue();
     }
-
-/*
-    public boolean copy(int position) {
-        try {
-            add(new device_endpoint_t(a, home, get(position)));
-        }
-        catch (Exception e) {
-            return false;
-        }
-        return true;
-    }
-*/
 
     public ko erase(int position) {
         device_endpoint_t p = get(position);
@@ -129,8 +108,8 @@ public final class device_endpoints_t extends ArrayList<device_endpoint_t> /*imp
 
     public void set_cur(int position) {
         log("set_cur " + position); //--strip
-        cur_index = position;
-        cur = get(cur_index);
+        cur_index.value = position;
+        cur = get(cur_index.value);
     }
 
     public boolean new_endpoint() {
@@ -146,49 +125,19 @@ public final class device_endpoints_t extends ArrayList<device_endpoint_t> /*imp
         return true;
     }
 
-/*
-    public String read_settings() {
-        try {
-            log("read_settings " + SETTINGS_JSON_PRIVATE_FILE); //--strip
-            InputStream inputStream = a.getApplicationContext().openFileInput(SETTINGS_JSON_PRIVATE_FILE);
-            if (inputStream == null) {
-                log("inputStream is null"); //--strip
-                return null;
-            }
-            InputStreamReader inputStreamReader = new InputStreamReader(inputStream);
-            BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
-            String receiveString = "";
-            StringBuilder stringBuilder = new StringBuilder();
-            while ((receiveString = bufferedReader.readLine()) != null) {
-                stringBuilder.append(receiveString);
-            }
-            inputStream.close();
-            return stringBuilder.toString();
-        }
-        catch (FileNotFoundException e) {
-            log("File not found: " + e.getMessage() + "    " + e.toString()); //--strip
-        }
-        catch (IOException e) {
-            log("Exception: " + e.getMessage() + "    " + e.toString()); //--strip
-            error_manager.manage(e, e.getMessage() + "    " + e.toString());
-            log("Can not read file: " + e.toString()); //--strip
-        }
-        return null;
-    }
-*/
-    private device_endpoint_t import_old_settings(Context ctx) {
-        device_endpoint_t dep = load_prev();
-        if (dep == null) {
+    private pair<ko, Integer> import_old_settings(Context ctx) {
+        pair<ko, Integer> r = load_prev();
+        if (is_ko(r.first)) {
             log("No prev setings found"); //--strip
-            return null;
+            return r;
         }
-        log("removing old_file."); //--strip
         cfg_android_private_t.delete_file(ctx, "", "node_settings.json");
-        return dep;
+        return r;
     }
 
     public pair<ko, JSONObject> read_settings_json() {
-        String sdata = cfg_android_private_t.read_file_string(a.getApplicationContext(), "", SETTINGS_JSON_PRIVATE_FILE);
+        log("read_settings_json"); //--strip
+        String sdata = cfg_android_private_t.read_file_string(a.getApplicationContext(), "", "node_settings.json");
         if (sdata == null) {
             ko r = new ko("KO 65784 Could not load settings");
             log(r.msg); //--strip
@@ -212,40 +161,6 @@ public final class device_endpoints_t extends ArrayList<device_endpoint_t> /*imp
         return new pair<ko, JSONObject>(ok, root);
     }
 
-    public ko write_settings_json() {
-        try {
-            JSONObject root = new JSONObject();
-            {    
-                JSONArray data = new JSONArray();
-                for (int i = 0; i < size(); i++) {
-                    device_endpoint_t dep = get(i);
-                    endpoint_t ep = dep.endpoint;
-                    JSONObject json = new JSONObject();
-                    json.put("addr", dep.addr);
-                    json.put("name", dep.name_);
-                    json.put("ssid", dep.ssid);
-                    json.put("power", dep.hmi != null ? 1 : 0);
-                    json.put("k", us.gov.crypto.ec.instance.to_b58(dep.cfg.keys.getPrivate()));
-                    json.put("ts", dep.ts);
-                    json.put("ip", ep.shost.value);
-                    json.put("port", ep.port.value);
-                    json.put("channel", ep.channel.value);
-                    data.put(json);
-                }
-                root.put("data", data);
-                root.put("global", cur_index);
-            }
-            log("saving data: " + root.toString()); //--strip
-            return cfg_android_private_t.write_file_string(a.getApplicationContext(), "", SETTINGS_JSON_PRIVATE_FILE, root.toString());
-        }
-        catch (JSONException e) {
-            log("Exception " + e.getMessage()); //--strip
-            ko r = new ko("KO 43021 Could not write settings.");
-            log(r.msg); //--strip
-            return r;
-        }
-    }
-
     public hmi_t poweron(app a, int pos, pin_t pin, app.progress_t progress) {
         device_endpoint_t dep = get(pos);
         dep.poweron(a, pin, progress);
@@ -257,14 +172,84 @@ public final class device_endpoints_t extends ArrayList<device_endpoint_t> /*imp
         dep.poweroff(progress);
     }
 
+    void write(blob_t blob) {
+        log("writable::write to blob"); //--strip
+        serid_t serid = serial_id();
+        int sz = (serid.value != 0 ? blob_writer_t.header_size() : 0) + blob_size();
+        if (sz == 0) {
+            blob.clear();
+            return;
+        }
+        blob_writer_t w = new blob_writer_t(blob, sz);
+        if (serid.value != 0) {
+            w.write_header(serid);
+        }
+        to_blob(w);
+        assert w.cur == blob.value.length;
+    }
+
+    ko save() {
+        Collections.sort(this,
+            new Comparator<device_endpoint_t>() {
+                @Override public int compare(device_endpoint_t o1, device_endpoint_t o2) {
+                    if (o1.ts.value < o2.ts.value) return 1;
+                    if (o1.ts.value == o2.ts.value) return 0;
+                    return -1;
+                }
+        });
+        blob_t blob = new blob_t();
+        write(blob);
+        return cfg_android_private_t.write_file(a.getApplicationContext(), "", device_endpoints_file, blob.value);
+    }
+
+    public ko read(final blob_t blob) {
+        log("readable::read from blob " + blob.size());  //--strip
+        blob_reader_t reader = new blob_reader_t(blob);
+        serid_t serid = serial_id();
+        if (serid.value != 0) {
+            ko r = reader.read_header(serid);
+            if (ko.is_ko(r)) {
+                return r;
+            }
+        }
+        return reader.read(this);
+    }
+
     public pair<ko, Integer> load_() {
-        log("load"); //--strip
+        log("load_"); //--strip
+        blob_t blob = new blob_t();
+        int pwr = -1;
+        blob.value = cfg_android_private_t.read_file(a.getApplicationContext(), "", device_endpoints_file);
+        if (blob.value == null) {
+            ko r = new ko("KO 65714 Could not load settings");
+            log(r.msg); //--strip
+            return new pair<ko, Integer>(r, null);
+        }
+        ko r = read(blob);
+        if (is_ko(r)) {
+            return new pair<ko, Integer>(r, null);
+        }
+        log("" + size() + " items."); //--strip
+
+        int p =-1;
+        for (device_endpoint_t i: this) {
+            ++p;
+            if (i.hmi_req_on) {
+                pwr = p;
+                break;
+            }
+        }
+        return new pair<ko, Integer>(ok, new Integer(pwr));
+    }
+
+    pair<ko, Integer> load_prev() {
+        log("load_prev"); //--strip
         int pwr = -1;
         try {
             pair<ko, JSONObject> root = read_settings_json();
             if (is_ko(root.first)) {
                 log(root.first.msg); //--strip
-                return new pair<ko, Integer>(root.first, new Integer(-1));
+                return new pair<ko, Integer>(root.first, null);
             }
             clear();
             JSONArray data = root.second.getJSONArray("data");
@@ -275,26 +260,26 @@ public final class device_endpoints_t extends ArrayList<device_endpoint_t> /*imp
                 //Name
                 //channel
                 //ts
-                String k = null;
-                String nm = null;
-                String addr = null;
-                String ssid = null;
+                String k_b58 = null;
+                string nm = new string("");
+                string addr = new string("");
+                string ssid = new string("");
                 String x = null;
                 int power = 0;
                 int p = 0;
                 int ch = 0;
-                long ts = 0;
-                k = o.getString("k");
-                addr = o.getString("addr");
+                uint64_t ts = new uint64_t(0);
+                k_b58 = o.getString("k");
+                addr.value = o.getString("addr");
                 x = o.getString("ip");
                 p = o.getInt("port");
-                nm = o.getString("name");
+                nm.value = o.getString("name");
                 power = o.getInt("power");
                 ch = o.getInt("channel");
-                ts = o.getLong("ts");
-                ssid = o.getString("ssid");
-                log("adding new device_endpoint_t " + nm); //--strip
-                add(new device_endpoint_t(a, this, ts, addr, nm, ssid, k, home, new endpoint_t(new shost_t(x), new port_t(p), new channel_t(ch))));
+                ts.value = o.getLong("ts");
+                ssid.value = o.getString("ssid");
+                log("loaded new device_endpoint_t " + nm.value); //--strip
+                add(new device_endpoint_t(a, this, k_b58, home, new wallet_connection_t(ts, addr, nm, ssid, new endpoint_t(new shost_t(x), new port_t(p), new channel_t(ch)))));
                 if (power == 1) {
                     pwr = size() - 1;
                     log("power is ON on pos " + pwr); //--strip
@@ -307,184 +292,86 @@ public final class device_endpoints_t extends ArrayList<device_endpoint_t> /*imp
         catch (JSONException e) {
             ko r = new ko("KO 68857 Exception");
             log(r.msg); //--strip
-            return new pair<ko, Integer>(r, new Integer(-1));
+            return new pair<ko, Integer>(r, null);
         }
         catch (Exception e) {
             ko r = new ko("KO 68858 Exception");
             log(r.msg + " " + e.getMessage()); //--strip
-            return new pair<ko, Integer>(r, new Integer(-1));
+            return new pair<ko, Integer>(r, null);
         }
         log("loaded - ok"); //--strip
         return new pair<ko, Integer>(ok, new Integer(pwr));
     }
 
-    public JSONArray read_settings_json_prev() {
-        String file = "node_settings.json";
-        Context ctx = a.getApplicationContext();
-        if (!cfg_android_private_t.file_exists2(ctx, "", file)) {
-            log("no old data"); //--strip
-            return null;
-        }
-        String sdata = cfg_android_private_t.read_file_string(a.getApplicationContext(), "", file);
-        if (sdata == null) {
-            ko r = new ko("KO 65784 Could not load settings");
-            log(r.msg); //--strip
-            return null;
-        }
-        log("data retrieved: " + sdata); //--strip
-        JSONArray data;
-        try {
-            data = new JSONArray(sdata);
-        }
-        catch (JSONException e) {
-            ko r = new ko("KO 65781 Invalid JSON data.");
-            log(r.msg); //--strip
-            return null;
-        }
-        if (data == null) {
-            ko r = new ko("KO 93827 Invalid JSON data.");
-            log(r.msg); //--strip
-            return null;
-        }
-        return data;
-    }
-
-    public device_endpoint_t load_prev() {
-        log("load_prev"); //--strip
-        String oldk = import_old_k();
-        if (oldk == null) {
-            log("No old settings found"); //--strip
-            return null;
-        }
-        JSONArray data = read_settings_json_prev();
-        if (data == null) {
-            return null;
-        }
-        clear();
-        for (int i = 0; i < data.length(); i++) {
-            JSONObject o;
-            try {
-                o = data.getJSONObject(i);
-            }
-            catch (JSONException e) {
-                o = null;
-                continue;
-            }
-            //IP
-            //port
-            //Name
-            //channel
-            //ts
-            String k = oldk;
-            String nm = null;
-            String addr = "";
-            String ssid = "";
-            String x = null;
-            int p = 0;
-            int ch = 0;
-            long ts = 0;
-            try {
-                if (!o.isNull("default")) { // old version we're intereste in recovering
-                    if (o.getString("default").equals("1")) { // old version we're intereste in recovering
-                        x = o.getString("lanip");
-                        p = o.getInt("lanport");
-                        nm = o.getString("label");
-                        ch = o.getInt("channel");
-                        ts = new Date().getTime();
-                    }
-                    else {
-                        continue;
-                    }
-                }
-                else {
-                    continue;
-                }
-            }
-            catch (JSONException e) {
-                continue;
-            }
-            try {
-                return new device_endpoint_t(a, this, ts, addr, nm, ssid, k, home, new endpoint_t(new shost_t(x), new port_t(p), new channel_t(ch)));
-            }
-            catch (Exception e) {
-                log("Exception!"); //--strip
-            }
-        }
-        return null;
-    }
-
-/*
-    public void write_settings(String data) {
-        log("writing settings " + data); //--strip
-        try {
-            OutputStreamWriter os = new OutputStreamWriter(a.openFileOutput(SETTINGS_JSON_PRIVATE_FILE, Context.MODE_PRIVATE));
-            os.write(data);
-            os.close();
-        }
-        catch (IOException e) {
-            error_manager.manage(e, e.getMessage() + "    " + e.toString());
-            log("File write failed: " + e.toString()); //--strip
-        }
-    }
-*/
-/*
-    pair<ko, blob> load(blob_t blob) {
-    }
-
-    ko save(blob_t blob) {
-        
-        log("writing settings " + data); //--strip
-        try {
-            OutputStreamWriter os = new OutputStreamWriter(a.openFileOutput(device_endpoints_file, Context.MODE_PRIVATE));
-            os.write(data);
-            os.close();
-        }
-        catch (IOException e) {
-            error_manager.manage(e, e.getMessage() + "    " + e.toString());
-            log("File write failed: " + e.toString()); //--strip
-        }
-    }
-*/
     public ko set_name(String name) {
-        cur.name_ = name;
+        cur.name_.value = name;
         return save();
     }
 
     public ko set_ssid(String ssid) {
-        cur.ssid = ssid;
+        cur.ssid.value = ssid;
         return save();
     }
 
-    ko save() {
-        Collections.sort(this,
-            new Comparator<device_endpoint_t>() {
-                @Override public int compare(device_endpoint_t o1, device_endpoint_t o2) {
-                    if (o1.ts < o2.ts) return 1;
-                    if (o1.ts == o2.ts) return 0;
-                    return -1;
+    @Override public serid_t serial_id() { return serid_t.no_header; }
+
+    @Override public int blob_size() {
+        int sz = blob_writer_t.sizet_size(size());
+        for (device_endpoint_t entry: this) {
+            sz += blob_writer_t.blob_size(entry);
+        }
+        sz += blob_writer_t.blob_size(cur_index);
+        return sz;
+    }
+
+    @Override public void to_blob(blob_writer_t writer) {
+        log("to_blob " + size() + " entries"); //--strip
+        writer.write_sizet(size());
+        for (device_endpoint_t entry: this) {
+            writer.write(entry);
+        }
+        writer.write(cur_index);
+    }
+
+    @Override public ko from_blob(blob_reader_t reader) {
+        clear();
+        log("from_blob"); //--strip
+        uint64_t sz = new uint64_t();
+        {
+            ko r = reader.read_sizet(sz);
+            if (is_ko(r)) return r;
+        }
+        log("loading " + sz.value + " items from blob"); //--strip
+        try {
+            for (long i = 0; i < sz.value; ++i) {
+                log("loading item " + i); //--strip
+                device_endpoint_t device_endpoint = new device_endpoint_t(a, this, home, 1);
+                {
+                    ko r = reader.read(device_endpoint);
+                    if (is_ko(r)) {
+                        log(r.msg); //--strip
+                        return r;
+                    }
                 }
-        });
-        return write_settings_json();
-//            blob_t blob;
-//            save(blob);
-
-        //assert ep0 != null;
-        //endpoint_t ep0;
-
-        //endpoint_t ep = new endpoint_t(ep0);
-        //ep.channel = new channel_t(((int)(ep.channel.value)));
-        //log("save endpoint to settings " + ep.to_string()); //--strip
-        //JSONArray data = read_settings2();
-        //if (data == null) {
-        //    data = new JSONArray();
-        //}
-        //boolean found = false;
-//        return true;
+                log("adding device_endpoint " + device_endpoint.home); //--strip
+                add(device_endpoint);
+            }
+        }
+        catch (Exception e) {
+            return new ko("KO 89782 Invalid read. device_endpoint.");
+        }
+        log("num items " + size()); //--strip
+        {
+            ko r = reader.read(cur_index);
+            if (is_ko(r)) return r;
+        }
+        log("cur_index " + cur_index.value); //--strip
+        set_cur(cur_index.value);
+        return ok;
     }
 
     device_endpoint_t cur = null;
-    int cur_index = -1;
-    //cfg_android_private_t cfg;
+    int16_t cur_index = new int16_t(-1);
     String home;
     app a;
 }

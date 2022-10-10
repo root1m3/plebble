@@ -35,7 +35,6 @@ import android.os.Environment;                                                  
 import java.io.File;                                                                           // File
 import java.io.FileNotFoundException;                                                          // FileNotFoundException
 import java.io.FileOutputStream;                                                               // FileOutputStream
-//import com.google.firebase.crashlytics.FirebaseCrashlytics;                                    // FirebaseCrashlytics
 import static us.gov.crypto.ripemd160.hash_t;                                                  // hash_t
 import static us.gov.io.types.*;                                                               // *
 import static us.ko.*;                                                                         // *
@@ -60,6 +59,8 @@ import android.widget.Toast;                                                    
 import androidx.appcompat.widget.Toolbar;                                                      // Toolbar
 import android.net.Uri;                                                                        // Uri
 import android.view.View;                                                                      // View
+
+//import com.google.firebase.crashlytics.FirebaseCrashlytics;                                    // FirebaseCrashlytics
 
 public final class doc_viewer extends activity implements datagram_dispatcher_t.handler_t {
 

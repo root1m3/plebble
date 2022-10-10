@@ -32,6 +32,7 @@ import us.gov.crypto.base58;                                                    
 import java.math.BigInteger;                                                                   // BigInteger
 import us.gov.io.blob_reader_t;                                                                // blob_reader_t
 import us.wallet.trader.bookmarks_t;                                                           // bookmarks_t
+import android.content.BroadcastReceiver;                                                      // BroadcastReceiver
 import java.io.BufferedReader;                                                                 // BufferedReader
 import android.os.Build;                                                                       // Build
 import android.os.Bundle;                                                                      // Bundle
@@ -114,26 +115,21 @@ import android.view.Window;                                                     
 import android.view.WindowManager;                                                             // WindowManager
 import org.xmlpull.v1.XmlPullParser;                                                           // XmlPullParser
 
-//import android.content.BroadcastReceiver;                                                      // BroadcastReceiver
+public final class connections extends activity {
 
-public final class main_activity extends activity {
+    private static void log(final String line) {           //--strip
+        CFG.log_android("connections: " + line);           //--strip
+    }                                                      //--strip
 
-    private static void log(final String line) {             //--strip
-        CFG.log_android("main_activity: " + line);           //--strip
-    }                                                        //--strip
-
-    public main_activity() {
-        if (CFG.default_view_bookmarks == 1) {
-            _nodes_mode_all = false;
-        }
+    public connections() {
     }
-/*
+
     public static class adapter_t extends ArrayAdapter<device_endpoint_t> {
 
-        private main_activity activity_;
+        private connections activity_;
         private LayoutInflater inflater = null;
 
-        public adapter_t(main_activity ac, ArrayList<device_endpoint_t> data) {
+        public adapter_t(connections ac, ArrayList<device_endpoint_t> data) {
             super(ac, R.layout.device_endpoint, data);
             this.activity_ = ac;
             inflater = (LayoutInflater)activity_.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
@@ -164,21 +160,8 @@ public final class main_activity extends activity {
             b.setOnClickListener(lner);
             return vi;
         }
-*/
-/*
-        private void setClipboard(Context context, String text, String message) {
-            if(android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.HONEYCOMB) {
-                android.text.ClipboardManager clipboard = (android.text.ClipboardManager) context.getSystemService(Context.CLIPBOARD_SERVICE);
-                clipboard.setText(text);
-            }
-            else {
-                android.content.ClipboardManager clipboard = (android.content.ClipboardManager) context.getSystemService(Context.CLIPBOARD_SERVICE);
-                android.content.ClipData clip = android.content.ClipData.newPlainText(message, text);
-                clipboard.setPrimaryClip(clip);
-            }
-        }
     }
-*/
+
     @Override public int menuid() {
         if (a.hmi == null) {
             return R.menu.menu_nohmi;
@@ -188,243 +171,100 @@ public final class main_activity extends activity {
         }
     }
 
-    void tweak_menu() {
+    @Override protected void onCreate(Bundle savedInstanceState) {
+        log("onCreate"); //--strip
+        super.onCreate(savedInstanceState);
+        set_content_layout(R.layout.connections);
+        setTheme(R.style.AppTheme);
+
+        lv = findViewById(R.id.listview);
+        lv.setVisibility(View.VISIBLE);
+
+        toolbar_button new_btn = findViewById(R.id.new_btn);
+        new_btn.setOnClickListener(new View.OnClickListener() {
+            @Override public void onClick(View view) {
+                new_connection();
+            }
+        });
+        new_btn.setVisibility(View.VISIBLE);
+
+        toolbar_button refresh_btn = findViewById(R.id.refresh);
+        refresh_btn.setOnClickListener(new View.OnClickListener() {
+            @Override public void onClick(View view) {
+                log("refresh_btn onclick"); //--strip
+                refresh();
+            }
+        });
+        refresh_btn.setVisibility(View.VISIBLE);
+
+        setTitle("Connections");
+    }
+
+    @Override public void refresh() {
+        a.assert_ui_thread(); //--strip
+        super.refresh();
+        if (a.device_endpoints == null) {
+            toast("device_endpoints failure.");
+            return;
+        }
+        log("refresh " + a.device_endpoints.size() + " item"); //--strip
+        adapter = new adapter_t(this, a.device_endpoints);
+        lv.setAdapter(adapter);
+        adapter.notifyDataSetChanged();
+    }
+
+    public void show_menu(final int pos, final String name) {
+        String[] options = {"Select", "delete", a.getResources().getString(R.string.cancel)};
+        final connections i = this;
+        new AlertDialog.Builder(this).setTitle(name)
+                .setItems(options, new DialogInterface.OnClickListener() {
+                    @Override public void onClick(DialogInterface dialog, int which) {
+                        switch(which) {
+                            case 0:
+                                i.select_device_endpoint2(pos);
+                                break;
+                            case 1:
+                                ko r = i.a.device_endpoints.erase(pos);
+                                if (is_ko(r)) {
+                                    toast(r.msg);
+                                }
+                                else {
+                                    refresh();
+                                }
+                                break;
+                            case 3:
+                        }
+                    }
+                })
+                .setIcon(R.drawable.ic_itemlist).show();
+    }
+
+    void select_device_endpoint2(int position) {
+        go_conf(position);
+    }
+
+    void select_device_endpoint(int position) {
+        show_menu(position, a.device_endpoints.get(position).get_title());
+    }
+
+    void new_connection() {
         if (a.device_endpoints == null) {
             toast("device_endpoints failure");
             return;
         }
-        Menu nav_menu = navigation.getMenu();
-        updateavailable = nav_menu.findItem(R.id.nav_updateavailable);
-        if (updateavailable != null) {
-            if (a.hmi.sw_updates.is_updateavailable) {
-                updateavailable.setVisible(true);
-            }
-            else {
-                updateavailable.setVisible(false);
-            }
-        }
-        boolean showiot = true;
-        //release builds (which don't incluce lines marked '--strip' ) doesn't show the experimental IoT menu.
-        showiot = true; //--strip
-        if (showiot && a.hmi != null) {
-            nav_menu.add(R.id.group5, 5948, Menu.NONE, "IoT");
-        }
+        a.device_endpoints.new_endpoint();
+        refresh();
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.O)
-    @Override protected void onCreate(Bundle savedInstanceState) {
-        log("onCreate"); //--strip
-        super.onCreate(savedInstanceState);
-        set_content_layout(R.layout.activity_main);
-
-        log("locale_init"); //--strip
-        locale_init();
-
-        log("setTheme"); //--strip
-        setTheme(R.style.AppTheme);
-
-        if (a.main != null) {
-            throw new AssertionError("Unexpected main_activity");                          //--strip
-        }
-        a.main = this;
-    }
-
-    public void show_remote_bookmarks(final hash_t tid, final bookmarks_t bm) {
-        log("remote_bookmarks"); //--strip
-        _nodes_mode_custom = bm;
-        _nodes_mode_custom_tid = tid;
-        Intent intent = new Intent(main_activity.this, nodes.class);
-        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NO_HISTORY);
-        startActivity(intent);
-    }
-
-
-/*
-    private String CHANNEL_ID = "app_notify_channel0";
-
-    private void createNotificationChannel() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            log("creating notification channel"); //--strip
-            CharSequence name = "app_notify_channel0";
-            String description = "app notify channel";
-            int importance = NotificationManager.IMPORTANCE_DEFAULT;
-            NotificationChannel channel = new NotificationChannel(CHANNEL_ID, name, importance);
-            channel.setDescription(description);
-            NotificationManager notificationManager = getSystemService(NotificationManager.class);
-            notificationManager.createNotificationChannel(channel);
-        }
-        else {
-            log("NOT creating notification channel. Build.VERSION.SDK_INT="+Build.VERSION.SDK_INT); //--strip
-        }
-    }
-
-    private void show_notification(int code, final String info){
-        Intent resultIntent = new Intent(this, trader.class);
-        resultIntent.putExtra("tid", info);
-        resultIntent.putExtra("from_notification", true);
-        resultIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        String notifTitle = r_(R.string.newmessagefromtrade)+" " + info;
-        String notifBody = r_(R.string.youhavenewmessagefromtrade)+" " + info;
-        TaskStackBuilder stackBuilder = TaskStackBuilder.create(this);
-        stackBuilder.addNextIntentWithParentStack(resultIntent);
-        PendingIntent resultPendingIntent = stackBuilder.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT);
-
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(this, CHANNEL_ID)
-                .setSmallIcon(R.drawable.ic_notification_24dp)
-                .setContentTitle(notifTitle)
-                .setContentText(notifTitle)
-                .setStyle(new NotificationCompat.BigTextStyle().bigText(notifBody))
-                .setContentIntent(resultPendingIntent)
-                .setPriority(NotificationCompat.PRIORITY_DEFAULT);
-
-        NotificationManagerCompat notificationManager = NotificationManagerCompat.from(this);
-        AtomicInteger c = new AtomicInteger(0);
-        int NOTIFICATION_ID = c.incrementAndGet();
-        notificationManager.notify(NOTIFICATION_ID, builder.build());
-        if (!a.notification_trades_id.contains(info)) a.notification_trades_id.add(info);
-    }
-*/
-
-    @Override public void onDestroy() {
-        super.onDestroy();
-        log("onDestroy"); //--strip
-        a.main = null;
-    }
-
-/*
-    public static boolean is_integer(String str) {
-        boolean ret = true;
-        try {
-            Long.parseLong(str);
-        }
-        catch (Exception e) {
-            ret = false;
-        }
-        return ret;
-    }
-
-    String r_(int id) {
-        return a.getResources().getString(id);
-    }
-*/
-
-
-    @Override public void onBackPressed() {
-        if (drawer_layout.isDrawerOpen(GravityCompat.START)) {
-            drawer_layout.closeDrawer(GravityCompat.START);
-        }
-        else {
-            ActivityManager mngr = (ActivityManager) getSystemService( ACTIVITY_SERVICE );
-            List<ActivityManager.RunningTaskInfo> taskList = mngr.getRunningTasks(10);
-            if (taskList.get(0).numActivities == 1 && taskList.get(0).topActivity.getClassName().equals(this.getClass().getName())) {
-                android.os.Process.killProcess(android.os.Process.myPid());
-                System.exit(1);
-            }
-        }
-        int count = getSupportFragmentManager().getBackStackEntryCount();
-        if (count > 0) {
-            getSupportFragmentManager().popBackStack();
-        }
-        super.onBackPressed();
-    }
-
-/*
     public void go_conf(final int index) {
         a.assert_ui_thread(); //--strip
         log("launching settings..."); //--strip
-        Intent intent = new Intent(main_activity.this, node_pairing.class);
+        Intent intent = new Intent(connections.this, node_pairing.class);
         intent.putExtra("conf_index", index);
         startActivity(intent);
     }
-*/
 
-/*
-    private boolean isConnectedViaWifi() {
-        ConnectivityManager connectivityManager = (ConnectivityManager) a.getSystemService(Context.CONNECTIVITY_SERVICE);
-        NetworkInfo mWifi = connectivityManager.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
-        return mWifi.isConnected();
-    }
-
-    private String getLocalWifiIpAddress() {
-        WifiManager wifiManager = (WifiManager) getApplicationContext().getSystemService(WIFI_SERVICE);
-        int ipAddress = wifiManager.getConnectionInfo().getIpAddress();
-
-        if (ByteOrder.nativeOrder().equals(ByteOrder.LITTLE_ENDIAN)) {
-            ipAddress = Integer.reverseBytes(ipAddress);
-        }
-        byte[] ipByteArray = BigInteger.valueOf(ipAddress).toByteArray();
-        String ipAddressString;
-        try {
-            ipAddressString = InetAddress.getByAddress(ipByteArray).getHostAddress();
-        }
-        catch (Exception ex) {
-            ipAddressString = null;
-        }
-        return ipAddressString;
-    }
-
-    public static boolean isAndroidRuntime() {
-        final String runtime = System.getProperty("java.runtime.name");
-        log("runtime=" + runtime); //--strip
-        return runtime != null && runtime.equals("Android Runtime");
-    }
-
-    private void scanWifiNetworks() {
-//        arrayList.clear();
-//        registerReceiver(wifiReceiver, new IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION));
-//        wifiManager.startScan();
-//        Toast.makeText(this, "Scanning WiFi ...", Toast.LENGTH_SHORT).show();
-
-        StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
-        StrictMode.setThreadPolicy(policy);
-
-        if (isAndroidRuntime()) new linux_secure_random(); //Asserts /dev/urandom is ok
-
-        try {
-            //InetAddress localhost = InetAddress.getLocalHost();
-            InetAddress localhost = InetAddress.getByName(getLocalWifiIpAddress());
-            byte[] ip = localhost.getAddress();
-
-            for (int i = 1; i <= 254; i++) {
-                try {
-                    ip[3] = (byte) i;
-                    InetAddress address = InetAddress.getByAddress(ip);
-                    if (address.isReachable(100)) {
-                        String output = address.toString().substring(1) + "  " + address.getCanonicalHostName() + "|" + address.getHostName();
-                        System.out.print(output + " is on the network");
-                    }
-                } catch (Exception ex) {
-                    //System.out.print("Exception:" + ex.getMessage());
-                }
-            }
-        }catch(Exception iex){
-            System.out.print("Exception:" + iex.getMessage());
-            iex.printStackTrace();
-        }
-    }
-
-    BroadcastReceiver wifiReceiver = new BroadcastReceiver() {
-        @Override public void onReceive(Context context, Intent intent) {
-            results = wifiManager.getScanResults();
-            unregisterReceiver(this);
-            for (ScanResult scanResult : results) {
-                String output = scanResult.SSID + " - " + scanResult.capabilities;
-            }
-        };
-    };
-
-*/
-
-//    WifiManager wifiManager;
-//    Button buttonScan;
-//    int size = 0;
-//    List<ScanResult> results;
-    //smart_card_reader reader;
-    private MenuItem updateavailable;
-
-    public boolean _nodes_mode_all = true;
-    public bookmarks_t _nodes_mode_custom = null;
-    public hash_t _nodes_mode_custom_tid = null;
-
+    AbsListView lv;
+    adapter_t adapter = null;
 }
 

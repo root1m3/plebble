@@ -99,16 +99,21 @@ public class blob_writer_t {
             return d;
         }
 
+/*
         public void write(string b58) {
             log("writable::write to encoded string"); //--strip
             blob_t blob = new blob_t();
             write(blob);
             b58.value = us.gov.crypto.base58.encode(blob.value);
         }
+*/
 
         public String encode() {
             string s = new string();
-            write(s);
+            blob_t blob = new blob_t();
+            write(blob);
+            s.value = us.gov.crypto.base58.encode(blob.value);
+//            write(s);
             return s.value;
         }
 
@@ -238,6 +243,15 @@ public class blob_writer_t {
     }
 
 
+    public static int blob_size(final int16_t o) {
+        return int16_t.size();
+    }
+
+    public void write(final int16_t o) {
+        cur = o.write(blob.value, cur);
+    }
+
+
     public static int blob_size(final uint32_t o) {
         return uint32_t.size();
     }
@@ -270,9 +284,9 @@ public class blob_writer_t {
         return sizet_size(o.value.length()) + o.value.length();
     }
 
-    public void write(final string o) {
-        write(o.value);
-    }
+    //public void write(final string o) {
+    //    write(o.value);
+    //}
 
     public static int blob_size(final byte[] o) {
         return sizet_size(o.length) + o.length;
@@ -429,7 +443,7 @@ public class blob_writer_t {
     }
 
     public void write(final bin_t o) {
-        if (o.value ==null) {
+        if (o.value == null) {
             write_sizet(0);
             return;
         }
@@ -536,7 +550,7 @@ public class blob_writer_t {
         return blob;
     }
 
-    blob_t blob;
-    int cur;
+    public blob_t blob;
+    public int cur;
 }
 

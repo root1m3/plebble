@@ -21,11 +21,12 @@
 //===----------------------------------------------------------------------------
 //===-
 package us.cash;
+import android.app.Application;                                                                // Application
+import android.content.Context;                                                                // Context
+
 //import org.acra.annotation.AcraCore;                                                           // AcraCore
 //import org.acra.ACRA;                                                                          // ACRA
-import android.app.Application;                                                                // Application
 //import org.acra.BuildConfig;                                                                   // BuildConfig
-import android.content.Context;                                                                // Context
 //import org.acra.config.CoreConfigurationBuilder;                                               // CoreConfigurationBuilder
 //import com.google.firebase.crashlytics.FirebaseCrashlytics;                                    // FirebaseCrashlytics
 //import org.acra.config.HttpSenderConfigurationBuilder;                                         // HttpSenderConfigurationBuilder

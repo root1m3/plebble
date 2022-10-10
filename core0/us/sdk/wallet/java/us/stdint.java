@@ -140,6 +140,56 @@ public class stdint {
         public int value = 0;
     }
 
+    public static class int16_t {
+
+        public static int size() { return 2; }
+
+        public int16_t() {
+        }
+
+        public int16_t(int v) {
+            value = v & 0x0000FFFF;
+        }
+
+        public int16_t(String v) {
+            value = Integer.parseInt(v);
+        }
+
+        public int16_t(int16_t v) {
+            value = v.value;
+        }
+
+        public int write(byte[] dest, int pos) {
+            assert value < 0x00010000;
+            byte[] t = new byte[4];
+            ByteBuffer bb = ByteBuffer.wrap(t);
+            bb.order(ByteOrder.LITTLE_ENDIAN);
+            bb.asIntBuffer().put(value);
+            dest[pos++] = t[0];
+            dest[pos++] = t[1];
+            return pos;
+        }
+
+        public int read(byte[] src, int pos) {
+            byte[] t = new byte[4];
+            t[0] = src[pos++];
+            t[1] = src[pos++];
+            t[2] = t[3] = 0;
+            ByteBuffer bb = ByteBuffer.wrap(t);
+            bb.order(ByteOrder.LITTLE_ENDIAN);
+            value = bb.getInt();
+            return pos;
+        }
+
+        public static int16_t from(byte[] src, int pos) {
+            int16_t o = new int16_t();
+            o.read(src, pos);
+            return o;
+        }
+
+        public int value = 0;
+    }
+
     public static class uint32_t {
 
         public static int size() { return 4; }

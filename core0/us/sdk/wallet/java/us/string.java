@@ -22,17 +22,30 @@
 //===-
 package us;
 import us.gov.io.blob_reader_t;                                                                // blob_reader_t
+import us.gov.io.blob_writer_t;                                                                // blob_writer_t
 import us.ko;                                                                                  // ko
 import static us.ko.ok;                                                                        // ok
+import us.gov.io.seriable;                                                                     // seriable
+import static us.gov.io.types.blob_t.serid_t;                                                  // serid_t
 
-/// mutable String class (can be passed byref)
-public class string extends blob_reader_t.readable {
+public class string implements seriable { //extends blob_reader_t.readable {
 
     public string() {
     }
 
     public string(String _value) {
         value = _value;
+    }
+
+    @Override public serid_t serial_id() { return serid_t.no_header; }
+
+    @Override public int blob_size() {
+        int sz = blob_writer_t.blob_size(value);
+        return sz;
+    }
+
+    @Override public void to_blob(blob_writer_t writer) {
+        writer.write(value);
     }
 
     @Override public final ko from_blob(blob_reader_t reader) {

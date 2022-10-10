@@ -104,19 +104,29 @@ public final class about extends activity {
         appdescription = findViewById(R.id.appdescription);
         swv = findViewById(R.id.swv);
         src = findViewById(R.id.src);
+        build_from_src_header = findViewById(R.id.build_from_src_header);
+        publisher_header = findViewById(R.id.publisher_header);
+        publisher = findViewById(R.id.publisher);
+
         close = findViewById(R.id.close);
 
         toolbar.setTitle("About");
         appname.setText(CFG.app_name);
-        String desc0 = "CFG.app_bz_desc";
-        String desc = desc0 + "\n" + CFG.app_name + " app is a lightweight GUI for operating privacy wallets written in java for the Android platform. The backend is accessed using RPC-API library " + us.vcs.sdk_name() + " built by KATLAS. This is software designed for protecting individual privacy and autonomy. It only talks to your node, using encrypted E2E communication. [It can eventually and succinctly talk to any random node in the P2P network in cases where a recovery is required after sporadic changes in public IP addresses (i.e. if home had a dynamic IP)]";
+        String desc = CFG.app_bz_desc + "\n" + CFG.app_name + " app is a lightweight GUI for operating privacy wallets written in java for the Android platform. The backend is accessed using RPC-API library " + us.vcs.sdk_name() + " built by KATLAS. This is software designed for protecting individual privacy and autonomy. It only talks to your node, using encrypted E2E communication. [It can eventually and succinctly talk to any random node in the P2P network in cases where a recovery is required after sporadic changes in public IP addresses (i.e. if home had a dynamic IP)]";
         appdescription.setText(desc);
         String swvt = us.vcs.name_date() + " b: " + CFG.blob_id;
         if (CFG.appstore_edition == 1) {
             swvt += " [appstore edition]";
         }
         swv.setText(swvt);
-        src.setText(us.vcs.src);
+        if (CFG.foss == 0) {
+            build_from_src_header.setVisibility(View.GONE);
+            src.setVisibility(View.GONE);
+        }
+        else {
+            src.setText(us.vcs.src);
+        }
+        publisher.setText(CFG.origin);
 
         close.setOnClickListener(new View.OnClickListener() {
             @Override public void onClick(View view) {
@@ -142,7 +152,10 @@ public final class about extends activity {
     private TextView appname;
     private TextView appdescription;
     private TextView swv;
+    private TextView build_from_src_header;
     private TextView src;
+    private TextView publisher_header;
+    private TextView publisher;
     private MaterialButton close;
 }
 

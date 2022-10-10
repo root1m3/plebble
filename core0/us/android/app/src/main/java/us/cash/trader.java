@@ -36,7 +36,6 @@ import android.content.Context;                                                 
 import us.gov.socket.datagram;                                                                 // datagram
 import us.wallet.trader.data_t;                                                                // data_t
 import us.wallet.trader.endpoint_t;                                                            // endpoint_t
-//import com.google.firebase.crashlytics.FirebaseCrashlytics;                                    // FirebaseCrashlytics
 import androidx.fragment.app.Fragment;                                                         // Fragment
 import androidx.fragment.app.FragmentTransaction;                                              // FragmentTransaction
 import android.widget.FrameLayout;                                                             // FrameLayout
@@ -68,6 +67,8 @@ import android.widget.Toast;                                                    
 import android.media.ToneGenerator;                                                            // ToneGenerator
 import androidx.appcompat.widget.Toolbar;                                                      // Toolbar
 import android.view.View;                                                                      // View
+
+//import com.google.firebase.crashlytics.FirebaseCrashlytics;                                    // FirebaseCrashlytics
 
 public class trader extends activity implements datagram_dispatcher_t.handler_t  {
 

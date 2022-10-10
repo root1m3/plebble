@@ -10,25 +10,5 @@
     android:orientation="vertical"
     android:background="@drawable/splash"
     >
-    <TextView
-        android:id="@+id/connections"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Connections"
-        android:textSize="16dp"
-        android:background="#FFFFFF"
-         />
-
-    <ListView
-        android:id="@+id/listview"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:visibility="visible"
-        >
-<!--        android:divider="?android:dividerHorizontal"
-        android:showDividers="middle"
--->
-
-    </ListView>
 </LinearLayout>
 

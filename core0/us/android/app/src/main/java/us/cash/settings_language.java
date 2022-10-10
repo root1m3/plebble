@@ -41,7 +41,6 @@ import android.text.method.DigitsKeyListener;                                   
 import android.graphics.drawable.Drawable;                                                     // Drawable
 import us.gov.crypto.ec;                                                                       // ec
 import android.widget.EditText;                                                                // EditText
-//import com.google.firebase.crashlytics.FirebaseCrashlytics;                                    // FirebaseCrashlytics
 import android.graphics.drawable.GradientDrawable;                                             // GradientDrawable
 import static us.gov.crypto.ripemd160.hash_t;                                                  // hash_t
 import static us.gov.id.types.*;                                                               // *
@@ -86,6 +85,8 @@ import android.util.TypedValue;                                                 
 import us.gov.io.types.vector_tuple_hash_host_port;                                            // vector_tuple_hash_host_port
 import android.view.ViewGroup;                                                                 // ViewGroup
 import android.view.View;                                                                      // View
+
+//import com.google.firebase.crashlytics.FirebaseCrashlytics;                                    // FirebaseCrashlytics
 
 public final class settings_language extends activity {
 

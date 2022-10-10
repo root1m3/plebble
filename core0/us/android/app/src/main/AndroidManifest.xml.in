@@ -107,6 +107,13 @@ xmlns:tools="http://schemas.android.com/tools"
                   >
         </activity>
 
+        <activity android:name=".connections"
+				  android:windowSoftInputMode="adjustPan"
+				  android:theme="@style/AppTheme.NoActionBar"
+				  android:parentActivityName=".main_activity"
+                  >
+        </activity>
+
         <activity android:name=".endpoint" />
         <activity
             android:name=".files"

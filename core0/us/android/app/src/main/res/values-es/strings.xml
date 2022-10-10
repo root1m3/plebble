@@ -156,7 +156,7 @@
     <string name="youhavenewdownloadedfile">Tienes un nuevo archivo descargado en</string>
     <string name="failingtext">¿Ha fallado el test? Autoriza este dispositivo usando el siguiente comando en el tu nodo:</string>
     <string name="select_language">Seleccione lenguaje</string>
-    <string name="settings">Configuración</string>
+    <string name="settings">Parámetros de conexión</string>
     <string name="exit">Salir</string>
     <string name="allactivetrades">trades activos</string>
     <string name="addresscopied">Su dirección de wallet se ha copiado en el portapapeles</string>
@@ -221,5 +221,7 @@
     <string name="nextsubmitappointmentletter">Tip: Envie el volante de citación.</string>
     <string name="nextsubmitairesults">Tip: Envie los resultados de la I.A.</string>
     <string name="upgrade2noncustodial">Actualizar a modo no custodiado</string>
+    <string name="publisher">Origen</string>
+
 </resources>
 

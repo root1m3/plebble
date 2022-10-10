@@ -21,14 +21,17 @@
 //===----------------------------------------------------------------------------
 //===-
 package us.cash;
+import us.gov.io.blob_reader_t;                                                                // blob_reader_t
+import us.gov.io.blob_writer_t;                                                                // blob_writer_t
 import static us.stdint.*;                                                                     // *
 import us.gov.socket.types.*;                                                                  // *
 import org.json.JSONException;                                                                 // JSONException
 import org.json.JSONObject;                                                                    // JSONObject
 import us.ko;                                                                                  // ko
 import static us.ko.ok;                                                                        // ok
+import static us.gov.io.types.blob_t.serid_t;                                                  // serid_t
 
-public class endpoint_t {
+public class endpoint_t implements us.gov.io.seriable {
 
     public endpoint_t() {
         shost = new shost_t("127.0.0.1");
@@ -64,7 +67,6 @@ public class endpoint_t {
             shost = new shost_t("127.0.0.1");
             port = CFG.walletd_port;
             channel = us.CFG.CHANNEL;
-            //error_manager.manage(e, "KO 40937"); //--strip
         }
     }
 
@@ -78,6 +80,37 @@ public class endpoint_t {
 
     public shostport_t shostport() {
         return new shostport_t(shost, port);
+    }
+
+    @Override public serid_t serial_id() { return serid_t.no_header; }
+
+    @Override public int blob_size() {
+        int sz = blob_writer_t.blob_size(shost) +
+                 blob_writer_t.blob_size(port) +
+                 blob_writer_t.blob_size(channel);
+        return sz;
+    }
+
+    @Override public void to_blob(blob_writer_t writer) {
+        writer.write(shost);
+        writer.write(port);
+        writer.write(channel);
+    }
+
+    @Override public ko from_blob(blob_reader_t reader) {
+        {
+            ko r = reader.read(shost);
+            if (ko.is_ko(r)) return r;
+        }
+        {
+            ko r = reader.read(port);
+            if (ko.is_ko(r)) return r;
+        }
+        {
+            ko r = reader.read(channel);
+            if (ko.is_ko(r)) return r;
+        }
+        return ok;
     }
 
     shost_t shost;

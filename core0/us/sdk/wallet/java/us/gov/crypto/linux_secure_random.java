@@ -20,6 +20,11 @@
 //===-
 //===----------------------------------------------------------------------------
 //===-
+package us.gov.crypto;
+import us.CFG;                                                                                 // CFG
+import java.io.*;                                                                              // *
+import java.security.*;                                                                        // *
+
  /*
  * Copyright 2013 Google Inc.
  *
@@ -35,10 +40,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package us.gov.crypto;
-import us.CFG;                                                                                 // CFG
-import java.io.*;                                                                              // *
-import java.security.*;                                                                        // *
 
 /**
  * A SecureRandom implementation that is able to override the standard JVM provided implementation, and which simply

@@ -21,6 +21,7 @@
 //===----------------------------------------------------------------------------
 //===-
 package us.wallet.cli;
+import java.util.ArrayList;                                                                    // ArrayList
 import us.gov.crypto.base58;                                                                   // base58
 import us.wallet.trader.bookmarks_t;                                                           // bookmarks_t
 import java.io.BufferedReader;                                                                 // BufferedReader
@@ -41,6 +42,7 @@ import java.nio.file.Files;                                                     
 import java.security.GeneralSecurityException;                                                 // GeneralSecurityException
 import us.gov.crypto.ripemd160.hash_t;                                                         // hash_t
 import java.security.*;                                                                        // *
+import static us.gov.crypto.types.*;                                                           // *
 import static us.gov.id.types.*;                                                               // *
 import static us.gov.io.types.*;                                                               // *
 import static us.gov.socket.types.*;                                                           // *
@@ -48,9 +50,10 @@ import us.stdint.*;                                                             
 import us.wallet.*;                                                                            // *
 import java.io.InputStreamReader;                                                              // InputStreamReader
 import java.io.IOException;                                                                    // IOException
+import static us.ko.is_ko;                                                                     // is_ko
 import java.security.KeyPair;                                                                  // KeyPair
 import us.ko;                                                                                  // ko
-import static us.ko.is_ko;                                                                     // is_ko
+import java.util.ListIterator;                                                                 // ListIterator
 import static us.ko.ok;                                                                        // ok
 import java.io.OutputStream;                                                                   // OutputStream
 import us.pair;                                                                                // pair
@@ -68,10 +71,6 @@ import us.gov.crypto.sha256;                                                    
 import us.gov.io.shell_args;                                                                   // shell_args
 import us.string;                                                                              // string
 import us.gov.crypto.symmetric_encryption;                                                     // symmetric_encryption
-import static us.gov.crypto.types.*;                                                     // symmetric_encryption
-import us.string;                                                     // symmetric_encryption
-import java.util.ArrayList;                                                     // symmetric_encryption
-import java.util.ListIterator;
 
 public class hmi {
 

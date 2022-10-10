@@ -32,7 +32,7 @@ import us.ko;                                                                   
 import static us.ko.ok;                                                                        // ok
 import us.pair;                                                                                // pair
 import java.io.PrintStream;                                                                    // PrintStream
-import us.gov.socket.outbound.rendezvous_t;
+import us.gov.socket.outbound.rendezvous_t;                                                    // rendezvous_t
 
 public abstract class rpc_daemon_t extends daemon0_t {
 

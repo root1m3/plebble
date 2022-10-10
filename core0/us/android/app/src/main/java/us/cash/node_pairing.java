@@ -44,7 +44,6 @@ import android.graphics.drawable.Drawable;                                      
 import us.gov.crypto.ec;                                                                       // ec
 import android.text.Editable;                                                                  // Editable
 import android.widget.EditText;                                                                // EditText
-//import com.google.firebase.crashlytics.FirebaseCrashlytics;                                    // FirebaseCrashlytics
 import android.graphics.drawable.GradientDrawable;                                             // GradientDrawable
 import androidx.core.view.GravityCompat;                                                       // GravityCompat
 import static us.gov.crypto.ripemd160.hash_t;                                                  // hash_t
@@ -263,7 +262,6 @@ public final class node_pairing extends activity /* implements device_endpoint_t
         log("on create"); //--strip
         super.onCreate(savedInstanceState);
         set_content_layout(R.layout.activity_node_pairing);
-
         addr = findViewById(R.id.walletd_address);
         addr_lo=findViewById(R.id.walletd_address_lo);
         port = findViewById(R.id.walletd_port);
@@ -286,7 +284,6 @@ public final class node_pairing extends activity /* implements device_endpoint_t
         save_ssid = findViewById(R.id.save_ssid);
         poweron = findViewById(R.id.poweron);
         layoutnode = findViewById(R.id.layoutnode);
-
         redled = ContextCompat.getDrawable(this, R.drawable.led).mutate();
         amberled = ContextCompat.getDrawable(this, R.drawable.led).mutate();
         greenled = ContextCompat.getDrawable(this, R.drawable.led).mutate();
@@ -295,9 +292,8 @@ public final class node_pairing extends activity /* implements device_endpoint_t
         ((GradientDrawable) amberled).setColor(leds_t.amber);
         ((GradientDrawable) greenled).setColor(Color.GREEN);
         ((GradientDrawable) blueled).setColor(Color.CYAN);
-
         refresh.setVisibility(View.GONE);
-        toolbar.setTitle(R.string.settings);
+        setTitle(R.string.settings);
         addr.setSingleLine();
         addr.setInputType(InputType.TYPE_CLASS_NUMBER);
         addr.setKeyListener(DigitsKeyListener.getInstance("0123456789."));
@@ -326,29 +322,17 @@ public final class node_pairing extends activity /* implements device_endpoint_t
                     }).setIcon(R.drawable.ic_world).show();
             }
         });
-
         port.setSingleLine();
         port.setInputType(InputType.TYPE_CLASS_NUMBER);
         port.setSelectAllOnFocus(true);
         channel.setSingleLine();
         channel.setInputType(InputType.TYPE_CLASS_NUMBER);
         channel.setSelectAllOnFocus(true);
-
         if (getIntent().hasExtra("conf_index")) {
             conf_index = getIntent().getExtras().getInt("conf_index", 0);
         }
-
         dep = a.device_endpoints.get(conf_index);
-
         final endpoint_t ep = dep.endpoint;
-
-/*
-        public endpoint_t get_endpoint() {
-            if (hmi == null) return null;
-            return hmi.endpoint;
-        }
-*/
-
         log("endpoint " + (ep == null ? "Null" : ep.to_string())); //--strip
         if (ep != null) {
             log("Set UI Texts"); //--strip
@@ -356,9 +340,7 @@ public final class node_pairing extends activity /* implements device_endpoint_t
             port.setText("" + ep.port.value);
             channel.setText("" + ep.channel.value);
         }
-
         done.setVisibility(View.GONE);
-
         devicepk.setInputType(InputType.TYPE_NULL);
         devicepk.setTextIsSelectable(true);
         devicepk.setKeyListener(null);
@@ -366,7 +348,6 @@ public final class node_pairing extends activity /* implements device_endpoint_t
         nodepkh.setTextIsSelectable(true);
         nodepkh.setKeyListener(null);
         set_handlers();
-
         toolbar_button refresh_btn = findViewById(R.id.refresh);
         refresh_btn.setOnClickListener(new View.OnClickListener() {
             @Override public void onClick(View view) {
@@ -383,7 +364,7 @@ public final class node_pairing extends activity /* implements device_endpoint_t
 
         save_name.setOnClickListener(new View.OnClickListener() {
             @Override public void onClick(View view) {
-                dep.name_ = name.getText().toString();
+                dep.name_.value = name.getText().toString();
                 a.device_endpoints.save();
                 save_name.setVisibility(View.GONE);
             }
@@ -397,7 +378,7 @@ public final class node_pairing extends activity /* implements device_endpoint_t
 
         save_ssid.setOnClickListener(new View.OnClickListener() {
             @Override public void onClick(View view) {
-                dep.ssid = ssid.getText().toString();
+                dep.ssid.value = ssid.getText().toString();
                 a.device_endpoints.save();
                 save_ssid.setVisibility(View.GONE);
             }
@@ -408,17 +389,7 @@ public final class node_pairing extends activity /* implements device_endpoint_t
                 set_ssid();
             }
         });
-
-        //refresh();
     }
-
-/*
-    @Override public void onResume() {
-        update_hmi();
-        super.onResume();
-        log("onResume"); //--strip
-    }
-*/
 
     @Override public void onPause() {
        log("onPause"); //--strip
@@ -459,7 +430,7 @@ public final class node_pairing extends activity /* implements device_endpoint_t
     public void ask_permission0() {
         log("ask_permission"); //--strip
         String[] options = {"Proceed to FINE_LOCATION permissions.", a.getResources().getString(R.string.cancel)};
-        new AlertDialog.Builder(this).setTitle("KATLASNET collects location data to enable dynamic parameter selection even when the app is closed or not in use. Grant access to WIFI network name (SSID) in order to ebanle this feature.")
+        new AlertDialog.Builder(this).setTitle(CFG.app_name + " collects location data to enable dynamic parameter selection even when the app is closed or not in use. Grant access to WIFI network name (SSID) in order to ebanle this feature.")
             .setItems(options, new DialogInterface.OnClickListener() {
                 @Override public void onClick(DialogInterface dialog, int which) {
                     if (which == 0) {
@@ -789,7 +760,6 @@ public final class node_pairing extends activity /* implements device_endpoint_t
 
             update_hmi();
 
-//            ans = a.restart_hmi(state.endpoint, state.pin, progress);
             log("hmi ans " + (is_ok(ans) ? "ok" : ans.msg)); //--strip
             Timer timer = new Timer();
             timer.schedule(new TimerTask() {
@@ -856,7 +826,6 @@ public final class node_pairing extends activity /* implements device_endpoint_t
     void test_result_ui(final ko report) {
         log("test_result_ui"); //--strip
         a.assert_ui_thread(); //--strip
-        //hmi.manual_mode = false;
         state.end_testing(report);
         refresh();
     }
@@ -877,22 +846,6 @@ public final class node_pairing extends activity /* implements device_endpoint_t
         if (kp == null) return "";
         return ec.instance.to_b58(kp.getPublic());
     }
-
-/*
-    String get_pubkeyh() {
-        log("get_pubkey"); //--strip
-        if (dep.hmi == null) return "";
-        KeyPair kp = hmi.get_keys();
-        if (kp == null) return "";
-        return ec.instance.to_encoded_address(kp.getPublic());
-    }
-*/
-/*
-    void refresh_menu() {
-        navigation.getMenu().clear();
-        navigation.inflateMenu(menuid());
-    }
-*/
 
     void refresh_mode_widgets() {
         log("custodial_info"); //--strip
@@ -956,7 +909,6 @@ public final class node_pairing extends activity /* implements device_endpoint_t
 
     void refresh_device_widgets() {
         log("devicepk"); //--strip
-//        devicepk.setText(get_pubkey() + "\n" + get_pubkeyh());
         devicepk.setText(get_pubkey());
     }
 
@@ -995,8 +947,8 @@ public final class node_pairing extends activity /* implements device_endpoint_t
         String uissid = ssid.getText().toString();
         log("ssid.getText()='" + uissid + "'"); //--strip
         if (uissid.isEmpty()) {
-            log("ssid.setText()->'" + dep.ssid + "'"); //--strip
-            ssid.setText(dep.ssid);
+            log("ssid.setText()->'" + dep.ssid.value + "'"); //--strip
+            ssid.setText(dep.ssid.value);
             save_ssid.setVisibility(View.GONE);
         }
     }
@@ -1029,8 +981,6 @@ public final class node_pairing extends activity /* implements device_endpoint_t
                 else {
                     on_user_req_poweroff();
                 }
-
-//                refresh();
             }
         });
     }
@@ -1039,7 +989,7 @@ public final class node_pairing extends activity /* implements device_endpoint_t
         log("refresh"); //--strip
         update_hmi();
 
-        name.setText(dep.name_);
+        name.setText(dep.name_.value);
         save_name.setVisibility(View.GONE);
 
         refresh_ssid_widgets();
@@ -1048,23 +998,11 @@ public final class node_pairing extends activity /* implements device_endpoint_t
         refresh_node_address_n_lookupip();
         refresh_connect_button();
         refresh_mode_widgets();
-        //refresh_menu();
 
         super.refresh();
 
         log("end refresh"); //--strip
     }
-
-/*
-    @Override public void on_power__worker() {
-        log("on_power__worker" + (a.hmi == null ? 0 : 1)); //--strip
-        runOnUiThread(new Thread(new Runnable() {
-            public void run() {
-                refresh();
-            }
-        }));
-    }
-*/
 
     void lookup() {
         app.assert_worker_thread(); //--strip
@@ -1117,6 +1055,5 @@ public final class node_pairing extends activity /* implements device_endpoint_t
 
     device_endpoint_t dep = null;
     int conf_index = 0;
-    //hmi_t hmi;
 }
 

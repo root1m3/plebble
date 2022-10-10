@@ -31,5 +31,6 @@ str75=1                 #BIND_ENABLED
 str80=0                 #enable sharding
 str82="https://github.com/root1m3/plebble"   #Repreducible builds URL
 str91="" #frontend bz about
+str93="https://plebble.net"                #Origin landing page
 
 

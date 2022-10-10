@@ -22,6 +22,7 @@
 //===-
 package us.gov.cli;
 import us.CFG;                                                                                 // CFG
+import static us.gov.socket.types.channel_t;                                                   // channel_t
 import us.gov.socket.client;                                                                   // client
 import static us.gov.socket.datagram.dispatcher_t;                                             // dispatcher_t
 import us.gov.crypto.ec;                                                                       // ec
@@ -35,7 +36,6 @@ import java.io.PrintStream;                                                     
 import static us.gov.id.peer_t.role_t;                                                         // role_t
 import us.gov.io.screen;                                                                       // screen
 import java.util.Stack;                                                                        // Stack
-import static us.gov.socket.types.channel_t;                                             // dispatcher_t
 
 public class rpc_daemon_t extends us.gov.engine.rpc_daemon_t {
 

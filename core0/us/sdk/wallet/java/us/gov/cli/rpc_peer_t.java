@@ -25,7 +25,7 @@ import us.CFG;                                                                  
 import static us.gov.crypto.types.*;                                                           // *
 import static us.gov.id.types.*;                                                               // *
 import static us.gov.socket.types.*;                                                           // *
-import us.ko;                                                           // *
+import us.ko;                                                                                  // ko
 import java.io.PrintStream;                                                                    // PrintStream
 import java.security.PublicKey;                                                                // PublicKey
 import java.net.Socket;                                                                        // Socket

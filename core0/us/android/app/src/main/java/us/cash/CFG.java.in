@@ -38,6 +38,10 @@ public final class CFG {
     public static final String brand = vcs.brand;
     public static final int appstore_edition = ##str83##;
     public static final String app_bz_desc = "##str91##";
+    public static final int foss = ##str92##;
+    public static final String origin = "##str93##";
+    public static final int default_view_bookmarks = ##str94##;
+
 
     public static boolean sdk_logs = false;                                             //--strip
 

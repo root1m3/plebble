@@ -24,13 +24,14 @@ package us.cash;
 import android.app.Activity;                                                                   // Activity
 import java.util.Arrays;                                                                       // Arrays
 import android.content.Context;                                                                // Context
-//import com.google.firebase.crashlytics.FirebaseCrashlytics;                                    // FirebaseCrashlytics
 import java.io.IOException;                                                                    // IOException
 import android.nfc.tech.IsoDep;                                                                // IsoDep
 import android.util.Log;                                                                       // Log
 import android.nfc.NfcAdapter;                                                                 // NfcAdapter
 import android.nfc.Tag;                                                                        // Tag
 import android.widget.Toast;                                                                   // Toast
+
+//import com.google.firebase.crashlytics.FirebaseCrashlytics;                                    // FirebaseCrashlytics
 
 public class smart_card_reader implements NfcAdapter.ReaderCallback {
     main_activity a;

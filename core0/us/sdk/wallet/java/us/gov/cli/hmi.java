@@ -21,12 +21,12 @@
 //===----------------------------------------------------------------------------
 //===-
 package us.gov.cli;
-import static us.ko.is_ko;                                                                     // is_ko
-import static us.ko.ok;                                                                        // ok
-import us.ko;
 import static us.gov.id.types.*;                                                               // *
 import static us.gov.io.types.*;                                                               // *
 import static us.gov.socket.types.*;                                                           // *
+import static us.ko.is_ko;                                                                     // is_ko
+import us.ko;                                                                                  // ko
+import static us.ko.ok;                                                                        // ok
 
 public class hmi {
 

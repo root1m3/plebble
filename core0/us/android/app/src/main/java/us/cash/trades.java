@@ -34,7 +34,6 @@ import android.graphics.Color;                                                  
 import android.content.Context;                                                                // Context
 import us.gov.socket.datagram;                                                                 // datagram
 import static android.graphics.BitmapFactory.decodeResource;                                   // decodeResource
-//import com.google.firebase.crashlytics.FirebaseCrashlytics;                                    // FirebaseCrashlytics
 import android.widget.FrameLayout;                                                             // FrameLayout
 import java.util.HashMap;                                                                      // HashMap
 import static us.gov.crypto.ripemd160.hash_t;                                                  // hash_t
@@ -66,6 +65,8 @@ import android.util.TypedValue;                                                 
 import android.net.Uri;                                                                        // Uri
 import android.view.ViewGroup;                                                                 // ViewGroup
 import android.view.View;                                                                      // View
+
+//import com.google.firebase.crashlytics.FirebaseCrashlytics;                                    // FirebaseCrashlytics
 
 public final class trades extends activity {
 

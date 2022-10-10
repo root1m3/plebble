@@ -66,7 +66,7 @@
                 />
 
             <TextView
-                android:id="@+id/textView5"
+                android:id="@+id/build_from_src_header"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:gravity="center_horizontal|bottom"
@@ -76,6 +76,24 @@
 
             <TextView
                 android:id="@+id/src"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_horizontal|bottom"
+                android:text=""
+                android:textSize="16dp"
+                />
+
+            <TextView
+                android:id="@+id/publisher_header"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_horizontal|bottom"
+                android:text="@string/publisher"
+                android:textSize="32dp"
+            />
+
+            <TextView
+                android:id="@+id/publisher"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:gravity="center_horizontal|bottom"

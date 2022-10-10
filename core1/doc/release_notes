@@ -146,6 +146,8 @@ alpha-43 -
     * Improved cbs with more automated steps (80, 90, 99)
     * makefiles adapted for clang
     * traders persistence. Current wallet trades runtime state is recovered from disk after wallet restart.
+    * android. Separated activity for managing connections (previously embedded in main activity)
+    * android. app configuration stored in binary form via seriable interface instead of json.
 
 alpha-42 - network not updated, only android app in appstore
     * android AppStore first upload

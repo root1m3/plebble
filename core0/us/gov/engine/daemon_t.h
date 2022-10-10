@@ -172,7 +172,7 @@ namespace us::gov::engine {
         void run();
         void load_head();
         void wait(const seconds&) const;
-        local_deltas_t* create_local_deltas(ts_t id);
+        [[nodiscard]] local_deltas_t* create_local_deltas(ts_t id);
         void update_peers_state();
         void clear_();
         ko shell_command(int app_id, istream&, ostream&);

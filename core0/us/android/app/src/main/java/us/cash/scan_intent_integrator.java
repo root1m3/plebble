@@ -29,7 +29,6 @@ import android.os.Bundle;                                                       
 import java.util.Collection;                                                                   // Collection
 import java.util.Collections;                                                                  // Collections
 import android.content.DialogInterface;                                                        // DialogInterface
-//import com.google.firebase.crashlytics.FirebaseCrashlytics;                                    // FirebaseCrashlytics
 import android.app.Fragment;                                                                   // Fragment
 import java.util.HashMap;                                                                      // HashMap
 import android.content.Intent;                                                                 // Intent
@@ -39,6 +38,8 @@ import java.util.Map;                                                           
 import android.content.pm.PackageManager;                                                      // PackageManager
 import android.content.pm.ResolveInfo;                                                         // ResolveInfo
 import android.net.Uri;                                                                        // Uri
+
+//import com.google.firebase.crashlytics.FirebaseCrashlytics;                                    // FirebaseCrashlytics
 
 /**
  * 19/05/18.
