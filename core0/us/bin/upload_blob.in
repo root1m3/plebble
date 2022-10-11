@@ -23,8 +23,9 @@
 #===-
 
 US="##str3##"
+GOVUSER="##str11##"
 
-. /home/gov/.${US}/config
+. /home/${GOVUSER}/.${US}/config
 
 gov="${US}-gov"
 wallet="${US}-wallet -t 15"
@@ -49,7 +50,7 @@ function procblob {
     echo "blobid $blobid"
     echo "upstream_hash $upstream_hash"
 
-    local_blob=`ls -1 /var/$brand/blob/*.tzst`
+    local_blob=`ls -1 /var/${brand}/blob/*.tzst`
     if [[ "_$local_blob" == "_" ]]; then
         echo "KO 68574 "
         exit 1
@@ -62,8 +63,8 @@ function procblob {
 
     if [[ "_$upstream_hash" == "_$local_hash" ]]; then
         echo "==OK=============>Blob $upstream_hash is already in the matrix."
-        if [[ ! -f /home/gov/.${US}/gov/fsroot/$local_hash ]]; then
-            echo "/home/gov/.${US}/gov/fsroot/$local_hash doesnt exist. Send againg tx."
+        if [[ ! -f /home/${GOVUSER}/.${US}/gov/fsroot/$local_hash ]]; then
+            echo "/home/${GOVUSER}/.${US}/gov/fsroot/$local_hash doesnt exist. Send againg tx."
         else
             return;
         fi
@@ -87,8 +88,8 @@ function procblob {
     set -x
     $wallet store $address -f $local_blob $blobid || exit 1
     set +x
-    if [[ ! -f /home/gov/.${US}/gov/fsroot/$local_hash ]]; then
-        echo "KO 94483 /home/gov/.${US}/fsroot/$local_hash doesnt exist"
+    if [[ ! -f /home/${GOVUSER}/.${US}/gov/fsroot/$local_hash ]]; then
+        echo "KO 94483 /home/${GOVUSER}/.${US}/fsroot/$local_hash doesnt exist"
         exit 1
     fi
 }

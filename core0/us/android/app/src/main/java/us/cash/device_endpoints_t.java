@@ -22,6 +22,7 @@
 //===-
 package us.cash;
 import java.util.ArrayList;                                                                    // ArrayList
+import us.gov.crypto.base58;                                                                   // base58
 import us.gov.io.blob_reader_t;                                                                // blob_reader_t
 import us.gov.io.types.blob_t;                                                                 // blob_t
 import us.gov.io.blob_writer_t;                                                                // blob_writer_t
@@ -63,6 +64,40 @@ public final class device_endpoints_t extends ArrayList<device_endpoint_t> imple
         a = a_;
     }
 
+    int add_default_wallet_connection2() throws Exception {
+        int on = -1;
+        if (CFG.default_wallet_connection.isEmpty()) {
+            return on;
+        }
+        blob_t blob = new blob_t(base58.decode(CFG.default_wallet_connection));
+        if (blob.value == null) {
+            log("default connection blob is null"); //--strip
+            return on;
+        }
+        wallet_connection_t wallet_connection = new wallet_connection_t();
+        blob_reader_t reader = new blob_reader_t(blob);
+        ko r = reader.read(wallet_connection);
+        if (is_ko(r)) {
+            log(r.msg); //--strip
+            return on;
+        }
+        device_endpoint_t device_endpoint = new device_endpoint_t(a, this, home, null, wallet_connection);
+        log("adding default device_endpoint " + device_endpoint.home); //--strip
+        add(device_endpoint);
+        on = 0; //index
+        return on;
+    }
+
+    int add_default_wallet_connection() throws Exception {
+        int on = add_default_wallet_connection2();
+        if (isEmpty()) {
+            log("No valid default connection found."); //--strip
+            add(new device_endpoint_t(a, this, home));
+            on = -1;
+        }
+        return on;
+    }
+
     public int init() throws Exception {
         {
             //TODO: purge >= alpha-44
@@ -82,9 +117,9 @@ public final class device_endpoints_t extends ArrayList<device_endpoint_t> imple
         log("loaded configuration. sz=" + size()); //--strip
         if (isEmpty()) {
             log("load returned empty set"); //--strip
-            add(new device_endpoint_t(a, this, home));
+            int on = add_default_wallet_connection();
             set_cur(0);
-            return -1;
+            return on; //
         }
         if (is_ko(r.first)) {
             return -1;

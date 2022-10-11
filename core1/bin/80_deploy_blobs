@@ -66,7 +66,7 @@ for blob in `find blobs -type f -name "*.tzst"`; do
     ush -pkh nick $node > /tmp/usho
     r=$?
     cat /tmp/usho
-    if [[ $r -ne 0 ]]; then 
+    if [[ $r -ne 0 ]]; then
         exit 1
     fi
     ip=`cat /tmp/usho | grep "^reachable_addr" | awk '{ print $NF }'`
@@ -78,10 +78,17 @@ for blob in `find blobs -type f -name "*.tzst"`; do
     fi
     $scp -P$port $blob $ip:/var/$brand/blob/
     if [[ $? -ne 0 ]]; then
+        echo "KO 55031"
         exit 1
     fi
 #    echo "$node:/var/$brand/blob; ($ssh -p $port $ip) exec su gov; bin/up_blobs" >> /tmp/msg1091
-    $ssh -p $port gov@$ip bin/up_blobs
+#    callup us nYhqPoi
+#    callup plebble PuxQ2g
+#    callup katlas ZouMi2A
+#    callup linkbox J7ygrs3
+
+    brandcode="$str40"
+    $ssh -p $port gov@$ip bin/up_blobs ${brand} ${brandcode}
     if [[ $? -ne 0 ]]; then
         echo "KO 88791 cannot ssh to BDN brand $brand"
         exit 1
@@ -91,7 +98,8 @@ done
 set +x
 
 echo "Blobs have been delivered to BDPs, and they have uploaded the blob to blockchain."
-#echo "Next steps:"
+echo "Next step:"
+echo "bin/90_propagate_blobs"
 #cat /tmp/msg1091
 #rm -f /tmp/msg1091
 

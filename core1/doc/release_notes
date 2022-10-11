@@ -142,12 +142,18 @@ Production releases. beta
 
 Production releases. alpha
 --------------------------
-alpha-43 -
+
+alpha-44 -
+    *
+
+alpha-43 - alpha-43_b8c4e6c3 2022-10-11_17-28-52 vhash b8c4e6c3 <- R 378e6cc5eb3435d4bdc366ba56a481e4c7feaec0 alpha-43 dbg-0 logs-0 counters-0 connlog-0 fcgi-0
     * Improved cbs with more automated steps (80, 90, 99)
     * makefiles adapted for clang
     * traders persistence. Current wallet trades runtime state is recovered from disk after wallet restart.
     * android. Separated activity for managing connections (previously embedded in main activity)
     * android. app configuration stored in binary form via seriable interface instead of json.
+    * android. UX/UI fragments for slt in the pat2slt R2R protocol.
+    * android. wallet_connection serialization, included default connection at per-brand static configuration..
 
 alpha-42 - network not updated, only android app in appstore
     * android AppStore first upload

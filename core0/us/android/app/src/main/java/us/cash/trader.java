@@ -585,6 +585,16 @@ public class trader extends activity implements datagram_dispatcher_t.handler_t 
             log("new instance"); // --strip
             specialized_fragment = new fragment_w2w();
         }
+        else if (protocol.equals("pat2slt slt")) {
+            if (specialized_fragment != null) {
+                if (specialized_fragment instanceof fragment_pat2slt_slt) {
+                    log("right fragment in place"); // --strip
+                    return true;
+                }
+            }
+            log("new instance"); // --strip
+            specialized_fragment = new fragment_pat2slt_slt();
+        }
         else {
             return false;
         }

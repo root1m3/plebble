@@ -22,6 +22,8 @@
 //===-
 package us.cash;
 import java.util.ArrayList;                                                                    // ArrayList
+import us.gov.crypto.base58;                                                                   // base58
+import us.gov.io.types.blob_t;                                                                 // blob_t
 import us.gov.io.blob_reader_t;                                                                // blob_reader_t
 import us.gov.io.blob_writer_t;                                                                // blob_writer_t
 import java.util.Date;                                                                         // Date
@@ -67,6 +69,32 @@ public class wallet_connection_t implements us.gov.io.seriable {
         ts = new uint64_t(0);
     }
 
+    void write(blob_t blob) {
+        log("write to blob"); //--strip
+        serid_t serid = serial_id();
+        int sz = (serid.value != 0 ? blob_writer_t.header_size() : 0) + blob_size();
+        if (sz == 0) {
+            blob.clear();
+            return;
+        }
+        blob_writer_t w = new blob_writer_t(blob, sz);
+        if (serid.value != 0) {
+            w.write_header(serid);
+        }
+        to_blob(w);
+        assert w.cur == blob.value.length;
+    }
+
+    public void log_blob() {                                                //--strip
+        log("en-uk entry:");                                                //--strip
+        wallet_connection_t wc = new wallet_connection_t(this);             //--strip
+        wc.name_ = name_;                                                   //--strip
+        blob_t blob = new blob_t();                                         //--strip
+        write(blob);                                                        //--strip
+        String b = us.gov.crypto.base58.encode(blob.value);                 //--strip
+        log("str95=\"" + b + "\" #default wallet_connection blob b58");    //--strip
+    }                                                                       //--strip
+                                                                            //--strip
     public ko set_endpoint(endpoint_t endpoint_) {
         endpoint = endpoint_;
         return ok;
@@ -131,19 +159,6 @@ public class wallet_connection_t implements us.gov.io.seriable {
         }
         log("read wallet connection named " + name_.value); //--strip
         return ok;
-
-
-/*
-                    json.put("addr", dep.addr);
-                    json.put("name", dep.name_);
-                    json.put("ssid", dep.ssid);
-                    json.put("power", dep.hmi != null ? 1 : 0);
-                    json.put("k", us.gov.crypto.ec.instance.to_b58(dep.cfg.keys.getPrivate()));
-                    json.put("ts", dep.ts);
-                    json.put("ip", ep.shost.value);
-                    json.put("port", ep.port.value);
-                    json.put("channel", ep.channel.value);
-*/
     }
 
     public string name_;

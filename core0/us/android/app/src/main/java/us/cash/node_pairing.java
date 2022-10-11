@@ -183,8 +183,7 @@ public final class node_pairing extends activity /* implements device_endpoint_t
         });
 
         addr.setOnFocusChangeListener(new View.OnFocusChangeListener() {
-            @Override public void onFocusChange(View v, boolean hasFocus) {
-            }
+            @Override public void onFocusChange(View v, boolean hasFocus) {}
         });
 
         connect_btn.setOnClickListener(new View.OnClickListener() {
@@ -332,6 +331,7 @@ public final class node_pairing extends activity /* implements device_endpoint_t
             conf_index = getIntent().getExtras().getInt("conf_index", 0);
         }
         dep = a.device_endpoints.get(conf_index);
+        dep.log_blob(); //--strip
         final endpoint_t ep = dep.endpoint;
         log("endpoint " + (ep == null ? "Null" : ep.to_string())); //--strip
         if (ep != null) {

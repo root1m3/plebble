@@ -41,6 +41,7 @@ public final class CFG {
     public static final int foss = ##str92##;
     public static final String origin = "##str93##";
     public static final int default_view_bookmarks = ##str94##;
+    public static final String default_wallet_connection = "##str95##";
 
 
     public static boolean sdk_logs = false;                                             //--strip

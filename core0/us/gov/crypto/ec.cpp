@@ -680,7 +680,7 @@ bool c::verify(const keys::pub_t& pk, const sigmsg_hasher_t::value_type& msgh, c
         log(r);
         return false;
     }
-    bool r = secp256k1_ecdsa_verify(ec::instance.ctx, &sig, &msgh[0], &pk) == 1;
+    bool r = secp256k1_ecdsa_verify(ec::instance.ctx, &sig, &msgh[0], &pk) == 1; //TODO check this potential optimization: https://github.com/halfinney/bitcoin/commit/dc411b51e0a3cffc4a599382ef0a9b92486f59d5
     if (likely(r)) {
         #if CFG_COUNTERS == 1
             ++counters.signature_verification_pass;

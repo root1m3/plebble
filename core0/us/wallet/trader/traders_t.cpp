@@ -128,15 +128,16 @@ std::pair<ko, us::wallet::trader::trader_protocol*> c::libs_t::create_opposite_p
 }
 
 c::lib_t::lib_t(business_t* bz): plugin(nullptr), business(bz) { //constructor 1
+    log("lib_t constructor 1");
+    assert(business != nullptr);
 }
 
-//c::lib_t::lib_t(const string& name, const string& filename, const string& home) { //constructor 2
 c::lib_t::lib_t(const string& filename, const string& home, protocol_factories_t& protocol_factories) { //constructor 2
-//    log("loading lib", name, filename, home);
-    log("loading lib", filename, home);
+    log("lib_t constructor 2", filename, home);
     plugin = ::dlopen(filename.c_str(), RTLD_LAZY);
     if (!plugin) {
         log("Cannot open library", ::dlerror());
+        business = nullptr;
         return;
     }
     ::dlerror();
@@ -146,6 +147,7 @@ c::lib_t::lib_t(const string& filename, const string& home, protocol_factories_t
         log("Cannot load symbol 'uswallet_business_create': ", dlsym_error);
         ::dlclose(plugin);
         plugin = nullptr;
+        business = nullptr;
         return;
     }
     log("creating business", home, business_t::interface_version);

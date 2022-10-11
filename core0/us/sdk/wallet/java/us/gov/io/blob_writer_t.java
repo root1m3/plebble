@@ -99,21 +99,11 @@ public class blob_writer_t {
             return d;
         }
 
-/*
-        public void write(string b58) {
-            log("writable::write to encoded string"); //--strip
-            blob_t blob = new blob_t();
-            write(blob);
-            b58.value = us.gov.crypto.base58.encode(blob.value);
-        }
-*/
-
         public String encode() {
             string s = new string();
             blob_t blob = new blob_t();
             write(blob);
             s.value = us.gov.crypto.base58.encode(blob.value);
-//            write(s);
             return s.value;
         }
 

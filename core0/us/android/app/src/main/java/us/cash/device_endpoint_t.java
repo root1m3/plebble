@@ -22,6 +22,8 @@
 //===-
 package us.cash;
 import java.util.ArrayList;                                                                    // ArrayList
+import us.gov.crypto.base58;                                                                   // base58
+import us.gov.io.types.blob_t;                                                                 // blob_t
 import us.gov.io.blob_reader_t;                                                                // blob_reader_t
 import us.gov.io.blob_writer_t;                                                                // blob_writer_t
 import java.util.Date;                                                                         // Date
@@ -85,44 +87,6 @@ public final class device_endpoint_t extends wallet_connection_t implements hmi_
         set_home(home0, keys);
         cfg = new cfg_android_private_t(a.getApplicationContext(), keys.getPrivate(), home);
     }
-
-/*
-    public device_endpoint_t(app a, String home0, device_endpoint_t other) throws Exception {
-        super(other);
-        parent = other.parent;
-        hmi = null;
-        KeyPair keys = ec.instance.generate_keypair();
-        if (keys == null) {
-            ko r = new ko("KO 86966");
-            log(r.msg); //--strip
-            throw new Exception(r.msg);
-        }
-        set_home(home0, keys);
-        cfg = new cfg_android_private_t(a.getApplicationContext(), keys.getPrivate(), home);
-    }
-*/
-/*
-    public device_endpoint_t(app a, device_endpoints_t parent_, uint64_t ts_, String addr_, String nm, String ssid_, String k_b58, String home0, endpoint_t ep)  throws Exception {
-        super(ts_, addr_, nm, ssid_, ep);
-        parent = parent_;
-        hmi = null;
-        KeyPair keys;
-        if (k_b58 != null && !k_b58.isEmpty()) {
-            keys = ec.instance.generate_keypair(k_b58);
-        }
-        else {
-            keys = ec.instance.generate_keypair();
-        }
-        if (keys == null) {
-            ko r = new ko("KO 86965");
-            log(r.msg); //--strip
-            throw new Exception(r.msg);
-        }
-        set_home(home0, keys);
-        cfg = new cfg_android_private_t(a.getApplicationContext(), keys.getPrivate(), home);
-    }
-*/
-
 
     void set_home(final String home0, KeyPair keys) {
         home = us.gov.crypto.ec.instance.to_address(keys.getPublic()).encode();

@@ -66,8 +66,7 @@ public class types {
         }
 
         public blob_t(byte[] bytes) {
-            assert bytes != null;
-            log("blob_t constructor " + bytes.length); //--strip
+            log("blob_t constructor " + (bytes != null ? bytes.length : -1)); //--strip
             value = bytes;
         }
 
