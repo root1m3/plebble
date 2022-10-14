@@ -214,7 +214,7 @@ public final class connections extends activity {
     }
 
     public void show_menu(final int pos, final String name) {
-        String[] options = {"Select", "delete", a.getResources().getString(R.string.cancel)};
+        String[] options = {"Edit entry", "Delete", "Copy", a.getResources().getString(R.string.cancel)};
         final connections i = this;
         new AlertDialog.Builder(this).setTitle(name)
                 .setItems(options, new DialogInterface.OnClickListener() {
@@ -224,14 +224,27 @@ public final class connections extends activity {
                                 i.select_device_endpoint2(pos);
                                 break;
                             case 1:
-                                ko r = i.a.device_endpoints.erase(pos);
-                                if (is_ko(r)) {
-                                    toast(r.msg);
+                                {
+                                    ko r = i.a.device_endpoints.erase(pos);
+                                    if (is_ko(r)) {
+                                        toast(r.msg);
+                                    }
+                                    else {
+                                        refresh();
+                                    }
+                                    break;
                                 }
-                                else {
-                                    refresh();
+                            case 2:
+                                {
+                                    ko r = i.a.device_endpoints.copy_device_endpoint(pos);
+                                    if (is_ko(r)) {
+                                        toast(r.msg);
+                                    }
+                                    else {
+                                        refresh();
+                                    }
+                                    break;
                                 }
-                                break;
                             case 3:
                         }
                     }
@@ -252,7 +265,10 @@ public final class connections extends activity {
             toast("device_endpoints failure");
             return;
         }
-        a.device_endpoints.new_endpoint();
+        ko r = a.device_endpoints.new_endpoint();
+        if (is_ko(r)) {
+            toast(r.msg);
+        }
         refresh();
     }
 

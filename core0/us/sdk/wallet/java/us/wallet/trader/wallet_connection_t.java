@@ -20,7 +20,7 @@
 //===-
 //===----------------------------------------------------------------------------
 //===-
-package us.cash;
+package us.wallet.trader;
 import java.util.ArrayList;                                                                    // ArrayList
 import us.gov.crypto.base58;                                                                   // base58
 import us.gov.io.types.blob_t;                                                                 // blob_t
@@ -38,35 +38,49 @@ import us.ko;                                                                   
 import static us.ko.ok;                                                                        // ok
 import static us.gov.io.types.blob_t.serid_t;                                                  // serid_t
 import us.string;                                                                              // string
+import us.CFG;
 
 public class wallet_connection_t implements us.gov.io.seriable {
 
-    private static void log(final String line) {                          //--strip
-        CFG.log_android("wallet_connection_t: " + line);                  //--strip
-    }                                                                     //--strip
+    private static void log(final String line) {                                 //--strip
+        CFG.log_wallet_trader("wallet_connection_t: " + line);                   //--strip
+    }                                                                            //--strip
 
     public wallet_connection_t() {
+        log("constructor 1 "); //--strip
         name_ = new string("default wallet");
         ssid = new string("");
         addr = new string("");
-        endpoint = new endpoint_t();
+        ip4_endpoint = new ip4_endpoint_t();
         ts = new uint64_t(0);
     }
 
-    public wallet_connection_t(uint64_t ts_, string addr_, string nm, string ssid_, endpoint_t ep) {
+    public wallet_connection_t(uint64_t ts_, string addr_, string nm, string ssid_, ip4_endpoint_t ep) {
+        log("constructor 2 "); //--strip
         name_ = nm;
         ssid = ssid_;
         addr = addr_;
-        endpoint = ep;
+        ip4_endpoint = ep;
         ts = ts_;
     }
 
     public wallet_connection_t(wallet_connection_t other) {
-        name_ = new string("copy_" + other.name_.value);
-        ssid = new string("");
-        addr = new string("");
-        endpoint = new endpoint_t(other.endpoint);
-        ts = new uint64_t(0);
+        log("copy constructor"); //--strip
+        name_ = new string(other.name_);
+        ssid = new string(other.ssid);
+        addr = new string(other.addr);
+        ip4_endpoint = new ip4_endpoint_t(other.ip4_endpoint);
+        ts = new uint64_t(other.ts);
+    }
+
+    public wallet_connection_t copy() {
+        log("copy"); //--strip
+        wallet_connection_t wc = new wallet_connection_t(this);
+        wc.name_.value = "copy_" + name_.value;
+        wc.ssid.value = "";
+        wc.addr.value = "";
+        wc.ts.value = 0;
+        return wc;
     }
 
     void write(blob_t blob) {
@@ -95,8 +109,8 @@ public class wallet_connection_t implements us.gov.io.seriable {
         log("str95=\"" + b + "\" #default wallet_connection blob b58");    //--strip
     }                                                                       //--strip
                                                                             //--strip
-    public ko set_endpoint(endpoint_t endpoint_) {
-        endpoint = endpoint_;
+    public ko set_endpoint(ip4_endpoint_t ip4_endpoint_) {
+        ip4_endpoint = ip4_endpoint_;
         return ok;
     }
 
@@ -121,7 +135,7 @@ public class wallet_connection_t implements us.gov.io.seriable {
         int sz = blob_writer_t.blob_size(name_) +
                  blob_writer_t.blob_size(ssid) +
                  blob_writer_t.blob_size(addr) +
-                 blob_writer_t.blob_size(endpoint) +
+                 blob_writer_t.blob_size(ip4_endpoint) +
                  blob_writer_t.blob_size(ts);
         return sz;
     }
@@ -131,7 +145,7 @@ public class wallet_connection_t implements us.gov.io.seriable {
         writer.write(name_);
         writer.write(ssid);
         writer.write(addr);
-        writer.write(endpoint);
+        writer.write(ip4_endpoint);
         writer.write(ts);
     }
 
@@ -150,7 +164,7 @@ public class wallet_connection_t implements us.gov.io.seriable {
             if (ko.is_ko(r)) return r;
         }
         {
-            ko r = reader.read(endpoint);
+            ko r = reader.read(ip4_endpoint);
             if (ko.is_ko(r)) return r;
         }
         {
@@ -164,7 +178,7 @@ public class wallet_connection_t implements us.gov.io.seriable {
     public string name_;
     public string ssid;
     public string addr;
-    public endpoint_t endpoint;
-    uint64_t ts = new uint64_t(0);
+    public ip4_endpoint_t ip4_endpoint;
+    public uint64_t ts = new uint64_t(0);
 }
 

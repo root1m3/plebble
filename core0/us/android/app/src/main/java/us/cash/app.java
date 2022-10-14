@@ -251,11 +251,7 @@ CFG.sdk_logs = true; //--strip
         StrictMode.setVmPolicy(builder.build());
         
         log("boot test"); //--strip
-        if (!hmi_t.test()) {
-            abort("failed hmi tests");
-            return;
-        }
-        log("boot test succeed"); //--strip
+        tests(); //--strip
 
         tone = new ToneGenerator(AudioManager.STREAM_MUSIC, 100);
 
@@ -274,13 +270,38 @@ CFG.sdk_logs = true; //--strip
         else {
             hmi = a.device_endpoints.cur.hmi;
         }
-//            System.exit(1);
-/*
-        if (a.device_endpoints != null) {
-            hmi = a.device_endpoints.cur.hmi;
-        }
-*/
     }
+
+    void test_hmi() {
+        if (!hmi_t.test()) {
+            abort("failed hmi tests");
+            return;
+        }
+        log("hmi test succeed"); //--strip
+    }
+
+    void test_device_endpoint() {
+        device_endpoints_t x = new device_endpoints_t(this);
+
+        blob_t blob = new blob_t(us.gov.crypto.base58.decode("3TpsNSjGp84MBxXgTBpnvffsZSnQaaTJF7qGcrD3i2Xstf4Py4LsiVW6ng27n8vWSBG1eG1UXSg5Dpo1ezfxUYaZm1DaLsFazVveUDxgx7fdoATTuWkB8fA"));
+        if (blob.value == null) {
+            log("default connection blob is null"); //--strip
+            assert false;
+        }
+        us.wallet.trader.wallet_connection_t wallet_connection = new us.wallet.trader.wallet_connection_t();
+        blob_reader_t reader = new blob_reader_t(blob);
+        ko r = reader.read(wallet_connection);
+        if (is_ko(r)) {
+            log(r.msg); //--strip
+            assert false;
+        }
+    }
+
+    void tests() {                                  //--strip
+        test_hmi();                                 //--strip
+        test_device_endpoint();                     //--strip
+        log("boot test succeed");                   //--strip
+    }                                               //--strip
 
     public int create_device_endpoints() { // returns the index to poweron, -1 for none
         log("create_device_endpoints"); //--strip

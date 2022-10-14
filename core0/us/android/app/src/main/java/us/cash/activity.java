@@ -326,12 +326,6 @@ public class activity extends AppCompatActivity implements NavigationView.OnNavi
             }
         }
         else {
-/*
-            if (item_id != R.id.nav_settings) {
-                log("HMI is down. Opening settings instead"); //--strip
-                item_id = R.id.nav_settings;
-            }
-*/
             switch (item_id) {
                 case R.id.nav_balance:
                     launch_position();

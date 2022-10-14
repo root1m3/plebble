@@ -39,6 +39,8 @@ import static us.ko.ok;                                                         
 import java.security.PrivateKey;                                                               // PrivateKey
 import static us.gov.io.types.blob_t.serid_t;                                                  // serid_t
 import us.string;                                                                              // string
+import us.wallet.trader.ip4_endpoint_t;                                                           // *
+import us.wallet.trader.wallet_connection_t;                                                           // *
 
 public final class device_endpoint_t extends wallet_connection_t implements hmi_t.hmi_callback_t {
 
@@ -46,14 +48,14 @@ public final class device_endpoint_t extends wallet_connection_t implements hmi_
         CFG.log_android("device_endpoint_t: " + line);                  //--strip
     }                                                                   //--strip
 
-    public device_endpoint_t(app a_, device_endpoints_t parent_, String home0, int for_read_from_blob) {
-        a = a_;
+    public device_endpoint_t(device_endpoints_t parent_, int for_read_from_blob) {
         parent = parent_;
         hmi = null;
-        home = home0;
+        cfg = null;
     }
 
-    public device_endpoint_t(app a_, device_endpoints_t parent_, String home0) throws Exception {
+/*
+    public device_endpoint_t(app a_, device_endpoints_t parent_, String home0_) throws Exception {
         a = a_;
         parent = parent_;
         hmi = null;
@@ -63,37 +65,68 @@ public final class device_endpoint_t extends wallet_connection_t implements hmi_
             log(r.msg); //--strip
             throw new Exception(r.msg);
         }
-        set_home(home0, keys);
+        set_home(home0_, keys);
         cfg = new cfg_android_private_t(a.getApplicationContext(), keys.getPrivate(), home);
     }
+*/
 
-    public device_endpoint_t(app a_, device_endpoints_t parent_, String home0, String k_b58, wallet_connection_t wallet_connection) throws Exception {
+    public device_endpoint_t(device_endpoints_t parent_, String k_b58, wallet_connection_t wallet_connection) {
         super(wallet_connection);
-        a = a_;
         parent = parent_;
         hmi = null;
+        cfg = new cfg_android_private_t(parent.a.getApplicationContext(), k_b58);
+        cfg.home = get_home();
+    }
+
+    public device_endpoint_t(device_endpoints_t parent_, wallet_connection_t wallet_connection) {
+        super(wallet_connection);
+        parent = parent_;
+        hmi = null;
+        cfg = new cfg_android_private_t(parent.a.getApplicationContext());
+        cfg.home = get_home();
+    }
+
+    public device_endpoint_t(device_endpoints_t parent_) {
+        parent = parent_;
+        hmi = null;
+        cfg = new cfg_android_private_t(parent.a.getApplicationContext());
+        cfg.home = get_home();
+    }
+
+    public device_endpoint_t(device_endpoint_t other) {
+        super(other);
+        parent = other.parent;
+        hmi = null;
+        cfg = new cfg_android_private_t(parent.a.getApplicationContext());
+        cfg.home = get_home();
+    }
+
+/*
+    String pubkey_str(String k_b58) {
         KeyPair keys;
         if (k_b58 != null && !k_b58.isEmpty()) {
             keys = ec.instance.generate_keypair(k_b58);
         }
         else {
-            keys = ec.instance.generate_keypair();
+            keys = null;
         }
         if (keys == null) {
-            ko r = new ko("KO 86965");
-            log(r.msg); //--strip
-            throw new Exception(r.msg);
+            return null;
         }
-        set_home(home0, keys);
-        cfg = new cfg_android_private_t(a.getApplicationContext(), keys.getPrivate(), home);
+        return us.gov.crypto.ec.instance.to_address(keys.getPublic()).encode();
     }
 
-    void set_home(final String home0, KeyPair keys) {
-        home = us.gov.crypto.ec.instance.to_address(keys.getPublic()).encode();
-        if (!home0.isEmpty()) {
-            home = home0 + "/" + home;
-        }
-        log("home " + home); //--strip
+    String get_home(String k_b58) throws Exception {
+        String pub = pubkey_str(k_b58);
+        if (pub == null) return null;
+        if (pub.isEmpty()) return null;
+        return parent.home + "/" + pub;
+    }
+*/
+    String get_home() {
+        //String pub = pubkey_str(k_b58);
+        //if (pub == null) return null;
+        return parent.home + "/" + us.gov.crypto.ec.instance.to_encoded_address(cfg.keys.getPublic());
     }
 
     public void poweron(app a, pin_t pin, app.progress_t progress) {
@@ -117,7 +150,7 @@ public final class device_endpoint_t extends wallet_connection_t implements hmi_
         log("Instantiating new HMI ..."); //--strip
         us.wallet.cli.params p = new us.wallet.cli.params();
         p.daemon = false;
-        p.homedir = home + "/hmi";
+        p.homedir = cfg.home + "/hmi";
         log("hmi homedir=" + p.homedir); //--strip
         p.rpc__connect_for_recv = true;
         p.rpc__stop_on_disconnection = false;
@@ -129,7 +162,7 @@ public final class device_endpoint_t extends wallet_connection_t implements hmi_
         log("start HMI"); //--strip
 
         hmi.try_renew_ip_on_connect_failed = true;
-        if (endpoint == null) {
+        if (ip4_endpoint == null) {
             hmi = null;
             ko r = new ko("KO 54093 invalid ep in settings. Restart of HMI's been aborted.");
             log(r.msg); //--strip
@@ -137,16 +170,16 @@ public final class device_endpoint_t extends wallet_connection_t implements hmi_
             return;
         }
 
-        log("starting HMI with ep " + endpoint.to_string() + "; pin " + pin.value); //--strip
-        progress.on_progress("Starting connection to " + (endpoint == null ? "null" : endpoint.to_string()));
-        ko r = hmi.start(endpoint, pin);
+        log("starting HMI with ep " + ip4_endpoint.to_string() + "; pin " + pin.value); //--strip
+        progress.on_progress("Starting connection to " + (ip4_endpoint == null ? "null" : ip4_endpoint.to_string()));
+        ko r = hmi.start(ip4_endpoint, pin);
         if (is_ko(r)) {
             log("HMI Failed to start: " + r.msg); //--strip
-            progress.on_progress("Failed to connect to " + (endpoint == null ? "null" : endpoint.to_string()));
+            progress.on_progress("Failed to connect to " + (ip4_endpoint == null ? "null" : ip4_endpoint.to_string()));
             return;
         }
         log("hmi started"); //--strip
-        progress.on_progress("HMI restarted " + (endpoint == null ? "null" : endpoint.to_string()));
+        progress.on_progress("HMI restarted " + (ip4_endpoint == null ? "null" : ip4_endpoint.to_string()));
     }
 
     public void poweroff(app.progress_t progress) {
@@ -171,7 +204,7 @@ public final class device_endpoint_t extends wallet_connection_t implements hmi_
         log("on_hmi__worker"); //--strip
         if (status == ok) {
             log("HMI is ok. Node is up"); //--strip
-            log("saving endpoint " + endpoint.to_string()); //--strip
+            log("saving ip4_endpoint " + ip4_endpoint.to_string()); //--strip
             if (hmi.wallet_address != null) {
                 addr = new string(hmi.wallet_address.encode());
             }
@@ -180,9 +213,9 @@ public final class device_endpoint_t extends wallet_connection_t implements hmi_
         }
     }
 
-    public ko set_endpoint(endpoint_t endpoint_) {
-        if (hmi != null) return new ko("KO 92001 Cannot change endpoint while HMI is running.");
-        endpoint = endpoint_;
+    public ko set_ip4_endpoint(ip4_endpoint_t ip4_endpoint_) {
+        if (hmi != null) return new ko("KO 92001 Cannot change ip4_endpoint while HMI is running.");
+        ip4_endpoint = ip4_endpoint_;
         return ok;
     }
 
@@ -198,6 +231,7 @@ public final class device_endpoint_t extends wallet_connection_t implements hmi_
     @Override public void to_blob(blob_writer_t writer) {
         log("to_blob"); //--strip
         uint8_t pwr = new uint8_t(hmi != null ? (short)1 : (short)0);
+        if (hmi_req_on) pwr.value = 1;
         priv_t priv = new priv_t(cfg.keys.getPrivate());
         super.to_blob(writer);
         writer.write(priv);
@@ -217,27 +251,29 @@ public final class device_endpoint_t extends wallet_connection_t implements hmi_
             priv_t priv = new priv_t();
             ko r = reader.read(priv);
             if (ko.is_ko(r)) return r;
-            KeyPair keys = ec.instance.generate_keypair(priv.value);
-            String home0 = home;
-            set_home(home0, keys);
-            cfg = new cfg_android_private_t(a.getApplicationContext(), keys.getPrivate(), home);
+            cfg = new cfg_android_private_t(parent.a.getApplicationContext(), priv.value, "");
+            cfg.home = get_home();
+            log("cfg home " + cfg.home); //--strip
         }
         {
             uint8_t pwr = new uint8_t((short)0);
             ko r = reader.read(pwr);
             if (ko.is_ko(r)) return r;
             hmi_req_on = pwr.value != 0;
+            log("hmi_req_on " + hmi_req_on); //--strip
         }
+        log("from_blob ok"); //--strip
         return ok;
     }
 
-    String home;
-    app a;
+    //String home0;
+
+    //app a;
 
     public hmi_t hmi;
     public boolean hmi_req_on = false;
     hmi_t.hmi_callback_t cb;
     device_endpoints_t parent;
-    cfg_android_private_t cfg = null;
+    cfg_android_private_t cfg;
 }
 

@@ -96,15 +96,16 @@ import android.util.TypedValue;                                                 
 import us.gov.io.types.vector_tuple_hash_host_port;                                            // vector_tuple_hash_host_port
 import android.view.ViewGroup;                                                                 // ViewGroup
 import android.view.View;                                                                      // View
+import us.wallet.trader.ip4_endpoint_t;                                                  // hash_t
 
-public final class node_pairing extends activity /* implements device_endpoint_t.hmi_power_listener_t*/ {
+public final class node_pairing extends activity {
 
     private static void log(final String s) {               //--strip
         System.out.println("node_pairing: " + s);           //--strip
     }                                                       //--strip
 
     static class state_t {
-        public endpoint_t endpoint = null;
+        public ip4_endpoint_t ip4_endpoint = null;
         public pin_t pin;
         public boolean success = false;
         public boolean called = false;
@@ -120,9 +121,9 @@ public final class node_pairing extends activity /* implements device_endpoint_t
             return true;
         }
 
-        public void start_testing(endpoint_t ep, pin_t pin_) {
+        public void start_testing(ip4_endpoint_t ep, pin_t pin_) {
             log("start_testing " + (ep == null ? "NULL EP" : ep.to_string())); //--strip
-            endpoint = ep;
+            ip4_endpoint = ep;
             pin = pin_;
             testing = true;
             called = true;
@@ -332,8 +333,8 @@ public final class node_pairing extends activity /* implements device_endpoint_t
         }
         dep = a.device_endpoints.get(conf_index);
         dep.log_blob(); //--strip
-        final endpoint_t ep = dep.endpoint;
-        log("endpoint " + (ep == null ? "Null" : ep.to_string())); //--strip
+        final ip4_endpoint_t ep = dep.ip4_endpoint;
+        log("ip4_endpoint " + (ep == null ? "Null" : ep.to_string())); //--strip
         if (ep != null) {
             log("Set UI Texts"); //--strip
             addr.setText(ep.shost.value);
@@ -517,7 +518,7 @@ public final class node_pairing extends activity /* implements device_endpoint_t
         StringBuilder b = new StringBuilder();
         b.append("HMI: " + (dep.hmi == null ? "KO Not" : "OK ") + " present.\n");
         if (dep.hmi != null) {
-            b.append("  endpoint:\n    "+(dep.hmi.endpoint == null ? "Null" : "" + dep.hmi.endpoint.to_string()) + '\n');
+            b.append("  ip4_endpoint:\n    "+(dep.hmi.ip4_endpoint == null ? "Null" : "" + dep.hmi.ip4_endpoint.to_string()) + '\n');
             b.append("  active: " + dep.hmi.is_active() + '\n');
             b.append("  online: " + dep.hmi.is_online + '\n');
             b.append("  wallet_address:\n    " + (dep.hmi.wallet_address == null ? "KO null" : dep.hmi.wallet_address.encode()) + '\n');
@@ -578,7 +579,7 @@ public final class node_pairing extends activity /* implements device_endpoint_t
             @Override public void run () {
                 ColorDrawable curled = dep.hmi.cur_led;
                 String curmsg = dep.hmi.cur_msg;
-                pair<ko, endpoint_t> r = dep.hmi.lookup_ip(new app.progress_t() {
+                pair<ko, ip4_endpoint_t> r = dep.hmi.lookup_ip(new app.progress_t() {
                     @Override public void on_progress(final String msg) {
                         log("renew IP: " + msg); //--strip;
                         dep.hmi.set_status(leds_t.led_blue, msg);
@@ -641,7 +642,7 @@ public final class node_pairing extends activity /* implements device_endpoint_t
         dialog.show();
     }
 
-    endpoint_t endpoint_from_widgets() {
+    ip4_endpoint_t ip4_endpoint_from_widgets() {
         final String address = addr.getText().toString();
         port_t tcpport;
         channel_t chan;
@@ -652,7 +653,7 @@ public final class node_pairing extends activity /* implements device_endpoint_t
         catch(NumberFormatException e) {
             return null;
         }
-        return new endpoint_t(new shost_t(address), tcpport, chan);
+        return new ip4_endpoint_t(new shost_t(address), tcpport, chan);
     }
 
     void set_status_led(ColorDrawable led_state, String msg) { //0 red 1 amber 2 green -1 unchanged
@@ -677,7 +678,7 @@ public final class node_pairing extends activity /* implements device_endpoint_t
     void on_user_req_poweron() {
         a.assert_ui_thread(); //--strip
         log("on_user_req_poweron"); //--strip
-        endpoint_t endpoint = endpoint_from_widgets();
+        ip4_endpoint_t ip4_endpoint = ip4_endpoint_from_widgets();
         app.progress_t progress = new app.progress_t() {
             @Override public void on_progress(final String report) {
                 runOnUiThread(new Runnable() {
@@ -687,7 +688,7 @@ public final class node_pairing extends activity /* implements device_endpoint_t
                 });
             }
         };
-        ko ans = dep.set_endpoint(endpoint);
+        ko ans = dep.set_ip4_endpoint(ip4_endpoint);
         a.HMI_power_on(conf_index, new pin_t(0), progress);
         Timer timer = new Timer();
         timer.schedule(new TimerTask() {
@@ -733,12 +734,12 @@ public final class node_pairing extends activity /* implements device_endpoint_t
     void test_task() {
         log("test_task"); //--strip
         a.assert_worker_thread(); //--strip
-        if (state.endpoint == null) {
-            log("wrong endpoint from widgets"); //--strip
+        if (state.ip4_endpoint == null) {
+            log("wrong ip4_endpoint from widgets"); //--strip
             test_result_worker(new ko("KO 60954 Wrong input"));
             return;
         }
-        log("endpoint from state " + state.endpoint.to_string() + " PIN>0 " + (state.pin.value > 0 ? "yes" : "no"));  //--strip
+        log("ip4_endpoint from state " + state.ip4_endpoint.to_string() + " PIN>0 " + (state.pin.value > 0 ? "yes" : "no"));  //--strip
         ko ans = ok;
         try {
             app.progress_t progress = new app.progress_t() {
@@ -750,11 +751,11 @@ public final class node_pairing extends activity /* implements device_endpoint_t
                     });
                 }
             };
-            log("Connecting to " + state.endpoint.to_string() + " using PIN>0 " + (state.pin.value > 0 ? "yes" : "no")); //--strip
+            log("Connecting to " + state.ip4_endpoint.to_string() + " using PIN>0 " + (state.pin.value > 0 ? "yes" : "no")); //--strip
             if (dep.hmi != null) {
                 a.HMI_power_off__worker(conf_index, progress);
             }
-            ans = dep.set_endpoint(state.endpoint);
+            ans = dep.set_ip4_endpoint(state.ip4_endpoint);
             a.device_endpoints.save();
             a.HMI_power_on__worker(conf_index, state.pin, progress);
 
@@ -782,10 +783,10 @@ public final class node_pairing extends activity /* implements device_endpoint_t
 
     void do_test(final pin_t pin) {
         log("do_test"); //--strip
-        endpoint_t ep = endpoint_from_widgets();
+        ip4_endpoint_t ep = ip4_endpoint_from_widgets();
         state.start_testing(ep, pin);
         refresh();
-        set_status_led(leds_t.led_amber, "Trying " + (state.endpoint != null ? state.endpoint.to_string() : ""));
+        set_status_led(leds_t.led_amber, "Trying " + (state.ip4_endpoint != null ? state.ip4_endpoint.to_string() : ""));
         Thread thread = new Thread(new Runnable() {
             @Override public void run () {
                 test_task();
@@ -915,8 +916,8 @@ public final class node_pairing extends activity /* implements device_endpoint_t
     void refresh_connect_button() {
         log("refresh_connect_button " + state.lookingup + " " + state.testing); //--strip
         if (dep.hmi != null) {
-            endpoint_t ep = dep.endpoint;
-            log("endpoint " + (ep == null ? "Null" : ep.to_string())); //--strip
+            ip4_endpoint_t ep = dep.ip4_endpoint;
+            log("ip4_endpoint " + (ep == null ? "Null" : ep.to_string())); //--strip
             if (ep != null) {
                 current_endpoint.setText("Current: " + ep.to_string());
             }
@@ -1008,7 +1009,7 @@ public final class node_pairing extends activity /* implements device_endpoint_t
         app.assert_worker_thread(); //--strip
         if (dep.hmi == null) return;
         log("lookup ip"); //--strip
-        pair<ko, endpoint_t> r = dep.hmi.lookup_ip(new app.progress_t() {
+        pair<ko, ip4_endpoint_t> r = dep.hmi.lookup_ip(new app.progress_t() {
             @Override public void on_progress(final String txt) {
                 runOnUiThread(new Thread(new Runnable() {
                     public void run() {

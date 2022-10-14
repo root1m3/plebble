@@ -60,7 +60,7 @@ public class rpc_daemon_t extends us.wallet.engine.rpc_daemon_t implements us.go
         this.shostport = shostport;
         this.role = role;
         this.parent = parent;
-         log("constructor"); //--strip
+        log("constructor"); //--strip
    }
 
     @Override public us.gov.socket.client create_client() {
@@ -79,6 +79,12 @@ public class rpc_daemon_t extends us.wallet.engine.rpc_daemon_t implements us.go
 
     public ko connect(pin_t pin) {
         log("connect with pin " + pin.value); //--strip
+        rpc_peer_t peer = get_peer();
+        if (peer == null) {
+            ko r = new ko("KO 76984 Invalid peer object.");
+            log(r.msg);  //--strip
+            return r;
+        }
         ko r = get_peer().connect(shostport, new pport_t(0), pin, role, true);
         if (is_ko(r)) {
             return r;

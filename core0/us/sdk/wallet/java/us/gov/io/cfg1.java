@@ -64,6 +64,29 @@ public class cfg1 extends cfg0 {
         }
     }
 
+    public cfg1(String k_b58, String home_) {
+        super(home_);
+        if (k_b58 != null && !k_b58.isEmpty()) {
+            keys = ec.instance.generate_keypair(k_b58);
+        }
+        else {
+            keys = ec.instance.generate_keypair();
+        }
+        if (keys == null) {
+            System.err.println("KO 60987 Invalid privkey");
+            System.exit(1);
+        }
+    }
+
+    public cfg1() {
+        super("");
+        keys = ec.instance.generate_keypair();
+        if (keys == null) {
+            System.err.println("KO 60988 Invalid privkey");
+            System.exit(1);
+        }
+    }
+
     public cfg1(cfg1 other) {
         super(other);
         keys = other.keys;

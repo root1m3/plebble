@@ -81,8 +81,30 @@ public class cfg_android_private_t extends us.gov.io.cfg1 {
         log("new cfg_android_private_t home " + home); //--strip
     }
 
+    public cfg_android_private_t(Context ctx_, String privk_encoded, String home_) {
+        super(privk_encoded, home_);
+        if (!home.isEmpty()) {
+            while (home.substring(0, 1).equals("/")) {
+                home = home.substring(1);
+            }
+        }
+        log("home is '" + home + "'"); //--strip
+        ctx = ctx_;
+        log("new cfg_android_private_t home " + home); //--strip
+    }
+
+    public cfg_android_private_t(Context ctx_, String privk_encoded) {
+        super(privk_encoded, "");
+        ctx = ctx_;
+    }
+
+    public cfg_android_private_t(Context ctx_) {
+        ctx = ctx_;
+    }
+
     private cfg_android_private_t(cfg_android_private_t other) {
         super(other);
+        keys = ec.instance.generate_keypair();
         ctx = other.ctx;
     }
 

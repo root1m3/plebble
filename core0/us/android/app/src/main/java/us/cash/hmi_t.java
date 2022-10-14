@@ -45,6 +45,7 @@ import static us.gov.io.types.*;                                                
 import static us.gov.socket.types.*;                                                           // *
 import static us.stdint.*;                                                                     // *
 import static us.tuple.*;                                                                      // *
+import us.wallet.trader.ip4_endpoint_t;                                                  // hash_t
 import java.io.InputStreamReader;                                                              // InputStreamReader
 import java.io.IOException;                                                                    // IOException
 import static us.ko.is_ko;                                                                     // is_ko
@@ -186,7 +187,7 @@ public class hmi_t extends us.wallet.cli.hmi {
         return (cfg_android_private_t) cfg;
     }
 
-    public ko restart(endpoint_t ep, pin_t pin) {
+    public ko restart(ip4_endpoint_t ep, pin_t pin) {
         app.assert_worker_thread(); //--strip
         log("restart hmi pin " + ep.to_string() + " pin>0 " + (pin.value > 0 ? "Yes" : "No")); //--strip
         freeze = false;
@@ -194,7 +195,7 @@ public class hmi_t extends us.wallet.cli.hmi {
         stop();
         join();
         log("starting hmi once stopped"); //--strip
-        endpoint = ep;
+        ip4_endpoint = ep;
         ko r = start(ep, pin); // busyled_handler_send, busyled_handler_recv, dispatcher);
         log("hmi start return code is " + ko.as_string(r)); //--strip
         return r;
@@ -233,7 +234,7 @@ public class hmi_t extends us.wallet.cli.hmi {
         return ok;
     }
 
-    public ko start(final endpoint_t ep, final pin_t pin) {
+    public ko start(final ip4_endpoint_t ep, final pin_t pin) {
         //, busyled_t.handler_t busyled_handler_send, busyled_t.handler_t busyled_handler_recv, datagram_dispatcher_t dis) {
         log("start"); //--strip
         if (cfg == null) {
@@ -244,19 +245,19 @@ public class hmi_t extends us.wallet.cli.hmi {
 //        this.busyled_handler_send = busyled_handler_send;
 //        this.busyled_handler_recv = busyled_handler_recv;
 //        this.dispatcher = dis;
-        endpoint = ep;
+        ip4_endpoint = ep;
         p.pin = pin;
-        if (endpoint != null) {
-            p.walletd_host = endpoint.shost;
-            p.walletd_port = endpoint.port;
-            p.channel = endpoint.channel;
+        if (ip4_endpoint != null) {
+            p.walletd_host = ip4_endpoint.shost;
+            p.walletd_port = ip4_endpoint.port;
+            p.channel = ip4_endpoint.channel;
         }
         else {
             p.walletd_host = new shost_t("localhost");
             p.walletd_port = us.CFG.WALLET_PORT;
             p.channel = us.CFG.CHANNEL;
         }
-        set_status(leds_t.led_amber, "Starting HMI. " + endpoint.to_string());
+        set_status(leds_t.led_amber, "Starting HMI. " + ip4_endpoint.to_string());
         log("super.start. stop_on_disconnection = " + p.rpc__stop_on_disconnection); //--strip
         ko r = super.start(busyled_handler_send, busyled_handler_recv, dispatcher);
         if (is_ko(r)) {
@@ -279,7 +280,7 @@ public class hmi_t extends us.wallet.cli.hmi {
             super.join();
             return r;
         }
-        set_status(leds_t.led_amber, "HMI running. Peer " + endpoint.to_string());
+        set_status(leds_t.led_amber, "HMI running. Peer " + ip4_endpoint.to_string());
         log("super returned ok"); //--strip
         return ok;
     }
@@ -310,7 +311,7 @@ public class hmi_t extends us.wallet.cli.hmi {
                 Thread task = new Thread(new Runnable () {
                     @Override public void run() {
                         log("looking up IP address..."); //--strip
-                        pair<ko, endpoint_t> r = lookup_ip(new app.progress_t() {
+                        pair<ko, ip4_endpoint_t> r = lookup_ip(new app.progress_t() {
                             @Override
                             public void on_progress(final String msg) {
                                 log("renew IP:" + msg); //--strip;
@@ -393,7 +394,7 @@ public class hmi_t extends us.wallet.cli.hmi {
         log("verification_completed " + verok); //--strip
         super.verification_completed(verok);
         is_online = verok;
-        set_status(leds_t.led_amber, "handshake completed with " + endpoint.to_string());
+        set_status(leds_t.led_amber, "handshake completed with " + ip4_endpoint.to_string());
         Thread thread = new Thread(new Runnable() {
             @Override public void run() {
                 try {
@@ -410,7 +411,7 @@ public class hmi_t extends us.wallet.cli.hmi {
                         on_hmi__worker(r);
                         return;
                     }
-                    set_status(leds_t.led_green, "online with " + endpoint.to_string());
+                    set_status(leds_t.led_green, "online with " + ip4_endpoint.to_string());
                     on_hmi__worker(ok);
                 }
                 else {
@@ -528,43 +529,43 @@ public class hmi_t extends us.wallet.cli.hmi {
         return ret;
     }
 
-    public pair<ko, endpoint_t> lookup_ip(app.progress_t progress) {
+    public pair<ko, ip4_endpoint_t> lookup_ip(app.progress_t progress) {
         log("lookup_ip"); //--strip
         if (lookingup) {
             log(KO_54503.msg); //--strip
-            return new pair<ko, endpoint_t>(KO_54503, null);
+            return new pair<ko, ip4_endpoint_t>(KO_54503, null);
         }
         lookingup = true;
         set_status(leds_t.led_blue, "Updating IP address");
         if (wallet_address == null || wallet_address.is_zero()) {
             lookingup = false;
             log(KO_50493.msg); //--strip
-            return new pair<ko, endpoint_t>(KO_50493, null);
+            return new pair<ko, ip4_endpoint_t>(KO_50493, null);
         }
         log("seeds=" + seeds.size()); //--strip
-        pair<ko, endpoint_t> r = gov_client_t.lookup_wallet_ip(wallet_address, get_keys(), seeds, p.channel, progress);
+        pair<ko, ip4_endpoint_t> r = gov_client_t.lookup_wallet_ip(wallet_address, get_keys(), seeds, p.channel, progress);
         if (r.first != ok) {
             lookingup = false;
             return r;
         }
-        if (r.second.equals(endpoint)) {
+        if (r.second.equals(ip4_endpoint)) {
         log("X16"); //--strip
-            log("IP hasn't changed. " + endpoint.to_string()); //--strip
+            log("IP hasn't changed. " + ip4_endpoint.to_string()); //--strip
             lookingup = false;
             return r;
         }
-        String msg = "Wallet IP address has changed (from " + endpoint.to_string() + " to " + r.second.to_string() + "). Reconnecting...";
+        String msg = "Wallet IP address has changed (from " + ip4_endpoint.to_string() + " to " + r.second.to_string() + "). Reconnecting...";
         progress.on_progress(msg);
         log(msg); //--strip
         log("restarting hmi"); //--strip
         ko r2 = restart(r.second, new pin_t(0));
         if (r2 != ok) {
             lookingup = false;
-            return new pair<ko, endpoint_t>(r2, r.second);
+            return new pair<ko, ip4_endpoint_t>(r2, r.second);
         }
         log("hmi started " + r.second.to_string()); //--strip
         lookingup = false;
-        return new pair<ko, endpoint_t>(ok, r.second);
+        return new pair<ko, ip4_endpoint_t>(ok, r.second);
     }
 
     public void set_manual_mode(boolean b) {
@@ -606,7 +607,7 @@ public class hmi_t extends us.wallet.cli.hmi {
     hash_t wallet_address = null;
     public String subhome = "";
     us.gov.io.types.vector_tuple_hash_host_port seeds;
-    public endpoint_t endpoint = null;
+    public ip4_endpoint_t ip4_endpoint = null;
     boolean manual_mode = false;
 
     sw_updates_t sw_updates = null;

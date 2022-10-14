@@ -42,13 +42,13 @@ us=$str3
 
 echo "================================================================bouncy"
 echo "testing $us-sdk_bc.jar"
-if [ -f $us-sdk_bc.jar ]; then
+if [[ -f $us-sdk_bc.jar ]]; then
     $java -ea -cp $us-sdk-test_bc.jar:libs_bouncy/*:$us-sdk_bc.jar:. main
 fi
 
-echo "================================================================spongy"
-echo "testing $us-sdk_sc.jar"
-if [ -f $us-sdk_sc.jar ]; then
-    $java -ea -cp $us-sdk-test_sc.jar:libs_spongy/*:$us-sdk_sc.jar:. main
-fi
+#echo "================================================================spongy"
+#echo "testing $us-sdk_sc.jar"
+#if [[ -f $us-sdk_sc.jar ]]; then
+#    $java -ea -cp $us-sdk-test_sc.jar:libs_spongy/*:$us-sdk_sc.jar:. main
+#fi
 

@@ -40,14 +40,15 @@ import us.pair;                                                                 
 import java.security.PublicKey;                                                                // PublicKey
 import java.util.Random;                                                                       // Random
 import java.io.UnsupportedEncodingException;                                                   // UnsupportedEncodingException
+import us.wallet.trader.ip4_endpoint_t;                                                  // hash_t
 
 public class gov_client_t extends us.gov.cli.rpc_daemon_t {
 
-    public static void log(final String line) {         //--strip
-        CFG.log_android(line);                          //--strip
-    }                                                   //--strip
+    private static void log(final String line) {         //--strip
+        CFG.log_android(line);                           //--strip
+    }                                                    //--strip
 
-    public gov_client_t(KeyPair k0, endpoint_t ep) {
+    public gov_client_t(KeyPair k0, ip4_endpoint_t ep) {
         super(k0, ep.channel, ep.shostport(), us.gov.id.peer_t.role_t.role_device, null);
     }
 
@@ -77,8 +78,8 @@ public class gov_client_t extends us.gov.cli.rpc_daemon_t {
         return new pair<ko, hostport_t>(r, null);
     }
 
-    public static pair<ko, endpoint_t> lookup_wallet_ip(hash_t wallet_address, KeyPair keys, ArrayList<tuple3<hash_t, host_t, port_t>> nodes, channel_t channel, app.progress_t progress) {
-        pair<ko, endpoint_t> ans = new pair<ko, endpoint_t>(ok, null);
+    public static pair<ko, ip4_endpoint_t> lookup_wallet_ip(hash_t wallet_address, KeyPair keys, ArrayList<tuple3<hash_t, host_t, port_t>> nodes, channel_t channel, app.progress_t progress) {
+        pair<ko, ip4_endpoint_t> ans = new pair<ko, ip4_endpoint_t>(ok, null);
         log("lookup_wallet_ip for " + wallet_address.encode() + " " + " nodes sz " + nodes.size()); //--strip;
         pair<ko, hostport_t> node = get_random_node(nodes);
         if (is_ko(node.first)) {
@@ -87,7 +88,7 @@ public class gov_client_t extends us.gov.cli.rpc_daemon_t {
             return ans;
         }
         progress.on_progress("starting gov client against node " + us.gov.socket.client.endpoint(node.second));
-        gov_client_t cli = new gov_client_t(keys, new endpoint_t(node.second.first, node.second.second, channel));
+        gov_client_t cli = new gov_client_t(keys, new ip4_endpoint_t(node.second.first, node.second.second, channel));
         {
             log("cli.start"); //--strip
             ko r = cli.start();
@@ -125,14 +126,14 @@ public class gov_client_t extends us.gov.cli.rpc_daemon_t {
             return ans;
         }
         ans.first = ok;
-        ans.second = new endpoint_t(r.second.first, r.second.second, channel);
+        ans.second = new ip4_endpoint_t(r.second.first, r.second.second, channel);
         log("solved: " + ans.second.to_string()); //--strip
         progress.on_progress("IP Address found: " + ans.second.to_string());
         return ans;
     }
 
-    public pair<ko, endpoint_t> renew_ip(app.progress_t progress) {
-        return new pair<ko, endpoint_t>(new ko("KO 87962 Not implemented"), null);
+    public pair<ko, ip4_endpoint_t> renew_ip(app.progress_t progress) {
+        return new pair<ko, ip4_endpoint_t>(new ko("KO 87962 Not implemented"), null);
     }
 
 }

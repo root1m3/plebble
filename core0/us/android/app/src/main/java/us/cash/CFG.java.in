@@ -29,7 +29,6 @@ import us.vcs;                                                                  
 
 public final class CFG {
     public static final int mode = ##str43##;
-    public static final port_t walletd_port = new port_t(##str19##);
     //public static final String apkfilename = vcs.brand + "-wallet_android_" + vcs.branch + "_" + vcs.hashname + ".apk";
     public static final String blob_id = "##str56##"; //Branded android app blob_id
     public static final String debug_sk = "##str47##";

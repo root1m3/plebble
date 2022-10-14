@@ -146,6 +146,9 @@ Production releases. alpha
 alpha-44 -
     *
 
+alpha-43-hotfix alpha-43-hotfix_a92ae2e1 2022-10-14_01-29-45 vhash a92ae2e1 <- R 8356c2a80be47418f455e85968aab631f16dc515 alpha-43-hotfix dbg-0 logs-0 counters-0 connlog-0 fcgi-0
+    * Fix connection manager who didn't upgrade correctly from previous versions.
+
 alpha-43 - alpha-43_b8c4e6c3 2022-10-11_17-28-52 vhash b8c4e6c3 <- R 378e6cc5eb3435d4bdc366ba56a481e4c7feaec0 alpha-43 dbg-0 logs-0 counters-0 connlog-0 fcgi-0
     * Improved cbs with more automated steps (80, 90, 99)
     * makefiles adapted for clang

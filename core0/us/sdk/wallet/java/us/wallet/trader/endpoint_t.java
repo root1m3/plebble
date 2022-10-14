@@ -298,8 +298,7 @@ public class endpoint_t implements Comparable<endpoint_t>, us.gov.io.seriable {
         return true;
     }
 
-    @Override
-    public int compareTo(endpoint_t other) {
+    @Override public int compareTo(endpoint_t other) {
         if (pkh.equals(other.pkh) && wloc.equals(other.wloc)) return 0;
         return 1;
     }

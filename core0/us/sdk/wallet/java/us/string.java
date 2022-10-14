@@ -28,13 +28,17 @@ import static us.ko.ok;                                                         
 import us.gov.io.seriable;                                                                     // seriable
 import static us.gov.io.types.blob_t.serid_t;                                                  // serid_t
 
-public class string implements seriable { //extends blob_reader_t.readable {
+public class string implements seriable {
 
     public string() {
     }
 
     public string(String _value) {
         value = _value;
+    }
+
+    public string(string other) {
+        value = other.value;
     }
 
     @Override public serid_t serial_id() { return serid_t.no_header; }

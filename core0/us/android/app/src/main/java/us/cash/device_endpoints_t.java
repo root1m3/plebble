@@ -51,6 +51,8 @@ import java.io.OutputStreamWriter;                                              
 import us.pair;                                                                                // pair
 import static us.gov.io.types.blob_t.serid_t;                                                  // serid_t
 import us.string;                                                                              // string
+import us.wallet.trader.wallet_connection_t;
+import us.wallet.trader.ip4_endpoint_t;
 
 public final class device_endpoints_t extends ArrayList<device_endpoint_t> implements us.gov.io.seriable {
 
@@ -81,8 +83,8 @@ public final class device_endpoints_t extends ArrayList<device_endpoint_t> imple
             log(r.msg); //--strip
             return on;
         }
-        device_endpoint_t device_endpoint = new device_endpoint_t(a, this, home, null, wallet_connection);
-        log("adding default device_endpoint " + device_endpoint.home); //--strip
+        device_endpoint_t device_endpoint = new device_endpoint_t(this, wallet_connection);
+        log("adding default device_endpoint " + device_endpoint.cfg.home); //--strip
         add(device_endpoint);
         on = 0; //index
         return on;
@@ -92,7 +94,7 @@ public final class device_endpoints_t extends ArrayList<device_endpoint_t> imple
         int on = add_default_wallet_connection2();
         if (isEmpty()) {
             log("No valid default connection found."); //--strip
-            add(new device_endpoint_t(a, this, home));
+            add(new device_endpoint_t(this));
             on = -1;
         }
         return on;
@@ -111,6 +113,7 @@ public final class device_endpoints_t extends ArrayList<device_endpoint_t> imple
                 clear();
             }
         }
+
         home = "device_endpoints";
         log("loading configuration. sz=" + size()); //--strip
         pair<ko, Integer> r = load_();
@@ -119,7 +122,7 @@ public final class device_endpoints_t extends ArrayList<device_endpoint_t> imple
             log("load returned empty set"); //--strip
             int on = add_default_wallet_connection();
             set_cur(0);
-            return on; //
+            return on;
         }
         if (is_ko(r.first)) {
             return -1;
@@ -131,10 +134,14 @@ public final class device_endpoints_t extends ArrayList<device_endpoint_t> imple
     public ko erase(int position) {
         device_endpoint_t p = get(position);
         if (p.hmi != null) {
-            return new ko("KO 82711 Cannot delete an active connection.");
+            ko r = new ko("KO 82711 Cannot delete an active connection.");
+            log(r.msg); //--strip
+            return r;
         }
         if (size() < 2) {
-            return new ko("KO 82712 Cannot delete the only existing connection.");
+            ko r = new ko("KO 82712 Cannot delete the only existing connection.");
+            log(r.msg); //--strip
+            return r;
         }
         remove(position);
         save();
@@ -147,17 +154,35 @@ public final class device_endpoints_t extends ArrayList<device_endpoint_t> imple
         cur = get(cur_index.value);
     }
 
-    public boolean new_endpoint() {
+    public ko new_endpoint() {
         log("new_endpoint"); //--strip
         try {
-            add(new device_endpoint_t(a, this, home));
+            add(new device_endpoint_t(this));
         }
         catch (Exception e) {
-            return false;
+            ko r = new ko("KO 82752.");
+            log(r.msg); //--strip
+            return r;
         }
         log("save"); //--strip
         save();
-        return true;
+        return ok;
+    }
+
+    public ko copy_device_endpoint(int ndx) {
+        log("copy_endpoint " + ndx); //--strip
+        device_endpoint_t dep = get(ndx);
+        try {
+            add(new device_endpoint_t(dep));
+        }
+        catch (Exception e) {
+            ko r = new ko("KO 82762.");
+            log(r.msg); //--strip
+            return r;
+        }
+        log("save"); //--strip
+        save();
+        return ok;
     }
 
     private pair<ko, Integer> import_old_settings(Context ctx) {
@@ -166,6 +191,7 @@ public final class device_endpoints_t extends ArrayList<device_endpoint_t> imple
             log("No prev setings found"); //--strip
             return r;
         }
+        //log("################## I'd delete file node_settings.json"); //--strip
         cfg_android_private_t.delete_file(ctx, "", "node_settings.json");
         return r;
     }
@@ -314,8 +340,10 @@ public final class device_endpoints_t extends ArrayList<device_endpoint_t> imple
                 ts.value = o.getLong("ts");
                 ssid.value = o.getString("ssid");
                 log("loaded new device_endpoint_t " + nm.value); //--strip
-                add(new device_endpoint_t(a, this, k_b58, home, new wallet_connection_t(ts, addr, nm, ssid, new endpoint_t(new shost_t(x), new port_t(p), new channel_t(ch)))));
+                device_endpoint_t d = new device_endpoint_t(this, k_b58, new wallet_connection_t(ts, addr, nm, ssid, new ip4_endpoint_t(new shost_t(x), new port_t(p), new channel_t(ch))));
+                add(d);
                 if (power == 1) {
+                    d.hmi_req_on = true;
                     pwr = size() - 1;
                     log("power is ON on pos " + pwr); //--strip
                 }
@@ -380,7 +408,7 @@ public final class device_endpoints_t extends ArrayList<device_endpoint_t> imple
         try {
             for (long i = 0; i < sz.value; ++i) {
                 log("loading item " + i); //--strip
-                device_endpoint_t device_endpoint = new device_endpoint_t(a, this, home, 1);
+                device_endpoint_t device_endpoint = new device_endpoint_t(this, 1);
                 {
                     ko r = reader.read(device_endpoint);
                     if (is_ko(r)) {
@@ -388,7 +416,7 @@ public final class device_endpoints_t extends ArrayList<device_endpoint_t> imple
                         return r;
                     }
                 }
-                log("adding device_endpoint " + device_endpoint.home); //--strip
+                log("adding device_endpoint " + device_endpoint.cfg.home); //--strip
                 add(device_endpoint);
             }
         }
