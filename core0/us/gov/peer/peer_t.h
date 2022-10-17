@@ -55,9 +55,11 @@ namespace us::gov::peer {
         constexpr static ts_t maxidle_ms{180000};
         static const char* finished_reason_1;
 
+    public:
         peer_t(daemon_t&, sock_t sock);
         ~peer_t() override;
 
+    public:
         ko connect(const hostport_t&, pport_t, pin_t, role_t, bool block) final override;
         using b::disconnect;
         void disconnectx(channel_t, seq_t, const reason_t&) override;
@@ -66,7 +68,7 @@ namespace us::gov::peer {
         bool check_auth_not_granted() const;
         bool check_idle() const;
         void dump(const string& prefix, ostream&) const;
-        ko authorizeX(const pub_t&, pin_t) override;
+        ko authorize(const pub_t&, pin_t) override;
         bool process_work(datagram*) override;
 
     public:

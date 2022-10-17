@@ -34,7 +34,7 @@ namespace us::gov::engine {
 
         using b::rpc_peer_t;
 
-        inline ko authorizeX(const pub_t&, pin_t) override { return ok; }
+        inline ko authorize(const pub_t&, pin_t) override { return ok; }
         bool process_work(datagram*) override;
         void dump(const string& prefix, ostream&) const;
         void dump_all(const string& prefix, ostream&) const override;

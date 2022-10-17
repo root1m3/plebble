@@ -64,7 +64,7 @@ ko c::connect(const hostport_t& hostport, pport_t pport, pin_t pin, role_t role,
     return r;
 }
 
-ko c::authorizeX(const pub_t& p, pin_t) {
+ko c::authorize(const pub_t& p, pin_t) {
     log("authorize", p);
     #ifdef CFG_TOPOLOGY_RING
         const daemon_t& d = static_cast<daemon_t&>(daemon);

@@ -114,7 +114,7 @@ bool c::process_work(datagram* d) {
     return false;
 }
 
-ko c::authorizeX(const pub_t& p, pin_t pin) {
+ko c::authorize(const pub_t& p, pin_t pin) {
     log("authorize", p, pin);
     if (is_role_peer() || is_role_sysop()) {
         log("role peer or sysop", "authorized", is_role_peer(), is_role_sysop());
@@ -122,7 +122,7 @@ ko c::authorizeX(const pub_t& p, pin_t pin) {
     }
     if (is_role_device()) {
         log("role device");
-        auto r = static_cast<daemon_t&>(daemon).authorize_deviceX(p, pin);
+        auto r = static_cast<daemon_t&>(daemon).authorize_device(p, pin);
         if (is_ko(r.first)) {
             return r.first;
         }

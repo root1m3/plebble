@@ -66,26 +66,33 @@ public final class device_endpoints_t extends ArrayList<device_endpoint_t> imple
         a = a_;
     }
 
-    int add_default_wallet_connection2() throws Exception {
-        int on = -1;
+    device_endpoint_t defdep() {
         if (CFG.default_wallet_connection.isEmpty()) {
-            return on;
+            return null;
         }
         blob_t blob = new blob_t(base58.decode(CFG.default_wallet_connection));
         if (blob.value == null) {
             log("default connection blob is null"); //--strip
-            return on;
+            return null;
         }
         wallet_connection_t wallet_connection = new wallet_connection_t();
         blob_reader_t reader = new blob_reader_t(blob);
         ko r = reader.read(wallet_connection);
         if (is_ko(r)) {
             log(r.msg); //--strip
+            return null;
+        }
+        return new device_endpoint_t(this, wallet_connection);
+    }    
+
+    int add_default_wallet_connection2() throws Exception {
+        int on = -1;
+        device_endpoint_t dd = defdep();
+        if (dd == null) {
             return on;
         }
-        device_endpoint_t device_endpoint = new device_endpoint_t(this, wallet_connection);
-        log("adding default device_endpoint " + device_endpoint.cfg.home); //--strip
-        add(device_endpoint);
+        log("adding default device_endpoint " + dd.cfg.home); //--strip
+        add(dd);
         on = 0; //index
         return on;
     }
@@ -98,6 +105,13 @@ public final class device_endpoints_t extends ArrayList<device_endpoint_t> imple
             on = -1;
         }
         return on;
+    }
+
+    public void add_default_wallet_connection_off() {
+        device_endpoint_t dd = defdep();
+        if (dd == null) return;
+        dd.hmi_req_on = false;
+        add(dd);
     }
 
     public int init() throws Exception {

@@ -182,15 +182,43 @@ public class activity extends AppCompatActivity implements NavigationView.OnNavi
         }, 2000);
     }
 
+    public void start_hmi(int conf_index) {
+        app.progress_t progress = new app.progress_t() {
+            @Override public void on_progress(final String report) {
+                runOnUiThread(new Runnable() {
+                    @Override public void run() {
+                        Toast.makeText(activity.this, report, 6000).show();
+                    }
+                });
+            }
+        };
+        a.HMI_power_on(conf_index, new pin_t(0), progress);
+        Timer timer = new Timer();
+        timer.schedule(new TimerTask() {
+          @Override public void run() {
+            runOnUiThread(new Runnable() {
+                @Override public void run() {
+                    log("Saving settings"); //--strip
+                    a.device_endpoints.save();
+                    refresh();
+                }
+            });
+          }
+        }, 3000);
+    }
+
     private void set_menu(int res_menu) {
         log("set_menu " + res_menu); //--strip
+        log("clear menu"); //--strip
         navigation.getMenu().clear();
         if (res_menu > 0) {
+            log("set menu " + res_menu); //--strip
             navigation.inflateMenu(res_menu);
         }
     }
 
     public void refresh() {
+        log("refresh"); //--strip
         set_menu(menuid());
     }
 
@@ -208,8 +236,6 @@ public class activity extends AppCompatActivity implements NavigationView.OnNavi
     public void launch_myqr() {
         log("menu myqr"); //--strip
         Intent intent = new Intent(this, endpoint.class);
-    //                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NO_HISTORY);
-        //intent.putExtra("prying_eyes", true);
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NO_HISTORY);
         startActivity(intent);
     }
@@ -217,7 +243,6 @@ public class activity extends AppCompatActivity implements NavigationView.OnNavi
     public void launch_position() {
         log("menu position"); //--strip
         Intent intent = new Intent(this, position.class);
-    //                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NO_HISTORY);
         startActivity(intent);
     }
 
@@ -266,10 +291,13 @@ public class activity extends AppCompatActivity implements NavigationView.OnNavi
         switch (item_id) {
             case R.id.mainmenu:
                 Intent intent = new Intent(activity.this, main_activity.class);
-//                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NO_HISTORY);
                 intent.setAction(Intent.ACTION_MAIN);
                 intent.addCategory(Intent.CATEGORY_LAUNCHER);
                 startActivity(intent);
+                break;
+
+            case R.id.nav_manage_connections:
+                manage_connections();
                 break;
 
             case R.id.nav_close:
@@ -302,13 +330,11 @@ public class activity extends AppCompatActivity implements NavigationView.OnNavi
                     a.HMI_power_on(new pin_t(0), progress);
                     break;
 */
-                case R.id.nav_manage_connections:
-                    manage_connections();
-                    break;
-
+/*
                 case R.id.nav_newconnection:
                     new_connection();
                     break;
+*/
 
                 case R.id.nav_language:
                     launch_language();

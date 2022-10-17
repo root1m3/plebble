@@ -294,7 +294,7 @@ socket::client* c::create_client(sock_t sock) {
     return new peer_t(*this, sock);
 }
 
-pair<ko, string> c::authorize_deviceX(const pub_t& p, pin_t pin) {
+pair<ko, string> c::authorize_device(const pub_t& p, pin_t pin) {
     log("is device authorized?", pin);
     return devices.authorizeX(p, pin);
 }

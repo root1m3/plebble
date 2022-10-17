@@ -214,16 +214,44 @@ public final class connections extends activity {
     }
 
     public void show_menu(final int pos, final String name) {
-        String[] options = {"Edit entry", "Delete", "Copy", a.getResources().getString(R.string.cancel)};
+        String onoff_hmi;
+        if (a.hmi == null) {
+            onoff_hmi = "Turn ON";
+        }
+        else {
+            onoff_hmi = "Turn OFF";
+        }
+        String[] options;
+        if (CFG.default_wallet_connection.isEmpty()) {
+            options = new String[]{onoff_hmi, "Edit connection", "Delete connection", "Copy into a new connection", a.getResources().getString(R.string.cancel)};
+        }
+        else {
+            String txt = "New custodial wallet.";
+            if (!CFG.custodial_wallet_host.isEmpty()) {
+                txt += " (hosted at " + CFG.custodial_wallet_host + ")";
+            }
+            options = new String[]{onoff_hmi, "Edit connection", "Delete connection", "Copy into a new connection", txt, a.getResources().getString(R.string.cancel)};
+        }
         final connections i = this;
         new AlertDialog.Builder(this).setTitle(name)
                 .setItems(options, new DialogInterface.OnClickListener() {
                     @Override public void onClick(DialogInterface dialog, int which) {
                         switch(which) {
                             case 0:
+                                if (a.hmi != null) {
+                                    log("stop HMI"); //--strip
+                                    stop_hmi();
+                                }
+                                else {
+                                    log("start HMI"); //--strip
+                                    start_hmi(pos);
+                                }
+                                break;
+
+                            case 1:
                                 i.select_device_endpoint2(pos);
                                 break;
-                            case 1:
+                            case 2:
                                 {
                                     ko r = i.a.device_endpoints.erase(pos);
                                     if (is_ko(r)) {
@@ -234,7 +262,7 @@ public final class connections extends activity {
                                     }
                                     break;
                                 }
-                            case 2:
+                            case 3:
                                 {
                                     ko r = i.a.device_endpoints.copy_device_endpoint(pos);
                                     if (is_ko(r)) {
@@ -245,7 +273,14 @@ public final class connections extends activity {
                                     }
                                     break;
                                 }
-                            case 3:
+                            case 4:
+                                {
+                                    if (!CFG.custodial_wallet_host.isEmpty()) {
+                                        a.device_endpoints.add_default_wallet_connection_off();
+                                        refresh();
+                                    }
+                                }
+                            case 5:
                         }
                     }
                 })

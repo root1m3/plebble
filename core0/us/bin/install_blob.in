@@ -26,7 +26,7 @@
 # ##str2##
 # ##str63##
 # ##str64##
-# 
+#
 # system install/update/uninstall and maintenance utilities
 ###########################################################
 
@@ -107,6 +107,11 @@ function do_help {
     echo "  publish                  Write a copy of the blob in downloads dir, omiting the instalation."
     echo "  resolve_blob             Finds blob asking peers."
     echo "  scan                     Poll nodes about latest blob."
+    echo "Blob Explore:"
+    echo "  decompress <dir>         Unbox the blob into given dir."
+    echo "  decompress_r2r <dir>     Unbox the blob into given r2r libs."
+
+
     echo "  help                     Print this."
     echo ""
     if [[ -f ${JAILDIR}/var/${US}/installed_blob__pinned ]]; then
@@ -263,6 +268,68 @@ function do_bootstrap_home {
     fi
     echo "TODO: bash_aliases, .us/config, wallet rpc device, downloads dir, rest dir"
     exit 1
+}
+
+function do_decompress {
+    dir=$1
+    if [[ -d $dir ]]; then
+        echo "KO 89783 Directory $dir exists."
+        exit 1
+    fi
+    mkdir $dir
+    bl=`realpath $blob`
+    pushd $dir > /dev/null
+        tar -I zstd -xf $bl
+        dirb=`ls -1`
+        pushd "$dirb" > /dev/null
+            pwd
+        popd > /dev/null
+    popd > /dev/null
+    exit 0
+}
+
+function do_decompress_r2r {
+    dir=$1
+    arch=`uname -m`
+    pwd=""
+    let fail=0
+    if [[ ! -d $dir ]]; then
+        mkdir $dir
+        bl=`realpath $blob`
+        pushd $dir > /dev/null
+            tar -I zstd -xf $bl
+            dirb=`ls -1`
+            pushd "$dirb/lib" > /dev/null
+                if [[ ! -d $arch ]]; then
+                    echo "KO 89788 $arch not supported."
+                    let fail=1        
+                else
+                    pushd "$arch/r2r" > /dev/null
+                        for l in `ls -1 *.tzst`; do
+                            tar -I zstd -xf $l
+                        done
+                        rm *.tzst
+                    popd > /dev/null
+                fi
+            popd > /dev/null
+        popd > /dev/null
+    else
+        pushd $dir > /dev/null
+            dirb=`ls -1`
+        popd > /dev/null
+    fi
+    if [[ $fail -eq 1 ]]; then
+        rm $dir -r
+        exit 1
+    fi
+    pushd "$dir/$dirb/lib/$arch/r2r" > /dev/null
+        pwd=`pwd`
+    popd > /dev/null
+    d="$dir/$dirb/lib/$arch/r2r"
+    echo ""
+    echo "pushd $d"
+    ls -la $d
+    exit 0
 }
 
 function extract_src_from_blob {
@@ -479,10 +546,10 @@ function init_jail {
     mkdir -p ${JAILDIR}/usr/bin
     if [[ -f /usr/bin/zstd ]]; then
         touch ${JAILDIR}/usr/bin/zstd
-    fi    
+    fi
     if [[ -f /usr/bin/tor ]]; then
         touch ${JAILDIR}/usr/bin/tor
-    fi    
+    fi
     if [[ -f /etc/apt/sources.list ]]; then
         mkdir -p ${JAILDIR}/etc/apt
         cp /etc/apt/sources.list ${JAILDIR}/etc/apt/
@@ -535,7 +602,7 @@ function test_os_apt {
             echo "Error: Running on sid (unstable)."
             echo "This installer contains binaries for the stable distribution."
             echo "If you want to run a node on sid you'd have to build from sources."
-            exit 1            
+            exit 1
         else
             echo "Info: System needs apt distr-upgrade and reboot."
             let runapt=1
@@ -919,7 +986,7 @@ function post_install {
     echo "#!/bin/bash" > ${JAILDIR}/tmp/post-install_blob
     chmod +x ${JAILDIR}/tmp/post-install_blob
 
-    echo "chown ${GOVUSER}.${GOVUSER} /home/${GOVUSER}/.${US}" >> ${JAILDIR}/tmp/post-install_blob
+    echo "chown ${GOVUSER}:${GOVUSER} /home/${GOVUSER}/.${US}" >> ${JAILDIR}/tmp/post-install_blob
     date
     echo "Installed $US blob $blob at ${JAILDIR}/"
     echo ""
@@ -957,7 +1024,7 @@ function cleanup_oldstuff {
     #rm -f ${JAILDIR}/var/www/us_anon/geonodes.jpg
     #rm -f ${JAILDIR}/var/www/us_anon/us-c.png
     #rm -f ${JAILDIR}/home/${GOVUSER}/.${US}/wallet/trader/lib${US}trader-pat*.so
-    #chown root.root /home
+    #chown root:root /home
 }
 
 function do_install {
@@ -986,7 +1053,7 @@ function do_install {
     if [[ $? -ne 0 ]]; then
         echo "KO 76986"
         return 1
-    fi    
+    fi
 
     echo "do_publish2"
     do_publish2
@@ -1005,7 +1072,7 @@ function do_install_core0_deps {
     opts="--only-install-deps "
     echo "Installing deps $US blob $blob_local_file"
     do_make apply_blob $opts
-    return $?            
+    return $?
 }
 
 function do_uninstall {
@@ -1059,6 +1126,14 @@ function exec_cmd20 {
         print_seeds
     elif [[ "_$cmd" == "_print_blob" ]]; then
         print_blob
+    elif [[ "_$cmd" == "_decompress" ]]; then
+        where=$1
+        shift
+        do_decompress $where
+    elif [[ "_$cmd" == "_decompress_r2r" ]]; then
+        where=$1
+        shift
+        do_decompress_r2r $where
     else
         do_help
         echo "KO 86756 Invalid command $cmd."
@@ -1067,6 +1142,6 @@ function exec_cmd20 {
     return $?
 }
 
-exec_cmd20
+exec_cmd20 ${cmdargs}
 exit $?
 

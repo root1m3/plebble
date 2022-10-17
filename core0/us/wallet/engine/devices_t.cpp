@@ -65,62 +65,6 @@ void c::save() const {
     save_();
 }
 
-/*
-void c::load_v1_() {
-    clear();
-    ifstream is(home + "/d");
-    log("loading authorized devices", home + "/d");
-    string ver;
-    is >> ver;
-    log("devices file version", ver);
-    //bool prev = false;
-//    if (ver.empty()) {
-//    }
-//        if (ver[0] != '1') {
-//            log("prev mode");
-//            prev = true;
-//        }
-//    }
-    while (is.good()) {
-        //std::pair<ko, device_t> d;
-        //if (prev) {
-        //    d = device_t::from_stream_prev(is);
-        //}
-        //else {
-        auto d = device_t::from_streamX(is);
-        //}
-        if (is_ko(d.first)) {
-            log("error loading device.");
-            break;
-        }
-        if (!d.second.pub.valid) {
-            prepaired.emplace(d.second.decode_pin(), d.second);
-            continue;
-        }
-        log("loaded device pubkey:", d.second.pub, "name:", d.second.name, "subhome:", d.second.subhome);
-        emplace(d.second.pub.hash(), d.second);
-    }
-    if (empty()) {
-        log("white list is empty", "adding console key");
-        using io::cfg_id;
-        auto f = cfg_id::load(home + "/rpc_client", true);
-        if (is_ko(f.first)) {
-            cerr << (const char*)f.first << '\n';
-            exit(1);
-        }
-        emplace(f.second->keys.pub.hash(), device_t(f.second->keys.pub, "", "console"));
-        log("added", f.second->keys.pub);
-        save_();
-        delete f.second;
-        return;
-    }
-//    if (prev) {
-//        save_();
-//        return;
-//    }
-}
-*/
-
 ko c::load_() {
     string filename = home + "/d";
     clear();
@@ -145,7 +89,6 @@ ko c::load_() {
         assert(eol.empty());
     }
     while (is.good()) {
-        //std::pair<bool, device_t> d;
         auto d = device_t::from_streamX(is);
         if (is_ko(d.first)) {
             log("error loading device.", d.first);
@@ -414,7 +357,7 @@ void c::dump(ostream& os) const {
         os << '\n';
         os << "Pairing configuration:\n";
         os << "----------------------\n";
-        os << "  Automatic authorization (without PIN): " << (authorize_and_create_guest_wallet ? "ON" : "OFF") << '\n';
+        os << "  Automatic authorization (w/o PIN) + custodial wallet: " << (authorize_and_create_guest_wallet ? "ON" : "OFF") << '\n';
         os << "  Consume PIN once used: " << (consume_pin ? "ON" : "OFF") << '\n';
     }
     os << '\n';

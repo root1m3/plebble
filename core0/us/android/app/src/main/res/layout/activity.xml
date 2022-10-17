@@ -30,6 +30,5 @@
         app:itemIconTint="@drawable/drawer_item"
         app:itemTextColor="@drawable/drawer_item"
         />
-<!-- app:menu="@menu/activity_home_navigation" -->
 </androidx.drawerlayout.widget.DrawerLayout>
 

@@ -122,7 +122,7 @@ ko c::command(const string& cmdline, ostream& os) {
     return command(is, os);
 }
 
-struct test_client: peer_t {
+struct test_client final: peer_t {
     using b = peer_t;
 
     test_client(net_daemon_t& d, ostream& fos): b(d, -1) {
@@ -154,8 +154,8 @@ struct test_client: peer_t {
         *os << "added to grid\n";
     }
 
-    ko authorizeX(const pub_t& p, pin_t pin) override {
-        auto r = b::authorizeX(p, pin);
+    ko authorize(const pub_t& p, pin_t pin) override {
+        auto r = b::authorize(p, pin);
         *os << "authorize? " << (r == ok ? "ok" : r) << '\n';
         return r;
     }

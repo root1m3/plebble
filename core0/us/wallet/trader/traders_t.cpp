@@ -99,19 +99,6 @@ c::libs_t::~libs_t() {
     for (auto& i: *this) delete i.second;
 }
 
-/*
-std::pair<ko, us::wallet::trader::trader_protocol*> c::libs_t::create_protocol(protocol_selection_t&& protocol_selection) {
-    log("libs_t::create_protocol", protocol_selection.to_string());
-    auto i = find(protocol_selection);
-    if (i == end()) {
-        auto r = "KO 7895 Protocol not available";
-        log(r);
-        return make_pair(r, nullptr);
-    }
-    return i->second->business->create_protocol();
-}
-*/
-
 std::pair<ko, us::wallet::trader::trader_protocol*> c::libs_t::create_opposite_protocol(protocol_selection_t&& protocol_selection) {
     log("libs_t::create_opposite_protocol", protocol_selection.to_string());
     for (auto& i: *this) {
@@ -1089,7 +1076,7 @@ ko c::from_blob(blob_reader_t& reader) {
 }
 
 string c::sername() const {
-    return home + "/active" + "_off";
+    return home + "/active";
 }
 
 void c::load_state_() {
@@ -1107,7 +1094,7 @@ void c::load_state() {
 
 void c::save_state_() const { //assume mx is taken
     log("saving active trades");
-    auto r = save(sername());
+    auto r = save(sername() + "_off"); // TODO: re-enable trades persistence
     if (is_ko(r)) {
         log("active trades could not be saved", sername());
     }

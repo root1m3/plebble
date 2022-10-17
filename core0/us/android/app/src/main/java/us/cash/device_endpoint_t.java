@@ -54,22 +54,6 @@ public final class device_endpoint_t extends wallet_connection_t implements hmi_
         cfg = null;
     }
 
-/*
-    public device_endpoint_t(app a_, device_endpoints_t parent_, String home0_) throws Exception {
-        a = a_;
-        parent = parent_;
-        hmi = null;
-        KeyPair keys = ec.instance.generate_keypair();
-        if (keys == null) {
-            ko r = new ko("KO 86964");
-            log(r.msg); //--strip
-            throw new Exception(r.msg);
-        }
-        set_home(home0_, keys);
-        cfg = new cfg_android_private_t(a.getApplicationContext(), keys.getPrivate(), home);
-    }
-*/
-
     public device_endpoint_t(device_endpoints_t parent_, String k_b58, wallet_connection_t wallet_connection) {
         super(wallet_connection);
         parent = parent_;
@@ -101,31 +85,7 @@ public final class device_endpoint_t extends wallet_connection_t implements hmi_
         cfg.home = get_home();
     }
 
-/*
-    String pubkey_str(String k_b58) {
-        KeyPair keys;
-        if (k_b58 != null && !k_b58.isEmpty()) {
-            keys = ec.instance.generate_keypair(k_b58);
-        }
-        else {
-            keys = null;
-        }
-        if (keys == null) {
-            return null;
-        }
-        return us.gov.crypto.ec.instance.to_address(keys.getPublic()).encode();
-    }
-
-    String get_home(String k_b58) throws Exception {
-        String pub = pubkey_str(k_b58);
-        if (pub == null) return null;
-        if (pub.isEmpty()) return null;
-        return parent.home + "/" + pub;
-    }
-*/
     String get_home() {
-        //String pub = pubkey_str(k_b58);
-        //if (pub == null) return null;
         return parent.home + "/" + us.gov.crypto.ec.instance.to_encoded_address(cfg.keys.getPublic());
     }
 

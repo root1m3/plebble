@@ -21,11 +21,11 @@
 //===----------------------------------------------------------------------------
 //===-
 package us.gov.crypto;
-import org.spongycastle.util.Arrays;                                                           // Arrays
-import org.spongycastle.jce.provider.BouncyCastleProvider;                                     // BouncyCastleProvider
+import org.bouncycastle.util.Arrays;                                                           // Arrays
+import org.bouncycastle.jce.provider.BouncyCastleProvider;                                     // BouncyCastleProvider
 import us.CFG;                                                                                 // CFG
 import javax.crypto.Cipher;                                                                    // Cipher
-import org.spongycastle.math.ec.ECPoint;                                                       // ECPoint
+import org.bouncycastle.math.ec.ECPoint;                                                       // ECPoint
 import java.security.GeneralSecurityException;                                                 // GeneralSecurityException
 import javax.crypto.spec.IvParameterSpec;                                                      // IvParameterSpec
 import java.security.KeyPair;                                                                  // KeyPair

@@ -87,7 +87,7 @@ bool c::process_work(datagram* d) {
     return false;
 }
 
-ko c::authorizeX(const pub_t& p, pin_t pin) {
+ko c::authorize(const pub_t& p, pin_t pin) {
     log("authorize?", endpoint(), sock, p, pin);
     if (unlikely(engine_daemon().db->auth_app->node_pubkey != p)) {
         return ok; //Any pubkey is welcome in the public protocol

@@ -80,6 +80,12 @@ if [[ -f /home/${USER}/.bashrc ]]; then
 fi
 
 rm -f /etc/nginx/sites-enabled/${US}.conf
+if [[ -f /etc/nginx/sites-available/${US}.conf ]]; then
+    au=`cat /etc/nginx/sites-available/${US}.conf | grep "^#--${US}: AUTOUPDATE " | sed "s/.*AUTOUPDATE \([01]\).*/\1/"`
+    if [[ "_$au" == "_1" ]]; then
+        rm -f /etc/nginx/sites-available/${US}.conf
+    fi
+fi
 
 rm -f /etc/${US}/config
 rm -f /etc/systemd/system/${US}-wallet.service

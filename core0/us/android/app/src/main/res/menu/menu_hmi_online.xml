@@ -22,7 +22,11 @@
 
     <group android:checkableBehavior="single" android:id="@+id/group6">
         <item android:id="@+id/nav_updateavailable" android:icon="@drawable/ic_update" android:title="@string/updatesareavailable" android:visible="false"/>
+        <item android:id="@+id/nav_manage_connections" android:icon="@drawable/ic_chat" android:title="Manage connections" />
         <item android:id="@+id/nav_stophmi" android:icon="@drawable/ic_node_idle" android:title="Stop HMI" />
+    </group>
+
+    <group android:checkableBehavior="single" android:id="@+id/group7">
         <item android:id="@+id/nav_about" android:icon="@drawable/ic_pill" android:title="About..." />
         <item android:id="@+id/nav_exit" android:icon="@drawable/ic_exit" android:title="@string/exit" />
     </group>

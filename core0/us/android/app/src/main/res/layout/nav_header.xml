@@ -16,12 +16,14 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="horizontal">
+
         <androidx.appcompat.widget.AppCompatImageView
             android:layout_width="90dp"
             android:layout_height="90dp"
             android:layout_gravity="left"
             android:layout_marginRight="18dp"
             android:src="@raw/icoapp"/>
+
         <androidx.appcompat.widget.LinearLayoutCompat
             android:layout_width="match_parent"
             android:layout_height="match_parent"
@@ -34,12 +36,15 @@
                 android:textSize="20dp"
                 android:text="@string/app_name"
                 android:textAppearance="@style/Base.TextAppearance.AppCompat.Medium.Inverse" />
+
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:paddingTop="@dimen/activity_vertical_margin"
                 android:text="@string/brandbusiness"
                 android:textAppearance="@style/Base.TextAppearance.AppCompat.Small.Inverse" />
+
         </androidx.appcompat.widget.LinearLayoutCompat>
     </androidx.appcompat.widget.LinearLayoutCompat>
 </LinearLayout>
+

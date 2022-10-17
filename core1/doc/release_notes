@@ -143,8 +143,13 @@ Production releases. beta
 Production releases. alpha
 --------------------------
 
-alpha-44 -
+alpha-45 - 
     *
+
+alpha-44 - alpha-44_df81d7f9 2022-10-16_23-40-43 vhash df81d7f9 <- R 8441112a2a1c01b2be0ca8ba3fd1f1429347957b alpha-44 dbg-0 logs-0 counters-0 connlog-0 fcgi-0
+    * walletd. Automatic creation and initialization of guest wallets (custodial) upon connections of new RPC frontend devices.
+    * r2r pat2slt level 2, human chat.
+    * improved blob install scripts
 
 alpha-43-hotfix alpha-43-hotfix_a92ae2e1 2022-10-14_01-29-45 vhash a92ae2e1 <- R 8356c2a80be47418f455e85968aab631f16dc515 alpha-43-hotfix dbg-0 logs-0 counters-0 connlog-0 fcgi-0
     * Fix connection manager who didn't upgrade correctly from previous versions.

@@ -54,7 +54,7 @@ namespace us::test {
 
             bool process_work(datagram* d) override;
             void verification_completed(pport_t rpport, pin_t pin) override;
-            ko authorizeX(const pub_t&, pin_t) override;
+            ko authorize(const pub_t&, pin_t) override;
 
         };
 
@@ -62,9 +62,12 @@ namespace us::test {
         static constexpr int govport{22222};
         static constexpr const char* govaddr{"127.0.0.1"};
 
+    public:
         networking(us::gov::crypto::ec::keys& k, uint16_t port, ostream& os);
         networking(us::gov::crypto::ec::keys& k, uint16_t port, const vector<pair<uint32_t, uint16_t>>& sn, int workers, ostream&);
         void constructor();
+
+    public:
         bool wait_rnd_before_start() const override;
         us::ko start();
         void start_load(const string& logdir);

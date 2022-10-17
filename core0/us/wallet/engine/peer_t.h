@@ -49,7 +49,7 @@ namespace us::wallet::engine {
         ~peer_t() override;
 
         void verification_completed(pport_t, pin_t) override;
-        ko authorizeX(const pub_t&, pin_t) override;
+        ko authorize(const pub_t&, pin_t) override;
         bool process_work(datagram*) override;
         bool process_work__engine(datagram*);
         bool process_work__pairing(datagram*);

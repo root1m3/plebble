@@ -44,7 +44,7 @@ function cleanup {
 }
 
 function gov_owns {
-    chown ${USR}.${USR} $datadir -R
+    chown ${USR}:${USR} $datadir -R
 }
 
 function nodes_auto {

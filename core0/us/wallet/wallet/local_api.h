@@ -41,7 +41,7 @@ namespace us::wallet::trader {
 
 namespace us::wallet::wallet {
 
-    struct local_api: algorithm, handler_api {
+    struct local_api final: algorithm, handler_api {
         using w = algorithm;
         using daemon_t = engine::daemon_t;
         using track_status_t = us::gov::engine::track_status_t;

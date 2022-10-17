@@ -295,8 +295,8 @@ if [ "_$target" == "_install" ]; then
 
         # post-install
         cat << EOF >> ${JAILDIR}/tmp/post-install
-chown ${GOVUSER}.${GOVUSER} /var/log/${US} -R
-chown ${GOVUSER}.${GOVUSER} ${DATADIR0} -R
+chown ${GOVUSER}:${GOVUSER} /var/log/${US} -R
+chown ${GOVUSER}:${GOVUSER} ${DATADIR0} -R
 EOF
 
         # exec post-install
@@ -364,7 +364,7 @@ if [ "_$target" == "_install-system-base" ]; then
             cat << EOF >> ${JAILDIR}/tmp/post-install-system-base
 adduser --disabled-password --gecos "" $GOVUSER
 echo "$GOVUSER:${gov_passwd}" | chpasswd
-#chown $GOVUSER.$GOVUSER /var/${GOVUSER}_changepass
+#chown $GOVUSER:$GOVUSER /var/${GOVUSER}_changepass
 #chmod 400 /var/${GOVUSER}_changepass
 EOF
         else
@@ -466,8 +466,8 @@ EOF
 
         # /home/gov/downloads
         mkdir -p ${JAILDIR}${GOVHOME}/downloads
-        echo "chown ${GOVUSER}.${GOVUSER} ${GOVHOME}/ -R" >> ${JAILDIR}/tmp/post-install-system-base
-        echo "chown ${GOVUSER}.${GOVUSER} ${GOVHOME}/.[^.]* -R" >> ${JAILDIR}/tmp/post-install-system-base
+        echo "chown ${GOVUSER}:${GOVUSER} ${GOVHOME}/ -R" >> ${JAILDIR}/tmp/post-install-system-base
+        echo "chown ${GOVUSER}:${GOVUSER} ${GOVHOME}/.[^.]* -R" >> ${JAILDIR}/tmp/post-install-system-base
         #TODO remove this fix. v alpha-29.20 chowned gov all dirs under /home
         for f in `find /home -maxdepth 1 -mindepth 1 -type d`; do
            n=$(basename $f)
@@ -535,7 +535,7 @@ EOF
 
             cat << EOF >> ${JAILDIR}/tmp/post-install-system-base
 chmod 700 -R /var/lib/tor/${US}_hidden
-chown debian-tor.debian-tor /var/lib/tor/${US}_hidden -R
+chown debian-tor:debian-tor /var/lib/tor/${US}_hidden -R
 systemctl restart tor
 EOF
         else
@@ -601,7 +601,7 @@ EOF
         rm $tf
 
         cat << EOF >> ${JAILDIR}/tmp/post-install-system-base
-chown ${GOVUSER}.${GOVUSER} /var/log/${US} -R
+chown ${GOVUSER}:${GOVUSER} /var/log/${US} -R
 systemctl enable nginx
 systemctl restart nginx
 if [[ -f /usr/sbin/ldconfig ]]; then

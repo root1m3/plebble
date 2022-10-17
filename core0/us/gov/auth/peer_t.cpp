@@ -48,7 +48,7 @@ void c::verification_completed(pport_t rpport, pin_t pin) {
     #if CFG_COUNTERS == 1
         ++counters.successful_verifications;
     #endif
-    auto r = authorizeX(pubkey, pin);
+    auto r = authorize(pubkey, pin);
     if (unlikely(is_ko(r))) {
         #if CFG_COUNTERS == 1
             ++counters.failed_authorizations;
