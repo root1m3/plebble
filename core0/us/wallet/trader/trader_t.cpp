@@ -95,11 +95,18 @@ ko c::permission_bootstrap(const peerid_t& peerid) const {
     return ok;
 }
 
-ko c::boot(const hash_t& trade_id, wallet::local_api& wallet) {
+ko c::boot(size_t utid, wallet::local_api& wallet) {
     log("boot 0", "TRACE 8c");
     delete bootstrapper;
     bootstrapper = nullptr;
-    init(trade_id, remote_endpoint, wallet);
+    load_state(utid);
+    assert(id.is_not_zero());
+    if (utid != traders_t::get_utid(id, wallet)) {
+        auto r = "KO 87997 utid doesn't match.";
+        log(r);
+        return r;
+    }
+    init(id, remote_endpoint, wallet);
     olog("boot from state read from disk.");
     return ok;
 }
@@ -119,14 +126,8 @@ pair<ko, hash_t> c::boot(const peerid_t& peerid, bootstrapper_t* bs) {
     return bootstrapper->start(*this);
 }
 
-/*
-void c::on_start() {
-    b::on_start();
-}
-*/
-
 void c::init(const hash_t& tid, const endpoint_t& rep, wallet::local_api& wallet) {
-    log("init", "TRACE 8c", tid, "ep", rep.to_string(), "subhome", wallet.subhome);
+    log("init", "TRACE 8c", tid, "ep", rep.to_string(), "subhome", wallet.subhome, "w", &wallet);
     remote_endpoint = rep;
     log("init", "remote_endpoint", remote_endpoint.to_string());
     w = &wallet;
@@ -139,9 +140,7 @@ void c::init(const hash_t& tid, const endpoint_t& rep, wallet::local_api& wallet
         log("datasubdir was empty.", "Now is", datasubdir);
     }
     id = tid;
-    load_state();
     if (need_init()) { //olog decides
-//        assert(id == tid);
         #if CFG_LOGS == 1
             ostringstream os;
             os << "trade_" << id;
@@ -159,7 +158,6 @@ void c::init(const hash_t& tid, const endpoint_t& rep, wallet::local_api& wallet
         schedule_push(push_trade, "en");
     }
     else {
-//        id = tid;
         olog("New bootstrapper called init");
     }
     olog("Remote: ", remote_endpoint.to_string());
@@ -186,15 +184,23 @@ pair<ko, hostport_t> c::resolve_ip_address(const hash_t& pkh) const {
 void c::online(peer_t& peer) {
     log("online", "TRACE 8c");
     b::online(peer);
-    assert(bootstrapper != nullptr);
+    if (peer.wallet_local_api == nullptr) {
+        log("storing wallet_local_api in peer");
+        peer.wallet_local_api = w;
+    }
+    assert(peer.wallet_local_api == w);
+    if (bootstrapper == nullptr) {
+        return;
+    }
     log("calling bootstrapper->online", "TRACE 8c");
     bootstrapper->online(peer);
 }
 
 void c::offline() {
     log("offline", "TRACE 8c");
-    assert(bootstrapper != nullptr);
-    bootstrapper->offline();
+    if (bootstrapper != nullptr) {
+        bootstrapper->offline();
+    }
     b::offline();
 }
 
@@ -514,6 +520,11 @@ ko c::trading_msg_trader(peer_t& peer, svc_t svc, blob_t&& blob) {
     static_assert((uint16_t)svc_end < (uint16_t)trader_protocol::svc_begin);
     if (svc >= svc_handshake_begin && svc < svc_handshake_end) {
         log("bootstrapper->trading_msg_trader", svc);
+        if (bootstrapper == nullptr) {
+            auto r = "KO 60186 Invalid state.";
+            log(r);
+            return r;
+        }
         return bootstrapper->trading_msg(peer, svc, move(blob));
     }
     switch(svc) {
@@ -1377,9 +1388,9 @@ ko c::exec_online(peer_t& peer, const string& cmd0, ch_t& ch) {
     if (cmd == "kill") {
         log("saybye");
         saybye(peer);
-        parent.kill(id, "API function kill_trade");
+        assert(peer.wallet_local_api != nullptr);
+        parent.kill(traders_t::get_utid(id, *peer.wallet_local_api), "API function kill_trade");
         return ok;
-
     }
     if (cmd == "make_bookmark" || cmd == "makebm") {
         string name;
@@ -1518,36 +1529,6 @@ void c::file_reloadx(const string& fqn) {
    on_signal(2);
 }
 
-/*
-    public:
-        hash_t id;
-        hash_t parent_tid;
-        personality_t my_personality;
-        personality_proof_t::raw_t peer_personality;
-        protocols_t peer_protocols;
-        bookmarks_t peer_qrs;
-        ts_t ts_creation;
-        challenge_t my_challenge;
-        challenge_t peer_challenge{0};
-        bootstrapper_t* bootstrapper{nullptr};
-        peerid_t bootstrapped_by{0};
-        chat_t chat;
-        string datasubdir;
-        mutable mutex mx;
-
-        #if CFG_LOGS == 1
-            mutable data_t prev_data;
-        #endif
-
-    private:
-        hash_t endpoint_pkh;
-        funs_t rf; //remote functions
-        protocol* p{nullptr};
-        int peer_mutations{0};
-        atomic<uint64_t> ts_activity;
-        function<void(uint64_t)> pong_handler = [](uint64_t){};
-        ts_t ts_sent_ping{0};
-*/
 size_t c::blob_size() const {
     size_t sz = blob_writer_t::blob_size(id) +
         blob_writer_t::blob_size(parent_tid) +
@@ -1709,18 +1690,15 @@ ko c::from_blob(blob_reader_t& reader) {
     return ok;
 }
 
-pair<string, string> c::sername() const {
+pair<string, string> c::sername(size_t utid) const {
     ostringstream os;
-    os << parent.home << "/state/" << id.encode_path();
+    os << parent.home << "/state/" << utid;
     return make_pair(os.str(), "state");
 }
 
-void c::load_state() {
-    if (id.is_zero()) {
-        return;
-    }
-    log("load_state", sername().first);
-    auto n = sername();
+void c::load_state(size_t utid) {
+    log("load_state", sername(utid).first);
+    auto n = sername(utid);
     lock_guard<mutex> lock(mx);
     auto r = load(n.first + '/' + n.second);
     if (is_ko(r)) {
@@ -1737,8 +1715,8 @@ void c::save_state() const {
     if (id.is_zero()) {
         return;
     }
-    log("save_state", sername().first);
-    auto n = sername();
+    log("save_state", sername(traders_t::get_utid(id, *w)).first);
+    auto n = sername(traders_t::get_utid(id, *w));
     us::gov::io::cfg0::ensure_dir(n.first);
     lock_guard<mutex> lock(mx);
     auto r = save(n.first + '/' + n.second + "_off");

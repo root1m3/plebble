@@ -167,7 +167,7 @@ namespace us::wallet::cli {
             void run_fcgi(const params&);
         #endif
 
-    private:
+    public:
         #if CFG_LOGS == 1
             string logdir;
         #endif

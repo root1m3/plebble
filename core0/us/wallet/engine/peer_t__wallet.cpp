@@ -30,7 +30,6 @@
 #include <us/gov/cash/file_tx.h>
 #include <us/wallet/engine/daemon_t.h>
 #include <us/wallet/wallet/algorithm.h>
-#include <us/wallet/wallet/tx_make_p2pkh_input.h>
 #include <us/wallet/trader/bookmarks_t.h>
 #include <us/wallet/wallet/local_api.h>
 
@@ -44,14 +43,15 @@ using c = us::wallet::engine::peer_t;
 #include <us/api/generated/c++/wallet/wallet/cllr_rpc-impl>
 
 bool c::process_work__wallet(datagram* d) {
+    log("process_work__wallet");
     using namespace protocol;
-    assert(wallet != nullptr);
+    assert(wallet_local_api != nullptr);
     switch(d->service) {
         #include <us/api/generated/c++/wallet/wallet/hdlr_svc-router>
     }
     return false;
 }
 
-#define delegate (*wallet)
+#define delegate (*wallet_local_api)
 #include <us/api/generated/c++/wallet/wallet/hdlr_svc_handler-impl>
 

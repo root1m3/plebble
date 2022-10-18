@@ -53,9 +53,9 @@ c::local_api(engine::daemon_t& daemon, const string& home, const string& subhome
         subhome(subhome),
         subhomeh(subhomeh),
         device_filter([&](const socket::client& peer) -> bool {
-                assert(static_cast<const peer_t&>(peer).wallet != nullptr);
-                log("filter: peer subhome", static_cast<const peer_t&>(peer).wallet->subhome, "subhomeh", static_cast<const peer_t&>(peer).wallet->subhomeh, "==", this->subhomeh);
-                return static_cast<const peer_t&>(peer).wallet->subhomeh == this->subhomeh;
+                assert(static_cast<const peer_t&>(peer).wallet_local_api != nullptr);
+                log("filter: peer subhome", static_cast<const peer_t&>(peer).wallet_local_api->subhome, "subhomeh", static_cast<const peer_t&>(peer).wallet_local_api->subhomeh, "==", this->subhomeh);
+                return static_cast<const peer_t&>(peer).wallet_local_api->subhomeh == this->subhomeh;
             }),
         w(home + "/keys"),
         local_endpoint(ep),

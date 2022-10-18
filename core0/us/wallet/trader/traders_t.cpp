@@ -174,16 +174,10 @@ c::lib_t::~lib_t() {
     ::dlclose(plugin);
 }
 
-
 std::pair<ko, us::wallet::trader::trader_protocol*> c::create_protocol(protocol_selection_t&& protocol_selection) {
     log("create_protocol A", protocol_selection.to_string());
-//    if (protocol_selection.first.empty()) {
-//        return make_pair(ok, nullptr);
-//    }
     return protocol_factories.create(protocol_selection);
-//    return libs.create_protocol(move(protocol_selection));
 }
-
 
 std::pair<ko, us::wallet::trader::trader_protocol*> c::create_opposite_protocol(protocol_selection_t&& protocol_selection) {
     log("create_opposite_protocol A", protocol_selection.to_string());
@@ -199,7 +193,6 @@ std::pair<ko, us::wallet::trader::trader_protocol*> c::create_protocol(protocol_
         return make_pair(ok, nullptr);
     }
     auto r = protocol_factories.create(protocol_selection);
-//    auto r = libs.create_protocol(move(protocol_selection));
     if (is_ko(r.first)) {
         assert(r.second == nullptr);
         return r;
@@ -224,7 +217,6 @@ void c::load_plugins() {
     namespace fs = std::filesystem;
     string plugindir = home + "/lib";
     us::gov::io::cfg0::ensure_dir(plugindir);
-//    vector<pair<string, string>> libfiles;
     vector<string> libfiles;
     string uswallet = string(PLATFORM) + "trader-";
     string libuswallet = string("lib") + uswallet;
@@ -236,9 +228,7 @@ void c::load_plugins() {
         if (fn.size() < libuswallet.size() + ext.size()) continue;
         if (fn.substr(0, libuswallet.size()) != libuswallet ) continue;
         if (fn.substr(fn.size() - ext.size(), ext.size()) != ext) continue;
-//        string libname = fn.substr(libuswallet.size(), fn.size() - libuswallet.size() - ext.size()); //pat2ai-ai
-        os << plugindir << '/' << fn; //libuswallet-pat2ai-ai.so
-//        libfiles.push_back(make_pair(libname, os.str()));
+        os << plugindir << '/' << fn; //libustrader-pat2ai-ai.so
         libfiles.push_back(os.str());
     }
     if (libfiles.empty()) {
@@ -246,19 +236,13 @@ void c::load_plugins() {
         return;
     }
     for (auto& i: libfiles) {
-//        log("loading lib", i.first, i.second);
-//        log("loading lib", i);
-//        lib_t* l = new lib_t(i.first, i.second, home);
         lib_t* l = new lib_t(i, home, protocol_factories);
         if (l->plugin == nullptr) {
-//            log("error loading lib", i.second);
             log("error loading lib", i);
             delete l;
             continue;
         }
-//        log("added lib", i.first);
         log("added lib", i);
-//        libs.emplace(make_pair(i.first, l)); //e.g. i.first: pat2ai-ai
         libs.emplace(l->business->protocol_selection(), l);
     }
 }
@@ -373,37 +357,49 @@ pair<ko, hash_t> c::initiate(const hash_t parent_tid, const string& datadir, qr_
     }
     log("new trade id", tid.second);
     lock_guard<mutex> lock(_mx);
-    emplace(tid.second, tder);
+    emplace(get_utid(tid.second, w), tder);
     return make_pair(ok, tid.second);
 }
 
-void c::erase_trader_(const hash_t& trade_id) {
-    log("Erase trade.", trade_id);
+size_t c::get_utid(const hash_t& tid, const us::wallet::wallet::local_api& w) {
+    size_t x = *reinterpret_cast<const size_t*>(&tid[0]);
+    if (w.subhomeh.is_zero()) return x;
+    size_t y = *reinterpret_cast<const size_t*>(&w.subhomeh[0]);
+    return x ^ y;
+}
+
+size_t c::get_utid_rootwallet(const hash_t& tid) {
+    return *reinterpret_cast<const size_t*>(&tid[0]);
+}
+
+
+void c::erase_trader_(size_t utid) {
+    log("Erase trade.", utid);
     trader_t* tder;
-    auto i = find(trade_id);
+    auto i = find(utid);
     if (i == end()) return;
     assert(i->second->busyref.load() == 0);
-    log("delete trade.", trade_id);
+    log("delete trade.", utid);
     delete i->second;
     erase(i);
 }
 
-trader_t* c::lock_trader_(const hash_t& trade_id) {
+trader_t* c::lock_trader_(size_t utid) {
     log("lock_trader_");
-    auto tder = unlocked_trader_(trade_id);
-    log("++busyref", trade_id);
+    auto tder = unlocked_trader_(utid);
+    log("++busyref", utid);
     ++tder->busyref;
     return tder;
 }
 
-trader_t* c::unlocked_trader_(const hash_t& trade_id) {
+trader_t* c::unlocked_trader_(size_t utid) {
     log("unlocked_trader_");
     trader_t* tder;
-    auto i = find(trade_id);
+    auto i = find(utid);
     if (i == end()) {
-        log("new trader", trade_id);
+        log("new trader", utid);
         auto t = new trader_t(*this, daemon, hash_t(0), "");
-        i = emplace(trade_id, t).first;
+        i = emplace(utid, t).first;
     }
     return i->second;
 }
@@ -414,7 +410,12 @@ ko c::trading_msg(peer_t& peer, svc_t svc, const hash_t& trade_id, blob_t&& blob
         switch(svc) {
             case svc_kill_trade: {
                 log("svc_kill_trade");
-                kill(trade_id, "peer sent message svc_kill_trade");
+                if (peer.wallet_local_api == nullptr) {
+                    ko r = "KO 31909 Invalid state. peer wallet is null.";
+                    peer.disconnect(0, r);
+                    return r;
+                }
+                kill(get_utid(trade_id, *peer.wallet_local_api), "peer sent message svc_kill_trade");
                 return ok;
             }
             break;
@@ -436,8 +437,13 @@ ko c::trading_msg(peer_t& peer, svc_t svc, const hash_t& trade_id, blob_t&& blob
     }
     {
         switch(svc) {
-            case trader_t::svc_handshake_a1:
             case trader_t::svc_handshake_b1:
+                if (peer.wallet_local_api == nullptr) {
+                    ko r = "KO 32909 Invalid state. peer wallet is null.";
+                    peer.disconnect(0, r);
+                    return r;
+                }
+            case trader_t::svc_handshake_a1:
             case trader_t::svc_handshake_c1: {
                 log("resume trade as follower");
                 if (trade_id.is_zero()) {
@@ -445,10 +451,36 @@ ko c::trading_msg(peer_t& peer, svc_t svc, const hash_t& trade_id, blob_t&& blob
                     peer.disconnect(0, r);
                     return r;
                 }
+                if (svc != trader_t::svc_handshake_b1) {
+                    if (peer.wallet_local_api != nullptr) {
+                        ko r = "KO 32911 Invalid state. peer wallet is null";
+                        peer.disconnect(0, r);
+                        return r;
+                    }
+                    auto subhome = bootstrap::bootstrapper_t::extract_wloc(svc, blob);
+                    if (is_ko(subhome.first)) {
+                        peer.disconnect(0, subhome.first);
+                        return subhome.first;
+                    }
+                    log("subhome", subhome.second); 
+                    if (!daemon.has_home(subhome.second)) {
+                        ko r = "KO 32913 wallet does not exist.";
+                        peer.disconnect(0, r);
+                        return r;
+                    }
+                    peer.wallet_local_api = daemon.users.get_wallet(subhome.second);
+                    if (peer.wallet_local_api == nullptr) {
+                        ko r = "KO 32912 Could not find wallet.";
+                        log(r, "subhome", subhome.second);
+                        peer.disconnect(0, r);
+                        return r;
+                    }
+                }
+                assert(peer.wallet_local_api != nullptr);
                 trader_t* tder;
                 {
                     lock_guard<mutex> lock(_mx);
-                    tder = lock_trader_(trade_id);
+                    tder = lock_trader_(get_utid(trade_id, *peer.wallet_local_api));
                 }
                 assert(tder != nullptr);
                 {
@@ -458,7 +490,7 @@ ko c::trading_msg(peer_t& peer, svc_t svc, const hash_t& trade_id, blob_t&& blob
                         log("--busyref", trade_id);
                         --tder->busyref;
                         lock_guard<mutex> lock(_mx);
-                        erase_trader_(trade_id);
+                        erase_trader_(get_utid(trade_id, *peer.wallet_local_api));
                         return r.first;
                     }
                 }
@@ -468,18 +500,24 @@ ko c::trading_msg(peer_t& peer, svc_t svc, const hash_t& trade_id, blob_t&& blob
                 if (is_ko(r)) {
                     log("Oo2", r);
                     lock_guard<mutex> lock(_mx);
-                    erase_trader_(trade_id);
+                    erase_trader_(get_utid(trade_id, *peer.wallet_local_api));
                 }
                 return r;
             }
             break;
         }
     }
+    if (unlikely(peer.wallet_local_api == nullptr)) {
+        ko r = "KO 72912 Invalid wallet. peer wallet is null.";
+        log(r, "svc", svc);
+        peer.disconnect(0, r);
+        return r;
+    }
     log("looking up trader");
     trader_t* tder;
     {
         lock_guard<mutex> lock(_mx);
-        tder = lock_trader_(trade_id);
+        tder = lock_trader_(get_utid(trade_id, *peer.wallet_local_api));
     }
     if (unlikely(tder == nullptr)) {
         ko r = "KO 40391 Trader not connected.";
@@ -632,13 +670,13 @@ void c::published_bookmarks(wallet::local_api& w, bookmarks_t& b) const {
 void c::local_functions(ostream& os) const {
 }
 
-void c::kill(const hash_t& id, const string& source) {
+void c::kill(size_t utid, const string& source) {
     log("spawned assassin thread");
-    thread killwork([&, id, source]() {
+    thread killwork([&, utid, source]() {
         #if CFG_LOGS == 1
         {
             ostringstream os;
-            os << "assassin_trade_" << id;
+            os << "assassin_trade_" << utid;
             log_start("assassin", os.str());
         }
         #endif
@@ -646,7 +684,7 @@ void c::kill(const hash_t& id, const string& source) {
         trader_t* o;
         {
             lock_guard<mutex> lock(_mx);
-            auto i = find(id);
+            auto i = find(utid);
             if (i == end()) {
                 auto r = "KO 40398 Trade not found";
                 log(r);
@@ -751,52 +789,9 @@ ko c::exec(const hash_t& tid, const string& cmd, wallet::local_api& w) {
     log("exec", tid, cmd);
     trader_t* tder;
     {
-/*
-(gdb) info threads
-  Id   Target Id                                         Frame 
-  1    Thread 0x7f1e70a91780 (LWP 27596) "katlas-wallet" __pthread_clockjoin_ex (threadid=139768638826240, thread_return=0x0, clockid=<optimized out>, 
-    abstime=<optimized out>, block=<optimized out>) at pthread_join_common.c:145
-  2    Thread 0x7f1e7091f700 (LWP 27608) "katlas-wallet" futex_wait_cancelable (private=0, expected=0, futex_word=0x5645e3d7bafc)
-    at ../sysdeps/nptl/futex-internal.h:186
-  3    Thread 0x7f1e7011e700 (LWP 27609) "katlas-wallet" 0x00007f1e712f78b3 in __GI___select (nfds=10, readfds=0x7f1e7011ddc0, writefds=0x0, exceptfds=0x0, 
-    timeout=0x0) at ../sysdeps/unix/sysv/linux/select.c:41
-* 4    Thread 0x7f1e6f91d700 (LWP 27610) "katlas-wallet" 
-
-            __lll_lock_wait 
-
-        (futex=futex@entry=0x5645e3d7ced8, private=0) at lowlevellock.c:52
-  5    Thread 0x7f1e6f11c700 (LWP 27611) "katlas-wallet" __pthread_clockjoin_ex (threadid=139768630351616, thread_return=0x0, clockid=<optimized out>, 
-    abstime=<optimized out>, block=<optimized out>) at pthread_join_common.c:145
-  6    Thread 0x7f1e6e91b700 (LWP 27612) "katlas-wallet" futex_abstimed_wait_cancelable (private=0, abstime=0x7f1e6e91ae10, clockid=1855040880, expected=0, 
-    futex_word=0x5645e3d7c06c) at ../sysdeps/nptl/futex-internal.h:323
-  7    Thread 0x7f1e6e11a700 (LWP 27613) "katlas-wallet" futex_abstimed_wait_cancelable (private=0, abstime=0x7f1e6e116cc0, clockid=1846635536, expected=0, 
-    futex_word=0x5645e3d7c3a0) at ../sysdeps/nptl/futex-internal.h:323
-  8    Thread 0x7f1e6d919700 (LWP 27614) "katlas-wallet" futex_wait_cancelable (private=0, expected=0, futex_word=0x5645e3d7c62c)
-    at ../sysdeps/nptl/futex-internal.h:186
-  9    Thread 0x7f1e6d118700 (LWP 27615) "katlas-wallet" __libc_recv (flags=<optimized out>, len=10, buf=0x7f1e64002020, fd=3)
-    at ../sysdeps/unix/sysv/linux/recv.c:28
-  10   Thread 0x7f1e6c917700 (LWP 27616) "katlas-wallet" futex_wait_cancelable (private=0, expected=0, futex_word=0x5645e3d7cb44)
-    at ../sysdeps/nptl/futex-internal.h:186
-  11   Thread 0x7f1e6c116700 (LWP 27617) "katlas-wallet" futex_abstimed_wait_cancelable (private=0, abstime=0x7f1e6c115e00, clockid=1813077344, expected=0, 
-    futex_word=0x5645e3d7cfc0) at ../sysdeps/nptl/futex-internal.h:323
-  12   Thread 0x7f1e6b901700 (LWP 27719) "katlas-wallet" futex_wait_cancelable (private=0, expected=0, futex_word=0x7f1e50001918)
-    at ../sysdeps/nptl/futex-internal.h:186
-
-
-(gdb) bt
-#0  __lll_lock_wait (futex=futex@entry=0x5645e3d7ced8, private=0) at lowlevellock.c:52
-#1  0x00007f1e70d0a843 in __GI___pthread_mutex_lock (mutex=0x5645e3d7ced8) at ../nptl/pthread_mutex_lock.c:80
-#2  0x00007f1e71870c7c in us::wallet::trader::traders_t::exec(us::gov::crypto::ripemd160::value_type const&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, us::wallet::wallet::local_api&) () from /usr/local/lib/libkatlaswallet.so
-#3  0x00007f1e71819b1e in us::wallet::engine::peer_t::process_async_api__wallet_exec_trade(us::gov::socket::datagram*) () from /usr/local/lib/libkatlaswallet.so
-#4  0x00007f1e716865e0 in us::gov::socket::peer_t::process_work() () from /usr/local/lib/libkatlasgov.so
-#5  0x00007f1e7168b0e7 in us::gov::socket::multipeer::thpool::run() () from /usr/local/lib/libkatlasgov.so
-#6  0x00007f1e714afed0 in ?? () from /lib/x86_64-linux-gnu/libstdc++.so.6
-#7  0x00007f1e70d07ea7 in start_thread (arg=<optimized out>) at pthread_create.c:477
-#8  0x00007f1e712ffdef in clone () at ../sysdeps/unix/sysv/linux/x86_64/clone.S:95
-
-*/
         lock_guard<mutex> lock(_mx);
-        auto i = find(tid);
+        log("finding trade", tid, "among", size(), "traders");
+        auto i = find(get_utid(tid, w));
         if (i == end()) {
             auto r = "KO 15322 Trade not found.";
             push_KO(tid, r, w);
@@ -805,10 +800,11 @@ ko c::exec(const hash_t& tid, const string& cmd, wallet::local_api& w) {
         }
         tder = i->second;
     }
+    log("found trader", tder);
     if (tder->w != &w) {
-        auto r = "KO 15323 Trade not found.";
+        auto r = "KO 15323 Trader is operating an unexpected wallet.";
         push_KO(tid, r, w);
-        log(r, tid);
+        log(r, tid, tder->w, &w);
         return r;
     }
     tder->schedule_exec(cmd);
@@ -1011,7 +1007,7 @@ ko c::push_OK(const hash_t& tid, const string& msg, wallet::local_api& w) {
 }
 
 size_t c::blob_size() const {
-    auto sz = blob_writer_t::sizet_size(size()) + size() * gov::crypto::ripemd160::output_size;
+    auto sz = blob_writer_t::sizet_size(size()) + size() * sizeof(uint64_t);
     for (auto& i: *this) {
         sz += blob_writer_t::blob_size(i.second->w->subhome);
     }
@@ -1024,7 +1020,8 @@ void c::to_blob(blob_writer_t& writer) const {
     log("to_blob", "cur", (uint64_t)(writer.cur - writer.blob.data()), "list size", n);
     writer.write_sizet(n);
     for (auto& i: *this) {
-        writer.write(i.first);
+        uint64_t ndx = i.first;
+        writer.write(ndx);
         writer.write(i.second->w->subhome);
     }
 }
@@ -1037,11 +1034,11 @@ ko c::from_blob(blob_reader_t& reader) {
     if (unlikely(sz > blob_reader_t::max_sizet_containers)) return blob_reader_t::KO_75643;
     for (int i = 0; i < sz; ++i) {
         log("loading trade #", i);
-        hash_t trade_id;
+        uint64_t utid;
         {
-            auto r = reader.read(trade_id);
+            auto r = reader.read(utid);
             if (is_ko(r)) return r;
-            log("read tradeid", trade_id);
+            log("read utid", utid);
         }
         string subhome;
         {
@@ -1049,25 +1046,22 @@ ko c::from_blob(blob_reader_t& reader) {
             if (is_ko(r)) return r;
             log("read subhome", subhome);
         }
-        trader_t* tder = lock_trader_(trade_id);
-        assert(tder != nullptr);
         {
-            log("boot with no bootstrapper", trade_id, subhome);
+            log("boot with no bootstrapper", utid, subhome);
             auto w = daemon.users.get_wallet(subhome);
             if (w == nullptr) {
                 auto r = "KO 87868 wallet could not be instantiated.";
                 log(r, "subhome", subhome);
-                log("--busyref", trade_id);
-                --tder->busyref;
-                erase_trader_(trade_id);
                 continue;
             }
-            auto r = tder->boot(trade_id, *w);
-            log("--busyref", trade_id);
+            trader_t* tder = lock_trader_(utid);
+            assert(tder != nullptr);
+            auto r = tder->boot(utid, *w);
+            log("--busyref", utid);
             --tder->busyref;
             if (is_ko(r)) {
-                log(r, trade_id);
-                erase_trader_(trade_id);
+                log(r, utid);
+                erase_trader_(utid);
                 continue;
             }
         }

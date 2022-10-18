@@ -92,6 +92,7 @@ function procblob {
         echo "KO 94483 /home/${GOVUSER}/.${US}/fsroot/$local_hash doesnt exist"
         exit 1
     fi
+    chmod -w /home/${GOVUSER}/.${US}/gov/fsroot/$local_hash
 }
 
 brand=$1

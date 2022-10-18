@@ -50,11 +50,33 @@ namespace us::wallet::engine {
     struct daemon_t;
 }
 
+/*
+namespace us::wallet::trader {
+
+    using hash_t = gov::crypto::ripemd160::value_type;
+
+    struct utid_t final: hash_t {
+        using b = hash_t;
+        utid_t(const hash_t& tid, const hash_t& subhomeh): b(tid ^ subhomeh) {
+        }
+    };
+
+}
+
+namespace std {
+    template<> struct hash<us::wallet::trader::utid_t> {
+        size_t operator() (const us::wallet::trader::utid_t& utid) const {
+            return *reinterpret_cast<const size_t*>(&k[0]);
+            return std::hash<gov::crypto::ripemd160::value_type>(utid);
+        }
+    };
+}
+*/
 namespace us::wallet::trader {
 
     struct business_t;
 
-    struct traders_t final: unordered_map<gov::crypto::ripemd160::value_type, trader_t*>, us::gov::io::seriable {
+    struct traders_t final: unordered_map<size_t, trader_t*>, us::gov::io::seriable {
         using hash_t = gov::crypto::ripemd160::value_type;
         using trade_id_t = hash_t;
         using b = unordered_map<trade_id_t, trader_t*>;
@@ -93,9 +115,9 @@ namespace us::wallet::trader {
         pair<ko, hash_t> initiate(const hash_t parent_tid, const string& datadir, qr_t&&, wallet::local_api&);
         void process_svc_ko(const hash_t& tid, const string& kostring);
         void on_destroy(peer_t&);
-        trader_t* unlocked_trader_(const hash_t& trade_id);
-        void erase_trader_(const hash_t& trade_id);
-        trader_t* lock_trader_(const hash_t& trade_id);
+        trader_t* unlocked_trader_(size_t utid);
+        void erase_trader_(size_t utid);
+        trader_t* lock_trader_(size_t utid);
         ko follow_a(peer_t&, const hash_t& trade_id, const string& handshake);
         ko follow_b(peer_t&, const hash_t& trade_id, const string& handshake);
         void list_trades(const hash_t& subhomeh, ostream&) const;
@@ -107,7 +129,7 @@ namespace us::wallet::trader {
         pair<ko, trader_protocol*> create_protocol(protocol_selection_t&&);
         pair<ko, trader_protocol*> create_opposite_protocol(protocol_selection_t&&);
         pair<ko, trader_protocol*> create_protocol(protocol_selection_t&&, params_t&& remote_params);
-        void kill(const hash_t&, const string& source);
+        void kill(size_t utid, const string& source);
         void dispose(trader_t*);
         void setup_AI();
         void on_finish();
@@ -116,7 +138,9 @@ namespace us::wallet::trader {
         void load_plugins();
         void load_bank();
         void load_lf();
-        
+        static size_t get_utid(const hash_t& tid, const us::wallet::wallet::local_api&);
+        static size_t get_utid_rootwallet(const hash_t& tid);
+
         void exec_help(const string& prefix, ostream&) const;
         static void help(const string& ind, ostream&);
         ko exec_shell(const string& cmd, ostream&) const; /// executes the given cmd in a sysyem shell collecting the output
@@ -170,7 +194,6 @@ namespace us::wallet::trader {
             void dump(ostream&) const;
             void invert(protocols_t&) const;
             void published_protocols(protocols_t&, bool invert) const;
-            //pair<ko, trader_protocol*> create_protocol(protocol_selection_t&&);
             pair<ko, trader_protocol*> create_opposite_protocol(protocol_selection_t&&);
             void exec_help(const string& prefix, ostream&) const;
             ko exec(istream&, traders_t&, wallet::local_api&);

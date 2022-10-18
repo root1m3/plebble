@@ -20,6 +20,9 @@
 //===-
 //===----------------------------------------------------------------------------
 //===-
+#include <iostream>
+#include <thread>
+
 #include <us/gov/config.h>
 #include <us/gov/ko.h>
 #include <us/gov/io/shell_args.h>
@@ -33,13 +36,15 @@
 
 using namespace std;
 using namespace us;
+
 using us::gov::io::shell_args;
-using us::wallet::cli::params;
 using us::gov::io::screen;
+using us::wallet::cli::params;
 
 struct hmi_t: us::wallet::cli::hmi {
     using b = us::wallet::cli::hmi;
     hmi_t(int argc, char** argv, ostream& os): b(argc, argv, os) {}
+    hmi_t(const params& p, ostream& os): b(p, os) {}
     void setup_signals(bool) override;
 };
 
@@ -65,9 +70,14 @@ void hmi_t::setup_signals(bool on) {
 }
 
 int main(int argc, char** argv) {
+    params p(shell_args(argc, argv));
+    #if CFG_LOGS == 1
+        us::dbg::thread_logger::set_root_logdir(p.logd);
+    #endif
     log_pstart(argv[0]);
     log_start("", "main");
-    hmi = new hmi_t(argc, argv, cout);
+    log("hardware concurrency", thread::hardware_concurrency());
+    hmi = new hmi_t(p, cout);
     string r = hmi->run();
     log("end");
     if (hmi->p.daemon) {

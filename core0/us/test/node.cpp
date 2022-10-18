@@ -123,18 +123,13 @@ void c::start_govd(bool init_chain) {
     p.homedir = homedir;
     if (init_chain) {
         cout << "starting new chain" << endl;
-cout << "A10" << endl;
         ostringstream ep;
         ep << localip << ":" << p.pport;
-cout << "A11" << endl;
         pair<ko, us::gov::io::cfg*> r = us::gov::engine::daemon_t::init_chain(p.channel, p.get_home_gov(), ep.str());
-cout << "A12" << endl;
         if (is_ko(r.first)) {
-cout << "A13" << endl;
             cerr << r.first << endl;
             assert(false);
         }
-cout << "A14" << endl;
         cout << "init chain: 1" << endl;
         delete r.second;
         cout << "init chain: 2" << endl;
@@ -161,7 +156,7 @@ void c::create_walletd() {
     p.listening_port = p.published_port = wport;
     p.backend_host = "localhost";
     p.backend_port = gport;
-    p.logd = logdir + "/walletd";
+    //p.logd = logdir + "/walletd";
     assert(!vardir.empty());
     p.downloads_dir = vardir + "/www/us_html/downloads";
     assert(wallet == nullptr);
@@ -216,7 +211,7 @@ void c::create_wallet_cli() {
     p.homedir = homedir;
     p.walletd_host = localip;
     p.walletd_port = wallet->p.published_port;
-    p.logd = logdir + "/wallet_cli";
+    //p.logd = logdir + "/wallet_cli";
     assert(wallet_cli == nullptr);
     wallet_cli = new walletx_t(p, cout);
 }
@@ -240,6 +235,11 @@ void c::start_walletd_cli() {
     assert(wallet_cli == nullptr);
     create_walletd();
     create_wallet_cli();
+    #if CFG_LOGS == 1
+        wallet->logdir = logdir + "/walletd";
+        wallet_cli->logdir = logdir + "/wallet_cli";
+    #endif
+
     assert(wallet->start() == ok);
     log("started wallet daemon");
     assert(is_ok(wallet->daemon->wait_ready(3)));
@@ -586,8 +586,9 @@ void c::copy_state(const string& dest) const {
     assert(system(cmd.str().c_str()) == 0);
     for (auto& i: wallet->daemon->traders) {
         if (i.second->id.is_zero()) continue;
+        size_t utid = traders_t::get_utid_rootwallet(i.second->id);
         ostringstream cmd;
-        cmd << "cp " << i.second->sername().first << "/" << i.second->sername().second << ' ' << dest << "__trader_" << i.second->id;
+        cmd << "cp " << i.second->sername(utid).first << "/" << i.second->sername(utid).second << ' ' << dest << "__utid_" << utid;
         tee(cmd.str());
         assert(system(cmd.str().c_str()) == 0);
     }
@@ -600,8 +601,9 @@ void c::diff_state(const string& st0, const string& st1) const {
     assert(system(cmd.str().c_str()) == 0);
     for (auto& i: wallet->daemon->traders) {
         if (i.second->id.is_zero()) continue;
+        size_t utid = traders_t::get_utid_rootwallet(i.second->id);
         ostringstream cmd;
-        cmd << "diff " << st0 << "__trader_" << i.second->id << " " << st1 << "__trader_" << i.second->id;
+        cmd << "diff " << st0 << "__utid_" << utid << " " << st1 << "__utid_" << utid;
         tee(cmd.str());
         assert(system(cmd.str().c_str()) == 0);
     }

@@ -46,7 +46,7 @@ c::~thread_logger() {
 }
 
 void c::log_info(ostream& os) const {
-    os << "logs are " << (disabled?"disabled":"enabled") << '\n';
+    os << "logs are " << (disabled ? "disabled" : "enabled") << '\n';
     if (!disabled) {
         os << "started ts: " << ts() << '\n';
         os << "log directory: " << root_logdir << "/" << task::pname << "_" << getpid() << '\n';

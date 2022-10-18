@@ -143,8 +143,12 @@ Production releases. beta
 Production releases. alpha
 --------------------------
 
-alpha-45 - 
+alpha-46 - 
     *
+
+alpha-45 - alpha-45_87bd6071 2022-10-18_18-01-59 vhash 87bd6071 <- R a9fab23375b2cd28abf9b7032fe0e9bc3dda59ab alpha-45 dbg-0 logs-0 counters-0 connlog-0 fcgi-0
+    * Upgraded traders container to allocate more that one instance of a trade_id, needed for trades between local wallets. 
+    * improved log system intialization (specifying log root dir from command line). Fixed bug on walletd that would use root logdir twice.
 
 alpha-44 - alpha-44_df81d7f9 2022-10-16_23-40-43 vhash df81d7f9 <- R 8441112a2a1c01b2be0ca8ba3fd1f1429347957b alpha-44 dbg-0 logs-0 counters-0 connlog-0 fcgi-0
     * walletd. Automatic creation and initialization of guest wallets (custodial) upon connections of new RPC frontend devices.

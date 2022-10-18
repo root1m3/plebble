@@ -80,25 +80,19 @@ bool c::process_work(datagram* d) {
     }
     assert(d->service >= engine_begin);
     if (static_cast<auth::peer_t&>(*this).stage != auth::peer_t::authorized) {
-//        log("Not completed auth yet, wait for it.");
-//        wait_auth();
-//        if (static_cast<auth::peer_t&>(*this).stage != auth::peer_t::authorized) {
-            auto r = "KO 51150 Not authorized, ignoring svc.";
-            log(r);
-            delete d;
-            return true; //don't report back, disconnection happens elsewhere.
-//        }
+        auto r = "KO 51150 Not authorized, ignoring svc.";
+        log(r);
+        delete d;
+        return true; //don't report back, disconnection happens elsewhere.
     }
     if (is_role_peer()) { //work from other remote wallet
         if (d->service != protocol::r2r_trading_msg) {
             log("remote wallet sent non-trading message", d->service);
-            //peer trying to access private wallet functions.
-            disconnect_hilarious(d);
+            disconnect_hilarious(d); //peer trying to access private wallet functions.
             return true;
         }
         //SECURITY: 'malicious' intentions can still reach this point, but only to fuck with a trader via trading_msgs.
     }
-
     if (d->service < engine_end) {
         return process_work__engine(d);
     }
@@ -126,8 +120,8 @@ ko c::authorize(const pub_t& p, pin_t pin) {
         if (is_ko(r.first)) {
             return r.first;
         }
-        log("subhome", r.second);
-        wallet = static_cast<daemon_t&>(daemon).users.get_wallet(r.second);
+        wallet_local_api = static_cast<daemon_t&>(daemon).users.get_wallet(r.second);
+        log("device authorized. subhome", r.second, "wallet local_api", wallet_local_api);
         return ok;
     }
     auto r = "KO 40938 Unknown role";
@@ -190,22 +184,22 @@ void c::verification_completed(pport_t rpport, pin_t pin) {
 }
 
 void c::schedule_push(socket::datagram* d) {
-    return static_cast<daemon_t&>(daemon).pm.schedule_push(d, wallet->device_filter);
+    return static_cast<daemon_t&>(daemon).pm.schedule_push(d, wallet_local_api->device_filter);
 }
 
 ko c::push_KO(ko msg) {
-    return static_cast<daemon_t&>(daemon).pm.push_KO(msg, wallet->device_filter);
+    return static_cast<daemon_t&>(daemon).pm.push_KO(msg, wallet_local_api->device_filter);
 }
 
 ko c::push_KO(const hash_t& tid, ko msg) {
-    return static_cast<daemon_t&>(daemon).pm.push_KO(tid, msg, wallet->device_filter);
+    return static_cast<daemon_t&>(daemon).pm.push_KO(tid, msg, wallet_local_api->device_filter);
 }
 
 ko c::push_OK(const string& msg) {
-    return static_cast<daemon_t&>(daemon).pm.push_OK(msg, wallet->device_filter);
+    return static_cast<daemon_t&>(daemon).pm.push_OK(msg, wallet_local_api->device_filter);
 }
 
 ko c::push_OK(const hash_t& tid, const string& msg) {
-    return static_cast<daemon_t&>(daemon).pm.push_OK(tid, msg, wallet->device_filter);
+    return static_cast<daemon_t&>(daemon).pm.push_OK(tid, msg, wallet_local_api->device_filter);
 }
 

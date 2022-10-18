@@ -40,6 +40,10 @@ namespace us::wallet::trader::bootstrap {
 
     using namespace std;
 
+    /// Handshake modes:
+    /// *---a---->*---b----> endpoint w/o protocol_selection, then protocol_selection
+    /// *--------c---------> endpoint with protocol_selection
+
     struct c1_t: handshake_t {
         using endpoint_t = trader::endpoint_t;
         using challenge_t = trader::personality::proof_t::challenge_t;

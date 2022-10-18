@@ -64,8 +64,7 @@ namespace us::wallet::trader::bootstrap {
         virtual ko on_a(int) = 0;
         virtual ko on_c(int) = 0;
 
-    //public:
-        //static ko from_blob(blob_reader_t&, bootstrapper_t*&);
+        static pair<ko, string> extract_wloc(uint16_t svc, const blob_t&);
     
     public:
         dialogue_a_t dialogue_a;

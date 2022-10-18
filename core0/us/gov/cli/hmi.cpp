@@ -530,7 +530,12 @@ ko c::start_daemon(busyled_t::handler_t* busyled_handler_send, busyled_t::handle
     }
     daemon->peerd.force_seeds = p.force_seeds;
     #if CFG_LOGS == 1
-        daemon->logdir = logdir + "/daemon";
+        if (logdir.empty()) {
+            daemon->logdir = "daemon";
+        }
+        else {
+            daemon->logdir = logdir + "/daemon";
+        }
     #endif
     log("setting dgram_roundtrip_timeout_secs", p.rpc_timeout_secs);
     us::gov::socket::rendezvous_t::dgram_roundtrip_timeout_secs = p.rpc_timeout_secs;
@@ -576,7 +581,12 @@ ko c::start_rpc_daemon(busyled_t::handler_t* busyled_handler_send, busyled_t::ha
     rpc_daemon->connect_for_recv = p.rpc__connect_for_recv;
     rpc_daemon->stop_on_disconnection = p.rpc__stop_on_disconnection;
     #if CFG_LOGS == 1
-        rpc_daemon->logdir = logdir + "/rpc_daemon";
+        if (logdir.empty()) {
+            rpc_daemon->logdir = "rpc_daemon";
+        }
+        else {
+            rpc_daemon->logdir = logdir + "/rpc_daemon";
+        }
     #endif
     log("set_busy_handlers send:", (busyled_handler_send == nullptr ? "null" : "not null"), "recv:", (busyled_handler_recv == nullptr ? "null" : "not null"));
     rpc_daemon->set_busy_handlers(busyled_handler_send, busyled_handler_recv);
@@ -821,7 +831,8 @@ void c::help(const params& p, ostream& os) {
     os << "  -n                 Prepend field names in output. [" << p.names << "]\n";
     os << "  -nb                Don't show the banner.\n";
     #if CFG_LOGS == 1
-    os << "  -log               Logs in console.\n";
+    os << "  -logd <dir>        Directory for writting log files.\n";
+    os << "  -log               Logs in screen.\n";
     os << "  -t <secs>          RPC timeout in seconds [" << p.rpc_timeout_secs << "]\n";
     os << "  -E <0|1>           Save evidences. [" << (p.save_evidences ? us::gov::engine::daemon_t::get_evidencesdir(p.get_home()) : string("No")) << '\n';
     #endif
@@ -886,28 +897,6 @@ void c::dump_db(const string& snapshot_block, int detail) const {
     d.db->dump(detail, lock.os);
 }
 
-/*
-void c::import_v5(const string& snapshot_block) const {
-    auto conf = cfg_daemon::load(home, false);
-    if (is_ko(conf.first)) {
-        scr << conf.first << '\n';
-        return;
-    }
-    {
-        engine::daemon_t d(conf.second->keys);
-        auto r = d.load_db(snapshot_block);
-        if (is_ko(r)) {
-           scr << "KO 70694 \n";
-           delete conf.second;
-           return;
-        }
-        auto hash = d.save_db();
-        screen::lock_t lock(scr, interactive);
-        lock.os << hash << '\n';
-    }
-    delete conf.second;
-}
-*/
 bool c::on_datagram(datagram* d) {
     log("on_datagram", d->service);
     scr << "HMI" << this << ": [D " << d->service << "] KO 79968 Not handled.\n";

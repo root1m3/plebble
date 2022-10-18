@@ -65,7 +65,6 @@ namespace us::gov::io {
         string sysophost{"127.0.0.1"};
         bool dot{false};
         bool force_seeds{false};
-        //bool daemon_encrypt_protocol{false};
         string cmd;
         shell_args args;
         bool verbose{false};
@@ -75,6 +74,7 @@ namespace us::gov::io {
         output_mode om{om_human};
         bool names{false};
         bool banner{true};
+        string logd{LOGDIR};
         bool save_evidences{false};
         uint16_t rpc_timeout_secs{CFG_DGRAM_ROUNDTRIP_TIMEOUT_SECS};
     };

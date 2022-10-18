@@ -1,0 +1,24 @@
+#!/bin/bash
+
+#Postupgrade tasks for Plebble
+#called from {gitroot}/core1
+
+branch=$1
+if [[ -z $branch ]]; then
+    echo "KO 86681 need branch."
+    exit 1
+fi
+
+echo "Update github"
+echo "Run bin/devjob_tool --id github_plebble sync"
+echo "yes?"
+read a
+
+bin/devjob_tool --branch $branch --id github_plebble sync
+
+echo "CTRL-Z. complete tasks. the resume with fg and say yes"
+echo "yes?"
+read a
+
+
+exit 0

@@ -397,9 +397,9 @@ bool run_local(string command, shell_args& args, const params& p) {
 }
 
 int main(int argc, char** argv) {
-    shell_args args(argc,argv);
+    shell_args args(argc, argv);
     params p;
-    string command=parse_options(args,p);
+    string command = parse_options(args,p);
     if (p.help) {
         help(p);
         return 0;

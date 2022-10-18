@@ -129,13 +129,3 @@ void scrout(const type1& arg1, const types& ... args) {
 
 #endif
 
-#ifdef PRIVATE_PERMISSIONED_MESH
-    #define TOPOLOGY "private permissioned mesh"
-#endif
-#ifdef PUBLIC_PERMISSIONLESS_MESH
-    #define TOPOLOGY "public permissionless mesh"
-#endif
-#ifdef PUBLIC_PERMISSIONED_RING
-    #define TOPOLOGY "public permissionless ring"
-#endif
-

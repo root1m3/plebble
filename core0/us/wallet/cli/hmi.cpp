@@ -157,8 +157,12 @@ ko c::start_daemon(busyled_t::handler_t* busyled_handler_send, busyled_t::handle
     daemon = new engine::daemon_t(p.channel, cfg->keys, p.listening_port, p.published_port, home, gov_backend, p.max_trade_edges, p.max_devices, p.workers, p.downloads_dir);
     daemon->encrypt_traffic = true;
     #if CFG_LOGS == 1
-        assert(!logdir.empty());
-        daemon->logdir = logdir + "/daemon";
+        if (logdir.empty()) {
+            daemon->logdir = "daemon";
+        }
+        else {
+            daemon->logdir = logdir + "/daemon";
+        }
     #endif
     log("instantiate root wallet");
     log("set_busy_handlers send:", (busyled_handler_send == nullptr ? "null" : "not null"), "recv:", (busyled_handler_recv == nullptr ? "null" : "not null"));
@@ -228,8 +232,12 @@ ko c::start_rpc_daemon(busyled_t::handler_t* busyled_handler_send, busyled_t::ha
     rpc_daemon->connect_for_recv = p.rpc__connect_for_recv;
     rpc_daemon->stop_on_disconnection = p.rpc__stop_on_disconnection;
     #if CFG_LOGS == 1
-        assert(!logdir.empty());
-        rpc_daemon->logdir = logdir + "/rpc_daemon";
+        if (logdir.empty()) {
+            rpc_daemon->logdir = "rpc_daemon";
+        }
+        else {
+            rpc_daemon->logdir = logdir + "/rpc_daemon";
+        }
     #endif
     log("set_busy_handlers send:", (busyled_handler_send == nullptr ? "null" : "not null"), "recv:", (busyled_handler_recv == nullptr ? "null" : "not null"));
     rpc_daemon->set_busy_handlers(busyled_handler_send, busyled_handler_recv);
@@ -293,7 +301,7 @@ ko c::start(busyled_t::handler_t* busyled_handler_send, busyled_t::handler_t* bu
         if (p.nolog) {
             us::dbg::thread_logger::instance.disabled = true;
         }
-        logdir = p.logd;
+        //logdir = p.logd;
     #endif
     #if CFG_FCGI == 1
         if (!p.daemon && p.fcgi) {

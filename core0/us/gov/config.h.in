@@ -132,6 +132,16 @@
 #endif
 #endif
 
+#ifdef PRIVATE_PERMISSIONED_MESH
+    #define TOPOLOGY "private permissioned mesh"
+#endif
+#ifdef PUBLIC_PERMISSIONLESS_MESH
+    #define TOPOLOGY "public permissionless mesh"
+#endif
+#ifdef PUBLIC_PERMISSIONED_RING
+    #define TOPOLOGY "public permissionless ring"
+#endif
+
 // unless a release build, disable 'final' keyword so tests can be compiled.
 #if CFG_TEST == 0
     #define final_ final

@@ -20,7 +20,11 @@
 //===-
 //===----------------------------------------------------------------------------
 //===-
+#include <iostream>
+#include <thread>
+
 #include <us/gov/cli/hmi.h>
+#include <us/gov/io/params.h>
 #include <us/gov/vcs.h>
 #include <us/gov/io/screen.h>
 
@@ -30,18 +34,21 @@
 
 using namespace us::gov;
 using namespace std;
+
+using us::gov::io::screen;
+using us::gov::io::params;
+using us::gov::io::shell_args;
 using us::ko;
 using us::ok;
 
 struct hmi_t: us::gov::cli::hmi {
     using b = us::gov::cli::hmi;
     hmi_t(int argc, char** argv, ostream& os): b(argc, argv, os) {}
+    hmi_t(const params& p, ostream& os): b(p, os) {}
     void setup_signals(bool) override;
 };
 
 hmi_t* hmi{nullptr};
-
-using us::gov::io::screen;
 
 void sig_handler(int s) {
     {
@@ -66,9 +73,14 @@ void hmi_t::setup_signals(bool on) {
 }
 
 int main(int argc, char** argv) {
+    params p(shell_args(argc, argv));
+    #if CFG_LOGS == 1
+        us::dbg::thread_logger::set_root_logdir(p.logd);
+    #endif
     log_pstart(argv[0]);
     log_start("", "main");
-    hmi = new hmi_t(argc, argv, cout);
+    log("hardware concurrency", thread::hardware_concurrency());
+    hmi = new hmi_t(p, cout);
     string r = hmi->run();
     log("end");
     if (hmi->p.daemon) {

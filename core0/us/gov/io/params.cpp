@@ -21,26 +21,27 @@
 //===----------------------------------------------------------------------------
 //===-
 #include "params.h"
+
 #include <thread>
 
 #include <us/gov/config.h>
 
 #include "types.h"
 
-#define loglevel "gov/io"
-#define logclass "params"
-#include "logs.inc"
+//#define loglevel "gov/io"
+//#define logclass "params"
+//#include "logs.inc"
+
+// don't log here, it's used before initializing the logging subsystem
 
 using namespace us::gov::io;
 using c = us::gov::io::params;
 
 c::params(): args("") {
-    log("hardware concurrency", thread::hardware_concurrency());
     workers = 2 * thread::hardware_concurrency();
 }
 
 c::params(const shell_args& a): args(a) {
-    log("hardware concurrency", thread::hardware_concurrency());
     workers = 2 * thread::hardware_concurrency();
 
     while(true) {
@@ -95,7 +96,11 @@ c::params(const shell_args& a): args(a) {
         else if (command == "-log") {
             verbose = true;
         }
+        else if (command == "-logd") {
+            logd = args.next<string>();
+        }
         #endif
+
         else if (command == "-om") {
             uint16_t m = args.next<uint16_t>();
             if (m < num_modes) om = (output_mode)m;
@@ -164,10 +169,12 @@ void c::dump(const string& pfx, ostream& os) const {
         os << pfx << "this is an optimized build.\n";
     #endif
     #if CFG_LOGS == 1
-        if (verbose)
+        if (verbose) {
             os << pfx << "writing log to cout\n";
-        else
-            os << pfx << "warning: writing log files in " << LOGDIR << '\n';
+        }
+        else {
+            os << pfx << "warning: logs are ON. Writing files in " << logd << '\n';
+        }
     #else
         os << pfx << "logs: disabled.\n";
     #endif

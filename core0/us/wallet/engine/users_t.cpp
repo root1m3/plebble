@@ -44,14 +44,14 @@ c::~users_t() {
 }
 
 us::wallet::wallet::local_api* c::get_wallet(const string& subhome) {
-    log("get_traders", subhome);
+    log("get_wallet", subhome);
     auto subhomeh = hasher_t::digest(subhome);
     wallet::local_api* o;
     {
         lock_guard<mutex> lock(mx);
         auto i = find(subhomeh);
         if (likely(i != end())) {
-            log("found instance of traders", subhomeh);
+            log("wallet local_api instance is", i->second, "subhome=", subhome);
             return i->second;
         }
         log("creating new instance of wallet subhome", subhome);
@@ -62,17 +62,18 @@ us::wallet::wallet::local_api* c::get_wallet(const string& subhome) {
         o = new us::wallet::wallet::local_api(daemon, whome, subhome, subhomeh, move(ep));
         emplace(subhomeh, o);
     }
+    log("wallet local_api instance is", o, "subhome=", subhome);
     if (!subhome.empty()) {
         return o; //guest wallet
     }
-    log("root wallet instantiation", "make sure it contains gov income address");
-    string govhomedir = daemon.home + "../gov";
+    string govhomedir = daemon.home + "/../gov";
+    log("root wallet instantiation", "make sure it contains gov income address. looking at dir", govhomedir);
     if (us::gov::io::cfg1::file_exists(us::gov::io::cfg_id::k_file(govhomedir))) {
         log("found gov/k file");
         auto k = us::gov::io::cfg1::load_sk(govhomedir);
         if (is_ko(k.first)) {
             log("KO 79685 Could not load gov sk");
-            return o;
+            return o; //return valid wallet anyway
         }
         hash_t addr = o->add_address(k.second);
         log("added income address", addr);

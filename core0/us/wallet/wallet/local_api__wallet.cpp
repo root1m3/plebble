@@ -702,7 +702,7 @@ ko c::handle_file(hash_t&& digest, vector<uint8_t>& content) {
 }
 
 ko c::handle_exec(string&& cmd0) {
-    log("exec", cmd0);
+    log("exec", cmd0, "local_api is", this);
     auto r = daemon.traders.exec(cmd0, *this);
     if (is_ko(r)) {
         daemon.pm.push_KO(r, device_filter);
@@ -983,7 +983,7 @@ ko c::handle_list_protocols(string& data) {
 }
 
 ko c::handle_trade(trade_in_dst_t&& o_in, hash_t& tid) {
-    log("trade");
+    log("trade", "local_api is", this);
     /// in:
     ///     hash_t parent_trade;
     ///     string datasubdir;
@@ -1020,7 +1020,7 @@ ko c::handle_kill_trade(hash_t&& tid, string& data) {
 }
 
 ko c::handle_exec_trade(exec_trade_in_dst_t&& o_in) {
-    log("exec_trade");
+    log("exec_trade", "local_api is", this);
     /// in:
     ///     hash_t tid;
     ///     string cmd;

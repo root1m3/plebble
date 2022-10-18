@@ -33,6 +33,10 @@ namespace us::wallet::trader::bootstrap {
 
     using namespace std;
 
+    /// Handshake modes:
+    /// *---a---->*---b----> endpoint w/o protocol_selection, then protocol_selection
+    /// *--------c---------> endpoint with protocol_selection
+
     struct b1_t: handshake_t {
         using params_t = trader::kv;
 

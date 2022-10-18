@@ -30,9 +30,11 @@
 
 #include "cfg0.h"
 
-#define loglevel "io"
-#define logclass "shell_args"
-#include "logs.inc"
+//#define loglevel "io"
+//#define logclass "shell_args"
+//#include "logs.inc"
+
+// don't log here, it's used before initializing the logging subsystem
 
 using namespace us::gov::io;
 using namespace std;

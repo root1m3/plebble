@@ -21,18 +21,21 @@
 //===----------------------------------------------------------------------------
 //===-
 #include "params.h"
+
 #include <thread>
+
 #include <us/gov/config.h>
 
-#define loglevel "wallet/cli"
-#define logclass "params"
-#include <us/gov/logs.inc>
+//#define loglevel "wallet/cli"
+//#define logclass "params"
+//#include <us/gov/logs.inc>
+
+// don't log here, it's used before initializing the logging subsystem
 
 using namespace us::wallet::cli;
 using c = us::wallet::cli::params;
 
 void c::constructor() {
-    log("hardware concurrency", thread::hardware_concurrency());
     workers = 2 * thread::hardware_concurrency();
 
     ostringstream os;
@@ -180,10 +183,12 @@ void c::dump(const string& pfx, ostream& os) const {
         os << pfx << "this is an optimized build.\n";
     #endif
     #if CFG_LOGS == 1
-    if (verbose)
+        if (verbose) {
             os << pfx << "writing log to cout\n";
-    else
-            os << pfx << "warning: writing log files in " << LOGDIR << '\n';
+        }
+        else {
+            os << pfx << "warning: logs are ON. Writing files in " << logd << '\n';
+        }
     #else
         os << pfx << "logs: disabled.\n";
     #endif
@@ -198,10 +203,10 @@ void c::dump(const string& pfx, ostream& os) const {
         os << pfx << "  hardware concurrency: " << thread::hardware_concurrency() << '\n';
         os << pfx << "  workers: " << (int)workers << '\n';
         #if CFG_FCGI == 1
-        os << pfx << "  fcgi: " << (int)fcgi << '\n';
-        if (fcgi) {
-            os << pfx << "       listening at: 127.0.0.1:9000\n";
-        }
+            os << pfx << "  fcgi: " << (int)fcgi << '\n';
+            if (fcgi) {
+                os << pfx << "       listening at: 127.0.0.1:9000\n";
+            }
         #endif
     }
     else {

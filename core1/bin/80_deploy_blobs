@@ -45,7 +45,7 @@ scp="scp -i ${grootkey}"
 
 set -x
 
-for blob in `find blobs -type f -name "*.tzst"`; do
+for blob in `find blobs/ -type f -name "*.tzst"`; do
     echo "-------------------------------------------------"
     echo "blob: $blob"
     bname=$(basename $blob)

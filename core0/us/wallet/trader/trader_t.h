@@ -85,14 +85,13 @@ namespace us::wallet::trader {
     public:
         ko permission_bootstrap(const peerid_t& peer) const;
         pair<ko, hash_t> boot(const peerid_t&, bootstrapper_t*);
-        ko boot(const hash_t& trade_id, wallet::local_api&);
+        ko boot(size_t utid, wallet::local_api&);
         void init(const hash_t& tid, const endpoint_t&, wallet::local_api&);
 
     public:
         void on_KO(ko, const string&) override;
         void online(peer_t&) override;
         void offline() override;
-//        void on_start() override;
         void on_stop() override;
         bool requires_online(const string& cmd) const override;
         ko exec_online(peer_t& peer, const string&, ch_t&) override;
@@ -137,14 +136,14 @@ namespace us::wallet::trader {
         void to_blob(blob_writer_t&) const override;
         ko from_blob(blob_reader_t&) override;
         serid_t serial_id() const override { return 'T'; }
-        pair<string, string> sername() const;
+        pair<string, string> sername(size_t utid) const;
         void save_state() const;
-        void load_state();
+        void load_state(size_t utid);
         
     public:
         enum push_code_t: uint16_t { //communications node-HMI
-            push_begin = 100,
-            push_log = push_begin,
+                push_begin = 100,
+            push_log = push_begin, //100
             push_data,
             push_peer_personality,
             push_roles_mine,

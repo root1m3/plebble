@@ -36,13 +36,11 @@
 #include "rpc_peer_t.h"
 
 namespace us::gov::engine {
-
     struct daemon_t;
 }
 
 namespace us::gov::cli {
 
-    struct screen;
     struct printer_t;
 
     struct hmi: us::cli::hmi {
@@ -62,13 +60,16 @@ namespace us::gov::cli {
             hmi& m;
         };
 
+    public:
         hmi(ostream&);
         hmi(int argc, char** argv, ostream&);
         hmi(const shell_args&, ostream&);
         hmi(const params&, ostream&);
+        void constructor();
+
         ~hmi() override;
 
-        void constructor();
+    public:
         static string parse_options(shell_args& args, params&);
         static void help(const params& p, ostream&);
         void write_rpc_client_key();
@@ -124,6 +125,7 @@ namespace us::gov::cli {
         mutable screen scr;
         string home;
 
+    public:
         #if CFG_LOGS == 1
             string logdir;
         #endif

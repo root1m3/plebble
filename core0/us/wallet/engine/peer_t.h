@@ -90,7 +90,7 @@ namespace us::wallet::engine {
     public:
         function<void(pport_t)> post_auth;
         function<void()> shutdown;
-        wallet::local_api* wallet{nullptr};
+        wallet::local_api* wallet_local_api{nullptr};
     };
 
 }
