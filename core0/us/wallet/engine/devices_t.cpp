@@ -137,7 +137,7 @@ void c::save_() const {
     log("saved devices file", file);
 }
 
-pair<ko, string> c::authorizeX(const pub_t& p, pin_t pin) {
+pair<ko, string> c::authorize(const pub_t& p, pin_t pin) {
     log("authorization request for device", p, "using pin", pin);
     lock_guard<mutex> lock(mx);
     attempts.purge();
@@ -274,12 +274,17 @@ ko c::device_pair_(const pub_t& pub, string subhome, string name, bool dosave) {
     return ok;
 }
 
-ko c::device_unpair_(const pub_t& pub) {
+pair<ko, string> c::device_unpair_(const pub_t& pub) {
     auto i = find(pub.hash());
-    if (i == end()) return "KO 30293 Public key was not paired.";
+    if (i == end()) {
+        auto r = "KO 30293 Public key was not paired.";
+        log(r);
+        return make_pair(r, "");
+    }
+    pair<ko, string> r = make_pair(ok, i->second.subhome);
     erase(i);
     save_();
-    return ok;
+    return r;
 }
 
 ko c::device_unprepair_(pin_t pin) {
@@ -304,7 +309,7 @@ ko c::device_pair(const pub_t& pub, string subhome, string name) {
     return device_pair_(pub, subhome, name);
 }
 
-ko c::device_unpair(const pub_t& pub) {
+pair<ko, string> c::device_unpair(const pub_t& pub) {
     lock_guard<mutex> lock(mx);
     return device_unpair_(pub);
 }

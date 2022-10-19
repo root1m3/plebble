@@ -106,6 +106,10 @@ public final class app extends Application implements datagram_dispatcher_t.hand
         CFG.log_android("app: " + line);                  //--strip
     }                                                     //--strip
 
+    public static boolean is_ui_thread() {
+        return Looper.getMainLooper().isCurrentThread();
+    }
+
     public static void assert_ui_thread() {                                 //--strip
         if (!Looper.getMainLooper().isCurrentThread()) {                    //--strip
             log(Arrays.toString(Thread.currentThread().getStackTrace()));   //--strip

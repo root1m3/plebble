@@ -195,6 +195,12 @@ public final class node_pairing extends activity {
             }
         });
 
+        unpair_btn.setOnClickListener(new View.OnClickListener() {
+            @Override public void onClick(View view) {
+                do_unpair();
+            }
+        });
+
         done.setOnClickListener(new View.OnClickListener() {
            @Override public void onClick(View view) {
                finish();
@@ -206,6 +212,15 @@ public final class node_pairing extends activity {
                connection_log();
            }
         });
+    }
+
+    void do_unpair() {
+        log("unpair"); //--strip
+        if (dep.hmi == null) return;
+        log("unpair!"); //--strip
+        dep.hmi.unpair();
+
+        on_user_req_poweroff();
     }
 
     @SuppressWarnings("StatementWithEmptyBody")
@@ -222,6 +237,8 @@ public final class node_pairing extends activity {
                 break;
 
             case R.id.nav_hmi_poweroff:
+                on_user_req_poweroff();
+/*
                 app.progress_t progress = new app.progress_t() {
                     @Override public void on_progress(final String report) {
                         runOnUiThread(new Runnable() {
@@ -233,6 +250,7 @@ public final class node_pairing extends activity {
                 };
                 a.HMI_power_off(conf_index, progress);
                 refresh();
+  */
                 break;
 
             case R.id.nav_softwareupdates:
@@ -273,6 +291,8 @@ public final class node_pairing extends activity {
         done = findViewById(R.id.done);
         refresh = findViewById(R.id.refresh);
         connect_btn = findViewById(R.id.connect_btn);
+        unpair_btn = findViewById(R.id.unpair_btn);
+
         mode = findViewById(R.id.mode);
         upgrade2noncustodial = findViewById(R.id.upgrade2noncustodial);
         imagenode = findViewById(R.id.imagenode);
@@ -328,9 +348,12 @@ public final class node_pairing extends activity {
         channel.setSingleLine();
         channel.setInputType(InputType.TYPE_CLASS_NUMBER);
         channel.setSelectAllOnFocus(true);
-        if (getIntent().hasExtra("conf_index")) {
-            conf_index = getIntent().getExtras().getInt("conf_index", 0);
+        if (!getIntent().hasExtra("conf_index")) {
+            log("KO 77869 Missing conf_index"); //--strip
+            finish();
         }
+        conf_index = getIntent().getExtras().getInt("conf_index", 0);
+        log("conf_index " + conf_index); //--strip
         dep = a.device_endpoints.get(conf_index);
         dep.log_blob(); //--strip
         final ip4_endpoint_t ep = dep.ip4_endpoint;
@@ -518,11 +541,11 @@ public final class node_pairing extends activity {
         StringBuilder b = new StringBuilder();
         b.append("HMI: " + (dep.hmi == null ? "KO Not" : "OK ") + " present.\n");
         if (dep.hmi != null) {
-            b.append("  ip4_endpoint:\n    "+(dep.hmi.ip4_endpoint == null ? "Null" : "" + dep.hmi.ip4_endpoint.to_string()) + '\n');
+            b.append("  ip4_endpoint:\n    " + (dep.hmi.ip4_endpoint == null ? "Null" : "" + dep.hmi.ip4_endpoint.to_string()) + '\n');
             b.append("  active: " + dep.hmi.is_active() + '\n');
             b.append("  online: " + dep.hmi.is_online + '\n');
             b.append("  wallet_address:\n    " + (dep.hmi.wallet_address == null ? "KO null" : dep.hmi.wallet_address.encode()) + '\n');
-            b.append("  wloc: "+ (dep.hmi.subhome.isEmpty() ? "[Non Custodial (empty)]" : dep.hmi.subhome) + '\n');
+            b.append("  wloc: " + (dep.hmi.subhome.isEmpty() ? "[Non Custodial (empty)]" : dep.hmi.subhome) + '\n');
             b.append("  trader_endpoints:\n");
             pair<ko, bookmarks_t> r = dep.hmi.bookmarks_me();
             if (is_ko(r.first)) {
@@ -548,8 +571,13 @@ public final class node_pairing extends activity {
                             show_connection_log();
                             break;
                         case 1:
-                            dep.hmi.clear_msg_log();
-                            Toast.makeText(node_pairing.this, "Connection log cleared.", 6000).show();
+                            if (dep.hmi != null) {
+                                dep.hmi.clear_msg_log();
+                                Toast.makeText(node_pairing.this, "Connection log cleared.", 6000).show();
+                            }
+                            else {
+                                Toast.makeText(node_pairing.this, "HMI is off.", 6000).show();
+                            }
                             break;
                         case 2:
                             techinfo();
@@ -843,9 +871,8 @@ public final class node_pairing extends activity {
     String get_pubkey() {
         log("get_pubkey"); //--strip
         if (dep == null) return "";
-        KeyPair kp = dep.cfg.keys;
-        if (kp == null) return "";
-        return ec.instance.to_b58(kp.getPublic());
+        if (dep.hmi == null) return "";
+        return dep.hmi.get_pubkey();
     }
 
     void refresh_mode_widgets() {
@@ -925,10 +952,13 @@ public final class node_pairing extends activity {
             connect_btn.setEnabled(true);
             connect_btn.setVisibility(View.VISIBLE);
             current_endpoint.setVisibility(View.VISIBLE);
+            unpair_btn.setEnabled(true);
+            unpair_btn.setVisibility(View.VISIBLE);
         }
         else {
             connect_btn.setVisibility(View.GONE);
             current_endpoint.setVisibility(View.GONE);
+            unpair_btn.setVisibility(View.GONE);
         }    
     }
 
@@ -1029,7 +1059,6 @@ public final class node_pairing extends activity {
 
     private Switch poweron;
 
-
     static int darkgreen = Color.parseColor("#009900");
     static int orange = Color.parseColor("#ffa500");
     private TextView current_endpoint;
@@ -1039,6 +1068,7 @@ public final class node_pairing extends activity {
     private toolbar_button done;
     private toolbar_button refresh;
     private MaterialButton connect_btn;
+    private MaterialButton unpair_btn;
     private TextInputEditText devicepk;
     private TextInputEditText connection_status;
     private TextInputEditText nodepkh;

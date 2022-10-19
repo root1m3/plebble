@@ -172,15 +172,6 @@ public class hmi_t extends us.wallet.cli.hmi {
 
     @Override public pair<ko, us.gov.io.cfg1> load_cfg(String home, boolean gen) {
         return new pair<ko, us.gov.io.cfg1>(ok, cfg);
-
-/*
-        log("load_cfg " + home + " gen " + gen);
-        pair<ko, cfg_android_private_t> z = cfg_android_private_t.load(a.getApplicationContext(), home, gen);
-        set_status(leds_t.led_amber, "Loading previous network info for channel " + p.channel.value);
-        update_network_info_from_cache(z.second, p.channel);
-        set_status(leds_t.led_amber, (seeds == null ? "0" : "" + seeds.size()) + " seeds");
-        return new pair<ko, us.gov.io.cfg1>(z.first, z.second);
-*/
     }
 
     public cfg_android_private_t get_cfg() {
@@ -235,16 +226,12 @@ public class hmi_t extends us.wallet.cli.hmi {
     }
 
     public ko start(final ip4_endpoint_t ep, final pin_t pin) {
-        //, busyled_t.handler_t busyled_handler_send, busyled_t.handler_t busyled_handler_recv, datagram_dispatcher_t dis) {
         log("start"); //--strip
         if (cfg == null) {
             return new ko("KO 80799 cfg is null");
         }
         freeze = false; //show the first error, then ign the rest
         is_online = false;
-//        this.busyled_handler_send = busyled_handler_send;
-//        this.busyled_handler_recv = busyled_handler_recv;
-//        this.dispatcher = dis;
         ip4_endpoint = ep;
         p.pin = pin;
         if (ip4_endpoint != null) {
@@ -299,8 +286,8 @@ public class hmi_t extends us.wallet.cli.hmi {
         set_status(leds_t.led_red, "HMI stop.");
     }
 
-    @Override public void on_connect(final ko error) {
-        super.on_connect(error);
+    void on_connect__worker(final ko error) {
+        app.assert_worker_thread(); //--strip
         log("on_connect. " + (error == ok ? "ok" : error.msg)); //--strip
         if (is_ko(error)) {
             log("try_renew_ip_on_connect_failed = " + try_renew_ip_on_connect_failed); //--strip
@@ -312,10 +299,9 @@ public class hmi_t extends us.wallet.cli.hmi {
                     @Override public void run() {
                         log("looking up IP address..."); //--strip
                         pair<ko, ip4_endpoint_t> r = lookup_ip(new app.progress_t() {
-                            @Override
-                            public void on_progress(final String msg) {
+                            @Override public void on_progress(final String msg) {
                                 log("renew IP:" + msg); //--strip;
-                                set_status(leds_t.led_blue, msg);
+                                o.set_status(leds_t.led_blue, msg);
                             }
                         });
                         if (r.first != ok) {
@@ -341,6 +327,21 @@ public class hmi_t extends us.wallet.cli.hmi {
                 set_status(leds_t.led_red, error.msg);
                 on_hmi__worker(error);
             }
+        }
+    }
+
+    @Override public void on_connect(final ko error) {
+        super.on_connect(error);
+        if (app.is_ui_thread()) {
+            Thread task = new Thread(new Runnable () {
+                @Override public void run() {
+                    on_connect__worker(error);
+                }
+            });
+            task.start();
+        }
+        else {
+            on_connect__worker(error);
         }
     }
 

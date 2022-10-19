@@ -179,6 +179,7 @@ public final class main_activity extends activity {
         }
     }
 */
+/*
     @Override public int menuid() {
         if (a.hmi == null) {
             return R.menu.menu_nohmi;
@@ -187,6 +188,7 @@ public final class main_activity extends activity {
             return R.menu.menu_hmi_online;
         }
     }
+*/
 
     void tweak_menu() {
         if (a.device_endpoints == null) {

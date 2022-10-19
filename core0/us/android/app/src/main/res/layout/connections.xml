@@ -24,9 +24,6 @@
         android:layout_height="wrap_content"
         android:visibility="visible"
         >
-<!--        android:divider="?android:dividerHorizontal"
-        android:showDividers="middle"
--->
 
     </ListView>
 </LinearLayout>

@@ -81,8 +81,14 @@ ko c::handle_unpair_device(pub_t&& pub, string& ans) {
     auto& demon = static_cast<daemon_t&>(daemon);
     {
         auto r = demon.devices.device_unpair(pub);
-        if (is_ko(r)) {
-            return r;
+        if (is_ko(r.first)) {
+            return r.first;
+        }
+        if (!r.second.empty()) { //guest wallet
+            ostringstream file;
+            file << demon.wallet_home(r.second) << "/revoked";
+            log("writing file", file.str());
+            us::gov::io::write_file_(vector<uint8_t>(), file.str());
         }
     }
     demon.disconnect(pub, 0, "Revoked authorization.");

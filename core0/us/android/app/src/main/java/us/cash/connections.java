@@ -114,6 +114,8 @@ import android.net.wifi.WifiManager;                                            
 import android.view.Window;                                                                    // Window
 import android.view.WindowManager;                                                             // WindowManager
 import org.xmlpull.v1.XmlPullParser;                                                           // XmlPullParser
+import android.widget.Switch;                                                                  // Switch
+import android.widget.CompoundButton;                                                          // CompoundButton
 
 public final class connections extends activity {
 
@@ -144,11 +146,32 @@ public final class connections extends activity {
                 vi = inflater.inflate(R.layout.device_endpoint, null, true);
             }
             Button b = vi.findViewById(R.id.hmibutton);
+            Switch poweron = vi.findViewById(R.id.poweron);
             device_endpoint_t itm = getItem(position);
             String caption = itm.get_title();
             b.setBackgroundColor(pwr_off);
+
+            poweron.setOnCheckedChangeListener(null);
+            if (itm.hmi == null) {
+                poweron.setChecked(false);
+            }        
+            else {
+                poweron.setChecked(true);
+            }
+
+            poweron.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                    log("human touched power switch"); //--strip
+                    if (isChecked) {
+                        activity_.on_user_req_poweron(position);
+                    }
+                    else {
+                        activity_.on_user_req_poweroff(position);
+                    }
+                }
+            });
+
             if (itm.hmi != null) {
-                caption = "[ON] " + caption;
                 b.setBackgroundColor(pwr_on);
             }
             b.setText(caption);
@@ -160,8 +183,11 @@ public final class connections extends activity {
             b.setOnClickListener(lner);
             return vi;
         }
+
+
     }
 
+/*
     @Override public int menuid() {
         if (a.hmi == null) {
             return R.menu.menu_nohmi;
@@ -169,6 +195,61 @@ public final class connections extends activity {
         else {
             return R.menu.menu_hmi_online;
         }
+    }
+*/
+
+    void on_user_req_poweron(int position) {
+        a.assert_ui_thread(); //--strip
+        log("on_user_req_poweron"); //--strip
+        app.progress_t progress = new app.progress_t() {
+            @Override public void on_progress(final String report) {
+                runOnUiThread(new Runnable() {
+                    @Override public void run() {
+                        Toast.makeText(connections.this, report, 6000).show();
+                    }
+                });
+            }
+        };
+        a.HMI_power_on(position, new pin_t(0), progress);
+        Timer timer = new Timer();
+        timer.schedule(new TimerTask() {
+          @Override public void run() {
+            runOnUiThread(new Runnable() {
+                @Override public void run() {
+                    log("Saving settings"); //--strip
+                    a.device_endpoints.save();
+                    refresh();
+                }
+            });
+          }
+        }, 1000);
+    }
+
+    void on_user_req_poweroff(int position) {
+        a.assert_ui_thread(); //--strip
+        log("on_user_req_poweroff"); //--strip
+        app.progress_t progress = new app.progress_t() {
+            @Override public void on_progress(final String report) {
+                runOnUiThread(new Runnable() {
+                    @Override public void run() {
+                        Toast.makeText(connections.this, report, 6000).show();
+                    }
+                });
+            }
+        };
+        a.HMI_power_off(position, progress);
+        Timer timer = new Timer();
+        timer.schedule(new TimerTask() {
+          @Override public void run() {
+            runOnUiThread(new Runnable() {
+                @Override public void run() { 
+                    log("Saving settings"); //--strip
+                    a.device_endpoints.save();
+                    refresh(); 
+                }
+            });
+          }
+        }, 1000);
     }
 
     @Override protected void onCreate(Bundle savedInstanceState) {
@@ -214,8 +295,10 @@ public final class connections extends activity {
     }
 
     public void show_menu(final int pos, final String name) {
+        final device_endpoint_t dep = a.device_endpoints.get(pos);
+
         String onoff_hmi;
-        if (a.hmi == null) {
+        if (dep.hmi == null) {
             onoff_hmi = "Turn ON";
         }
         else {
@@ -238,7 +321,7 @@ public final class connections extends activity {
                     @Override public void onClick(DialogInterface dialog, int which) {
                         switch(which) {
                             case 0:
-                                if (a.hmi != null) {
+                                if (dep.hmi != null) {
                                     log("stop HMI"); //--strip
                                     stop_hmi();
                                 }

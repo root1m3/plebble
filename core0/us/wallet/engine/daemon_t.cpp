@@ -296,7 +296,7 @@ socket::client* c::create_client(sock_t sock) {
 
 pair<ko, string> c::authorize_device(const pub_t& p, pin_t pin) {
     log("is device authorized?", pin);
-    return devices.authorizeX(p, pin);
+    return devices.authorize(p, pin);
 }
 
 void c::on_peer_wallet(const hash_t& addr, host_t address, pport_t rpport) {

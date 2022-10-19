@@ -84,28 +84,6 @@ pair<ko, device_t> c::from_streamX(istream& is0) {
     return d;
 }
 
-/*
-pair<ko, device_t> c::from_stream_prev(istream& is) {
-    log("from stream prev");
-    return from_stream_v1(is);
-}
-
-pair<bool, device_t> c::from_stream_v1(istream& is) {
-    log("from stream prev");
-    pair<bool, device_t> d;
-    d.first = true;
-    is >> d.second.pub;
-    is >> d.second.subhome;
-    if (d.second.subhome == "-") d.second.subhome.clear();
-    getline(is, d.second.name);
-    io::cfg0::trim(d.second.name);
-    if (is.fail()) {
-        d.first = false;
-    }
-    return d;
-}
-*/
-
 pin_t c::decode_pin() const {
     if (pub.valid) return 0;
     return *reinterpret_cast<const pin_t*>(&pub.data[0]);

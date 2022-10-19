@@ -55,15 +55,23 @@ public final class device_endpoint_t extends wallet_connection_t implements hmi_
     }
 
     public device_endpoint_t(device_endpoints_t parent_, String k_b58, wallet_connection_t wallet_connection) {
-        super(wallet_connection);
+        super(wallet_connection.name_.value, wallet_connection.ip4_endpoint);
         parent = parent_;
         hmi = null;
         cfg = new cfg_android_private_t(parent.a.getApplicationContext(), k_b58);
         cfg.home = get_home();
     }
 
+    public device_endpoint_t(device_endpoints_t parent_, String name, ip4_endpoint_t ip4_endpoint) {
+        super(name, ip4_endpoint);
+        parent = parent_;
+        hmi = null;
+        cfg = new cfg_android_private_t(parent.a.getApplicationContext());
+        cfg.home = get_home();
+    }
+
     public device_endpoint_t(device_endpoints_t parent_, wallet_connection_t wallet_connection) {
-        super(wallet_connection);
+        super(wallet_connection.name_.value, wallet_connection.ip4_endpoint);
         parent = parent_;
         hmi = null;
         cfg = new cfg_android_private_t(parent.a.getApplicationContext());
@@ -77,13 +85,16 @@ public final class device_endpoint_t extends wallet_connection_t implements hmi_
         cfg.home = get_home();
     }
 
-    public device_endpoint_t(device_endpoint_t other) {
+    private device_endpoint_t(device_endpoint_t other) {}
+/*
+ {
         super(other);
         parent = other.parent;
         hmi = null;
         cfg = new cfg_android_private_t(parent.a.getApplicationContext());
         cfg.home = get_home();
     }
+*/
 
     String get_home() {
         return parent.home + "/" + us.gov.crypto.ec.instance.to_encoded_address(cfg.keys.getPublic());
@@ -225,10 +236,6 @@ public final class device_endpoint_t extends wallet_connection_t implements hmi_
         log("from_blob ok"); //--strip
         return ok;
     }
-
-    //String home0;
-
-    //app a;
 
     public hmi_t hmi;
     public boolean hmi_req_on = false;

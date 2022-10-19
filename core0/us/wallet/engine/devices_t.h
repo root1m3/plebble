@@ -52,10 +52,10 @@ namespace us::wallet::engine {
         devices_t(const string& home);
         void load();
         void save() const;
-        pair<ko, string> authorizeX(const pub_t&, pin_t pin); //returns subhome
+        pair<ko, string> authorize(const pub_t&, pin_t pin); //returns subhome
         void dump(ostream&) const;
         ko device_pair(const pub_t&, string subhome, string name);
-        ko device_unpair(const pub_t&);
+        pair<ko, string> device_unpair(const pub_t&);
         pair<ko, pin_t> device_prepair(pin_t pin, string subhome, string name);
         ko device_unprepair(pin_t pin);
         const device_t* get_device(const pub_t&) const;
@@ -63,13 +63,13 @@ namespace us::wallet::engine {
         void set_consume_pin(bool);
         bool get_consume_pin() const;
         inline const string& get_home() const { return home; }
+        inline bool is_enabled__authorize_and_create_guest_wallet() const { return authorize_and_create_guest_wallet; }
 
     private:
         ko load_();
-        //void load_v1_();
         void save_() const;
         ko device_pair_(const pub_t&, string subhome, string name, bool save = true);
-        ko device_unpair_(const pub_t&);
+        pair<ko, string> device_unpair_(const pub_t&);
         pair<ko, pin_t> device_prepair_(pin_t, string subhome, string name);
         ko device_unprepair_(pin_t pin);
 

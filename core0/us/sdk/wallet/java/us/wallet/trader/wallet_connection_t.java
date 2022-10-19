@@ -55,6 +55,15 @@ public class wallet_connection_t implements us.gov.io.seriable {
         ts = new uint64_t(0);
     }
 
+    public wallet_connection_t(String nm, ip4_endpoint_t ep) {
+        log("constructor 3 "); //--strip
+        name_ = new string(nm);
+        ssid = new string("");
+        addr = new string("");
+        ip4_endpoint = new ip4_endpoint_t(ep);
+        ts = new uint64_t(0);
+    }
+
     public wallet_connection_t(uint64_t ts_, string addr_, string nm, string ssid_, ip4_endpoint_t ep) {
         log("constructor 2 "); //--strip
         name_ = nm;
@@ -64,7 +73,7 @@ public class wallet_connection_t implements us.gov.io.seriable {
         ts = ts_;
     }
 
-    public wallet_connection_t(wallet_connection_t other) {
+    private wallet_connection_t(wallet_connection_t other) {
         log("copy constructor"); //--strip
         name_ = new string(other.name_);
         ssid = new string(other.ssid);

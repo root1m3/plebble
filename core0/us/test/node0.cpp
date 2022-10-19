@@ -184,7 +184,7 @@ void test_wallet_rpc_keys(const string& homedir) {
     d.dump(cout);
     cout << "Random device not authorized\n";
     {
-        auto r = d.authorizeX(us::gov::crypto::ec::keys::generate().pub, 0);
+        auto r = d.authorize(us::gov::crypto::ec::keys::generate().pub, 0);
         assert(r.first == us::wallet::engine::devices_t::KO_30291);
     }
     cout << "Console entry.\n";
@@ -200,7 +200,7 @@ void test_wallet_rpc_keys(const string& homedir) {
     cout << "  pubkey '" << pubk << "'\n";
     cout << "  pubkeyh '" << pubk.hash() << "'\n";
     assert(d.size() == 1);
-    auto r = d.authorizeX(pubk, 0);
+    auto r = d.authorize(pubk, 0);
     assert(r.first == ok); //authorized
     assert(r.second == ""); //given subhome
 }

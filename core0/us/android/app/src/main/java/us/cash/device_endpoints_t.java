@@ -186,14 +186,8 @@ public final class device_endpoints_t extends ArrayList<device_endpoint_t> imple
     public ko copy_device_endpoint(int ndx) {
         log("copy_endpoint " + ndx); //--strip
         device_endpoint_t dep = get(ndx);
-        try {
-            add(new device_endpoint_t(dep));
-        }
-        catch (Exception e) {
-            ko r = new ko("KO 82762.");
-            log(r.msg); //--strip
-            return r;
-        }
+        device_endpoint_t copy = new device_endpoint_t(this, "Copy of " + dep.name_.value, dep.ip4_endpoint);
+        add(copy);
         log("save"); //--strip
         save();
         return ok;
@@ -328,8 +322,10 @@ public final class device_endpoints_t extends ArrayList<device_endpoint_t> imple
             }
             clear();
             JSONArray data = root.second.getJSONArray("data");
+            log("data.length()=" + data.length()); //--strip
             for (int i = 0; i < data.length(); i++) {
                 JSONObject o = data.getJSONObject(i);
+                if (o == null) continue;
                 //IP
                 //port
                 //Name

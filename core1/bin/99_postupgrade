@@ -48,55 +48,66 @@ if [[ $ne -ne $ene ]]; then
     exit 1
 fi
 
-echo "Network should now be running ${branch}."
-echo -n "enter new branch: "
-newb=""
-read newb
+echo "Confirm that the network is running ${branch}."
+echo "Yes?"
+read a
 
-echo "New branch: $newb"
-
-echo "archiving distr files"
-dir=release_history/$branch
-mkdir -p $dir
-mv distr $dir/
-mv blobs $dir/
-
-echo "Saved release history at $dir"
-
-curgit=`git branch | grep "^\* " | awk '{ print $2}'`
-if [[ "_$curgit" == "_$branch" ]]; then
-    echo "creating new git branch $newb"
-    git checkout -b $newb
-fi
-
-echo "updating new branch in cbs/config"
-sed -i "s/^branch=\"$branch\"/branch=\"$newb\"/" .cbs/config
-
-. release_history/$branch/distr/us/src/core0/us/vcs_git_env
-echo "======================================="
-echo "info for core1/doc/release_notes:"
-echo -n "${core0_branch}_${core0_hashname} ${core0_build_date} "
-cat release_history/$branch/distr/build_hashes | grep vhash | sort | uniq
-echo "======================================="
-
-echo ""
-echo "Post network upgrade tasks:"
-brands=`find release_history/$branch/distr -mindepth 1 -maxdepth 1 -type d  | grep -v "deps$" | tr '/' ' ' | awk {'print $NF'}`
-let ecode=0
-for b in $brands; do
-    echo "brand $b"
-    bdir=../core2/brands/$b
-    if [[ -x $bdir/bin/postupgrade ]]; then
-        echo "Found tasks script at $bdir/bin/postupgrade"
-        $bdir/bin/postupgrade $branch
-        if [[ $? -ne 0 ]]; then
-            echo "********************************************** skipping brand $b REVIEW
-            let ecode=1
+function post_upgrade {
+    echo ""
+    echo "Post network upgrade tasks:"
+    brands=`find release_history/$branch/distr -mindepth 1 -maxdepth 1 -type d  | grep -v "deps$" | tr '/' ' ' | awk {'print $NF'}`
+    let ecode=0
+    for b in $brands; do
+        echo "brand $b"
+        bdir=../core2/brands/$b
+        if [[ -x $bdir/bin/postupgrade ]]; then
+            echo "Found tasks script at $bdir/bin/postupgrade"
+            $bdir/bin/postupgrade $branch
+            if [[ $? -ne 0 ]]; then
+                echo "********************************************** skipping brand $b REVIEW
+                let ecode=1
+            fi
+        else
+            echo "No tasks found at $bdir/bin/postupgrade"
         fi
-    else
-        echo "No tasks found at $bdir/bin/postupgrade"
+    done
+}
+
+
+function save_release_history {
+    echo -n "enter new branch: "
+    newb=""
+    read newb
+
+    echo "New branch: $newb"
+
+    echo "archiving distr files"
+    dir=release_history/$branch
+    mkdir -p $dir
+    mv distr $dir/
+    mv blobs $dir/
+
+    echo "Saved release history at $dir"
+
+    curgit=`git branch | grep "^\* " | awk '{ print $2}'`
+    if [[ "_$curgit" == "_$branch" ]]; then
+        echo "creating new git branch $newb"
+        git checkout -b $newb
     fi
-done
+
+    echo "updating new branch in cbs/config"
+    sed -i "s/^branch=\"$branch\"/branch=\"$newb\"/" .cbs/config
+
+    . release_history/$branch/distr/us/src/core0/us/vcs_git_env
+    echo "======================================="
+    echo "info for core1/doc/release_notes:"
+    echo -n "${core0_branch}_${core0_hashname} ${core0_build_date} "
+    cat release_history/$branch/distr/build_hashes | grep vhash | sort | uniq
+    echo "======================================="
+}
+
+post_upgrade
+save_release_history
 
 exit $ecode
 

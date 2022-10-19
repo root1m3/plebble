@@ -213,7 +213,18 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
                 android:layout_marginLeft="8dp"
-                android:layout_marginRight="8dp"                android:text="@string/connect"
+                android:layout_marginRight="8dp"
+                android:text="@string/connect"
+                android:textColor="@android:color/white" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/unpair_btn"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:layout_marginLeft="8dp"
+                android:layout_marginRight="8dp"
+                android:text="self revoke authorization (unpair)"
                 android:textColor="@android:color/white" />
 
             <LinearLayout

@@ -144,7 +144,9 @@ Production releases. alpha
 --------------------------
 
 alpha-46 - 
-    *
+    * RPC device revocation for automatic custodial wallets. Once unpaired it cannot be automaticalley paired again against an automatically-created guest wallet.
+    * android app. Added unpair button in connection settings.
+    * android app. Fixed regression in new connections, where turning on/off connections would affect to the first one insted of the choosen one.
 
 alpha-45 - alpha-45_87bd6071 2022-10-18_18-01-59 vhash 87bd6071 <- R a9fab23375b2cd28abf9b7032fe0e9bc3dda59ab alpha-45 dbg-0 logs-0 counters-0 connlog-0 fcgi-0
     * Upgraded traders container to allocate more that one instance of a trade_id, needed for trades between local wallets. 

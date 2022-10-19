@@ -1260,6 +1260,19 @@ public class hmi {
             scr.lock.unlock();
             return ok;
         }
+        if (command.equals("unpair")) {
+            PublicKey pub = args.next_pub();
+            pub_t pk = new pub_t(pub);
+            string ans = new string();
+            ko r = rpc_daemon.get_peer().call_unpair_device(pk, ans);
+            if (is_ko(r)) {
+                return r;
+            }
+            scr.lock.lock();
+            scr.os.println(ans.value);
+            scr.lock.unlock();
+            return ok;
+        }
 /*
         if (command.equals("stress")) {
             int i = 0;
@@ -1585,7 +1598,7 @@ public class hmi {
         }
 */
         scr.lock.lock();
-        scr.os.println("WARNING: Many functions in the java HMI has recently been disabled after an API upgrade. For the complete functional rpc-wallet use the c++ version.\n Functions currently working: priv_key, balance ");
+        scr.os.println("WARNING: Many functions in the java HMI has recently been disabled after an API upgrade. For the complete functional rpc-wallet use the c++ version.\n Functions currently working: priv_key, balance, unpair ");
         scr.lock.unlock();
 
         return KO_11000;
@@ -1646,7 +1659,7 @@ public class hmi {
         return KO_91810;
     }
 
-    ko exec(String cmdline) {
+    public ko exec(String cmdline) {
         shell_args args = new shell_args(cmdline);
         String cmd = args.next_string();
         ko r = exec_offline(cmd, args);
@@ -1707,6 +1720,16 @@ public class hmi {
     public boolean is_active() {
         if (rpc_daemon == null) return false;
         return rpc_daemon.is_active();
+    }
+
+    public String get_pubkey() {
+        if (cfg == null) return "";
+        if (cfg.keys == null) return "";
+        return ec.instance.to_b58(cfg.keys.getPublic());
+    }
+
+    public ko unpair() {
+        return exec("unpair " + get_pubkey());
     }
 
     public rpc_daemon_t rpc_daemon = null;

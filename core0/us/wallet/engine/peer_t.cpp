@@ -116,11 +116,22 @@ ko c::authorize(const pub_t& p, pin_t pin) {
     }
     if (is_role_device()) {
         log("role device");
-        auto r = static_cast<daemon_t&>(daemon).authorize_device(p, pin);
+        auto& demon = static_cast<daemon_t&>(daemon);
+        auto r = demon.authorize_device(p, pin);
         if (is_ko(r.first)) {
             return r.first;
         }
-        wallet_local_api = static_cast<daemon_t&>(daemon).users.get_wallet(r.second);
+        if (!r.second.empty() && demon.devices.is_enabled__authorize_and_create_guest_wallet()) {
+            //revocation is writen in peer_t::handle_unpair_device (peer_t__pairing.cpp)
+            ostringstream file;
+            file << demon.wallet_home(r.second) << "/revoked";
+            if (us::gov::io::cfg0::file_exists(file.str())) {
+                auto r = "KO 55710 This device has its access revoked to its automatic guest wallet.";
+                log(r);
+                return r;
+            }
+        }
+        wallet_local_api = demon.users.get_wallet(r.second);
         log("device authorized. subhome", r.second, "wallet local_api", wallet_local_api);
         return ok;
     }
