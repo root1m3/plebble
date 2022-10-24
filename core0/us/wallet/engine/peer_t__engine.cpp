@@ -30,6 +30,8 @@
 
 #include <us/wallet/engine/daemon_t.h>
 
+#include "wallet_connection_t.h"
+
 #define loglevel "wallet/engine"
 #define logclass "peer_t__engine"
 #include <us/gov/logs.inc>
@@ -287,6 +289,16 @@ ko c::handle_register_w(uint32_t&& net_addr, string& ans) {
         ans = r;
     }
     return r;
+}
+
+ko c::handle_conf(conf_in_dst_t&& o_in, string& ans) {
+    log("conf");
+    /// in:
+    ///     string key;
+    ///     string value;
+
+    auto& demon = static_cast<daemon_t&>(daemon);
+    return demon.handle_conf(o_in.key, o_in.value, ans);
 }
 
 //-/----------------apitool - End of API implementation.

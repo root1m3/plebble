@@ -98,6 +98,7 @@ namespace us::wallet::engine {
         #endif
 
         string rewrite(ko) const override;
+        ko handle_conf(const string& key, const string& value, string& ans);
 
     public:
         using gov_rpc_daemon_t = gov::cli::rpc_daemon_t;

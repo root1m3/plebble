@@ -29,9 +29,6 @@ namespace us::apitool {
     struct model;
 
     struct api_t: vector<apifun> {
-        string src;
-        string name;
-        vector<pair<string, bool>> v;
 
         void collect_in_specs(map<string, vector<pair<string, string>>>&) const;
         void collect_out_specs(map<string, vector<pair<string, string>>>&) const;
@@ -47,7 +44,12 @@ namespace us::apitool {
         vector<pair<string, bool>> compute_get_protocol_vector();
         int svc_end(int svc_begin) const;
         void gen_svc_lock(ostream&) const;
+        void dump_v() const;
 
+    public:
+        string src;
+        string name;
+        vector<pair<string, bool>> v;
         bool feedback_on_ko{false};
         model* m{nullptr};
         bool delegate{false}; // false: handler impl is at peer; true: handler at daemon

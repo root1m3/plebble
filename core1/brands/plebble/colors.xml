@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- convert this file to visual html with [core1]/bin/android_colors -->
     <color name="colorPrimary">#FF0000</color>
     <color name="colorPrimaryDark">#000000</color>
     <color name="colorAccent">#CEC1C5</color>

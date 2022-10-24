@@ -31,6 +31,8 @@
 #include <us/gov/config.h>
 
 #include <us/wallet/engine/daemon_t.h>
+#include <us/wallet/engine/wallet_connection_t.h>
+#include <us/wallet/engine/ip4_endpoint_t.h>
 #include <us/wallet/wallet/algorithm.h>
 #include <us/wallet/wallet/local_api.h>
 #include <us/wallet/trader/trader_t.h>
@@ -1365,6 +1367,7 @@ void c::help(const params& p, ostream& os) { //moved
         fmt::twocol(ind____, "-pp <port>", "Published listening port.", tostr(p.published_port), os);
         fmt::twocol(ind____, "-pin <PIN number>", "Connect using PIN.", tostr(p.pin), os);
         fmt::twocol(ind____, "-c <channel>", "System channel", tostr(p.channel), os);
+        fmt::twocol(ind____, "-B <connection_blob>", "User the given connection blob to connect to a wallet backend", "", os);
         #if CFG_FCGI == 1
             fmt::twocol(ind____, "-fcgi", "Behave as a fast-cgi program. requires -d", tostr(p.fcgi ? "yes" : "no"), os);
         #endif
@@ -1414,7 +1417,7 @@ void c::help(const params& p, ostream& os) { //moved
         fmt::twocol(ind, "cash: Coin/token creation", "----------", os);
         fmt::twocol(ind____, "set_supply <address> <amount>", "Set or reset the coin mint balance", os);
         os << '\n';
-        fmt::twocol(ind, "Transaction making", "----------", os);
+        fmt::twocol(ind, "Transaction craft", "----------", os);
         tx_help(ind____, p, os);
     }
     os << '\n';
@@ -1450,6 +1453,10 @@ void c::help(const params& p, ostream& os) { //moved
         fmt::twocol(ind____, "list_devices", "Prints the list of recognized devices, together with the list of recently unathorized attempts log", os);
         fmt::twocol(ind____, "net_info", "Prints contextual information and wallet type (root/guest)", os);
         os << '\n';
+        fmt::twocol(ind, "Engine connections:", "----------", os);
+        fmt::twocol(ind____, "make_wallet_connection <ip4addr> <port> <channel> <name>", "Build a connection blob.", os);
+        fmt::twocol(ind____, "decode_wallet_connection <blob>", "Decode the given connection blob", os);
+        os << '\n';
         fmt::twocol(ind, "Public storage (on-chain):", "----------", os);
         os << ind << "  key-value:\n";
         fmt::twocol(ind____, "store <address> -kv <key> <value>", "Store key-value pair in a funded account. cost: 1 per cycle", os);
@@ -1477,8 +1484,10 @@ void c::help(const params& p, ostream& os) { //moved
         fmt::twocol(ind, "Law/Compilance:", "----------", os);
         fmt::twocol(ind____, "compilance_report <jurisdiction> <date-from> <date-to>", "Produces a private report including personal, financial and ownership data that voluntarily could be submitted to regulators", os);
         fmt::twocol(ind, "Trader:", "----------", os);
-        fmt::twocol(ind, "trade <command>", "Access to trading functions", os);
-        us::wallet::trader::traders_t::help(ind____, os);
+        fmt::twocol(ind____, "trade <command>", "Access to trading functions", os);
+        us::wallet::trader::traders_t::help(ind____ + "    ", os);
+        fmt::twocol(ind____, "create_bookmark <title> <icofile|-> \"[<channel>] <address>[.subhome]\" <protocol|-> <role|-> [<output-file>]", "Display bookmark blob on screen, or to specified file.", os);
+        fmt::twocol(ind____, "decode_bookmark [-f <filename> | <blob_b58>]", "Decode bookmark blob (from file or encoded) and shows its content on screen.", os);
         os << '\n';
         fmt::twocol(ind, "Daemon control/monitoring:", "----------", os);
         fmt::twocol(ind____, "s", "Show socket connections", os);
@@ -1487,6 +1496,7 @@ void c::help(const params& p, ostream& os) { //moved
         fmt::twocol(ind____, "regw <ip address>", "Register this wallet reachable at the specified address.", os);
         fmt::twocol(ind____, "sync", "Reload files", os);
         fmt::twocol(ind____, "reload_doc <full-path-doc>", "Invoke reload on all active trades in all wallets. Only via root wallet", os);
+        fmt::twocol(ind____, "conf <key> [<value>]", "get/[change] config by key.", os);
         os << '\n';
         fmt::twocol(ind, "Net-dev control:", "----------", os);
         fmt::twocol(ind____, "patch_os <script file> <skey>", "System upgrade/maintenance. Requires governance key", os);
@@ -1857,6 +1867,35 @@ ko c::exec_online1(const string& cmd, shell_args& args) {
     if (command == "search") {
         return KO_40322;
     }
+    if (command == "make_wallet_connection") {
+        using wallet_connection_t = us::wallet::engine::wallet_connection_t;
+        using ip4_endpoint_t = us::wallet::engine::ip4_endpoint_t;
+        string ip4 = args.next<string>();
+        port_t port = args.next<port_t>();
+        channel_t chan = args.next<channel_t>();
+        string name = args.next<string>();
+        wallet_connection_t wc(name, ip4_endpoint_t(ip4, port, chan));
+        blob_t blob;
+        wc.write(blob);
+        auto ans = us::gov::crypto::b58::encode(blob);          
+        screen::lock_t lock(scr, interactive);
+        lock.os << ans << '\n';
+        return ok;
+    }
+    if (command == "decode_wallet_connection") {
+        using wallet_connection_t = us::wallet::engine::wallet_connection_t;
+        string b58 = args.next<string>();
+        us::wallet::engine::wallet_connection_t wc;
+        ko r = wc.read(b58);
+        if (is_ko(r)) {
+            return r;
+        }
+        else {
+            screen::lock_t lock(scr, interactive);
+            wc.dump(lock.os);
+        }
+        return ok;
+    }
     if (command == "timeseries") {
         auto cmd = args.next<string>();
         if (cmd == "list") {
@@ -1974,6 +2013,75 @@ ko c::exec_online1(const string& cmd, shell_args& args) {
         }
         return ok;
     }
+    if (command == "create_bookmark") {
+        using us::wallet::trader::bookmarks_t;
+        using us::wallet::trader::bookmark_t;
+        auto label = args.next<string>();
+        auto icofile = args.next<string>();
+        auto address = args.next<string>();
+        auto protocol = args.next<string>();
+        auto role = args.next<string>();
+        auto ofile = args.next<string>();
+        blob_t ico;
+        if (icofile != "-") {
+            auto r = us::gov::io::read_file_(icofile, ico);
+            if (is_ko(r)) {
+                return r;
+            }
+        }
+        if (protocol == "-") {
+            if (role != "-") {
+                auto r = "KO 82037 role should be -";
+                log(r);
+                return r;
+            }
+        }
+        if (role == "-") {
+            if (protocol != "-") {
+                auto r = "KO 82038 protocol should be -";
+                log(r);
+                return r;
+            }
+        }
+        bookmarks_t bms;
+        bms.add("bm0", bookmark_t(move(address), move(protocol), move(role), move(label), move(ico)));
+        if (ofile.empty()) {
+            auto s = bms.encode();
+            screen::lock_t lock(scr, interactive);
+            lock.os << s << '\n';
+            return ok;
+        }
+        auto r = bms.save(ofile);
+        if (is_ko(r)) {
+            return r;
+        }
+        screen::lock_t lock(scr, interactive);
+        lock.os << "bookmark has been writen to file " << ofile << '\n';
+        return ok;
+
+    }
+    if (command == "decode_bookmark") {
+        using us::wallet::trader::bookmarks_t;
+        using us::wallet::trader::bookmark_t;
+        auto s = args.next<string>();
+        bookmarks_t bms;
+        if (s == "-f") {
+            auto file = args.next<string>();
+            auto r = bms.load(file);
+            if (is_ko(r)) {
+                return r;
+            }
+        }
+        else {
+            auto r = bms.read(s);
+            if (is_ko(r)) {
+                return r;
+            }
+        }
+        screen::lock_t lock(scr, interactive);
+        bms.dump("", lock.os);
+        return ok;
+    }
     if (command == "gw") {
         string data;
         auto r = rpc_daemon->get_peer().call_print_grid(data);
@@ -2029,6 +2137,18 @@ ko c::exec_online1(const string& cmd, shell_args& args) {
         auto t = args.next<string>();
         string ans;
         auto r = rpc_daemon->get_peer().call_reload_file(t, ans);
+        if (is_ko(r)) {
+            return r;
+        }
+        screen::lock_t lock(scr, interactive);
+        lock.os << ans << '\n';
+        return ok;
+    }
+    if (command == "conf") {
+        auto key = args.next<string>();
+        auto value = args.next<string>();
+        string ans;
+        auto r = rpc_daemon->get_peer().call_conf(us::wallet::engine::dto::conf_in_t(key, value), ans);
         if (is_ko(r)) {
             return r;
         }

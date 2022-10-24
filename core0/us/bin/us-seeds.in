@@ -43,10 +43,6 @@ function cleanup {
     rm -f /tmp/us_sysop_script_*
 }
 
-function gov_owns {
-    chown ${USR}:${USR} $datadir -R
-}
-
 function nodes_auto {
     tmpf=`mktemp`
     /usr/bin/timeout -s 9 30 $prefix/bin/${US}-gov -home ${datadir0} -c $CHANNEL cmd app 20 seeds | grep -v "^\$"> $tmpf
@@ -64,7 +60,9 @@ date +%F_%T
 
 nodes_auto
 cleanup
-#gov_owns
+
+echo "Install blob"
+/usr/local/bin/install_blob
 
 date +%F_%T
 echo -n "finished "

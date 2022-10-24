@@ -96,7 +96,7 @@ import android.util.TypedValue;                                                 
 import us.gov.io.types.vector_tuple_hash_host_port;                                            // vector_tuple_hash_host_port
 import android.view.ViewGroup;                                                                 // ViewGroup
 import android.view.View;                                                                      // View
-import us.wallet.trader.ip4_endpoint_t;                                                  // hash_t
+import us.wallet.engine.ip4_endpoint_t;                                                  // hash_t
 
 public final class node_pairing extends activity {
 
@@ -238,19 +238,6 @@ public final class node_pairing extends activity {
 
             case R.id.nav_hmi_poweroff:
                 on_user_req_poweroff();
-/*
-                app.progress_t progress = new app.progress_t() {
-                    @Override public void on_progress(final String report) {
-                        runOnUiThread(new Runnable() {
-                            @Override public void run() {
-                                Toast.makeText(node_pairing.this, report, 6000).show();
-                            }
-                        });
-                    }
-                };
-                a.HMI_power_off(conf_index, progress);
-                refresh();
-  */
                 break;
 
             case R.id.nav_softwareupdates:

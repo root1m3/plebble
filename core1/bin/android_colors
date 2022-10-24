@@ -1,0 +1,83 @@
+#!/bin/bash
+#===-                           P L E B B L E
+#===-                         https://plebble.us
+#===-
+#===-              Copyright (C) 2017-2022 root1m3@plebble.us
+#===-
+#===-                      GNU GENERAL PUBLIC LICENSE
+#===-                       Version 3, 29 June 2007
+#===-
+#===-    This program is free software: you can redistribute it and/or modify
+#===-    it under the terms of the GPLv3 License as published by the Free
+#===-    Software Foundation.
+#===-
+#===-    This program is distributed in the hope that it will be useful,
+#===-    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#===-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+#===-
+#===-    You should have received a copy of the General Public License
+#===-    along with this program, see LICENCE file.
+#===-    see https://www.gnu.org/licenses
+#===-
+#===----------------------------------------------------------------------------
+#===-
+
+function help {
+    echo "$0 <colors.xml file>"
+}
+
+if [[ "_$1" == "_" ]]; then
+    help
+    echo "KO 78694 input file."
+    exit 1
+fi
+
+colorf=$1
+
+if [[ ! -f $colorf ]]; then
+    echo "KO 78695 $colorf missing."
+    exit 1
+fi
+
+#cat $colorf
+#echo "---"
+
+cat << EOF > colors.html
+<html>
+<head>
+<title>Colors</title>
+</head>
+<body>
+<table>
+<tr>
+<th>name</th>
+<th>RGB</th>
+</tr>
+EOF
+
+file=/tmp/x767549
+ofile=colors.html
+
+rm -f $file
+cat $colorf | grep -v "<!--<color" | grep "<color name" | sed "s~.*<color name=\"\(.*\)\">#\(.*\)<.*~\1 \2~" > $file
+while read -r line; do
+    name=`echo $line | awk '{print $1}'`
+    rgb=`echo $line | awk '{print $2}'`
+    echo "<tr>" >> $ofile
+    echo "<td>$name</td><td bgcolor=\"#$rgb\">#$rgb</td>" >> $ofile
+    echo "</tr>" >> $ofile
+done < $file
+rm $file
+
+cat << EOF >> $ofile
+</table>
+<hr/>
+<a href="https://www.w3schools.com/colors/colors_hexadecimal.asp" target="_blank">https://www.w3schools.com/colors/colors_hexadecimal.asp</a>
+</body>
+</html>
+EOF
+
+cat $ofile
+echo "$ofile"
+echo "browse: file:///`realpath $ofile`"
+exit 0

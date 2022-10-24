@@ -292,7 +292,7 @@ CFG.sdk_logs = true; //--strip
             log("default connection blob is null"); //--strip
             assert false;
         }
-        us.wallet.trader.wallet_connection_t wallet_connection = new us.wallet.trader.wallet_connection_t();
+        us.wallet.engine.wallet_connection_t wallet_connection = new us.wallet.engine.wallet_connection_t();
         blob_reader_t reader = new blob_reader_t(blob);
         ko r = reader.read(wallet_connection);
         if (is_ko(r)) {

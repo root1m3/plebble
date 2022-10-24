@@ -32,12 +32,12 @@ else
     . ./.cbs/config
 fi
 
+#==============example parse flags leaving line without flags in opt=============
 flag=0
 while [[ true ]]; do
     opt=$1
-    echo "read opt=$opt"
     shift
-    if [ "_$opt" == "_--flaf" ]; then
+    if [ "_$opt" == "_--flag" ]; then
         echo " flag"
         flag=0
         continue
@@ -46,7 +46,9 @@ while [[ true ]]; do
         break
     fi
 done
+#====================================
 build_jobs=$opt
+
 
 if [[ "_$build_jobs" == "_" ]]; then
     build_jobs="build_jobs"

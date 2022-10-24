@@ -36,6 +36,8 @@ namespace us::wallet::trader {
         qr_t(endpoint_t&&, protocol_selection_t&&);
         qr_t(const endpoint_t&, protocol_selection_t&&);
         qr_t(const endpoint_t&);
+        qr_t(string&& ep, string&& protocol, const string&& role);
+
         qr_t(const qr_t&);
         qr_t& operator = (const qr_t&);
         void dump(const string& pfx, ostream& os) const;

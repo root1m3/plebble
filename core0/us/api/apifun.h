@@ -66,6 +66,7 @@ namespace us::apitool {
         string name;
         string fcgi;
         string service;
+        int svc{-1};
         string custom_rpc_impl;
         string sync_type;
         string _api_stream_write_fn_sfx;

@@ -197,8 +197,8 @@ ko c::from_streamX(istream& is) {
     string epf;
     is >> epf;
     if (is.fail()) {
-        print_stacktrace(cout);
-        auto r = "KO 66059";
+        //print_stacktrace(cout);
+        auto r = "KO 66059 Invalid endpoint.";
         log(r);
         return r;
     }

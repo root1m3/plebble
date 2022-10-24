@@ -33,26 +33,9 @@ fi
 
 function help {
     echo "$0 [-b] [--local-build] [--flags <flags10>] [--brand <brand|all] <cmd>"
-    echo " make_blobs"
     echo " clear_ccache"
+    echo " make_blobs"
     echo ""
-    echo " dbg_core <brand> <host> <port>    (with counters)"
-    echo " dbg_core_r2r"
-    echo " dbg_r2r"
-    echo ""
-    echo " dbglog_core <brand> <host> <port>  (with counters)"
-    echo " dbglog_core_r2r"
-    echo " dbglog_r2r"
-    echo ""
-    echo " rel_core [<brand> <host> <port>|(nothing->poc nodes)]     (without counters)"
-    echo " rel_core_r2r"
-    echo " rel_r2r"
-    echo ""
-    echo " rellog_core <brand> <host> <port>    (with counters)"
-    echo " rellog_core_r2r"
-    echo " rellog_r2r"
-    echo ""
-    echo " android <brand> <branch>"
     echo "*stop <job>"
     exit 0
 }
@@ -88,7 +71,7 @@ while [[ true ]]; do
     fi
 done
 
-function mk_blobs {
+function mk_blobs_init {
     if [[ -d distr ]]; then
         echo "dir distr exists."
         exit 1
@@ -116,10 +99,15 @@ function mk_blobs {
     echo "Make sure you have your signing password ready."
     echo "Sure? yes or CTRL-C"
     read ryes
+}
+
+sep="-------------------------------------------------------------------------------"
+
+function mk_blobs {
+    mk_blobs_init
     date
-    sep="-------------------------------------------------------------------------------"
     echo $sep
-    echo "bin/10_make_build_jobs ${flags10} $brand"
+    echo "bin/10_make_build_jobs ${flags10} ${brand}"
     bin/10_make_build_jobs ${flags10} $brand
     if [[ $? -ne 0 ]]; then
         exit 1
@@ -193,7 +181,7 @@ function mk_blobs {
     if [[ $? -ne 0 ]]; then
         exit 1
     fi
-    echo "Last step: git housekeeping. Archive branch and create new one"
+    echo "Next step: execute postupgrade scripts."
     echo "yes?"
     read x
     bin/99_postupgrade

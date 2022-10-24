@@ -40,7 +40,7 @@ import us.pair;                                                                 
 import java.security.PublicKey;                                                                // PublicKey
 import java.util.Random;                                                                       // Random
 import java.io.UnsupportedEncodingException;                                                   // UnsupportedEncodingException
-import us.wallet.trader.ip4_endpoint_t;                                                  // hash_t
+import us.wallet.engine.ip4_endpoint_t;                                                  // hash_t
 
 public class gov_client_t extends us.gov.cli.rpc_daemon_t {
 

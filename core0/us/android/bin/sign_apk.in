@@ -24,19 +24,49 @@
 
 us="##str3##"
 
-inst=0
-if [[ "_$1" == "_--install" ]]; then
-  inst=1
-fi
+function help {
+    echo "$0                 Sign apks and bundles"
+    echo "$0  --install      Sign and install apk in device using adb"
+    echo "$0  --keyroot      specify parent directory for finding cbs/$us/keystore.jks. if empty keyroot is loaded from file /var/$us/ush_config"
+}
 
-if [[ ! -f /var/$us/ush_config ]]; then
-    echo "KO 87036 /var/$us/ush_config must exist with envvar keyroot"
+#==============example parse flags leaving line without flags in opt=============
+let inst=0
+keyroot=""
+while [[ true ]]; do
+    opt=$1
+    shift
+    if [ "_$opt" == "_--install" ]; then
+        echo "install"
+        let inst=1
+        continue
+    elif [ "_$opt" == "_--keyroot" ]; then
+        echo "keyroot"
+        keyroot="$1"
+        shift
+        continue
+    else
+        break
+    fi
+done
+#====================================
+cmd=$opt
+if [[ -n $cmd ]]; then
+    help
+    echo "KO 89785 Invalid command"
     exit 1
 fi
-. /var/$us/ush_config
+
+if [[ -z $keyroot ]]; then
+    if [[ ! -f /var/$us/ush_config ]]; then
+        echo "KO 87036 /var/$us/ush_config must exist with envvar keyroot"
+        exit 1
+    fi
+    . /var/$us/ush_config
+fi
 
 if [[ "_$keyroot" == "_" ]]; then
-    echo "KO 87037 keyroot must be defined. keyroot=<directory>"
+    echo "KO 87037 Invalid keyroot."
     exit 1
 fi
 
@@ -53,7 +83,7 @@ function sign_apks {
     for file in `find app/build/outputs/apk -name "*-unsigned.apk"`; do
         echo "found unsigned apk: $file"
         newfile=`echo $file | sed "s/-unsigned//"`
-        echo "using $pass"
+        echo "using $gpg_passphrase_file"
 #        $jarsigner -verbose -keystore $ks $file distr <<< "$pass"
         $jarsigner -keystore $ks $file distr <<< "$pass"
         if [ $? -ne 0 ]; then
@@ -78,7 +108,7 @@ function sign_bundles {
         fi
         echo "found unsigned bundle: $file"
         newfile=`echo $file | sed "s/-unsigned//"`
-        echo "using $pass"
+        echo "using $gpg_passphrase_file"
 #        $jarsigner -verbose -keystore $ks $file distr <<< "$pass"
         $jarsigner -keystore $ks $file distr <<< "$pass"
         if [ $? -ne 0 ]; then
@@ -91,13 +121,13 @@ function sign_bundles {
     done
 }
 
-gpgkey=`cat $keyroot/distr_signing_key`
-gpg_passphrase_file="$keyroot/.gnupg/passphrase"
-gpg="gpg --homedir $keyroot/.gnupg"
+#gpgkey=`cat $keyroot/distr_signing_key`
+gpg_passphrase_file="$keyroot/cbs/$us/gnupg/passphrase"
+#gpg="gpg --homedir $keyroot/.gnupg"
 pass=`cat $gpg_passphrase_file`
 
 ks=$keyroot/cbs/$us/keystore.jks
-echo "using keystore at $ks in "`pwd`
+echo "using keystore at $ks"
 if [[ -d app/build/outputs/apk ]]; then
     sign_apks $ks
     echo "APKs:"
@@ -115,3 +145,4 @@ if [[ -d app/build/outputs/bundle ]]; then
     find app/build/outputs/bundle -type f -name "*.aab"
 fi
 exit 0
+

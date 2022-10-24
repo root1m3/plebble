@@ -28,7 +28,7 @@ echo "#################################"
 if [[ -f ./.cbs/config ]]; then
     . ./.cbs/config
 else
-    echo "KO 8585 Missing .cbs/config."
+    echo "KO 85852 Missing .cbs/config."
     exit 1
 fi
 
@@ -38,7 +38,6 @@ hash=""
 let inst=0
 while [[ true ]]; do
     opt=$1
-    echo "read opt=$opt"
     shift
     if [[ "_$opt" == "_--install" ]]; then
         echo "install flag"
@@ -73,21 +72,21 @@ fi
 distr="distr"
 mkdir -p $distr
 
-function mk_sloccount {
-    ghash=$1
-    branch=$2
-    echo "mk_sloccount gitrep $gitrep ghash $ghash branch $branch"
-    mkdir tmpsloc
-    pushd tmpsloc > /dev/null
-        git clone -b $branch --single-branch $gitrep rep
-        pushd rep > /dev/null
-            echo "checkout $ghash"
-            git checkout -q $ghash
-            sloccount . > ../../sloccount.txt
-        popd > /dev/null
-    popd > /dev/null
-    rm -rf tmpsloc
-}
+#function mk_sloccount {
+#    ghash=$1
+#    branch=$2
+#    echo "mk_sloccount gitrep $gitrep ghash $ghash branch $branch"
+#    mkdir tmpsloc
+#    pushd tmpsloc > /dev/null
+#        git clone -b $branch --single-branch $gitrep rep
+#        pushd rep > /dev/null
+#            echo "checkout $ghash"
+#            git checkout -q $ghash
+#            sloccount . > ../../sloccount.txt
+#        popd > /dev/null
+#    popd > /dev/null
+#    rm -rf tmpsloc
+#}
 
 function patch {
     ifile="${1}.in"
@@ -100,41 +99,38 @@ function patch {
     done
 }
 
-function mk_checksums {
-    branddir=$1
-    echo "mk_checksums $branddir"
-    pushd $branddir > /dev/null
-        rm -f sha256sums.txt
-        rm -f sha256sums.txt.gpg
-        rm -f gpg_pubkey.txt
-        file=../sha256sums.txt
-        echo -n "" > $file
-        for f in `find . -type f`; do
-            echo -n "."
-            sha256sum $f >> $file
-        done
-        echo ""
-        mv $file .
-        gpgkey=$distr_key
-        if [[ "_$gpgkey" == "_" ]]; then
-            echo "KO 91124 gpgkey not set"
-            exit 1
-        fi
-#        gpg_passphrase_file=${distr_gpg_home}/passphrase
-        echo "gpg_passphrase_file $gpg_passphrase_file"
-        echo "distr_gpg_home $distr_gpg_home"
-        gpg="gpg --homedir $distr_gpg_home"
-        echo "$gpg --batch --yes --passphrase-file $gpg_passphrase_file --default-key $gpgkey --sign sha256sums.txt"
-#        $gpg --batch --yes --passphrase-file $gpg_passphrase_file --default-key $gpgkey --sign sha256sums.txt
-        $gpg --batch --yes --default-key $gpgkey --sign sha256sums.txt
-        r=$?
-        if [[ $r -ne 0 ]]; then
-            echo "KO 88944"
-            exit 1
-        fi
-        $gpg --armor --export $gpgkey > gpg_pubkey.txt
-    popd > /dev/null
-}
+#function mk_checksums {
+    #branddir=$1
+    #echo "mk_checksums $branddir"
+    #pushd $branddir > /dev/null
+        #rm -f sha256sums.txt
+        #rm -f sha256sums.txt.gpg
+        #rm -f gpg_pubkey.txt
+        #file=../sha256sums.txt
+        #echo -n "" > $file
+        #for f in `find . -type f`; do
+        #    echo -n "."
+        #    sha256sum $f >> $file
+        #done
+        #echo ""
+        #mv $file .
+        #gpgkey=$distr_key
+        #if [[ "_$gpgkey" == "_" ]]; then
+        #    echo "KO 91124 gpgkey not set"
+        #    exit 1
+        #fi
+        #echo "distr_gpg_home $distr_gpg_home"
+        #gpg="gpg --homedir $distr_gpg_home"
+        #echo "$gpg --batch --yes --default-key $gpgkey --sign sha256sums.txt"
+        #$gpg --batch --yes --default-key $gpgkey --sign sha256sums.txt
+        #r=$?
+        #if [[ $r -ne 0 ]]; then
+        #    echo "KO 88944"
+        #    exit 1
+        #fi
+        #$gpg --armor --export $gpgkey > gpg_pubkey.txt
+    #popd > /dev/null
+#}
 
 function sign_apks {
     brand=$1
@@ -153,7 +149,6 @@ function sign_apks {
         echo "found unsigned apk: $file"
         newfile=`echo $file | sed "s/-unsigned//"`
         echo "Signing apk $file using keystore at $ks"
-#         $jarsigner -verbose -keystore $ks $file distr <<< "$pass"
         $jarsigner -keystore $ks $file distr <<< "$pass"
         if [[ $? -ne 0 ]]; then
             echo "signer failed" >2
@@ -196,7 +191,7 @@ echo "vhash: $vhash"
 
 githash=`cat $distr/build_hashes | grep "^vhash $vhash" | sort | uniq | head -n1 | awk '{ print $5 }'`
 echo "githash: $githash"
-mk_sloccount $githash $branch
+#mk_sloccount $githash $branch
 
 v="${branch}_${vhash}"
 echo "looking for core_${v}.tar.zst"
@@ -236,31 +231,31 @@ for branddir in `find $distr -maxdepth 1 -mindepth 1 -type d`; do
     fi
     . $strfile
     if [[ "_$str3" != "_$brand" ]]; then
-        echo "KO 4032 - str3 in file $strfile must be $brand"
+        echo "KO 40362 str3 in file $strfile must be $brand"
         exit 1
     fi
     echo "title: $str1"
-    if [[ -d $distr/$brand/raspberry_pi ]]; then
-        pushd $distr/$brand/raspberry_pi/ > /dev/null
-            for i in `ls -1 *.zip`; do
-                str_os_raspi=$i #$brand-os_raspi_$hash.zip
-                break
-            done
-        popd > /dev/null
-        echo "Image $str_os_raspi"
-        str_os_raspi_size=`ls -la $distr/$brand/raspberry_pi/$str_os_raspi | awk '{ print $5 }'`
-        echo "str_os_raspi_size $str_os_raspi_size"
-        str_os_raspi_sha256sum=`sha256sum $distr/$brand/raspberry_pi/$str_os_raspi | awk '{ print $1 }'`
-   else
+    #if [[ -d $distr/$brand/raspberry_pi ]]; then
+    #    pushd $distr/$brand/raspberry_pi/ > /dev/null
+    #        for i in `ls -1 *.zip`; do
+    #            str_os_raspi=$i #$brand-os_raspi_$hash.zip
+    #            break
+    #        done
+    #    popd > /dev/null
+    #    echo "Image $str_os_raspi"
+    #    str_os_raspi_size=`ls -la $distr/$brand/raspberry_pi/$str_os_raspi | awk '{ print $5 }'`
+    #    echo "str_os_raspi_size $str_os_raspi_size"
+    #    str_os_raspi_sha256sum=`sha256sum $distr/$brand/raspberry_pi/$str_os_raspi | awk '{ print $1 }'`
+   #else
         str_os_raspi_size="0"
         str_os_raspi_sha256sum="0"
-   fi
+   #fi
    patch doc/node_setup_instructions_linux
    patch doc/node_setup_instructions_windows
-   find doc
+   #find doc
    mv doc/node_setup_instructions_linux $distr/$brand/node_setup_instructions_linux.txt
    mv doc/node_setup_instructions_windows $distr/$brand/node_setup_instructions_windows.txt
-   cp sloccount.txt $distr/$brand/
+   #cp sloccount.txt $distr/$brand/
    cp $distr/build_hashes $distr/$brand/
    cat doc/release_notes | grep "RELEASE NOTES" -A1000000 >  $distr/$brand/release_notes
    if [[ -d $branddir/html ]]; then
@@ -272,9 +267,9 @@ for branddir in `find $distr -maxdepth 1 -mindepth 1 -type d`; do
    if [[ -d $branddir/misc ]]; then
        find $branddir/misc -type f -exec cp {} $distr/$brand/ \;
    fi
-   mk_checksums $distr/$brand
+   #mk_checksums $distr/$brand
 done
-rm -f sloccount.txt
+#rm -f sloccount.txt
 echo "Finished $distr"
 #find $distr -type f
 exit 0

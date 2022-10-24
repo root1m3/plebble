@@ -1,0 +1,147 @@
+#!/bin/bash
+#===-                           P L E B B L E
+#===-                         https://plebble.us
+#===-
+#===-              Copyright (C) 2017-2022 root1m3@plebble.us
+#===-
+#===-                      GNU GENERAL PUBLIC LICENSE
+#===-                       Version 3, 29 June 2007
+#===-
+#===-    This program is free software: you can redistribute it and/or modify
+#===-    it under the terms of the GPLv3 License as published by the Free
+#===-    Software Foundation.
+#===-
+#===-    This program is distributed in the hope that it will be useful,
+#===-    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#===-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+#===-
+#===-    You should have received a copy of the General Public License
+#===-    along with this program, see LICENCE file.
+#===-    see https://www.gnu.org/licenses
+#===-
+#===----------------------------------------------------------------------------
+#===-
+# useful commands:
+# Flush DNS cache: systemd-resolve --flush-caches
+#
+
+if [[ ! -f strset0 ]]; then
+    echo "KO 83092 Please use the parent program: bin/brand_tool upload_bde_setup"
+    exit 1
+fi
+if [[ ! -f strset ]]; then
+    echo "KO 83093 Please use the parent program: bin/brand_tool upload_bde_setup"
+    exit 1
+fi
+
+. strset0
+. strset
+
+US="$str3"
+
+domain=${str68}
+ssl_email="$str2"
+
+function help {
+    echo "sets up BDE (Brand Distribution End)"
+    echo "Requies ports 53, 80, and 443 opened."
+}
+
+function undo {
+    oldstr68=""
+    rm -f /etc/bind/zones/db.${oldstr68}
+    rm -f /etc/nginx/sites-enabled/${oldstr68}
+    rm -f /etc/nginx/sites-available/${oldstr68}
+}
+
+#======================bind
+
+if [[ ! -f /etc/named/named.conf.local ]]; then
+    apt -y install bind9 bind9-utils
+fi
+if [[ ! -f /etc/bind/named.conf.local ]]; then
+    echo "KO 78109 file /etc/bind/named.conf.local doesn't exist."
+    exit 1
+fi
+if [[ ! -f bde_data/bind/db.${domain} ]]; then
+    echo "KO 78108 bde_data/db.${domain} doesn't exist."
+    exit 1
+fi
+
+#temporary file
+tf=$(mktemp /tmp/distr_make.XXXXXX)
+
+# .bashrc - include command aliases
+file=/etc/bind/named.conf.local
+cat $file | grep -v ".*--${US}" > $tf
+cat << EOF >> $tf
+zone "${domain}" {                       //--${US}
+    type master;                        //--${US}
+    file "/etc/bind/zones/db.${domain}"; //--${US}
+};                                      //--${US}
+                                        //--${US}
+EOF
+mv $tf $file
+
+chgrp bind $file
+chmod 644 $file
+
+mkdir -p /etc/bind/zones/
+if [[ -f /etc/bind/zones/bde_data/bind/db.${domain} ]]; then
+    echo "Replacing /etc/bind/zones/bde_data/bind/db.${domain}"
+fi
+cp bde_data/bind/db.${domain} /etc/bind/zones/
+
+rndc reload
+if [[ $? -ne 0 ]]; then
+    echo "KO 78109 bind didnt reload."
+    exit 1
+fi
+
+#======================nginx
+
+if [[ ! -x /usr/bin/certbot ]]; then
+    apt -y install certbot
+fi
+
+if [[ ! -f /etc/nginx/sites-available/${domain} ]]; then
+    cp bde_data/nginx/sites-available/${domain} /etc/nginx/sites-available/
+    pushd /etc/nginx/sites-enabled > /dev/null
+        ln -s /etc/nginx/sites-available/${domain}
+    popd
+    systemctl reload nginx
+    if [[ $? -ne 0 ]]; then
+        echo "KO 78119 nginx didnt reload."
+        exit 1
+    fi
+fi
+
+if [[ "_$US" == "_" ]]; then
+    echo "KO 67583 Invalid variable US"
+    exit 1
+fi
+
+mkdir -p /var/www/html/${US}
+rm -rf /var/www/html/${US}/* -R
+cp bde_data/nginx/html/* /var/www/html/${US}/ -R
+
+mkdir -p /var/log/${US}
+echo "2>&1 certbot -a manual --preferred-challenges dns -m ${ssl_email} --agree-tos -i nginx -w /var/www/html/${US} --domains "${domain}"  | tee -a /var/log/${US}/certbotrun"
+
+echo "=============================================="
+echo "== depending on the following feedback from certbot, do manuall something like this:============================================"
+cat << EOF
+echo "_acme-challenge IN TXT Vpr6hXl983KrG26Q0pMXXrfTO2rsgwe0kpnXNYD-zX8" >> /etc/bind/zones/db.${domain}; let v=`cat /etc/bind/zones/db.${domain} | grep "; Serial" | awk '{ print $1 }'`; let v2=$v+1; sed -i "s~^\(\s*\)1\(\s*\); Serial~\1${v2}\2; Serial~" /etc/bind/zones/db.${domain}; rndc reload
+dig +short TXT _acme-challenge.${domain}
+EOF
+echo "=============================================="
+
+2>&1 certbot -a manual --preferred-challenges dns -m ${ssl_email} --agree-tos -i nginx -w /var/www/html/${US} --domains "${domain}"  | tee -a /var/log/${US}/certbotrun
+
+if [[ $custodial_server -eq 1 ]]; then
+    echo "==configure wallet for creating guest wallets============================================"
+    run as user gov: wallet conf authorize_and_create_guest_wallet 1
+fi
+
+exit 0
+

@@ -39,8 +39,8 @@ import static us.ko.ok;                                                         
 import java.security.PrivateKey;                                                               // PrivateKey
 import static us.gov.io.types.blob_t.serid_t;                                                  // serid_t
 import us.string;                                                                              // string
-import us.wallet.trader.ip4_endpoint_t;                                                           // *
-import us.wallet.trader.wallet_connection_t;                                                           // *
+import us.wallet.engine.ip4_endpoint_t;                                                           // *
+import us.wallet.engine.wallet_connection_t;                                                           // *
 
 public final class device_endpoint_t extends wallet_connection_t implements hmi_t.hmi_callback_t {
 

@@ -50,28 +50,6 @@ namespace us::wallet::engine {
     struct daemon_t;
 }
 
-/*
-namespace us::wallet::trader {
-
-    using hash_t = gov::crypto::ripemd160::value_type;
-
-    struct utid_t final: hash_t {
-        using b = hash_t;
-        utid_t(const hash_t& tid, const hash_t& subhomeh): b(tid ^ subhomeh) {
-        }
-    };
-
-}
-
-namespace std {
-    template<> struct hash<us::wallet::trader::utid_t> {
-        size_t operator() (const us::wallet::trader::utid_t& utid) const {
-            return *reinterpret_cast<const size_t*>(&k[0]);
-            return std::hash<gov::crypto::ripemd160::value_type>(utid);
-        }
-    };
-}
-*/
 namespace us::wallet::trader {
 
     struct business_t;

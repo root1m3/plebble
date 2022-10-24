@@ -128,9 +128,13 @@ function init_jail {
         mkdir -p ${JAILDIR}/etc/systemd/system
         cp /etc/systemd/system/${US}-gov.service ${JAILDIR}/etc/systemd/system/
     fi
-    if [[ -f /etc/${US}/config ]]; then
+    if [[ -f /etc/${US}/strset ]]; then
         mkdir -p ${JAILDIR}/etc/${US}/
-        cp /etc/${US}/config ${JAILDIR}/etc/${US}/
+        cp /etc/${US}/strset ${JAILDIR}/etc/${US}/
+    fi
+    if [[ -f /var/${US}/ush_config ]]; then
+        mkdir -p ${JAILDIR}/var/${US}/
+        cp /var/${US}/ush_config ${JAILDIR}/var/${US}/
     fi
     if [[ -f ${JAILDIR}/var/us_nets ]]; then
         ch=`cat ${JAILDIR}/var/us_nets | grep " $blob_brand " | awk '{print $1}'`
@@ -227,6 +231,11 @@ if [ "_$target" == "_install" ]; then
         #rm -rf ${JAILDIR}/var/${US}/commands/*
         mkdir -p ${JAILDIR}/var/${US}/commands/broadcast
         install -m 644 var/${US}/commands/broadcast/* ${JAILDIR}/var/${US}/commands/broadcast/
+        if [[ ! -f ${JAILDIR}/var/${US}/ush_config ]]; then
+            cat << EOF > ${JAILDIR}/var/${US}/ush_config
+keyroot=""
+EOF
+        fi
 
         #
         # /var/us_motd - After-logging message
@@ -316,7 +325,6 @@ fi
 if [ "_$target" == "_install-system-base" ]; then
     mkdir -p ${JAILDIR}/tmp
     pushd $distr > /dev/null
-
         if [[ "_${JAILDIR}" == "_" ]]; then
             clean_deprecated
         fi
@@ -353,14 +361,14 @@ if [ "_$target" == "_install-system-base" ]; then
         fi
         cat ${JAILDIR}/etc/passwd | grep "^$GOVUSER:x" >/dev/null
         if [[ $? -ne 0 ]]; then
-            echo "adding user $GOVUSER."
-            echo "Generating $GOVUSER password. ${JAILDIR}/var/${GOVUSER}_changepass"
+            echo "Generating $GOVUSER password."
             gov_passwd=$(< /dev/urandom tr -dc A-Za-z0-9 | head -c10)
 
             #write file prompting user to change it on next login
             #mkdir -p ${JAILDIR}/var
             #echo ${gov_passwd} > ${JAILDIR}/var/${GOVUSER}_changepass
 
+            echo "adding user $GOVUSER."
             cat << EOF >> ${JAILDIR}/tmp/post-install-system-base
 adduser --disabled-password --gecos "" $GOVUSER
 echo "$GOVUSER:${gov_passwd}" | chpasswd
@@ -378,14 +386,14 @@ EOF
         install etc/sudoers.d/usgov ${JAILDIR}/etc/sudoers.d/
 
         #
-        # /etc/${US}/config
+        # /etc/${US}/strset
         #
-        if [[ -f ${JAILDIR}/etc/${US}/config ]]; then
-            bin/override_env etc/${US}/config ${JAILDIR}/etc/${US}/config > $tf
-            mv $tf ${JAILDIR}/etc/${US}/config
+        if [[ -f ${JAILDIR}/etc/${US}/strset ]]; then
+            bin/override_env etc/${US}/strset ${JAILDIR}/etc/${US}/strset > $tf
+            mv $tf ${JAILDIR}/etc/${US}/strset
         else
             mkdir -p ${JAILDIR}/etc/${US}
-            install etc/${US}/config ${JAILDIR}/etc/${US}/
+            install etc/${US}/strset ${JAILDIR}/etc/${US}/
         fi
 
         #

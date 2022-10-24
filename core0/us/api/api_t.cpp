@@ -107,7 +107,21 @@ c* c::load(const string& process, string file) {
     a->name = nm;
     a->src = file;
     a->v = a->compute_get_protocol_vector();
+    //a->dump_v();
     return a;
+}
+
+void c::dump_v() const {
+    cout << '\n';
+    cout << "api name " << name << " src " << src << ":\n";
+    for (auto& i: v) {
+        cout << i.first << ' ' << i.second << '\n';
+    }
+    cout << "==============" << '\n';
+    for (auto& i: *this) {
+        cout << "name " << i.name << " service " << i.service << " svc " << i.svc << '\n';
+    }
+
 }
 
 vector<pair<string, bool>> c::compute_get_protocol_vector() {

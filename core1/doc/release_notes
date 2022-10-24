@@ -143,7 +143,18 @@ Production releases. beta
 Production releases. alpha
 --------------------------
 
-alpha-46 - 
+alpha-47 - 
+    * Enabled daily task install_blob in us-seeds scripts.
+    * Improved post upgrade brand scripts
+    * Automated new brand creation in core1/bin/brand_tool
+    * Added wallet functions to craft and decode wallet_connections - make/decode_wallet_connection;
+    * wallet option -B used to supply a wallet connection blob as an alternative to the tuple {ipaddr, port, channel};
+    * added API function 'conf' allowing tweaking the server with {key, value} configurations.
+    * wallet. Prevent non-custodial wallets from accessing engine and pairing svc numbers.
+    * added wallet devices runtime configuration via api call 'conf'.
+    * improved automation of brand generation and post network-upgrade per-brand tasks (upload google playstore, update github)
+
+alpha-46 - alpha-46_84364c16 2022-10-19_17-09-01 vhash 84364c16 <- R 84b47d72f863948d871e21fd578499b2bdacc688 alpha-46 dbg-0 logs-0 counters-0 connlog-0 fcgi-0
     * RPC device revocation for automatic custodial wallets. Once unpaired it cannot be automaticalley paired again against an automatically-created guest wallet.
     * android app. Added unpair button in connection settings.
     * android app. Fixed regression in new connections, where turning on/off connections would affect to the first one insted of the choosen one.

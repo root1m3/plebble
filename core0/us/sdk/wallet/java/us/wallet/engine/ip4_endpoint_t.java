@@ -20,13 +20,11 @@
 //===-
 //===----------------------------------------------------------------------------
 //===-
-package us.wallet.trader;
+package us.wallet.engine;
 import us.gov.io.blob_reader_t;                                                                // blob_reader_t
 import us.gov.io.blob_writer_t;                                                                // blob_writer_t
 import static us.stdint.*;                                                                     // *
 import us.gov.socket.types.*;                                                                  // *
-//import org.json.JSONException;                                                                 // JSONException
-//import org.json.JSONObject;                                                                    // JSONObject
 import us.ko;                                                                                  // ko
 import static us.ko.ok;                                                                        // ok
 import static us.gov.io.types.blob_t.serid_t;                                                  // serid_t
@@ -57,21 +55,6 @@ public class ip4_endpoint_t implements us.gov.io.seriable {
         port = other.port;
         channel = other.channel;
     }
-
-/*
-    public ip4_endpoint_t(JSONObject o) {
-        try {
-            shost = new shost_t(o.getString("wanip"));
-            port = new port_t(o.getInt("wanport"));
-            channel = new channel_t(o.getInt("channel"));
-        }
-        catch(JSONException e) {
-            shost = new shost_t("127.0.0.1");
-            port = CFG.walletd_port;
-            channel = us.CFG.CHANNEL;
-        }
-    }
-*/
 
     public boolean equals(ip4_endpoint_t other) {
         return shost.value.equals(other.shost.value) && port.value == other.port.value && channel.value == other.channel.value;

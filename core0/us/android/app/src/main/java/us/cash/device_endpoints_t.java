@@ -51,8 +51,8 @@ import java.io.OutputStreamWriter;                                              
 import us.pair;                                                                                // pair
 import static us.gov.io.types.blob_t.serid_t;                                                  // serid_t
 import us.string;                                                                              // string
-import us.wallet.trader.wallet_connection_t;
-import us.wallet.trader.ip4_endpoint_t;
+import us.wallet.engine.wallet_connection_t;
+import us.wallet.engine.ip4_endpoint_t;
 
 public final class device_endpoints_t extends ArrayList<device_endpoint_t> implements us.gov.io.seriable {
 

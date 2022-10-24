@@ -189,6 +189,11 @@ ko c::announce_wallet() {
     return RC_InProgress;
 }
 
+ko c::handle_conf(const string& key, const string& value, string& ans) {
+    log("handle_conf");
+    return devices.handle_conf(key, value, ans);
+}
+
 void c::run() {
     #if CFG_LOGS == 1
         log_start(logdir, "housekeeping");

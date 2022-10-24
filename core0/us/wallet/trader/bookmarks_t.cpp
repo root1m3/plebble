@@ -67,17 +67,19 @@ f& f::operator = (f&& other) {
 }
 
 size_t f::blob_size() const {
-    return blob_writer_t::blob_size(label) + blob_writer_t::blob_size(ico);
+    auto sz = blob_writer_t::blob_size(label) + blob_writer_t::blob_size(ico);
+    log("blob_size", sz);
+    return sz;
 }
 
 void f::to_blob(blob_writer_t& writer) const {
-    log("writing bookmark_info_t");
+    log("to_blob", "cur", (uint64_t)(writer.cur - writer.blob.data()));
     writer.write(label);
     writer.write(ico);
 }
 
 ko f::from_blob(blob_reader_t& reader) {
-    log("reading bookmark_info_t");
+    log("from_blob", "cur", (uint64_t)(reader.cur - reader.blob.data()));
     {
         auto r = reader.read(label);
         if (is_ko(r)) {
@@ -113,6 +115,9 @@ c::bookmark_t(const qr_t& qr_, bookmark_info_t&& i): qr(qr_), b(move(i)) {
 c::bookmark_t(const c& other): b(other), qr(other.qr) {
 }
 
+c::bookmark_t(string&& ep, string&& protocol, const string&& role, string&& label, blob_t&& ico): b(move(label), move(ico)), qr(ep, protocol_selection_t(protocol, role)) {
+}
+
 c& c::operator = (const c& other) {
     static_cast<b&>(*this) = static_cast<const b&>(other);
     qr = other.qr;
@@ -120,17 +125,19 @@ c& c::operator = (const c& other) {
 }
 
 size_t c::blob_size() const {
-    return qr.blob_size() + b::blob_size();
+    auto sz = qr.blob_size() + b::blob_size();
+    log("blob_size", sz);
+    return sz;
 }
 
-void c::to_blob(blob_writer_t& w) const {
-    log("writing bookmark_t");
-    w.write(qr);
-    b::to_blob(w);
+void c::to_blob(blob_writer_t& writer) const {
+    log("to_blob", "cur", (uint64_t)(writer.cur - writer.blob.data()));
+    writer.write(qr);
+    b::to_blob(writer);
 }
 
 ko c::from_blob(blob_reader_t& reader) {
-    log("reading bookmark_t");
+    log("from_blob", "cur", (uint64_t)(reader.cur - reader.blob.data()));
     {
         auto r = reader.read(qr);
         if (is_ko(r)) {
@@ -157,16 +164,17 @@ void c::dump(const string& pfx, ostream& os) const {
 //----------------------------------------------------------------------------
 
 size_t s::blob_size() const {
-     size_t sz = blob_writer_t::sizet_size(size());
-     for (auto& i: *this) {
-        sz += blob_writer_t::blob_size(i.first);
-        sz += blob_writer_t::blob_size(i.second);
-     }
-     return sz;
+    size_t sz = blob_writer_t::sizet_size(size());
+    for (auto& i: *this) {
+    sz += blob_writer_t::blob_size(i.first);
+    sz += blob_writer_t::blob_size(i.second);
+    }
+    log("blob_size", sz);
+    return sz;
 }
 
 void s::to_blob(blob_writer_t& writer) const {
-    log("writing bookmarks_t", size());
+    log("to_blob", "cur", (uint64_t)(writer.cur - writer.blob.data()));
     writer.write_sizet(size());
     for (auto& i: *this) {
         log("-----");
@@ -176,7 +184,7 @@ void s::to_blob(blob_writer_t& writer) const {
 }
 
 ko s::from_blob(blob_reader_t& reader) {
-    log("reading bookmarks_t");
+    log("from_blob", "cur", (uint64_t)(reader.cur - reader.blob.data()));
     uint64_t sz;
     auto r = reader.read_sizet(sz);
     if (is_ko(r)) return r;

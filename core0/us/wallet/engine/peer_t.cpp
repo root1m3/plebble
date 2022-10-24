@@ -80,7 +80,7 @@ bool c::process_work(datagram* d) {
     }
     assert(d->service >= engine_begin);
     if (static_cast<auth::peer_t&>(*this).stage != auth::peer_t::authorized) {
-        auto r = "KO 51150 Not authorized, ignoring svc.";
+        auto r = "KO 51150 Not authorized. Ignoring svc.";
         log(r);
         delete d;
         return true; //don't report back, disconnection happens elsewhere.
@@ -93,10 +93,24 @@ bool c::process_work(datagram* d) {
         }
         //SECURITY: 'malicious' intentions can still reach this point, but only to fuck with a trader via trading_msgs.
     }
+    assert(wallet_local_api != nullptr);
+    bool root_wallet = wallet_local_api->subhome.empty();
     if (d->service < engine_end) {
+        if (!root_wallet) {
+            auto r = "KO 51151 Custodial wallet. Ignoring svc.";
+            log(r);
+            delete d;
+            return true;
+        }
         return process_work__engine(d);
     }
     if (d->service < pairing_end) {
+        if (!root_wallet) {
+            auto r = "KO 51152 Custodial wallet. Ignoring svc.";
+            log(r);
+            delete d;
+            return true;
+        }
         return process_work__pairing(d);
     }
     if (d->service < r2r_end) {

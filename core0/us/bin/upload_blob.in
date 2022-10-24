@@ -86,7 +86,11 @@ function procblob {
     echo "uploading blob"
     sleep 2
     set -x
-    $wallet store $address -f $local_blob $blobid || exit 1
+    $wallet store $address -f $local_blob $blobid
+    if [[ $? -ne 0 ]]; then
+         echo "KO 68291"
+         exit 1
+    fi
     set +x
     if [[ ! -f /home/${GOVUSER}/.${US}/gov/fsroot/$local_hash ]]; then
         echo "KO 94483 /home/${GOVUSER}/.${US}/fsroot/$local_hash doesnt exist"

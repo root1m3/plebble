@@ -65,7 +65,6 @@ let only_deps=0
 
 while [[ true ]]; do
     opt=$1
-    echo "read opt=$opt"
     shift
     if [[ "_$opt" == "_--release" ]]; then
         echo "release flag"
@@ -153,14 +152,14 @@ while [[ true ]]; do
 done
 conf=$opt
 if [[ "_$conf" == "_" ]]; then
-    echo "KO 69862 brand expected."
     help
+    echo "KO 69862 brand expected."
     exit 1
 fi
 
 if [[ "_$branch" == "_" ]]; then
-    echo "KO 38723 Invalid branch"
     help
+    echo "KO 38723 Invalid branch"
     exit 1
 fi
 

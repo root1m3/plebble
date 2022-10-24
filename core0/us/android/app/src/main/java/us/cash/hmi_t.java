@@ -45,7 +45,7 @@ import static us.gov.io.types.*;                                                
 import static us.gov.socket.types.*;                                                           // *
 import static us.stdint.*;                                                                     // *
 import static us.tuple.*;                                                                      // *
-import us.wallet.trader.ip4_endpoint_t;                                                  // hash_t
+import us.wallet.engine.ip4_endpoint_t;                                                  // hash_t
 import java.io.InputStreamReader;                                                              // InputStreamReader
 import java.io.IOException;                                                                    // IOException
 import static us.ko.is_ko;                                                                     // is_ko

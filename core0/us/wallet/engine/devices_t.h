@@ -37,6 +37,7 @@ namespace us::wallet::engine {
     struct devices_t: unordered_map<hash_t, device_t> {
 
         static ko KO_30291;
+        static ko KO_30292;
 
         struct attempts_t: unordered_map<pub_t, std::pair<time_point, uint32_t>> {
             static constexpr chrono::seconds forget{600s};
@@ -64,6 +65,7 @@ namespace us::wallet::engine {
         bool get_consume_pin() const;
         inline const string& get_home() const { return home; }
         inline bool is_enabled__authorize_and_create_guest_wallet() const { return authorize_and_create_guest_wallet; }
+        ko handle_conf(const string& key, const string& value, string& ans);
 
     private:
         ko load_();

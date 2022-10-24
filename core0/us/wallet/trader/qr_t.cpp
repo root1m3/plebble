@@ -55,6 +55,9 @@ c::qr_t(const endpoint_t& ep): endpoint(ep) {
 c::qr_t(const qr_t& other): endpoint(other.endpoint), protocol_selection(other.protocol_selection) {
 }
 
+c::qr_t(string&& ep, string&& protocol, const string&& role): endpoint(move(ep)), protocol_selection(move(protocol), move(role)) {
+}
+
 c& c::operator = (const qr_t& other) {
     endpoint = other.endpoint;
     protocol_selection = other.protocol_selection;

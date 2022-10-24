@@ -25,6 +25,7 @@
 #include <thread>
 
 #include <us/gov/config.h>
+#include <us/wallet/engine/wallet_connection_t.h>
 
 //#define loglevel "wallet/cli"
 //#define logclass "params"
@@ -120,6 +121,20 @@ c::params(const shell_args& a): args(a) {
         }
         else if (command == "-nb") {
             banner = false;
+        }
+        else if (command == "-B") {
+            using wallet_connection_t = us::wallet::engine::wallet_connection_t;
+            auto blobb58 = args.next<string>();
+            us::wallet::engine::wallet_connection_t wc;
+            ko r = wc.read(blobb58);
+            if (is_ko(r)) {
+                cerr << r << '\n';
+            }
+            else {
+                channel = wc.ip4_endpoint.channel;
+                walletd_port = wc.ip4_endpoint.port;
+                walletd_host = wc.ip4_endpoint.shost;
+            }
         }
         #if CFG_FCGI == 1
         else if (command == "-fcgi") {

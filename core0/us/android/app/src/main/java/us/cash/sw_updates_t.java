@@ -187,7 +187,7 @@ public class sw_updates_t {
     ko download_apk() {
         log("download_apk"); //--strip
         a.assert_worker_thread(); //--strip
-	if (CFG.appstore_edition == 0) {
+        if (CFG.appstore_edition == 0) {
             if (!verify_permissions(PERMISSIONS_STORAGE)) {
                 if (a.main != null) {
                     a.main.runOnUiThread(new Runnable() {
@@ -255,7 +255,7 @@ public class sw_updates_t {
             log(r.msg); //--strip
             return r;
         }
-	if (CFG.appstore_edition == 0) {
+        if (CFG.appstore_edition == 0) {
             synchronized (cfg_android_public_t.downloads_dir_lock_t) {
                 log("Saving content to newapk_content. size=" + o_out.bin_pkg.value.length + " bytes."); //--strip
                 ko r = cfg_public.write_public_file("newapk_content", o_out.bin_pkg.value);
@@ -293,7 +293,6 @@ public class sw_updates_t {
         a.main.runOnUiThread(new Runnable() {
             @Override public void run() {
                 if (is_ko(r)) {
-//                    Toast.makeText(a.main, r.msg, 6000).show();
                     toast(hmi.rewrite(r));
                 }
                 else {
@@ -302,7 +301,6 @@ public class sw_updates_t {
                     }
                     else {
                         if (informok) {
-//                            Toast.makeText(a.main, a.getResources().getString(R.string.systemisuptodate), 6000).show();
                             toast(a.getResources().getString(R.string.systemisuptodate));
                         }
                     }
@@ -415,7 +413,7 @@ public class sw_updates_t {
 
     public void do_inst_ask_permission(activity ac) {
         log("do_inst_ask_permission");  //--strip
-	if (CFG.appstore_edition == 1) {
+        if (CFG.appstore_edition == 1) {
             final String appPackageName = ac.getPackageName(); // getPackageName() from Context or Activity object
             try {
                 ac.startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=" + appPackageName)));
@@ -426,7 +424,6 @@ public class sw_updates_t {
         }
 
         a.assert_ui_thread(); //--strip
-//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
         if (a.getPackageManager().canRequestPackageInstalls()) {
             do_inst(ac);
         }
@@ -434,26 +431,12 @@ public class sw_updates_t {
             log("B");  //--strip
             Intent i = new Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES).setData(Uri.parse(String.format("package:%s", a.getPackageName())));
             ac.startActivityForResult(i, activity.INSTALL_PACKAGES_REQUESTCODE);
-/*
-            new ActResultRequest(ac).startForResult(i, new ActForResultCallback() {
-                @Override public void onActivityResult(int resultCode, Intent data) {
-                    log("onActivityResult:" + resultCode); //--strip
-                    if (resultCode == RESULT_OK) { //granted
-                        do_inst(ac);
-                    } else { //denied
-                        log("denied"); //--strip
-                    }
-                }
-            });
-*/
             return;
         }
-//        }
     }
 
     void check4updates(activity ac) {
         a.assert_ui_thread(); //--strip
-//        Toast.makeText(ac, "Checking for updates...", 6000).show();
         toast("Checking for updates...");
         Thread thread = new Thread(new Runnable() {
             @Override public void run() {
@@ -463,10 +446,8 @@ public class sw_updates_t {
         thread.start();
     }
 
-    //static final String curapk0 = CFG.apkfilename;
-    String curapk = ""; //curapk0;
+    String curapk = "";
     public boolean is_updateavailable = false;
-//    String homedir;
     app a;
     hmi_t hmi;
     cfg_android_private_t cfg_private;

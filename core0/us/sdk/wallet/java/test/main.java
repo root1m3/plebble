@@ -56,8 +56,8 @@ import us.gov.io.blob_writer_t;
 import us.gov.io.blob_reader_t;
 import static us.gov.io.types.*;
 import static us.gov.crypto.types.*;
-import us.wallet.trader.wallet_connection_t;
-import us.wallet.trader.ip4_endpoint_t;
+import us.wallet.engine.wallet_connection_t;
+import us.wallet.engine.ip4_endpoint_t;
 import us.string;
 import static us.gov.socket.types.*;
 

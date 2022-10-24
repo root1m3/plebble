@@ -64,6 +64,7 @@ namespace us::wallet::trader {
         bookmark_t(const qr_t&, bookmark_info_t&&);
         bookmark_t(const bookmark_t&);
         bookmark_t& operator = (const bookmark_t&);
+        bookmark_t(string&& ep, string&& protocol, const string&& role, string&& label, blob_t&& ico);
 
         void dump(const string& pfx, ostream& os) const;
 

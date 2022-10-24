@@ -165,7 +165,7 @@ distr-common: | targets
 	install root/.ssh/authorized_keys ${DISTRDIR}/root/.ssh/
 	install snippet/${US}_distr_makefile ${DISTRDIR}/makefile
 	mkdir -p ${DISTRDIR}/etc/${US}
-	bin/override_env res/strings/en-uk res/strings/en-uk.ovr > ${DISTRDIR}/etc/${US}/config
+	bin/override_env res/strings/en-uk res/strings/en-uk.ovr > ${DISTRDIR}/etc/${US}/strset
 	mkdir -p ${DISTRDIR}/include/us
 	find gov -type f -name "*.h" -exec install -D {} ${DISTRDIR}/include/us/{} \;
 	find wallet -type f -name "*.h" -exec install -D {} ${DISTRDIR}/include/us/{} \;

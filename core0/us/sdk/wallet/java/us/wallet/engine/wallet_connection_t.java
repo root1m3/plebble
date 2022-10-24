@@ -20,7 +20,7 @@
 //===-
 //===----------------------------------------------------------------------------
 //===-
-package us.wallet.trader;
+package us.wallet.engine;
 import java.util.ArrayList;                                                                    // ArrayList
 import us.gov.crypto.base58;                                                                   // base58
 import us.gov.io.types.blob_t;                                                                 // blob_t
@@ -108,16 +108,15 @@ public class wallet_connection_t implements us.gov.io.seriable {
         assert w.cur == blob.value.length;
     }
 
-    public void log_blob() {                                                //--strip
-        log("en-uk entry:");                                                //--strip
-        wallet_connection_t wc = new wallet_connection_t(this);             //--strip
-        wc.name_ = name_;                                                   //--strip
-        blob_t blob = new blob_t();                                         //--strip
-        write(blob);                                                        //--strip
-        String b = us.gov.crypto.base58.encode(blob.value);                 //--strip
-        log("str95=\"" + b + "\" #default wallet_connection blob b58");    //--strip
-    }                                                                       //--strip
-                                                                            //--strip
+    public void log_blob() {                                                               //--strip
+        log("en-uk entry:");                                                               //--strip
+        wallet_connection_t wc = new wallet_connection_t(name_.value, ip4_endpoint);             //--strip
+        blob_t blob = new blob_t();                                                        //--strip
+        wc.write(blob);                                                                    //--strip
+        String b = us.gov.crypto.base58.encode(blob.value);                                //--strip
+        log("str95=\"" + b + "\" #default wallet_connection blob b58");                    //--strip
+    }                                                                                      //--strip
+                                                                                           //--strip
     public ko set_endpoint(ip4_endpoint_t ip4_endpoint_) {
         ip4_endpoint = ip4_endpoint_;
         return ok;

@@ -42,6 +42,7 @@ using c = us::wallet::engine::devices_t;
 constexpr chrono::seconds c::attempts_t::forget;
 char c::devices_t::d_version = '2';
 ko c::KO_30291 = "KO 30291 Device not paired.";
+ko c::KO_30292 = "KO 30292 conf not found.";
 
 c::devices_t(const string& home): home(home) {
     log("constructor", home);
@@ -337,6 +338,76 @@ void c::set_consume_pin(bool b) {
         consume_pin = b;
         save_();
     }
+}
+
+ko c::handle_conf(const string& key, const string& value, string& ans) {
+    log("handle_conf");
+    if (key == "authorize_and_create_guest_wallet") {
+        lock_guard<mutex> lock(mx);
+        if (value == "1") {
+            if (!authorize_and_create_guest_wallet) {
+                authorize_and_create_guest_wallet = true;
+                save_();
+            }
+        }
+        else if (value == "0") {
+            if (authorize_and_create_guest_wallet) {
+                authorize_and_create_guest_wallet = false;
+                save_();
+            }
+        }
+        else if (!value.empty()) {
+            auto r = "KO 79138 Invalid value. It should be either 0, 1 or empty.";
+            log(r);
+            return r;
+        }
+        assert(value.empty());
+        ostringstream os;
+        os << "authorize_and_create_guest_wallet " << (authorize_and_create_guest_wallet ? 1 : 0) << '\n';
+        ans = os.str();
+        return ok;                
+    }
+    if (key == "consume_pin") {
+        lock_guard<mutex> lock(mx);
+        if (value == "1") {
+            if (!consume_pin) {
+                consume_pin = true;
+                save_();
+            }
+        }
+        else if (value == "0") {
+            if (consume_pin) {
+                consume_pin = false;
+                save_();
+            }
+        }
+        else if (!value.empty()) {
+            auto r = "KO 79138 Invalid value. It should be either 0, 1 or empty.";
+            log(r);
+            return r;
+        }
+        assert(value.empty());
+        ostringstream os;
+        os << "consume_pin " << (consume_pin ? 1 : 0) << '\n';
+        ans = os.str();
+        return ok;                
+    }
+    if (key.empty()) {
+        if (!value.empty()) {
+            auto r = "KO 79137 non empty value for value.";
+            log(r);
+            return r;
+        }
+        ostringstream os;
+        {
+            lock_guard<mutex> lock(mx);
+            os << "authorize_and_create_guest_wallet " << (authorize_and_create_guest_wallet ? 1 : 0) << '\n';
+            os << "consume_pin " << (consume_pin ? 1 : 0) << '\n';
+        }
+        ans = os.str();
+        return ok;
+    }
+    return KO_30292;
 }
 
 void c::dump(ostream& os) const {
