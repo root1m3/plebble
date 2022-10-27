@@ -26,7 +26,7 @@
 
 namespace us::gov::protocol {
 
-    #include <us/api/generated/c++/gov/socket/svc>
+    #include <us/api/generated/gov/c++/socket/svc>
 
 }
 

@@ -57,6 +57,7 @@ namespace us::wallet::engine {
         bool process_work__r2r(datagram*);
         void announce(pport_t) const;
         void disconnect_hilarious(datagram*);
+        svc_t translate_svc(svc_t svc0, bool inbound) const override;
 
     public:
         void schedule_push(socket::datagram*);
@@ -66,23 +67,23 @@ namespace us::wallet::engine {
         ko push_OK(const hash_t& tid, const string& msg);
 
     public: //engine
-        #include <us/api/generated/c++/wallet/engine/cllr_override>
-        #include <us/api/generated/c++/wallet/engine/hdlr_override>
-        #include <us/api/generated/c++/wallet/engine/hdlr_svc_handler-hdr>
+        #include <us/api/generated/wallet/c++/engine/cllr_override>
+        #include <us/api/generated/wallet/c++/engine/hdlr_override>
+        #include <us/api/generated/wallet/c++/engine/hdlr_svc_handler-hdr>
 
     public: //pairing
-        #include <us/api/generated/c++/wallet/pairing/cllr_override>
-        #include <us/api/generated/c++/wallet/pairing/hdlr_override>
-        #include <us/api/generated/c++/wallet/pairing/hdlr_svc_handler-hdr>
+        #include <us/api/generated/wallet/c++/pairing/cllr_override>
+        #include <us/api/generated/wallet/c++/pairing/hdlr_override>
+        #include <us/api/generated/wallet/c++/pairing/hdlr_svc_handler-hdr>
 
     public: //wallet
-        #include <us/api/generated/c++/wallet/wallet/cllr_override>
-        #include <us/api/generated/c++/wallet/wallet/hdlr_svc_handler-hdr>
+        #include <us/api/generated/wallet/c++/wallet/cllr_override>
+        #include <us/api/generated/wallet/c++/wallet/hdlr_svc_handler-hdr>
 
     public: //r2r
-        #include <us/api/generated/c++/wallet/r2r/cllr_override>
-        #include <us/api/generated/c++/wallet/r2r/hdlr_override>
-        #include <us/api/generated/c++/wallet/r2r/hdlr_svc_handler-hdr>
+        #include <us/api/generated/wallet/c++/r2r/cllr_override>
+        #include <us/api/generated/wallet/c++/r2r/hdlr_override>
+        #include <us/api/generated/wallet/c++/r2r/hdlr_svc_handler-hdr>
 
         static string lang_en;
         inline const string& get_lang() const { return lang_en; }

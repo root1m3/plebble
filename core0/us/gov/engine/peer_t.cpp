@@ -30,6 +30,7 @@
 #include <us/gov/engine/db_t.h>
 #include "protocol.h"
 #include "net_daemon_t.h"
+#include "svcfish_t.h"
 
 #define loglevel "gov/engine"
 #define logclass "peer_t"
@@ -202,5 +203,18 @@ void c::dump(const string& prefix, ostream& os) const {
 void c::dump_all(const string& prefix, ostream& os) const {
     dump(prefix, os);
     b::dump_all(prefix, os);
+}
+
+svc_t c::translate_svc(svc_t svc0, bool inbound) const {
+    svc_t svc;
+    if (inbound) {
+        svc = daemon_t::svcfish.from_prev(svc);
+        log("Using API versioning translator. oldsvc ", svc0, "-> newsvc", svc);
+    }
+    else {
+        svc = daemon_t::svcfish.to_prev(svc);
+        log("Using API versioning translator. newsvc ", svc0, "-> oldsvc", svc);
+    }
+    return svc;
 }
 

@@ -40,9 +40,9 @@ namespace us::gov::dfs {
         bool process_work(datagram*) override;
 
         #ifdef has_us_gov_dfs_api
-            #include <us/api/generated/c++/gov/dfs/cllr_override>
-            #include <us/api/generated/c++/gov/dfs/hdlr_svc_handler-hdr>
-            #include <us/api/generated/c++/gov/dfs/hdlr_override>
+            #include <us/api/generated/gov/c++/dfs/cllr_override>
+            #include <us/api/generated/gov/c++/dfs/hdlr_svc_handler-hdr>
+            #include <us/api/generated/gov/c++/dfs/hdlr_override>
         #endif
     };
 

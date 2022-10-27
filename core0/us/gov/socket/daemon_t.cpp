@@ -40,7 +40,10 @@ c::~daemon_t() {
 }
 
 client* c::create_client(sock_t sock) {
-    return new peer_t(*this, sock);
+    log("KO 78673 specialize peer");
+    assert(false);
+    return nullptr;
+//    return new peer_t(*this, sock);
 }
 
 bool c::process_unhandled(client& peer, datagram* d) {

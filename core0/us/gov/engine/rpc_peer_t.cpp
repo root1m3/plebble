@@ -22,6 +22,10 @@
 //===-
 #include "rpc_peer_t.h"
 #include "types.h"
+#include "svcfish_t.h"
+#include "rpc_daemon_t.h"
+#include "net_daemon_t.h"
+#include "daemon_t.h"
 
 #define loglevel "gov/engine"
 #define logclass "rpc_peer_t"
@@ -37,6 +41,19 @@ void c::dump(const string& prefix, ostream& os) const {
 void c::dump_all(const string& prefix, ostream& os) const {
     dump(prefix, os);
     b::dump_all(prefix, os);
+}
+
+svc_t c::translate_svc(svc_t svc0, bool inbound) const {
+    svc_t svc;
+    if (inbound) {
+        svc = daemon_t::svcfish.from_prev(svc);
+        log("Using API versioning translator. oldsvc ", svc0, "-> newsvc", svc);
+    }
+    else {
+        svc = daemon_t::svcfish.to_prev(svc);
+        log("Using API versioning translator. newsvc ", svc0, "-> oldsvc", svc);
+    }
+    return svc;    
 }
 
 bool c::process_work(datagram* d) {
@@ -62,9 +79,9 @@ bool c::process_work(datagram* d) {
     return false;
 }
 
-#include <us/api/generated/c++/gov/engine/cllr_rpc-impl>
-#include <us/api/generated/c++/gov/engine_auth/cllr_rpc-impl>
-#include <us/api/generated/c++/gov/cash/cllr_rpc-impl>
-#include <us/api/generated/c++/gov/traders/cllr_rpc-impl>
-#include <us/api/generated/c++/gov/sys/cllr_rpc-impl>
+#include <us/api/generated/gov/c++/engine/cllr_rpc-impl>
+#include <us/api/generated/gov/c++/engine_auth/cllr_rpc-impl>
+#include <us/api/generated/gov/c++/cash/cllr_rpc-impl>
+#include <us/api/generated/gov/c++/traders/cllr_rpc-impl>
+#include <us/api/generated/gov/c++/sys/cllr_rpc-impl>
 

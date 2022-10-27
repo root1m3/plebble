@@ -32,8 +32,11 @@ using namespace us::gov::id;
 using c = us::gov::id::rpc_daemon_t;
 
 socket::client* c::create_client() {
-    log("create_client");
-    return new peer_t(*this);
+    log("KO 78673 specialize peer");
+    assert(false);
+    return nullptr;
+//    log("create_client");
+//    return new peer_t(*this);
 }
 
 void c::dump(const string& prefix, ostream& os) const {

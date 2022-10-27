@@ -42,11 +42,11 @@ namespace us::wallet::wallet {
     using blob_reader_t = gov::io::blob_reader_t;
 
     struct handler_api: virtual us::wallet::engine::dto {
-        #include <us/api/generated/c++/wallet/wallet/hdlr_purevir>
+        #include <us/api/generated/wallet/c++/wallet/hdlr_purevir>
     };
 
     struct caller_api: virtual us::wallet::engine::dto {
-        #include <us/api/generated/c++/wallet/wallet/cllr_purevir>
+        #include <us/api/generated/wallet/c++/wallet/cllr_purevir>
     };
 
 }

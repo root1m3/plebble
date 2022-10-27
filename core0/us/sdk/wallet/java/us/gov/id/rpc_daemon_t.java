@@ -40,7 +40,10 @@ public abstract class rpc_daemon_t extends us.gov.socket.rpc_daemon_t implements
     }
 
     @Override public client create_client() {
-        return new peer_t(this);
+        log("KO 68598 Specialize peer."); //--strip
+//        return new peer_t(this);
+        assert false;
+        return null;
     }
 
     @Override public void dump(final String prefix, PrintStream os) {

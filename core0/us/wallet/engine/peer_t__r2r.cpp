@@ -39,19 +39,19 @@ using c = us::wallet::engine::peer_t;
 
 const char* c::KO_10428 = "KO 10428 Traders unavailale.";
 
-#include <us/api/generated/c++/wallet/r2r/cllr_rpc-impl>
+#include <us/api/generated/wallet/c++/r2r/cllr_rpc-impl>
 
 bool c::process_work__r2r(datagram* d) {
     using namespace protocol;
     switch(d->service) {
-        #include <us/api/generated/c++/wallet/r2r/hdlr_svc-router>
+        #include <us/api/generated/wallet/c++/r2r/hdlr_svc-router>
     }
     return false;
 }
 
-#include <us/api/generated/c++/wallet/r2r/hdlr_svc_handler-impl>
+#include <us/api/generated/wallet/c++/r2r/hdlr_svc_handler-impl>
 
-//------------------apitool - API Spec defined @ us/api/generated/c++/wallet/r2r/hdlr_local-impl
+//------------------apitool - API Spec defined @ us/api/generated/wallet/c++/r2r/hdlr_local-impl
 
 ko c::handle_trading_msg(seq_t seq, trading_msg_in_dst_t&& o_in) {
     log("trading_msg", seq);

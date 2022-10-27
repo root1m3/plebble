@@ -26,7 +26,7 @@
 
 #include "protocol.h"
 
-#if __has_include(<us/api/generated/c++/gov/id/svc>)
+#if __has_include(<us/api/generated/gov/c++/id/svc>)
     #define has_us_gov_id_api
 #endif
 
@@ -39,16 +39,16 @@ namespace us::gov::id {
     #ifdef has_us_gov_id_api
 
         struct dto {
-            #include <us/api/generated/c++/gov/id/cllr_dto-hdr>
-            #include <us/api/generated/c++/gov/id/hdlr_dto-hdr>
+            #include <us/api/generated/gov/c++/id/cllr_dto-hdr>
+            #include <us/api/generated/gov/c++/id/hdlr_dto-hdr>
         };
 
         struct caller_api: dto {
-            #include <us/api/generated/c++/gov/id/cllr_purevir>
+            #include <us/api/generated/gov/c++/id/cllr_purevir>
         };
 
         struct api: caller_api {
-            #include <us/api/generated/c++/gov/id/hdlr_purevir>
+            #include <us/api/generated/gov/c++/id/hdlr_purevir>
         };
 
     #else

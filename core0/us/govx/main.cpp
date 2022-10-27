@@ -80,6 +80,7 @@ int main(int argc, char** argv) {
     log_pstart(argv[0]);
     log_start("", "main");
     log("hardware concurrency", thread::hardware_concurrency());
+
     hmi = new hmi_t(p, cout);
     string r = hmi->run();
     log("end");

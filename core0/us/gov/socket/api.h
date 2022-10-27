@@ -27,7 +27,7 @@
 #include "protocol.h"
 #include "types.h"
 
-#if __has_include(<us/api/generated/c++/gov/socket/svc>)
+#if __has_include(<us/api/generated/gov/c++/socket/svc>)
     #define has_us_gov_socket_api
 #endif
 
@@ -38,16 +38,16 @@ namespace us::gov::socket {
     #ifdef has_us_gov_socket_api
 
         struct dto {
-            #include <us/api/generated/c++/gov/socket/cllr_dto-hdr>
-            #include <us/api/generated/c++/gov/socket/hdlr_dto-hdr>
+            #include <us/api/generated/gov/c++/socket/cllr_dto-hdr>
+            #include <us/api/generated/gov/c++/socket/hdlr_dto-hdr>
         };
 
         struct caller_api: dto {
-            #include <us/api/generated/c++/gov/socket/cllr_purevir>
+            #include <us/api/generated/gov/c++/socket/cllr_purevir>
         };
 
         struct api: caller_api {
-            #include <us/api/generated/c++/gov/socket/hdlr_purevir>
+            #include <us/api/generated/gov/c++/socket/hdlr_purevir>
         };
 
     #else

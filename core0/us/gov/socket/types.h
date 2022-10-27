@@ -45,7 +45,7 @@ namespace us {
     using ts_t = uint64_t; //nanosec
     using ts_ms_t = uint64_t; //millisec
     using sock_t = int;
-
+    using api_v_t = uint8_t;
 }
 
 namespace us::gov::socket {

@@ -25,6 +25,6 @@
 
 namespace us::gov::protocol {
 
-    #include <us/api/generated/c++/gov/auth/svc>
+    #include <us/api/generated/gov/c++/auth/svc>
 
 }

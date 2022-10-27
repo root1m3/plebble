@@ -36,7 +36,7 @@ bool peer_t::process_work(datagram* d) {
     #ifdef has_us_gov_relay_api
     using namespace us::gov::protocol;
     switch(d->service) {
-        #include <us/api/generated/c++/gov/relay/hdlr_svc-router>
+        #include <us/api/generated/gov/c++/relay/hdlr_svc-router>
     }
     #endif
     return b::process_work(d);
@@ -44,10 +44,10 @@ bool peer_t::process_work(datagram* d) {
 
 #ifdef has_us_gov_relay_api
 
-#include <us/api/generated/c++/gov/relay/hdlr_svc_handler-impl>
+#include <us/api/generated/gov/c++/relay/hdlr_svc_handler-impl>
 
 
-//------------------apitool - API Spec defined @ us/api/generated/c++/gov/relay/hdlr_local-impl
+//------------------apitool - API Spec defined @ us/api/generated/gov/c++/relay/hdlr_local-impl
 
 ko c::handle_push(push_in_dst_t&& o_in) {
     log("push");
@@ -65,7 +65,7 @@ ko c::handle_push(push_in_dst_t&& o_in) {
 //-/----------------apitool - End of API implementation.
 
 
-#include <us/api/generated/c++/gov/relay/cllr_rpc-impl>
+#include <us/api/generated/gov/c++/relay/cllr_rpc-impl>
 
 #endif
 

@@ -36,9 +36,11 @@ namespace us::gov::socket {
 
         using dispatcher_t = datagram::dispatcher_t;
 
+    public:
         daemon0_t(channel_t);
         ~daemon0_t() override;
 
+    public:
         virtual bool process_unhandled(client&, datagram*);
         void process_ko_work(peer_t&, channel_t, seq_t, ko);
         void process_ko_work(peer_t&, seq_t, ko);
@@ -49,6 +51,7 @@ namespace us::gov::socket {
         virtual void detach(client&) = 0;
         virtual busyled_t& recv_led() = 0;
         virtual string rewrite(ko) const;
+
     public:
         virtual void on_connect(client&, ko err) {}
         inline pair<ko, datagram*> sendrecv(client& peer, datagram* d, string& remote_error) { return rendezvous.sendrecv(peer, d, remote_error); }
@@ -57,7 +60,9 @@ namespace us::gov::socket {
         void dump(const string& prefix, ostream&) const;
         virtual void dump_all(const string& prefix, ostream&) const;
 
+    public:
         channel_t channel;
+
     };
 
 }

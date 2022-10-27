@@ -41,9 +41,11 @@ namespace us::gov::socket {
         using handler = single::handler_daemon_t;
         using dispatcher_t = datagram::dispatcher_t;
 
+    public:
         rpc_daemon_t(channel_t channel, dispatcher_t*);
         ~rpc_daemon_t() override;
 
+    public:
         void set_busy_handlers(busyled_t::handler_t* hsend, busyled_t::handler_t* hrecv);
         virtual client* create_client();
         bool process_unhandled(client&, datagram*) final override;

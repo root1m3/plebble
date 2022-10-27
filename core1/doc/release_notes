@@ -102,8 +102,19 @@ Shortlisted features/fixes:
     * become/find a debian maintainer for adding plebble to official debian
     * rpc-cli timeout configurable in HMI (CFG_DGRAM_ROUNDTRIP_TIMEOUT_SECS rendezvous_t.cpp)
 
+    * first node running on an ARM morello board.
+    * core1/bin/clone_node <ip4addr>
+    * dev2lead protocol. devjob automation 
+    * gambling R2R set. LuckNet, genesis operator FairLuck. R2Rs: luck2op, player2op, player2luck
+    * sportsvlubs R2R set. tftNet, genesis operator TFT. R2Rs: fan2club, fan2fan, club2club
+    * brand_package creator's GUI
+    * ceo2ceo protocol
+    * deferred blobs. blob hash_lookup wallet function
+    * bookmarks suppering deferred blobs
+
 In progress/testing:
     * Continuous build System. Produces final assets or error report for every git commit.
+
 
 RELEASE NOTES
 
@@ -143,7 +154,15 @@ Production releases. beta
 Production releases. alpha
 --------------------------
 
-alpha-47 - 
+alpha-48 -
+    * apitool API generator produces versions based on changes in the api spec for each process (gov, wallet)
+    * handshake includes api version run by the peer, and svc translator (svcfish) are automatically used to seamlessly communicate with the previous API version in 
+    * code generator produces api diffs and gennerates code for svcfish (compatibility svc map)
+    * svcfish commected to inbound and outbound of processes gov and wallet in c++ and java for both the server engine and the user rpc client
+    * monotonic version fingerprint exchanged in handshake, will be used to determine if peers are running new version and trigger install_blob
+    * hook gov::id::peer_t::upgrade_software() triggered just after handshake when a peer runs a newer version.
+
+alpha-47 - alpha-47_0f9e51dd 2022-10-23_16-41-28 vhash 0f9e51dd <- R e1f0a003b0b8835313de8de1ef9e0e574f80487f alpha-47 dbg-0 logs-0 counters-0 connlog-0 fcgi-0
     * Enabled daily task install_blob in us-seeds scripts.
     * Improved post upgrade brand scripts
     * Automated new brand creation in core1/bin/brand_tool

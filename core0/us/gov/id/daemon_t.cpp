@@ -36,8 +36,11 @@ c::daemon_t(channel_t channel, port_t port, pport_t pport, int workers): b(chann
 }
 
 socket::client* c::create_client(sock_t sock) {
-    log("create_client", sock);
-    return new peer_t(*this, sock);
+    log("KO 78673 specialize peer");
+    assert(false);
+    return nullptr;
+//    log("create_client", sock);
+//    return new peer_t(*this, sock);
 }
 
 void c::dump(const string& prefix, ostream& os) const {

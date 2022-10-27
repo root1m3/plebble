@@ -42,8 +42,9 @@ import java.io.PrintStream;                                                     
 import us.gov.protocol;                                                                        // protocol
 import java.net.Socket;                                                                        // Socket
 import java.util.concurrent.TimeUnit;                                                          // TimeUnit
+import static us.gov.socket.types.*;
 
-public class client {
+public abstract class client {
 
     public static final ko KO_60541 = new ko("KO 60541 Invalid address.");
     public static final ko KO_58961 = new ko("KO 58961 Invalid port.");
@@ -121,6 +122,15 @@ public class client {
         log("not encrypting. method not overriden"); //--strip
         return new pair<ko, datagram>(ok, d); //no encryption;
     }
+
+    public abstract svc_t translate_svc(svc_t svc, boolean inbound);
+/*
+ {
+        log("WARNING: Not using any API versioning translator."); //--strip
+        assert daemon.api_v.value != 0; //--strip
+        return svc;
+    }
+*/
 
     public boolean is_finished() {
         return finished.get();
@@ -368,7 +378,7 @@ public class client {
     public pair<ko, datagram> recv6(busyled_t busyled) {
         log("recv6. channel " + daemon.channel.value); //--strip
         pair<ko, datagram> ans = new pair<ko, datagram>(ok, null);
-        while(true) {
+        while (true) {
             ans = recv4x(ans.second, busyled);
             if (ko.is_ko(ans.first)) {
                 log(ans.first.msg); //--strip
@@ -378,6 +388,12 @@ public class client {
             assert ans.second != null;
             if (ans.second.completed()) {
                 ans = decrypt0(ans.second);
+                assert daemon.api_v.value != 0; //top peer instance must set api_v
+                if (peer_api_v.value != daemon.api_v.value) { 
+                    if (peer_api_v.value < daemon.api_v.value || peer_api_v.value == 255) {
+                        translate_svc(ans.second.service, true);
+                    }
+                }
                 break;
             }
             log("dgram is not yet complete."); //--strip
@@ -396,6 +412,8 @@ public class client {
     tuple3<channel_t, seq_t, reason_t> finished_reason = null;
     public AtomicInteger sendref = new AtomicInteger(0);
     long activity_recv;
+    
+    public api_v_t peer_api_v = new api_v_t(0);
 
 }
 

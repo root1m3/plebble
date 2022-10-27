@@ -41,9 +41,11 @@ namespace us::gov::socket {
         using dispatcher_t = datagram::dispatcher_t;
         using peers_t = multipeer::clients_t;
 
+    public:
         daemon_t(channel_t, port_t, uint8_t workers); /// mode_multipeer constructor
         ~daemon_t() override;
 
+    public:
         bool process_unhandled(client&, datagram*) final override;
         inline busyled_t& recv_led() final override { return handler::busyled; }
         void on_destroy_(client&) override {}

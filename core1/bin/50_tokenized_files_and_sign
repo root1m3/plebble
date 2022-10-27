@@ -253,11 +253,12 @@ for branddir in `find $distr -maxdepth 1 -mindepth 1 -type d`; do
    patch doc/node_setup_instructions_linux
    patch doc/node_setup_instructions_windows
    #find doc
-   mv doc/node_setup_instructions_linux $distr/$brand/node_setup_instructions_linux.txt
-   mv doc/node_setup_instructions_windows $distr/$brand/node_setup_instructions_windows.txt
+   mkdir -p $distr/$brand/doc
+   mv doc/node_setup_instructions_linux $distr/$brand/doc/node_setup_instructions_linux.txt
+   mv doc/node_setup_instructions_windows $distr/$brand/doc/node_setup_instructions_windows.txt
    #cp sloccount.txt $distr/$brand/
    cp $distr/build_hashes $distr/$brand/
-   cat doc/release_notes | grep "RELEASE NOTES" -A1000000 >  $distr/$brand/release_notes
+   cat doc/release_notes | grep "RELEASE NOTES" -A1000000 >  $distr/$brand/doc/release_notes
    if [[ -d $branddir/html ]]; then
        pushd $branddir
            tar -I zstd -cf html.tar.zst html

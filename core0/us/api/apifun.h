@@ -38,6 +38,17 @@ namespace us::apitool {
         using mne = string;
         using argname = string;
 
+        struct svcfish_entry_t {
+            char op;
+            string from_service;
+            int from_svc;
+            string to_service;
+            int to_svc;
+            string comment;
+        };
+
+        using svcfish_db_t = vector<svcfish_entry_t>;
+
         struct io_types_t: vector<pair<mne, argname>> { //mnemonic
             bool from_stream(istream&);
             string id() const;
@@ -54,10 +65,21 @@ namespace us::apitool {
         void collect_in_specs(map<string, vector<pair<string, string>>>&) const;
         void collect_out_specs(map<string, vector<pair<string, string>>>&) const;
         static apifun from_stream(istream&);
-        void compute_get_protocol_vector(const string& prefix, vector<pair<string, bool>>& r);
+        void compute_get_protocol_vector(const string& prefix, vector<pair<string, bool>>& r, int& nextsvc);
+
         bool is_sync() const { return sync_type == "sync"; }
         static apifun example1();
 
+        struct netsvc_t {
+            map<int, string> netsvc_net;
+            map<string, int> netsvc_net2;
+            map<string, int> netsvc_hit;
+
+            map<int, string> netsvc;
+            //map<string, int> netsvc2;
+        };
+        void compute_netsvc(netsvc_t&, bool& ch, svcfish_db_t& db, svcfish_db_t& dbinv);
+        void hitfn(netsvc_t& netsvc, const string& serv) const;
 
     public:
         io_types_t in;
@@ -67,6 +89,7 @@ namespace us::apitool {
         string fcgi;
         string service;
         int svc{-1};
+        int svc_ret{-1};
         string custom_rpc_impl;
         string sync_type;
         string _api_stream_write_fn_sfx;

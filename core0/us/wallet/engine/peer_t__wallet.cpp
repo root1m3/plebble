@@ -40,18 +40,18 @@
 using namespace us::wallet::engine;
 using c = us::wallet::engine::peer_t;
 
-#include <us/api/generated/c++/wallet/wallet/cllr_rpc-impl>
+#include <us/api/generated/wallet/c++/wallet/cllr_rpc-impl>
 
 bool c::process_work__wallet(datagram* d) {
     log("process_work__wallet");
     using namespace protocol;
     assert(wallet_local_api != nullptr);
     switch(d->service) {
-        #include <us/api/generated/c++/wallet/wallet/hdlr_svc-router>
+        #include <us/api/generated/wallet/c++/wallet/hdlr_svc-router>
     }
     return false;
 }
 
 #define delegate (*wallet_local_api)
-#include <us/api/generated/c++/wallet/wallet/hdlr_svc_handler-impl>
+#include <us/api/generated/wallet/c++/wallet/hdlr_svc_handler-impl>
 

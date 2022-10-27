@@ -49,7 +49,7 @@ namespace us::apitool::java {
         void gen_service_handlers(const api_t&, const string& scope) const;
         bool gen_service_handlers(const apifun&, const string& scope, bool side_caller, ostream&) const override;
         bool gen_service_handlers_response(const apifun&, const string& scope, bool side_caller, ostream&) const override;
-        void gen_protocol(const api_t&, int nbase, ostream&) const override;
+        void gen_protocol(const api_t&, ostream&) const override;
         void gen_purevir(const apifun&, bool side_caller, ostream&) const override;
         bool gen_rpc_impl(const apifun&, bool side_caller, ostream&) const override;
         void gen_impl_response(const apifun&, bool side_caller, function<void(const apifun& f, const string& pfx, bool side_caller, ostream&)> implementation, ostream&) const;
@@ -67,6 +67,8 @@ namespace us::apitool::java {
         void gen_dto_to_blob(const apifun&, const apifun::io_types_t&, ostream&) const;
         void gen_dto_from_blob(const apifun&, const apifun::io_types_t&, ostream&) const;
         void gen_dto_get_datagram(const apifun&, const apifun::io_types_t&, const string& prot_sfx, ostream&) const;
+
+        void write_svcfish_entry(const svcfish_entry_t&, ostream&) const override;
     };
 
 }

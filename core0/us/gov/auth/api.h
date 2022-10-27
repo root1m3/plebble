@@ -23,7 +23,7 @@
 #pragma once
 #include "protocol.h"
 #include <us/gov/io/seriable.h>
-#if __has_include(<us/api/generated/c++/gov/auth/svc>)
+#if __has_include(<us/api/generated/gov/c++/auth/svc>)
     #define has_us_gov_auth_api
 #endif
 
@@ -34,16 +34,16 @@ namespace us::gov::auth {
     #ifdef has_us_gov_auth_api
 
         struct dto {
-            #include <us/api/generated/c++/gov/auth/cllr_dto-hdr>
-            #include <us/api/generated/c++/gov/auth/hdlr_dto-hdr>
+            #include <us/api/generated/gov/c++/auth/cllr_dto-hdr>
+            #include <us/api/generated/gov/c++/auth/hdlr_dto-hdr>
         };
 
         struct caller_api: dto {
-            #include <us/api/generated/c++/gov/auth/cllr_purevir>
+            #include <us/api/generated/gov/c++/auth/cllr_purevir>
         };
 
         struct api: caller_api {
-            #include <us/api/generated/c++/gov/auth/hdlr_purevir>
+            #include <us/api/generated/gov/c++/auth/hdlr_purevir>
         };
 
     #else

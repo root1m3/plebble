@@ -28,11 +28,11 @@ namespace us::gov::protocol {
 
     static constexpr svc_t net_daemon_end{dfs_end};
 
-    #include <us/api/generated/c++/gov/engine/svc>
-    #include <us/api/generated/c++/gov/cash/svc>
-    #include <us/api/generated/c++/gov/engine_auth/svc>
-    #include <us/api/generated/c++/gov/traders/svc>
-    #include <us/api/generated/c++/gov/sys/svc>
+    #include <us/api/generated/gov/c++/engine/svc>
+    #include <us/api/generated/gov/c++/cash/svc>
+    #include <us/api/generated/gov/c++/engine_auth/svc>
+    #include <us/api/generated/gov/c++/traders/svc>
+    #include <us/api/generated/gov/c++/sys/svc>
 
 }
 

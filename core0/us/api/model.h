@@ -25,7 +25,7 @@
 #include <string>
 #include <string_view>
 #include <map>
-#include <set>
+#include <tuple>
 
 #include "api_t.h"
 
@@ -36,15 +36,32 @@ namespace us::apitool {
     struct api_t;
     struct coder;
 
-    struct model final: vector<pair<api_t*, int>> {
+    struct model final: vector<api_t*> {
+        using netsvc_t = api_t::netsvc_t;
+        using svcfish_entry_t = api_t::svcfish_entry_t;
+        using svcfish_db_t = apifun::svcfish_db_t;
+
         model(const string& process);
         ~model();
 
         int add(const string& name, int svc0);
         int add_delegate(const string& name, int svc0);
-        void gen_svc_lock();
+        void write_netsvc(ostream&);
+        void load_netsvc_run();
+        void end_adding();
 
+    public:
         string process;
+
+
+        netsvc_t netsvc;
+
+        uint8_t netsvc_serial{0};
+        uint8_t prevserial{0};
+
+        //op svc_src svc_dest comment 
+        svcfish_db_t svcfish;
+        svcfish_db_t svcfish_inv;
     };
 
 }

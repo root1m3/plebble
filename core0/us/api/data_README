@@ -1,0 +1,39 @@
+directory data contains the master files for the API spec.
+
+produces two APIs, one correcponding to the gov process (dgrams via 16672) and the other correxponding to the wallet.process (datagrams via port 16673).
+
+Function have auto generated consecutive and non-spaced service id numbers (svc_t)
+The reason for this is because the datagram routing is based on svc intervals.
+
+The api indexes are left on files:
+  generated/gov/svc_v3
+  generated/wallet/svc_v3
+
+These files must be copied to:
+  svcnet/gov
+  svcnet/wallet
+respectively after every network upgrade. Files in svcnet directory represent the API nodes are running out there.
+
+Inserting new functions or deleting will change all svc after it, that would produce incompatibility between consecutive api version for all that functions.
+A map translating svc between current and previous is computed by this algorithm and left on the files:
+
+generated/gov/c++/svc_from_prev_v
+generated/gov/c++/svc_to_prev_v
+generated/wallet/c++/svc_from_prev_v
+generated/wallet/c++/svc_to_prev_v
+
+The code includes them, in order to handle conversations between nodes with different api_ver numbers seamlessly using a svcfish translator initialized with this mapping files.
+
+IMPORTANT the task of 
+cp generated/gov/svc_v? svcnet/gov
+cp generated/wallet/svc_v? svcnet/wallet
+where ? is the version number generated for the api
+
+the current and prev version numbers can be found in the files:
+generated/gov/svc_prev_v
+generated/gov/svc_cur_v
+generated/wallet/svc_prev_v
+generated/wallet/svc_cur_v
+
+Please don't rename functions. They are trated as a deletion plus an adition and can cause old nodes to reject the datagram.
+

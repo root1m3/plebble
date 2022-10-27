@@ -41,6 +41,6 @@ void c::dump_all(const string& prefix, ostream& os) const {
 }
 
 #ifdef has_us_gov_peer_api
-    #include <us/api/generated/c++/gov/peer/cllr_rpc-impl>
+    #include <us/api/generated/gov/c++/peer/cllr_rpc-impl>
 #endif
 

@@ -64,6 +64,8 @@ namespace fs = std::filesystem;
     counters_t c::counters;
 #endif
 
+svcfish_t c::svcfish;
+
 us::gov::engine::mezzanine::mezzanine(daemon_t* d): d(d), b(bind(&c::run, d), bind(&c::onwakeup, d)) {
 }
 

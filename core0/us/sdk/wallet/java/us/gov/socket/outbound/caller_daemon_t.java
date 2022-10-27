@@ -28,6 +28,7 @@ import java.util.Date;                                                          
 import us.ko;                                                                                  // ko
 import us.pair;                                                                                // pair
 import java.io.PrintStream;                                                                    // PrintStream
+import static us.gov.socket.types.*;
 
 public class caller_daemon_t extends send_queue_t {
 
@@ -64,6 +65,15 @@ public class caller_daemon_t extends send_queue_t {
             return r;
         }
         int pri = d0.decode_service().value;
+        assert api_v.value != 0; //top peer instance must set api_v //--strip
+        if (peer.peer_api_v.value != api_v.value) { 
+            if (peer.peer_api_v.value < api_v.value || peer.peer_api_v.value == 255) {
+                svc_t svc = new svc_t(pri);
+                peer.translate_svc(svc, false);
+                log("Peer apiv is" + peer.peer_api_v.value + ".Translating svc" + pri + " -> " + svc.value); //--strip
+                d0.encode_service(svc);
+            }
+        }
         log("encrypting"); //--strip
         pair<ko, datagram> d = peer.encrypt0(d0);
         if (ko.is_ko(d.first)) {
@@ -85,5 +95,7 @@ public class caller_daemon_t extends send_queue_t {
 
     public rendezvous_t rendezvous;
     public boolean encrypt_traffic = true;
+    public api_v_t api_v = new api_v_t(0);
+
 }
 

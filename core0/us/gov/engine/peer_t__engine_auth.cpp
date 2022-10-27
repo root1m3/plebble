@@ -34,19 +34,19 @@
 using namespace us::gov::engine;
 using c = us::gov::engine::peer_t;
 
-#include <us/api/generated/c++/gov/engine_auth/cllr_rpc-impl>
+#include <us/api/generated/gov/c++/engine_auth/cllr_rpc-impl>
 
 bool c::process_work__engine_auth(datagram* d) {
     switch(d->service) {
         using namespace protocol;
-        #include <us/api/generated/c++/gov/engine_auth/hdlr_svc-router>
+        #include <us/api/generated/gov/c++/engine_auth/hdlr_svc-router>
     }
     return false;
 }
 
-#include <us/api/generated/c++/gov/engine_auth/hdlr_svc_handler-impl>
+#include <us/api/generated/gov/c++/engine_auth/hdlr_svc_handler-impl>
 
-//------------------apitool - API Spec defined @ us/api/generated/c++/gov/engine_auth/hdlr_local-impl
+//------------------apitool - API Spec defined @ us/api/generated/gov/c++/engine_auth/hdlr_local-impl
 
 ko c::handle_nodes(vector<tuple<hash_t, uint32_t, uint16_t>>& seeds) {
     log("nodes");

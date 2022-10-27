@@ -34,7 +34,7 @@ namespace us::gov::relay {
         bool process_work(datagram*) override;
 
         #ifdef has_us_gov_relay_api
-            #include <us/api/generated/c++/gov/relay/cllr_override>
+            #include <us/api/generated/gov/c++/relay/cllr_override>
         #endif
     };
 

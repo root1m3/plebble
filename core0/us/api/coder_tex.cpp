@@ -38,7 +38,7 @@ void c::do_fn(const apifun&, ostream& os) const {
 }
 
 
-void c::generate(const api_t& a, int svc0) const {
+void c::generate(const api_t& a) const {
     ostringstream fn;
     write_file_prefix(fn);
     fn << a.name;
@@ -57,7 +57,7 @@ void c::generate(const api_t& a, int svc0) const {
 
 void c::generate() const {
     for (auto& i: m) {
-        generate(*i.first, i.second);
+        generate(*i);
     }
 /*
     ostringstream fn;
@@ -72,6 +72,18 @@ void c::generate() const {
     }
     api_t::warn_f(include_os);
 */
+}
+
+void c::write_svcfish_entry(const svcfish_entry_t& x, ostream& os) const {
+    if (x.op == '/') {
+        os << line_comment() << ' ';
+        write_svcfish_entry_comment(x, os);
+        return;
+    }
+    os << "{" << x.from_svc << ", " << x.to_svc << "}, ";
+    os << line_comment() << ' ';
+    write_svcfish_entry_comment(x, os);
+    return;
 }
 
 

@@ -26,7 +26,7 @@ cachedir=~/wget_cache
 mkdir -p $cachedir
 usdir=../../..
 javac=`which javac`
-if [ "_$JAVA_HOME" != "_" ]; then
+if [[ "_$JAVA_HOME" != "_" ]]; then
     javac=$JAVA_HOME/bin/javac
 fi
 
@@ -34,27 +34,27 @@ cmd=$1
 shift
 
 cyphersuite="bouncycastle"
-if [ "_$cmd" == "_-android" ]; then
+if [[ "_$cmd" == "_-android" ]]; then
     cyphersuite="spongycastle"
     cmd=$1
     shift
-elif [ "_$cmd" == "_-spongy" ]; then
+elif [[ "_$cmd" == "_-spongy" ]]; then
     cyphersuite="spongycastle"
     cmd=$1
     shift
-elif [ "_$cmd" == "_-bouncy" ]; then
+elif [[ "_$cmd" == "_-bouncy" ]]; then
     cyphersuite="bouncycastle"
     cmd=$1
     shift
-elif [ "_$cmd" == "_spongy" ]; then
+elif [[ "_$cmd" == "_spongy" ]]; then
     cyphersuite="spongycastle"
     cmd=$1
     shift
-elif [ "_$cmd" == "_bouncy" ]; then
+elif [[ "_$cmd" == "_bouncy" ]]; then
     cyphersuite="bouncycastle"
     cmd=$1
     shift
-elif [ "_$cmd" == "_-console" ]; then
+elif [[ "_$cmd" == "_-console" ]]; then
     cyphersuite="bouncycastle"
     cmd=$1
     shift
@@ -64,7 +64,7 @@ fi
 
 android=0
 suffix="bc"
-if [ "_$cyphersuite" == "_spongycastle" ]; then
+if [[ "_$cyphersuite" == "_spongycastle" ]]; then
     libspath="..:../libs_spongy/core-1.58.0.0.jar:../libs_spongy/pg-1.54.0.0.jar:../libs_spongy/pkix-1.54.0.0.jar:../libs_spongy/prov-1.58.0.0.jar"
     android=1
     suffix="sc"
@@ -92,7 +92,7 @@ logs=$str33
 us=$str3
 
 flags="-g "
-if [ $dbg -eq 0 ]; then
+if [[ $dbg -eq 0 ]]; then
     flags="-g:none "
 fi
 
@@ -129,8 +129,8 @@ function wget_cache {
 }
 
 function getdeps {
-    if [ $android -eq 1 ]; then
-        if [ ! -f libs_spongy/pg-1.54.0.0.jar ]; then
+    if [[ $android -eq 1 ]]; then
+        if [[ ! -f libs_spongy/pg-1.54.0.0.jar ]]; then
             mkdir libs_spongy
             wget_cache http://search.maven.org/remotecontent?filepath=com/madgag/spongycastle/core/1.58.0.0/core-1.58.0.0.jar libs_spongy/core-1.58.0.0.jar
             wget_cache http://search.maven.org/remotecontent?filepath=com/madgag/spongycastle/prov/1.58.0.0/prov-1.58.0.0.jar libs_spongy/prov-1.58.0.0.jar
@@ -138,8 +138,8 @@ function getdeps {
             wget_cache http://search.maven.org/remotecontent?filepath=com/madgag/spongycastle/pg/1.54.0.0/pg-1.54.0.0.jar libs_spongy/pg-1.54.0.0.jar
         fi
     fi
-    if [ $android -eq 0 ]; then
-        if [ ! -f libs_bouncy/bcmail-jdk15on-164.jar ]; then
+    if [[ $android -eq 0 ]]; then
+        if [[ ! -f libs_bouncy/bcmail-jdk15on-164.jar ]]; then
             mkdir libs_bouncy
             wget_cache https://www.bouncycastle.org/download/bcprov-jdk15on-164.jar libs_bouncy/bcprov-jdk15on-164.jar
             wget_cache https://www.bouncycastle.org/download/bcpkix-jdk15on-164.jar libs_bouncy/bcpkix-jdk15on-164.jar
@@ -195,11 +195,11 @@ function test {
 function select_cryptosuite {
     androidlast=`cat selected_cryptosuite`
     if [[ "_$androidlast" == "_$android" ]]; then
-    echo "Source already include the selected cryptolib"
-    return
+        echo "Source already include the selected cryptolib"
+        return
     fi
     echo -n "Patching sources: "
-    if [ $android -eq 1 ]; then
+    if [[ $android -eq 1 ]]; then
         echo "using spongycastle"
         find us/gov/crypto -name "*.java" -exec sed -i "s/import org.bouncycastle./import org.spongycastle./g" {} \;
         find us/gov/socket -name "*.java" -exec sed -i "s/import org.bouncycastle./import org.spongycastle./g" {} \;
@@ -217,7 +217,7 @@ function all {
     echo "compiling using $javac"
     select_cryptosuite
     getdeps
-    if [ "_$cyphersuite" == "_spongycastle" ]; then
+    if [[ "_$cyphersuite" == "_spongycastle" ]]; then
         echo "cyphersuite:  ( )bouncycastle  (*)spongycastle"
     else
         echo "cyphersuite:  (*)bouncycastle  ( )spongycastle"
@@ -228,27 +228,27 @@ function all {
 }
 
 echo "cmd $cmd"
-if [ "_$cmd" == "_" ]; then
+if [[ "_$cmd" == "_" ]]; then
     cmd="all"
 fi
 
-if [ "_$cmd" == "_all" ]; then
+if [[ "_$cmd" == "_all" ]]; then
     all
 fi
 
-if [ "_$cmd" == "_source" ]; then
+if [[ "_$cmd" == "_source" ]]; then
     dosource
 fi
 
-if [ "_$cmd" == "_test" ]; then
+if [[ "_$cmd" == "_test" ]]; then
     test
 fi
 
-if [ "_$cmd" == "_clean" ]; then
+if [[ "_$cmd" == "_clean" ]]; then
     clean
 fi
 
-if [ "_$cmd" == "_clean-bin" ]; then
+if [[ "_$cmd" == "_clean-bin" ]]; then
     clean_bin
 fi
 

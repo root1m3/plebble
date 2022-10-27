@@ -57,7 +57,7 @@ namespace us::wallet::wallet {
         pair<ko, affected_t> analyze_pay(const asa_t& asa_pay, const asa_t& asa_charge, const tx_t&);
 
     public: //wallet
-        #include <us/api/generated/c++/wallet/wallet/hdlr_override>
+        #include <us/api/generated/wallet/c++/wallet/hdlr_override>
 
     public:
         enum push_code_t: uint16_t { //communications node-HMI

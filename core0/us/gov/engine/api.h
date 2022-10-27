@@ -42,32 +42,32 @@ namespace us::gov::engine {
         using accounts_t = cash::accounts_t;
         using addresses_t = cash::addresses_t;
 
-        #include <us/api/generated/c++/gov/engine/hdlr_dto-hdr>
-        #include <us/api/generated/c++/gov/engine/cllr_dto-hdr>
-        #include <us/api/generated/c++/gov/engine_auth/hdlr_dto-hdr>
-        #include <us/api/generated/c++/gov/engine_auth/cllr_dto-hdr>
-        #include <us/api/generated/c++/gov/cash/hdlr_dto-hdr>
-        #include <us/api/generated/c++/gov/cash/cllr_dto-hdr>
-        #include <us/api/generated/c++/gov/traders/hdlr_dto-hdr>
-        #include <us/api/generated/c++/gov/traders/cllr_dto-hdr>
-        #include <us/api/generated/c++/gov/sys/hdlr_dto-hdr>
-        #include <us/api/generated/c++/gov/sys/cllr_dto-hdr>
+        #include <us/api/generated/gov/c++/engine/hdlr_dto-hdr>
+        #include <us/api/generated/gov/c++/engine/cllr_dto-hdr>
+        #include <us/api/generated/gov/c++/engine_auth/hdlr_dto-hdr>
+        #include <us/api/generated/gov/c++/engine_auth/cllr_dto-hdr>
+        #include <us/api/generated/gov/c++/cash/hdlr_dto-hdr>
+        #include <us/api/generated/gov/c++/cash/cllr_dto-hdr>
+        #include <us/api/generated/gov/c++/traders/hdlr_dto-hdr>
+        #include <us/api/generated/gov/c++/traders/cllr_dto-hdr>
+        #include <us/api/generated/gov/c++/sys/hdlr_dto-hdr>
+        #include <us/api/generated/gov/c++/sys/cllr_dto-hdr>
     };
 
     struct caller_api: dto {
-        #include <us/api/generated/c++/gov/engine/cllr_purevir>
-        #include <us/api/generated/c++/gov/engine_auth/cllr_purevir>
-        #include <us/api/generated/c++/gov/cash/cllr_purevir>
-        #include <us/api/generated/c++/gov/traders/cllr_purevir>
-        #include <us/api/generated/c++/gov/sys/cllr_purevir>
+        #include <us/api/generated/gov/c++/engine/cllr_purevir>
+        #include <us/api/generated/gov/c++/engine_auth/cllr_purevir>
+        #include <us/api/generated/gov/c++/cash/cllr_purevir>
+        #include <us/api/generated/gov/c++/traders/cllr_purevir>
+        #include <us/api/generated/gov/c++/sys/cllr_purevir>
     };
 
     struct api: caller_api {
-        #include <us/api/generated/c++/gov/engine/hdlr_purevir>
-        #include <us/api/generated/c++/gov/engine_auth/hdlr_purevir>
-        #include <us/api/generated/c++/gov/cash/hdlr_purevir>
-        #include <us/api/generated/c++/gov/traders/hdlr_purevir>
-        #include <us/api/generated/c++/gov/sys/hdlr_purevir>
+        #include <us/api/generated/gov/c++/engine/hdlr_purevir>
+        #include <us/api/generated/gov/c++/engine_auth/hdlr_purevir>
+        #include <us/api/generated/gov/c++/cash/hdlr_purevir>
+        #include <us/api/generated/gov/c++/traders/hdlr_purevir>
+        #include <us/api/generated/gov/c++/sys/hdlr_purevir>
     };
 
 }

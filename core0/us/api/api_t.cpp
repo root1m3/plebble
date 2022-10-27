@@ -98,7 +98,7 @@ c* c::from_stream(istream&is) {
 void c::feedback_load(const string&) {
 }
 
-c* c::load(const string& process, string file) {
+pair<c*, int> c::load(const string& process, string file, int svc_begin) {
     string nm = file;
     file = string("data/") + process + '/' + file;
     feedback_load(file);
@@ -106,9 +106,11 @@ c* c::load(const string& process, string file) {
     auto a = from_stream(is);
     a->name = nm;
     a->src = file;
-    a->v = a->compute_get_protocol_vector();
+    auto svc_end = a->compute_get_protocol_vector(svc_begin);
+    //a->v = x.second;
+
     //a->dump_v();
-    return a;
+    return make_pair(a, svc_end);
 }
 
 void c::dump_v() const {
@@ -121,9 +123,40 @@ void c::dump_v() const {
     for (auto& i: *this) {
         cout << "name " << i.name << " service " << i.service << " svc " << i.svc << '\n';
     }
-
 }
 
+int c::compute_get_protocol_vector(int svc_begin) {
+    v.clear();
+    v.push_back(make_pair(name + "_begin", false));
+    int nextsvc = svc_begin;
+    for (auto& i: *this) {
+         i.compute_get_protocol_vector(name, v, nextsvc);
+    }
+    v.push_back(make_pair(name + "_end", false));
+    assert(!v.empty());
+/*
+    int n = 1;
+    auto f = begin();
+    int s = 0;
+    for (; f != end(); ++n, ++f) {
+        ++s;
+        f->svc = s;
+        if (v[n].second) {
+            ++s;
+            f->svc_ret = s;
+        }
+    }
+*/
+    return nextsvc; //svc_begin + s;
+}
+
+void c::compute_netsvc(netsvc_t& netsvc, bool& ch, svcfish_db_t& db, svcfish_db_t& dbinv) {
+    for (auto& i: *this) {
+         i.compute_netsvc(netsvc, ch, db, dbinv);
+    }
+}
+
+/*
 vector<pair<string, bool>> c::compute_get_protocol_vector() {
     vector<pair<string, bool>> r;
     r.push_back(make_pair(name + "_begin", false));
@@ -145,8 +178,10 @@ int c::svc_end(int svc_begin) const {
             ++s;
         }
     }
-    return svc_begin+s;
+    return svc_begin + s;
 }
 
 void c::gen_svc_lock(ostream& os) const {
 }
+*/
+

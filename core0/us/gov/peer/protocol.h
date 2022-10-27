@@ -25,7 +25,7 @@
 
 namespace us::gov::protocol {
 
-    #include <us/api/generated/c++/gov/peer/svc>
+    #include <us/api/generated/gov/c++/peer/svc>
 
 }
 

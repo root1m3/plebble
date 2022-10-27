@@ -27,7 +27,7 @@ namespace us {
 
     using pport_t = port_t;
     using pin_t = uint16_t;
-    using version_fingerprint_t = uint16_t;
+    using version_fingerprint_t = uint8_t;
 
 }
 

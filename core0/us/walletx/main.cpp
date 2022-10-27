@@ -26,6 +26,7 @@
 #include <us/gov/config.h>
 #include <us/gov/ko.h>
 #include <us/gov/io/shell_args.h>
+#include <us/gov/socket/client.h>
 #include <us/gov/io/screen.h>
 #include <us/wallet/cli/params.h>
 #include <us/wallet/cli/hmi.h>
@@ -77,6 +78,7 @@ int main(int argc, char** argv) {
     log_pstart(argv[0]);
     log_start("", "main");
     log("hardware concurrency", thread::hardware_concurrency());
+
     hmi = new hmi_t(p, cout);
     string r = hmi->run();
     log("end");

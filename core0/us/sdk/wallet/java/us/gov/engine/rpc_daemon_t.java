@@ -36,6 +36,8 @@ public abstract class rpc_daemon_t extends us.gov.dfs.rpc_daemon_t {
 
     public rpc_daemon_t(channel_t channel, dispatcher_t dispatcher) {
         super(channel, dispatcher);
+        api_v.value = us.CFG.API_V__GOV.value;
+        log("set api_v " + api_v.value); //--strip
     }
 
     @Override public client create_client() {
@@ -48,5 +50,6 @@ public abstract class rpc_daemon_t extends us.gov.dfs.rpc_daemon_t {
         super.dump(prefix, os);
     }
 
+    public static svcfish_t svcfish = new svcfish_t();
 }
 

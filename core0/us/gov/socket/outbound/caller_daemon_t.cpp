@@ -57,6 +57,15 @@ ko c::send1(client& peer, datagram* d0) {
         return r;
     }
     uint16_t pri = d0->decode_service();
+    assert(api_v != 0); //top peer instance must set api_v
+    if (peer.peer_api_v != api_v) { 
+        if (peer.peer_api_v < api_v || peer.peer_api_v == 255) {
+            auto svc = pri;
+            peer.translate_svc(svc, false);
+            log("Peer apiv is", peer.peer_api_v, ".Translating svc", pri, " -> ", svc);
+            d0->encode_service(svc);
+        }
+    }
     {
         log("encrypting");
         pair<ko, datagram*> d = peer.encrypt0(d0);

@@ -80,8 +80,7 @@ public abstract class daemon0_t extends caller_daemon_t {
         return encrypt_traffic;
     }
 
-    @Override
-    public void dump(final String prefix, PrintStream os) {
+    @Override public void dump(final String prefix, PrintStream os) {
         os.println(prefix + "socket::daemon_t:");
         super.dump(prefix, os);
     }

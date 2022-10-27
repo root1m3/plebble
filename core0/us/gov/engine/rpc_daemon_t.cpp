@@ -21,6 +21,9 @@
 //===----------------------------------------------------------------------------
 //===-
 #include "rpc_daemon_t.h"
+
+#include <us/gov/config.h>
+
 #include "rpc_peer_t.h"
 #include "types.h"
 
@@ -32,6 +35,8 @@ using namespace us::gov::engine;
 using c = us::gov::engine::rpc_daemon_t;
 
 c::rpc_daemon_t(channel_t channel, dispatcher_t* dispatcher): b(channel, dispatcher) {
+    api_v = CFG_API_V__GOV;
+    log("set api_v", +api_v);
 }
 
 c::~rpc_daemon_t() {

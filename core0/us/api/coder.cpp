@@ -87,14 +87,21 @@ namespace {
 
 void c::write_file_prefix(const api_t& a, ostream& os) const {
     ostringstream path;
-    path << "generated/" << lang() << '/' << m.process << '/' << a.name;
+    path << "generated/" << m.process << '/' << lang() << '/' << a.name;
     ensure_dir(path.str());
     os << path.str() << '/';
 }
 
 void c::write_file_prefix(ostream& os) const {
     ostringstream path;
-    path << "generated/" << lang() << '/' << m.process;
+    path << "generated/" << m.process << '/' << lang();
+    ensure_dir(path.str());
+    os << path.str() << '/';
+}
+
+void c::write_file_prefix_all_langs(ostream& os) const {
+    ostringstream path;
+    path << "generated/" << m.process;
     ensure_dir(path.str());
     os << path.str() << '/';
 }
@@ -277,13 +284,13 @@ void c::do_common_api(const api_t& a) const {
     gen_dto(a);
 }
 
-void c::gen_protocol(const api_t& a, int base) const {
+void c::gen_protocol(const api_t& a) const {
     ostringstream fn;
     write_file_prefix(a, fn);
     fn << "svc";
     feedback();
     ofstream os(fn.str());
-    gen_protocol(a, base, os);
+    gen_protocol(a, os);
 }
 
 void c::gen_service_handlers(const api_t& a, const string& scope, bool side_caller, ostream& os) const {
@@ -314,10 +321,10 @@ void c::gen_service_handlers(const api_t& a, const string& scope) const {
     a.warn_f(line_comment(), os);
 }
 
-void c::do_gov_daemon_api(const api_t& a, int base, ostream& counters_include) const {
+void c::do_gov_daemon_api(const api_t& a, ostream& counters_include) const {
     do_common_api(a);
-    gen_protocol(a, base);
-    gen_gov_protocol_counters_init(a, base, counters_include); //c++
+    gen_protocol(a);
+    gen_gov_protocol_counters_init(a, counters_include); //c++
     gen_service_handlers(a, "");
     gen_service_handler_headers(a, ""); //c++
 }
@@ -331,12 +338,103 @@ void c::gen_gov_daemon_api() const {
     ofstream include_os(file);
     api_t::warn_h(line_comment(), include_os);
     for (auto& i: m) {
-        do_gov_daemon_api(*i.first, i.second, include_os);
+        do_gov_daemon_api(*i, include_os);
     }
     api_t::warn_f(line_comment(), include_os);
 }
 
+void c::gen_svc_v0() const {
+    {
+        ostringstream fn;
+        write_file_prefix_all_langs(fn);
+        fn << string("svc_prev_v");
+        string file = fn.str();
+        feedback();
+        ofstream fos(file);
+        fos << +m.prevserial << '\n';
+    }
+    {
+        ostringstream fn;
+        write_file_prefix_all_langs(fn);
+        fn << string("svc_cur_v");
+        string file = fn.str();
+        feedback();
+        ofstream fos(file);
+        fos << +m.netsvc_serial << '\n';
+    }
+}
+
+void c::gen_svc_list() const {
+    ostringstream fn;
+    write_file_prefix_all_langs(fn);
+    fn << "svc_v" << +m.netsvc_serial;
+    string file = fn.str();
+    feedback();
+    ofstream fos(file);
+    m.write_netsvc(fos);
+}
+
+void c::write_svcfish_entry_comment(const svcfish_entry_t& x, ostream& os) const {
+    os << x.op << ' ' << x.from_service << " (" << x.from_svc << ") -> " << x.to_service << " (" << x.to_svc << ") " << x.comment << '\n';
+}
+
+void c::gen_svcfish(ostream& os) const {
+    if (m.prevserial != m.netsvc_serial) {
+        for (auto& i: m.svcfish) {
+            write_svcfish_entry(i, os);
+        }
+    }
+    else {
+        os << '\n';
+    }
+}
+
+void c::gen_svcfish_inv(ostream& os) const {
+    if (m.prevserial != m.netsvc_serial) {
+        for (auto& i: m.svcfish_inv) {
+            write_svcfish_entry(i, os);
+        }
+    }
+    else {
+        os << '\n';
+    }
+}
+
+void c::gen_svcfish() const {
+    ostringstream fn;
+    write_file_prefix(fn);
+    fn << "svc_from_prev_v";
+    string file = fn.str();
+    feedback();
+    ofstream fos(file);
+    api_t::warn_h(line_comment(), fos);
+    gen_svcfish(fos);
+    api_t::warn_f(line_comment(), fos);
+}
+
+void c::gen_svcfish_inv() const {
+    ostringstream fn;
+    write_file_prefix(fn);
+    fn << "svc_to_prev_v";
+    string file = fn.str();
+    feedback();
+    ofstream fos(file);
+    api_t::warn_h(line_comment(), fos);
+    gen_svcfish_inv(fos);
+    api_t::warn_f(line_comment(), fos);
+}
+
+void c::gen_svc_v() const{
+    gen_svc_v0();
+    gen_svc_list();
+    gen_svcfish();
+    gen_svcfish_inv();
+}
+
 void c::generate() const {
     gen_gov_daemon_api();
+    gen_svc_v();
 }
+
+
 

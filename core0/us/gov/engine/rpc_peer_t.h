@@ -26,9 +26,6 @@
 
 namespace us::gov::engine {
 
-    struct daemon_t;
-    struct net_daemon_t;
-
     struct rpc_peer_t: net::rpc_peer_t, caller_api {
         using b = net::rpc_peer_t;
 
@@ -38,12 +35,13 @@ namespace us::gov::engine {
         bool process_work(datagram*) override;
         void dump(const string& prefix, ostream&) const;
         void dump_all(const string& prefix, ostream&) const override;
+        svc_t translate_svc(svc_t svc0, bool inbound) const override;
 
-        #include <us/api/generated/c++/gov/engine/cllr_override>
-        #include <us/api/generated/c++/gov/engine_auth/cllr_override>
-        #include <us/api/generated/c++/gov/cash/cllr_override>
-        #include <us/api/generated/c++/gov/traders/cllr_override>
-        #include <us/api/generated/c++/gov/sys/cllr_override>
+        #include <us/api/generated/gov/c++/engine/cllr_override>
+        #include <us/api/generated/gov/c++/engine_auth/cllr_override>
+        #include <us/api/generated/gov/c++/cash/cllr_override>
+        #include <us/api/generated/gov/c++/traders/cllr_override>
+        #include <us/api/generated/gov/c++/sys/cllr_override>
     };
 
 }

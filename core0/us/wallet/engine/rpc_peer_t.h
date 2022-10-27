@@ -33,10 +33,12 @@ namespace us { namespace wallet { namespace engine {
         using b::rpc_peer_t;
         bool process_work(datagram*) override;
 
-        #include <us/api/generated/c++/wallet/engine/cllr_override>
-        #include <us/api/generated/c++/wallet/pairing/cllr_override>
-        #include <us/api/generated/c++/wallet/wallet/cllr_override>
-        #include <us/api/generated/c++/wallet/r2r/cllr_override>
+        svc_t translate_svc(svc_t svc0, bool inbound) const override;
+
+        #include <us/api/generated/wallet/c++/engine/cllr_override>
+        #include <us/api/generated/wallet/c++/pairing/cllr_override>
+        #include <us/api/generated/wallet/c++/wallet/cllr_override>
+        #include <us/api/generated/wallet/c++/r2r/cllr_override>
     };
 
 }}}

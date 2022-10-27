@@ -154,16 +154,16 @@ bool c::process_work(datagram* d) {
     #ifdef has_us_gov_peer_api
     using namespace us::gov::protocol;
     switch(d->service) {
-        #include <us/api/generated/c++/gov/peer/hdlr_svc-router>
+        #include <us/api/generated/gov/c++/peer/hdlr_svc-router>
     }
     #endif
     return b::process_work(d);
 }
 
 #ifdef has_us_gov_peer_api
-#include <us/api/generated/c++/gov/peer/hdlr_svc_handler-impl>
+#include <us/api/generated/gov/c++/peer/hdlr_svc_handler-impl>
 
-//------------------apitool - API Spec defined @ us/api/generated/c++/gov/peer/hdlr_local-impl
+//------------------apitool - API Spec defined @ us/api/generated/gov/c++/peer/hdlr_local-impl
 
 ko c::handle_f1() {
     log("f1");
@@ -174,6 +174,6 @@ ko c::handle_f1() {
 
 //-/----------------apitool - End of API implementation.
 
-#include <us/api/generated/c++/gov/peer/cllr_rpc-impl>
+#include <us/api/generated/gov/c++/peer/cllr_rpc-impl>
 #endif
 

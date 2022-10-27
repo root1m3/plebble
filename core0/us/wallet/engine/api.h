@@ -37,17 +37,17 @@ namespace us::wallet::engine {
 
     struct caller_api: virtual dto, us::wallet::wallet::caller_api {
 
-        #include <us/api/generated/c++/wallet/engine/cllr_purevir>
-        #include <us/api/generated/c++/wallet/pairing/cllr_purevir>
-        #include <us/api/generated/c++/wallet/r2r/cllr_purevir>
+        #include <us/api/generated/wallet/c++/engine/cllr_purevir>
+        #include <us/api/generated/wallet/c++/pairing/cllr_purevir>
+        #include <us/api/generated/wallet/c++/r2r/cllr_purevir>
 
     };
 
     struct api: caller_api {
 
-        #include <us/api/generated/c++/wallet/engine/hdlr_purevir>
-        #include <us/api/generated/c++/wallet/pairing/hdlr_purevir>
-        #include <us/api/generated/c++/wallet/r2r/hdlr_purevir>
+        #include <us/api/generated/wallet/c++/engine/hdlr_purevir>
+        #include <us/api/generated/wallet/c++/pairing/hdlr_purevir>
+        #include <us/api/generated/wallet/c++/r2r/hdlr_purevir>
 
     };
 

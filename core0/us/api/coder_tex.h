@@ -42,19 +42,21 @@ namespace us::apitool::tex {
         string line_comment() const override { return "%"; }
 
         void generate() const;
-        void generate(const api_t&, int svc0) const;
+        void generate(const api_t&) const;
         void do_fn(const apifun&, ostream&) const;
 
         string get_type(const string&) const override { return ""; }
         bool gen_service_handlers(const apifun&, const string& scope, bool side_caller, ostream&) const override { return false; }
         bool gen_service_handlers_response(const apifun&, const string& scope, bool side_caller, ostream&) const override { return false; }
-        void gen_protocol(const api_t&, int nbase, ostream&) const override {}
+        void gen_protocol(const api_t&, ostream&) const override {}
         void gen_purevir(const apifun&, bool side_caller, ostream&) const override {}
         bool gen_rpc_impl(const apifun&, bool side_caller, ostream&) const override { return false; }
         bool gen_local_impl(const apifun&, ostream&) const override { return false; }
         void gen_service_router(const apifun&, bool side_caller, ostream&) const override {}
         void gen_dto_out_hdr(const apifun&, bool side_caller, ostream&) const override {}
         void gen_dto_in_hdr(const apifun&, bool side_caller, ostream&) const override {}
+
+        void write_svcfish_entry(const svcfish_entry_t&, ostream&) const override;
     };
 
 }

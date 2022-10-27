@@ -52,6 +52,7 @@ namespace us::gov::engine {
         ko authorize(const pub_t&, pin_t) override;
         daemon_t& engine_daemon();
         const daemon_t& engine_daemon() const;
+        svc_t translate_svc(svc_t svc0, bool inbound) const override;
 
     public:
         bool process_work(datagram*) override;
@@ -62,30 +63,30 @@ namespace us::gov::engine {
         bool process_work__sys(datagram*);
 
     public: //engine
-        #include <us/api/generated/c++/gov/engine/cllr_override>
-        #include <us/api/generated/c++/gov/engine/hdlr_override>
-        #include <us/api/generated/c++/gov/engine/hdlr_svc_handler-hdr>
+        #include <us/api/generated/gov/c++/engine/cllr_override>
+        #include <us/api/generated/gov/c++/engine/hdlr_override>
+        #include <us/api/generated/gov/c++/engine/hdlr_svc_handler-hdr>
 
     public: //auth
 
-        #include <us/api/generated/c++/gov/engine_auth/cllr_override>
-        #include <us/api/generated/c++/gov/engine_auth/hdlr_override>
-        #include <us/api/generated/c++/gov/engine_auth/hdlr_svc_handler-hdr>
+        #include <us/api/generated/gov/c++/engine_auth/cllr_override>
+        #include <us/api/generated/gov/c++/engine_auth/hdlr_override>
+        #include <us/api/generated/gov/c++/engine_auth/hdlr_svc_handler-hdr>
     public: //cash
 
-        #include <us/api/generated/c++/gov/cash/cllr_override>
-        #include <us/api/generated/c++/gov/cash/hdlr_override>
-        #include <us/api/generated/c++/gov/cash/hdlr_svc_handler-hdr>
+        #include <us/api/generated/gov/c++/cash/cllr_override>
+        #include <us/api/generated/gov/c++/cash/hdlr_override>
+        #include <us/api/generated/gov/c++/cash/hdlr_svc_handler-hdr>
 
     public: //traders
-        #include <us/api/generated/c++/gov/traders/cllr_override>
-        #include <us/api/generated/c++/gov/traders/hdlr_override>
-        #include <us/api/generated/c++/gov/traders/hdlr_svc_handler-hdr>
+        #include <us/api/generated/gov/c++/traders/cllr_override>
+        #include <us/api/generated/gov/c++/traders/hdlr_override>
+        #include <us/api/generated/gov/c++/traders/hdlr_svc_handler-hdr>
 
     public: //sys
-        #include <us/api/generated/c++/gov/sys/cllr_override>
-        #include <us/api/generated/c++/gov/sys/hdlr_override>
-        #include <us/api/generated/c++/gov/sys/hdlr_svc_handler-hdr>
+        #include <us/api/generated/gov/c++/sys/cllr_override>
+        #include <us/api/generated/gov/c++/sys/hdlr_override>
+        #include <us/api/generated/gov/c++/sys/hdlr_svc_handler-hdr>
 
     public:
         stage_t stage{unknown};

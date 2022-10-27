@@ -43,7 +43,7 @@
 using namespace us::wallet::wallet;
 using c = us::wallet::wallet::local_api;
 
-//------------------apitool - API Spec defined @ us/api/generated/c++/wallet/wallet/hdlr_local-impl
+//------------------apitool - API Spec defined @ us/api/generated/wallet/c++/wallet/hdlr_local-impl
 
 ko c::handle_balance(uint16_t&& detail, string& data) {
     log("balance", detail);
@@ -1187,7 +1187,7 @@ ko c::handle_timeseries_add(timeseries_add_in_dst_t&& o_in, string& ans) {
 
 //-/----------------apitool - End of API implementation.
 
-//------------------apitool - API Spec defined @ us/api/generated/c++/wallet/wallet/hdlr_local-impl
+//------------------apitool - API Spec defined @ us/api/generated/wallet/c++/wallet/hdlr_local-impl
 
 ///################################################################################################################################################################
 

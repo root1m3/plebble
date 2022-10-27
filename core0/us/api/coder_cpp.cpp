@@ -51,15 +51,13 @@ unordered_map<string, string> c::types {
     {"v{hu4u2}", "vector<tuple<hash_t, uint32_t, uint16_t>>"},
 };
 
-string c::protocol_prefix{""};
-
 string c::get_type(const string& mne) const {
     auto i = types.find(mne);
     if (i != types.end()) return i->second;
     return mne;
 }
 
-void c::gen_gov_protocol_counters_init(const api_t& a, int base, ostream& include) const {
+void c::gen_gov_protocol_counters_init(const api_t& a, ostream& include) const {
     ostringstream fn;
     write_file_prefix(a, fn);
     fn << "counters_init";
@@ -71,7 +69,7 @@ void c::gen_gov_protocol_counters_init(const api_t& a, int base, ostream& includ
     auto f = a.begin();
     int n = 1;
     for (; f != a.end(); ++f) {
-        os << "emplace(" << protocol_prefix << "" << a.v[n].first << ", new iodata());\n";
+        os << "emplace(" << a.v[n].first << ", new iodata());\n";
         ++n;
     }
     a.warn_f(line_comment(), os);
@@ -784,26 +782,29 @@ void c::gen_dto_out_hdr(const apifun& f, bool side_caller, ostream& os) const {
     }
 }
 
-void c::gen_protocol(const api_t& a, int nbase, ostream& os) const {
+void c::gen_protocol(const api_t& a, ostream& os) const {
     a.warn_h(line_comment(), os);
     a.info(line_comment(), os);
     assert(!a.v.empty());
     int n = 0;
     const string& base = a.v[0].first;
-    os << "    static constexpr svc_t " << protocol_prefix << base << "{" << nbase << "};\n";
+    int nbase = a.begin()->svc;
+    os << "    static constexpr svc_t " << base << "{" << nbase << "};\n";
     ++n;
     auto f = a.begin();
     int s = 0;
     for ( ; f != a.end(); ++n, ++f) {
-        os << "    static constexpr svc_t " << protocol_prefix << a.v[n].first << "{" << protocol_prefix << base << " + " << s << "}; /" << "/ svc " << (nbase + s) << '\n';
+        os << "    static constexpr svc_t " << a.v[n].first << "{" << f->svc << "}; /" << "/ svc " << f->svc << '\n';
+        assert(f->svc == (nbase + s));
         ++s;
         if (a.v[n].second) {
-            os << "    static constexpr svc_t " << protocol_prefix << a.v[n].first << "_response{" << protocol_prefix << base << " + " << s << "}; /" << "/ svc " << (nbase + s) << '\n';
+            os << "    static constexpr svc_t " << a.v[n].first << "_response{" << f->svc_ret << "}; /" << "/ svc " << f->svc_ret << '\n';
+            assert(f->svc_ret == (nbase + s));
             ++s;
         }
         os << '\n';
     }
-    os << "    static constexpr svc_t " << protocol_prefix << a.v[n].first << "{" << protocol_prefix << base << " + " << s << "}; /" << "/ svc " << (nbase + s) << '\n';
+    os << "    static constexpr svc_t " << a.v[n].first << "{" << base << " + " << s << "}; /" << "/ svc " << (nbase + s) << '\n';
     os << '\n';
     a.warn_f(line_comment(), os);
 }
@@ -1008,5 +1009,17 @@ void c::gen_service_handler_headers(const api_t&a, const string& scope) const {
     a.warn_h(line_comment(), os);
     gen_service_handler_headers(a, scope, side_caller, os);
     a.warn_f(line_comment(), os);
+}
+
+void c::write_svcfish_entry(const svcfish_entry_t& x, ostream& os) const {
+    if (x.op == '/') {
+        os << line_comment() << ' ';
+        write_svcfish_entry_comment(x, os);
+        return;
+    }
+    os << "{" << x.from_svc << ", " << x.to_svc << "}, ";
+    os << line_comment() << ' ';
+    write_svcfish_entry_comment(x, os);
+    return;
 }
 

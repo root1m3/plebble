@@ -31,19 +31,19 @@
 using namespace us::gov::engine;
 using c = us::gov::engine::peer_t;
 
-#include <us/api/generated/c++/gov/sys/cllr_rpc-impl>
+#include <us/api/generated/gov/c++/sys/cllr_rpc-impl>
 
 bool c::process_work__sys(datagram* d) {
     using namespace protocol;
     switch(d->service) {
-        #include <us/api/generated/c++/gov/sys/hdlr_svc-router>
+        #include <us/api/generated/gov/c++/sys/hdlr_svc-router>
     }
     return false;
 }
 
-#include <us/api/generated/c++/gov/sys/hdlr_svc_handler-impl>
+#include <us/api/generated/gov/c++/sys/hdlr_svc_handler-impl>
 
-//------------------apitool - API Spec defined @ us/api/generated/c++/gov/sys/hdlr_local-impl
+//------------------apitool - API Spec defined @ us/api/generated/gov/c++/sys/hdlr_local-impl
 
 ko c::handle_f1() {
     log("f1");

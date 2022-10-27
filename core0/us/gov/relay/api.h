@@ -24,7 +24,7 @@
 #include <us/gov/io/seriable.h>
 #include "protocol.h"
 
-#if __has_include(<us/api/generated/c++/gov/relay/svc>)
+#if __has_include(<us/api/generated/gov/c++/relay/svc>)
     #define has_us_gov_relay_api
 #endif
 
@@ -35,16 +35,16 @@ namespace us { namespace gov { namespace relay {
     #ifdef has_us_gov_relay_api
 
         struct dto {
-            #include <us/api/generated/c++/gov/relay/hdlr_dto-hdr>
-            #include <us/api/generated/c++/gov/relay/cllr_dto-hdr>
+            #include <us/api/generated/gov/c++/relay/hdlr_dto-hdr>
+            #include <us/api/generated/gov/c++/relay/cllr_dto-hdr>
         };
 
         struct caller_api: dto {
-            #include <us/api/generated/c++/gov/relay/cllr_purevir>
+            #include <us/api/generated/gov/c++/relay/cllr_purevir>
         };
 
         struct api: caller_api {
-            #include <us/api/generated/c++/gov/relay/hdlr_purevir>
+            #include <us/api/generated/gov/c++/relay/hdlr_purevir>
         };
 
     #else

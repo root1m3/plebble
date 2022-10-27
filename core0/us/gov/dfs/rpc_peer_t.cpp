@@ -33,6 +33,6 @@ c::rpc_peer_t(rpc_daemon_t& rpc_daemon): b(rpc_daemon) {
 }
 
 #ifdef has_us_gov_dfs_api
-    #include <us/api/generated/c++/gov/dfs/cllr_rpc-impl>
+    #include <us/api/generated/gov/c++/dfs/cllr_rpc-impl>
 #endif
 

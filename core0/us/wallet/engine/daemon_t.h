@@ -34,6 +34,7 @@
 #include "users_t.h"
 #include "devices_t.h"
 #include "types.h"
+#include "svcfish_t.h"
 
 namespace us::wallet::wallet {
     struct local_api;
@@ -110,6 +111,8 @@ namespace us::wallet::engine {
         pushman pm;
         devices_t devices;
         trader::traders_t traders;
+
+        static svcfish_t svcfish;
 
     public:
         keys id;

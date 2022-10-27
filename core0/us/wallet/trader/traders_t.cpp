@@ -452,26 +452,22 @@ ko c::trading_msg(peer_t& peer, svc_t svc, const hash_t& trade_id, blob_t&& blob
                     return r;
                 }
                 if (svc != trader_t::svc_handshake_b1) {
-                    if (peer.wallet_local_api != nullptr) {
-                        ko r = "KO 32911 Invalid state. peer wallet is null";
-                        peer.disconnect(0, r);
-                        return r;
+                    if (peer.wallet_local_api == nullptr) {
+                        auto subhome = bootstrap::bootstrapper_t::extract_wloc(svc, blob);
+                        if (is_ko(subhome.first)) {
+                            peer.disconnect(0, subhome.first);
+                            return subhome.first;
+                        }
+                        log("subhome", subhome.second); 
+                        if (!daemon.has_home(subhome.second)) {
+                            ko r = "KO 32913 wallet does not exist.";
+                            peer.disconnect(0, r);
+                            return r;
+                        }
+                        peer.wallet_local_api = daemon.users.get_wallet(subhome.second);
                     }
-                    auto subhome = bootstrap::bootstrapper_t::extract_wloc(svc, blob);
-                    if (is_ko(subhome.first)) {
-                        peer.disconnect(0, subhome.first);
-                        return subhome.first;
-                    }
-                    log("subhome", subhome.second); 
-                    if (!daemon.has_home(subhome.second)) {
-                        ko r = "KO 32913 wallet does not exist.";
-                        peer.disconnect(0, r);
-                        return r;
-                    }
-                    peer.wallet_local_api = daemon.users.get_wallet(subhome.second);
                     if (peer.wallet_local_api == nullptr) {
                         ko r = "KO 32912 Could not find wallet.";
-                        log(r, "subhome", subhome.second);
                         peer.disconnect(0, r);
                         return r;
                     }

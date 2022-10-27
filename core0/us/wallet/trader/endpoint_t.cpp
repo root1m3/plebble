@@ -189,6 +189,7 @@ void c::to_streamX(ostream& os) const {
 }
 
 ko c::from_string(const string& input) {
+    log("from_string", input);
     istringstream is(input);
     return from_streamX(is);
 }

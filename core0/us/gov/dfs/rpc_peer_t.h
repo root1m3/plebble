@@ -36,7 +36,7 @@ namespace us::gov::dfs {
         rpc_peer_t(rpc_daemon_t&);
 
         #ifdef has_us_gov_dfs_api
-            #include <us/api/generated/c++/gov/dfs/cllr_override>
+            #include <us/api/generated/gov/c++/dfs/cllr_override>
         #endif
     };
 

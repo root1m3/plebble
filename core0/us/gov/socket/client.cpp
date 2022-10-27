@@ -124,8 +124,17 @@ pair<ko, datagram*> c::decrypt0(datagram* d) const {
 
 pair<ko, datagram*> c::encrypt0(datagram* d) const { //delete only if the returned pointer is not d
     log("WARNING: Not encrypting. Encryption not supported.");
+    assert(daemon.api_v != 0);
     return make_pair(ok, d); //no encryption;
 }
+
+/*
+svc_t c::translate_svc(svc_t svc, bool inbound) const {
+    log("WARNING: Not using any API versioning translator.");
+    assert(daemon.api_v != 0);
+    return svc;
+}
+*/
 
 void c::set_finish() {
     log("set_finish", sock, endpoint());
@@ -464,11 +473,20 @@ pair<ko, datagram*> c::recv6(busyled_t& busyled) {
         assert(r.second != nullptr);
         if (r.second->completed()) {
             r = decrypt0(r.second);
+            if (unlikely(is_ko(r.first))) {
+                return r;
+            }
+            assert(daemon.api_v != 0); //top peer instance must set api_v
+            if (unlikely(peer_api_v != daemon.api_v)) { 
+                if (peer_api_v < daemon.api_v || peer_api_v == 255) {
+                    translate_svc(r.second->service, true);
+                }
+            }
             break;
         }
     }
     log("/recv6");
-    return move(r);
+    return r;
 }
 
 #if CFG_COUNTERS == 1

@@ -22,6 +22,7 @@
 //===-
 #pragma once
 #include "net.h"
+
 #include <vector>
 #include <unordered_set>
 #include <string>
@@ -36,13 +37,17 @@ namespace us::gov::engine {
     struct net_daemon_t: net::daemon_t {
         using b = net::daemon_t;
 
+    public:
         net_daemon_t(engine::daemon_t&, channel_t);
         net_daemon_t(engine::daemon_t&, channel_t, port_t, pport_t, uint8_t edges, uint8_t devices, int workers, const vector<hostport_t>& seed_nodes);
+        void constructor();
+
         ~net_daemon_t() override;
 
         net_daemon_t(const net_daemon_t&) = delete;
         net_daemon_t& operator = (const net_daemon_t&) = delete;
 
+    public:
         socket::peer_t* create_client(int sock) override;
         bool check_dfs_permission(const hash_t& addr) const override;
         bool check_relay_permission(const hash_t& addr) const override;
@@ -60,6 +65,7 @@ namespace us::gov::engine {
         void send(const local_deltas_t&);
         void send_vote(datagram*);
 
+    public:
         engine::daemon_t& engine_daemon;
     };
 

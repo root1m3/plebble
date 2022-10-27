@@ -37,19 +37,19 @@
 using namespace us::gov::engine;
 using c = us::gov::engine::peer_t;
 
-#include <us/api/generated/c++/gov/engine/cllr_rpc-impl>
+#include <us/api/generated/gov/c++/engine/cllr_rpc-impl>
 
 bool c::process_work__engine(datagram* d) {
     using namespace protocol;
     switch(d->service) {
-        #include <us/api/generated/c++/gov/engine/hdlr_svc-router>
+        #include <us/api/generated/gov/c++/engine/hdlr_svc-router>
     }
     return false;
 }
 
-#include <us/api/generated/c++/gov/engine/hdlr_svc_handler-impl>
+#include <us/api/generated/gov/c++/engine/hdlr_svc_handler-impl>
 
-//------------------apitool - API Spec defined @ us/api/generated/c++/gov/engine/hdlr_local-impl
+//------------------apitool - API Spec defined @ us/api/generated/gov/c++/engine/hdlr_local-impl
 
 ko c::handle_local_deltas(datagram* dgram, local_deltas_t* local_deltas) {
     log("local_deltas", "svc", dgram->service, "sz", dgram->size());
@@ -295,6 +295,6 @@ ko c::handle_harvest_rollback(seq_t seq, string&& response) {
 
 //-/----------------apitool - End of API implementation.
 
-//------------------apitool - API Spec defined @ us/api/generated/c++/gov/engine/hdlr_local-impl
+//------------------apitool - API Spec defined @ us/api/generated/gov/c++/engine/hdlr_local-impl
 
 

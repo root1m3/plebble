@@ -138,5 +138,12 @@ public class types {
 
     }
 
+    public static class api_v_t extends uint8_t {
+
+        public api_v_t() { super(); }
+        public api_v_t(int v) { super((short)v); }
+
+    }
+
 }
 

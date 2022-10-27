@@ -34,19 +34,19 @@
 using namespace us::wallet::engine;
 using c = us::wallet::engine::peer_t;
 
-#include <us/api/generated/c++/wallet/pairing/cllr_rpc-impl>
+#include <us/api/generated/wallet/c++/pairing/cllr_rpc-impl>
 
 bool c::process_work__pairing(datagram* d) {
     using namespace protocol;
     switch(d->service) {
-        #include <us/api/generated/c++/wallet/pairing/hdlr_svc-router>
+        #include <us/api/generated/wallet/c++/pairing/hdlr_svc-router>
     }
     return false;
 }
 
-#include <us/api/generated/c++/wallet/pairing/hdlr_svc_handler-impl>
+#include <us/api/generated/wallet/c++/pairing/hdlr_svc_handler-impl>
 
-//------------------apitool - API Spec defined @ us/api/generated/c++/wallet/pairing/hdlr_local-impl
+//------------------apitool - API Spec defined @ us/api/generated/wallet/c++/pairing/hdlr_local-impl
 
 ko c::handle_pair_device(pair_device_in_dst_t&& o_in, string& ans) {
     log("pair_device");

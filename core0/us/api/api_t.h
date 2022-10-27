@@ -29,6 +29,9 @@ namespace us::apitool {
     struct model;
 
     struct api_t: vector<apifun> {
+        using netsvc_t = apifun::netsvc_t;
+        using svcfish_entry_t = apifun::svcfish_entry_t;
+        using svcfish_db_t = apifun::svcfish_db_t;
 
         void collect_in_specs(map<string, vector<pair<string, string>>>&) const;
         void collect_out_specs(map<string, vector<pair<string, string>>>&) const;
@@ -40,10 +43,15 @@ namespace us::apitool {
         static void templ_f(const string& line_comment_pfx, ostream&);
         static api_t* from_stream(istream&);
         static void feedback_load(const string& file);
-        static api_t* load(const string& process, string file);
-        vector<pair<string, bool>> compute_get_protocol_vector();
-        int svc_end(int svc_begin) const;
-        void gen_svc_lock(ostream&) const;
+        static pair<api_t*, int> load(const string& process, string file, int svc_begin);
+
+        //vector<pair<string, bool>> compute_get_protocol_vector();
+        //vector<pair<string, bool>> compute_get_protocol_vector();
+        int compute_get_protocol_vector(int svc_begin);
+        void compute_netsvc(netsvc_t& netsvc, bool& ch, svcfish_db_t& db, svcfish_db_t& dbinv);
+
+//        int svc_end(int svc_begin) const;
+//        void gen_svc_lock(ostream&) const;
         void dump_v() const;
 
     public:

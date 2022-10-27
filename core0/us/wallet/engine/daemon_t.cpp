@@ -27,6 +27,7 @@
 #include <string_view>
 #include <array>
 
+#include <us/gov/config.h>
 #include <us/gov/crypto/ec.h>
 #include <us/gov/io/cfg0.h>
 #include <us/gov/socket/client.h>
@@ -50,6 +51,8 @@ using c = us::wallet::engine::daemon_t;
 constexpr auto RC_InProgress = "Announced";
 const char* c::KO_20193 = "KO 20193 Wallet not available.";
 const char* c::KO_20197 = "KO 20197 Invalid datagram.";
+
+svcfish_t c::svcfish;
 
 us::wallet::engine::mezzanine::mezzanine(daemon_t* d): d(d), b(bind(&c::run, d), bind(&c::onwakeup, d)) {
 }
@@ -101,6 +104,9 @@ c::daemon_t(channel_t channel, const keys_t& k, port_t port, pport_t pport, cons
     assert(!home.empty());
     log("downloads directory:", downloads_dir);
     io::cfg0::ensure_dir(downloads_dir);
+
+    api_v = CFG_API_V__WALLET;
+    log("set api_v", +api_v);
 }
 
 c::~daemon_t() {

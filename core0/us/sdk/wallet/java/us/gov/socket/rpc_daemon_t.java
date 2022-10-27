@@ -66,7 +66,10 @@ public abstract class rpc_daemon_t extends daemon0_t {
     }
 
     public client create_client() {
-        return new peer_t(this);
+        log("KO 68598 Specialize peer."); //--strip
+//        return new peer_t(this);
+        assert false;
+        return null;
     }
 
     @Override public final boolean process_unhandled(client peer, datagram d) {

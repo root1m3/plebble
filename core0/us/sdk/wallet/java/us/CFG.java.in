@@ -68,6 +68,9 @@ public class CFG {
     public static final int DGRAM_ROUNDTRIP_TIMEOUT_SECS = ##str54##;
     public static final blob_t.version_t BLOB_VERSION = new blob_t.version_t((short)##str60##);
     public static final String ANDROID_BLOB_ID = "##str56##";
+    public static final api_v_t API_V__GOV = new api_v_t(##str97##);
+    public static final api_v_t API_V__WALLET = new api_v_t(##str98##);
+    public static final version_fingerprint_t MONOTONIC_VERSION_FINGERPRINT = new version_fingerprint_t(##str99##);
 
     public static class network_topology_t {
         public String TYPE;

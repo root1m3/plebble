@@ -57,8 +57,6 @@ string c::get_type(const string& mne) const {
     return mne;
 }
 
-string c::protocol_prefix{""};
-
 void c::gen_impl(const apifun& f, bool side_caller, function<void(const apifun& f, const string& pfx, bool side_caller, ostream&)> implementation, ostream& os) const {
     auto n_in = names_in(f, side_caller);
     auto n_out = names_out(f, side_caller);
@@ -619,27 +617,30 @@ void c::gen_dto_out_hdr(const apifun& f, bool side_caller, ostream& os) const {
     }
 }
 
-void c::gen_protocol(const api_t& a, int nbase, ostream& os) const {
+void c::gen_protocol(const api_t& a, ostream& os) const {
     a.warn_h(line_comment(), os);
     a.info(line_comment(), os);
     assert(!a.v.empty());
     int n = 0;
     const string& base = a.v[0].first;
-    os << "    public static final int " << protocol_prefix << base << " = " << nbase << ";\n";
+    int nbase = a.begin()->svc;
+    os << "    public static final int " << base << " = " << nbase << ";\n";
     ++n;
     auto f = a.begin();
     int s = 0;
     for (; f != a.end(); ++n, ++f) {
-        os << "    public static final int " << protocol_prefix << a.v[n].first << " = " << protocol_prefix << base << " + " << s << ";  /" << "/ svc " << (nbase + s) << '\n';
+        os << "    public static final int " << a.v[n].first << " = " << base << " + " << s << ";  /" << "/ svc " << (nbase + s) << '\n';
+        assert(f->svc == (nbase + s));
         ++s;
         if (a.v[n].second) {
-            os << "    public static final int " << protocol_prefix << a.v[n].first << "_response = " << protocol_prefix << base << " + " << s << ";  /" << "/ svc " << (nbase + s) << '\n';
+            os << "    public static final int " << a.v[n].first << "_response = " << base << " + " << s << ";  /" << "/ svc " << (nbase + s) << '\n';
+            assert(f->svc_ret == (nbase + s));
             ++s;
         }
         os << '\n';
     }
     os << '\n';
-    os << "    public static final int " << protocol_prefix << a.v[n].first << " = " << (nbase + s) << "; /" << "/ svc " << (nbase + s) << '\n';
+    os << "    public static final int " << a.v[n].first << " = " << (nbase + s) << "; /" << "/ svc " << (nbase + s) << '\n';
     a.warn_f(line_comment(), os);
 }
 
@@ -790,5 +791,17 @@ bool c::gen_service_handlers_response(const apifun& f, const string& scope, bool
     os << pfx << "return true; //processed\n";
     os << "}\n";
     return true;
+}
+
+void c::write_svcfish_entry(const svcfish_entry_t& x, ostream& os) const {
+    if (x.op == '/') {
+        os << line_comment() << ' ';
+        write_svcfish_entry_comment(x, os);
+        return;
+    }
+    os << "db.put(Integer.valueOf(" << x.from_svc << "), Integer.valueOf(" << x.to_svc << ")); ";
+    os << line_comment() << ' ';
+    write_svcfish_entry_comment(x, os);
+    return;
 }
 

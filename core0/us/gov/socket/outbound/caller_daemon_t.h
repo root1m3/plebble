@@ -42,6 +42,8 @@ namespace us::gov::socket {
     public:
         rendezvous_t rendezvous;
         bool encrypt_traffic{true};
+        api_v_t api_v{0};
+
     };
 
 }

@@ -21,8 +21,12 @@
 //===----------------------------------------------------------------------------
 //===-
 #include "rpc_peer_t.h"
+
 #include <us/gov/relay/protocol.h>
 #include <us/gov/socket/daemon0_t.h>
+
+#include "svcfish_t.h"
+#include "daemon_t.h"
 
 #define loglevel "wallet/engine"
 #define logclass "rpc_peer_t"
@@ -48,8 +52,21 @@ bool c::process_work(datagram* d) {
     return false;
 }
 
-#include <us/api/generated/c++/wallet/engine/cllr_rpc-impl>
-#include <us/api/generated/c++/wallet/pairing/cllr_rpc-impl>
-#include <us/api/generated/c++/wallet/wallet/cllr_rpc-impl>
-#include <us/api/generated/c++/wallet/r2r/cllr_rpc-impl>
+#include <us/api/generated/wallet/c++/engine/cllr_rpc-impl>
+#include <us/api/generated/wallet/c++/pairing/cllr_rpc-impl>
+#include <us/api/generated/wallet/c++/wallet/cllr_rpc-impl>
+#include <us/api/generated/wallet/c++/r2r/cllr_rpc-impl>
+
+svc_t c::translate_svc(svc_t svc0, bool inbound) const {
+    svc_t svc;
+    if (inbound) {
+        svc = daemon_t::svcfish.from_prev(svc);
+        log("Using API versioning translator. oldsvc ", svc0, "-> newsvc", svc);
+    }
+    else {
+        svc = daemon_t::svcfish.to_prev(svc);
+        log("Using API versioning translator. newsvc ", svc0, "-> oldsvc", svc);
+    }
+    return svc;
+}
 

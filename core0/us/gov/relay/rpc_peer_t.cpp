@@ -51,6 +51,6 @@ bool c::process_work(datagram* d) {
 }
 
 #ifdef has_us_gov_relay_api
-#include <us/api/generated/c++/gov/relay/cllr_rpc-impl>
+#include <us/api/generated/gov/c++/relay/cllr_rpc-impl>
 #endif
 

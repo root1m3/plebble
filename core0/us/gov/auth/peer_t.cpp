@@ -86,7 +86,7 @@ bool c::process_work(datagram* d) {
     #ifdef has_us_gov_auth_api
     using namespace us::gov::protocol;
     switch (d->service) {
-        #include <us/api/generated/c++/gov/auth/hdlr_svc-router>
+        #include <us/api/generated/gov/c++/auth/hdlr_svc-router>
     }
     #endif
     return b::process_work(d);
@@ -94,9 +94,9 @@ bool c::process_work(datagram* d) {
 
 #ifdef has_us_gov_auth_api
 
-    #include <us/api/generated/c++/gov/auth/hdlr_svc_handler-impl>
+    #include <us/api/generated/gov/c++/auth/hdlr_svc_handler-impl>
 
-//------------------apitool - API Spec defined @ us/api/generated/c++/gov/auth/hdlr_local-impl
+//------------------apitool - API Spec defined @ us/api/generated/gov/c++/auth/hdlr_local-impl
 
 ko c::handle_f1() {
     log("f1");
@@ -108,7 +108,7 @@ ko c::handle_f1() {
 //-/----------------apitool - End of API implementation.
 
 
-    #include <us/api/generated/c++/gov/auth/cllr_rpc-impl>
+    #include <us/api/generated/gov/c++/auth/cllr_rpc-impl>
 
 #endif
 

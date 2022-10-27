@@ -54,9 +54,11 @@
 #include "neuralyzer_t.h"
 #include "votes_t.h"
 #include "pools_t.h"
+#include "svcfish_t.h"
 #include "types.h"
 #include "track_status_t.h"
 #include "auth/app.h"
+#include "svcfish_t.h"
 
 namespace us::gov::io {
     struct cfg;
@@ -257,6 +259,8 @@ namespace us::gov::engine {
         string status_file;
         ev_track_t evt;
         mutable mutex mx_dashboard;
+
+        static svcfish_t svcfish;
 
         #if CFG_LOGS == 1
             string logdir;

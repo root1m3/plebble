@@ -25,10 +25,10 @@
 #include <chrono>
 #include <thread>
 
-#include <us/gov/socket/datagram.h>
-#include <us/gov/crypto/base58.h>
-#include <us/gov/id/peer_t.h>
 #include <us/gov/config.h>
+#include <us/gov/crypto/base58.h>
+#include <us/gov/socket/datagram.h>
+#include <us/gov/id/peer_t.h>
 
 #include "rpc_peer_t.h"
 
@@ -42,6 +42,9 @@ using c = us::wallet::engine::rpc_daemon_t;
 c::rpc_daemon_t(channel_t channel, dispatcher_t* dispatcher): b(channel, dispatcher) {
     stop_on_disconnection = false;
     connect_for_recv = false;
+
+    api_v = CFG_API_V__WALLET;
+    log("set api_v", +api_v);
 }
 
 c::~rpc_daemon_t() {

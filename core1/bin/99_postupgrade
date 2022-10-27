@@ -140,11 +140,23 @@ function post_upgrade0 {
     . ${bdir}/strset0
 
     if [[ ${upload_googleplay} -eq 1 ]]; then
-        android_playstore $brand
+        echo "Build $brand app for Google PlayStore? y/n"
+        read a
+        if [[ "_$a" == "_y" ]]; then
+            android_playstore $brand
+        else
+            echo "skipping $brand app for Google PlayStore"
+        fi
     fi
 
     if [[ "_${devjob_id}" != "_" ]]; then
-        update_devjobs $brand
+        echo "Sync devjobs for brand $brand? y/n"
+        read a
+        if [[ "_$a" == "_y" ]]; then
+            update_devjobs $brand
+        else
+            echo "skipping syncing ng devjobs for brand $brand"
+        fi
     fi
 }
 
@@ -189,6 +201,14 @@ function save_release_history {
     echo -n "${core0_branch}_${core0_hashname} ${core0_build_date} "
     cat release_history/$branch/distr/build_hashes | grep vhash | sort | uniq
     echo "======================================="
+
+    echo "Updating mainnet API service numbers:"
+    pushd ../core0/us/api > /dev/null
+        cp generated/svc_gov_v`cat generated/svc_gov_cur_v` netsvc/gov
+        cp generated/svc_wallet_v`cat generated/svc_wallet_cur_v` netsvc/wallet
+    popd  > /dev/null
+    echo "netsvc/* files have been updates. Please commit&poush the new branch with these changes (netsvc. release notes)"
+
 }
 
 post_upgrade

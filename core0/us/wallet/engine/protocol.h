@@ -25,10 +25,10 @@
 
 namespace us::wallet::protocol {
 
-    #include <us/api/generated/c++/wallet/engine/svc>
-    #include <us/api/generated/c++/wallet/pairing/svc>
-    #include <us/api/generated/c++/wallet/r2r/svc>
-    #include <us/api/generated/c++/wallet/wallet/svc>
+    #include <us/api/generated/wallet/c++/engine/svc>
+    #include <us/api/generated/wallet/c++/pairing/svc>
+    #include <us/api/generated/wallet/c++/r2r/svc>
+    #include <us/api/generated/wallet/c++/wallet/svc>
 
 }
 

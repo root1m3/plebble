@@ -25,7 +25,7 @@
 
 namespace us::gov::protocol {
 
-    #include <us/api/generated/c++/gov/relay/svc>
+    #include <us/api/generated/gov/c++/relay/svc>
 
 }
 

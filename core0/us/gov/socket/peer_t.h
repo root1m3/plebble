@@ -40,12 +40,14 @@ namespace us::gov::socket {
 
         static const char* finished_reason_1;
         static const char* finished_reason_2;
-        constexpr static chrono::seconds stall{5s};
+        static constexpr chrono::seconds stall{5s};
 
+    public:
         peer_t(rpc_daemon_t&);
         peer_t(daemon_t&, sock_t sock);
         ~peer_t() override;
 
+    public:
         void ping();
         pair<ko, datagram*> sendrecv(datagram*, string& remote_error);
         virtual bool process_work(datagram*);
@@ -71,9 +73,9 @@ namespace us::gov::socket {
     public: //API
         thread_local static string lasterror;
         #ifdef has_us_gov_socket_api
-            #include <us/api/generated/c++/gov/socket/hdlr_svc_handler-hdr>
-            #include <us/api/generated/c++/gov/socket/cllr_override>
-            #include <us/api/generated/c++/gov/socket/hdlr_override>
+            #include <us/api/generated/gov/c++/socket/hdlr_svc_handler-hdr>
+            #include <us/api/generated/gov/c++/socket/cllr_override>
+            #include <us/api/generated/gov/c++/socket/hdlr_override>
         #endif
     };
 

@@ -44,14 +44,14 @@ namespace us::wallet::engine {
         using endpoint_t = us::wallet::trader::endpoint_t;
         using track_status_t = us::gov::engine::track_status_t;
 
-        #include <us/api/generated/c++/wallet/engine/cllr_dto-hdr>
-        #include <us/api/generated/c++/wallet/engine/hdlr_dto-hdr>
-        #include <us/api/generated/c++/wallet/pairing/cllr_dto-hdr>
-        #include <us/api/generated/c++/wallet/pairing/hdlr_dto-hdr>
-        #include <us/api/generated/c++/wallet/r2r/cllr_dto-hdr>
-        #include <us/api/generated/c++/wallet/r2r/hdlr_dto-hdr>
-        #include <us/api/generated/c++/wallet/wallet/cllr_dto-hdr>
-        #include <us/api/generated/c++/wallet/wallet/hdlr_dto-hdr>
+        #include <us/api/generated/wallet/c++/engine/cllr_dto-hdr>
+        #include <us/api/generated/wallet/c++/engine/hdlr_dto-hdr>
+        #include <us/api/generated/wallet/c++/pairing/cllr_dto-hdr>
+        #include <us/api/generated/wallet/c++/pairing/hdlr_dto-hdr>
+        #include <us/api/generated/wallet/c++/r2r/cllr_dto-hdr>
+        #include <us/api/generated/wallet/c++/r2r/hdlr_dto-hdr>
+        #include <us/api/generated/wallet/c++/wallet/cllr_dto-hdr>
+        #include <us/api/generated/wallet/c++/wallet/hdlr_dto-hdr>
 
     };
 

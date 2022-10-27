@@ -78,7 +78,7 @@ for branddir in `find distr -maxdepth 1 -mindepth 1 -type d`; do
             rm -rf $blobdir
             mkdir -p $blobdir
             cp $brand/* $blobdir/ -R
-            if [[ ! -f $blobdir/release_notes ]]; then
+            if [[ ! -f $blobdir/doc/release_notes ]]; then
                 echo "KO 87945 missing release_notes."
                 exit 1
             fi

@@ -124,34 +124,35 @@ bool c::process_work(datagram* d) {
 
 ko c::authorize(const pub_t& p, pin_t pin) {
     log("authorize", p, pin);
+    auto& demon = static_cast<daemon_t&>(daemon);
     if (is_role_peer() || is_role_sysop()) {
         log("role peer or sysop", "authorized", is_role_peer(), is_role_sysop());
+        wallet_local_api = demon.users.get_wallet("");
         return ok;
     }
-    if (is_role_device()) {
-        log("role device");
-        auto& demon = static_cast<daemon_t&>(daemon);
-        auto r = demon.authorize_device(p, pin);
-        if (is_ko(r.first)) {
-            return r.first;
-        }
-        if (!r.second.empty() && demon.devices.is_enabled__authorize_and_create_guest_wallet()) {
-            //revocation is writen in peer_t::handle_unpair_device (peer_t__pairing.cpp)
-            ostringstream file;
-            file << demon.wallet_home(r.second) << "/revoked";
-            if (us::gov::io::cfg0::file_exists(file.str())) {
-                auto r = "KO 55710 This device has its access revoked to its automatic guest wallet.";
-                log(r);
-                return r;
-            }
-        }
-        wallet_local_api = demon.users.get_wallet(r.second);
-        log("device authorized. subhome", r.second, "wallet local_api", wallet_local_api);
-        return ok;
+    if (!is_role_device()) {
+        auto r = "KO 40938 Unknown role";
+        log(r, "not authorized");
+        return r;
     }
-    auto r = "KO 40938 Unknown role";
-    log(r, "not authorized");
-    return r;
+    log("role device");
+    auto r = demon.authorize_device(p, pin);
+    if (is_ko(r.first)) {
+        return r.first;
+    }
+    if (!r.second.empty() && demon.devices.is_enabled__authorize_and_create_guest_wallet()) {
+        //revocation is writen in peer_t::handle_unpair_device (peer_t__pairing.cpp)
+        ostringstream file;
+        file << demon.wallet_home(r.second) << "/revoked";
+        if (us::gov::io::cfg0::file_exists(file.str())) {
+            auto r = "KO 55710 This device has its access revoked to its automatic guest wallet.";
+            log(r);
+            return r;
+        }
+    }
+    wallet_local_api = demon.users.get_wallet(r.second);
+    log("device authorized. subhome", r.second, "wallet local_api", wallet_local_api);
+    return ok;
 }
 
 void c::announce(pport_t rpport) const {
@@ -226,5 +227,18 @@ ko c::push_OK(const string& msg) {
 
 ko c::push_OK(const hash_t& tid, const string& msg) {
     return static_cast<daemon_t&>(daemon).pm.push_OK(tid, msg, wallet_local_api->device_filter);
+}
+
+svc_t c::translate_svc(svc_t svc0, bool inbound) const {
+    svc_t svc;
+    if (inbound) {
+        svc = daemon_t::svcfish.from_prev(svc);
+        log("Using API versioning translator. oldsvc ", svc0, "-> newsvc", svc);
+    }
+    else {
+        svc = daemon_t::svcfish.to_prev(svc);
+        log("Using API versioning translator. newsvc ", svc0, "-> oldsvc", svc);
+    }
+    return svc;
 }
 

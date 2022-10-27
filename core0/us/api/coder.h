@@ -28,6 +28,7 @@
 #include <unordered_map>
 
 #include "model.h"
+#include "apifun.h"
 
 namespace us::apitool {
 
@@ -48,14 +49,19 @@ f(in_t&& o_in, out_dst_t& o_out)                                       function(
         using mne_t = string;
         using targ = pair<string, string>;
         using targs = vector<targ>;
+        using svcfish_entry_t = apifun::svcfish_entry_t;
+
 
         coder(model& m): m(m) {}
         virtual ~coder() {}
         static void feedback();
         void write_file_prefix(const api_t&, ostream&) const;
+        void write_file_prefix_all_langs(ostream&) const;
         void write_file_prefix(ostream&) const;
         virtual string lang() const = 0;
         virtual string line_comment() const = 0;
+
+        string line_comment__bash() const { return "# "; }
 
         pair<string, string> names_in(const apifun&, bool side_caller) const;
         pair<string, string> names_out(const apifun&, bool side_caller) const;
@@ -65,15 +71,15 @@ f(in_t&& o_in, out_dst_t& o_out)                                       function(
 
         void generate() const;
         void gen_gov_daemon_api() const;
-        void do_gov_daemon_api(const api_t&, int base, ostream& counters_include) const;
+        void do_gov_daemon_api(const api_t&, ostream& counters_include) const;
         virtual void gen_service_handler_headers(const api_t&, const string& scope) const {}
         void gen_service_handlers(const api_t&, const string& scope) const;
         void gen_service_handlers(const api_t&, const string& scope, bool side_caller, ostream&) const;
         virtual bool gen_service_handlers(const apifun&, const string& scope, bool side_caller, ostream&) const = 0;
         virtual bool gen_service_handlers_response(const apifun&, const string& scope, bool side_caller, ostream&) const = 0;
-        virtual void gen_gov_protocol_counters_init(const api_t&, int base, ostream& include) const {}
-        void gen_protocol(const api_t&, int base) const;
-        virtual void gen_protocol(const api_t&, int nbase, ostream&) const = 0;
+        virtual void gen_gov_protocol_counters_init(const api_t&, ostream& include) const {}
+        void gen_protocol(const api_t&) const;
+        virtual void gen_protocol(const api_t&, ostream&) const = 0;
         void do_common_api(const api_t&) const;
         void gen_purevir(const api_t&) const;
         void gen_purevir(const api_t&, bool side_caller) const;
@@ -103,6 +109,16 @@ f(in_t&& o_in, out_dst_t& o_out)                                       function(
 
         virtual void gen_dto_out_hdr(const apifun&, bool side_caller, ostream&) const = 0;
         virtual void gen_dto_in_hdr(const apifun&, bool side_caller, ostream&) const = 0;
+
+        void gen_svc_v() const;
+        void gen_svc_v0() const;
+        void gen_svc_list() const;
+        void gen_svcfish() const;
+        void gen_svcfish_inv() const;
+        void gen_svcfish(ostream&) const;
+        void gen_svcfish_inv(ostream&) const;
+        virtual void write_svcfish_entry(const svcfish_entry_t&, ostream&) const = 0;
+        void write_svcfish_entry_comment(const svcfish_entry_t&, ostream&) const;
 
     public:
         static bool feedback_enabled;

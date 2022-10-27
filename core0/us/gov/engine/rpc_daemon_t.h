@@ -21,9 +21,12 @@
 //===----------------------------------------------------------------------------
 //===-
 #pragma once
+
+#include <us/gov/socket/client.h>
+
 #include "net.h"
 #include "rpc_peer_t.h"
-#include <us/gov/socket/client.h>
+#include "svcfish_t.h"
 
 namespace us::gov::engine {
 
@@ -41,6 +44,7 @@ namespace us::gov::engine {
     public:
         void dump(const string& prefix, ostream&) const;
         void dump_all(const string& prefix, ostream&) const override;
+
     };
 
 }

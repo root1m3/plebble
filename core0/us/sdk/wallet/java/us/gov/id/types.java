@@ -41,12 +41,13 @@ public class types {
 
     }
 
-    public static class version_fingerprint_t extends uint16_t {
+    public static class version_fingerprint_t extends uint8_t {
 
         public version_fingerprint_t() { super(); }
-        public version_fingerprint_t(int v) { super(v); }
+        public version_fingerprint_t(int v) { super((short)v); }
 
     }
+
 
 }
 

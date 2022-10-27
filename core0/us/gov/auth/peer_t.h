@@ -58,9 +58,9 @@ namespace us::gov::auth {
 
     public:
     #ifdef has_us_gov_auth_api
-        #include <us/api/generated/c++/gov/auth/hdlr_override>
-        #include <us/api/generated/c++/gov/auth/hdlr_svc_handler-hdr>
-        #include <us/api/generated/c++/gov/auth/cllr_override>
+        #include <us/api/generated/gov/c++/auth/hdlr_override>
+        #include <us/api/generated/gov/c++/auth/hdlr_svc_handler-hdr>
+        #include <us/api/generated/gov/c++/auth/cllr_override>
     #endif
 
     public:

@@ -24,7 +24,7 @@
 #include <us/gov/io/seriable.h>
 #include "protocol.h"
 
-#if __has_include(<us/api/generated/c++/gov/dfs/svc>)
+#if __has_include(<us/api/generated/gov/c++/dfs/svc>)
     #define has_us_gov_dfs_api
 #endif
 
@@ -35,16 +35,16 @@ namespace us::gov::dfs {
     #ifdef has_us_gov_dfs_api
 
         struct dto {
-            #include <us/api/generated/c++/gov/dfs/hdlr_dto-hdr>
-            #include <us/api/generated/c++/gov/dfs/cllr_dto-hdr>
+            #include <us/api/generated/gov/c++/dfs/hdlr_dto-hdr>
+            #include <us/api/generated/gov/c++/dfs/cllr_dto-hdr>
         };
 
         struct caller_api: dto {
-            #include <us/api/generated/c++/gov/dfs/cllr_purevir>
+            #include <us/api/generated/gov/c++/dfs/cllr_purevir>
         };
 
         struct api: caller_api {
-            #include <us/api/generated/c++/gov/dfs/hdlr_purevir>
+            #include <us/api/generated/gov/c++/dfs/hdlr_purevir>
         };
 
     #else

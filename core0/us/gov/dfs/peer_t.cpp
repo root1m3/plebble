@@ -61,7 +61,7 @@ bool c::process_work(datagram* d) {
     switch(d->service) {
         #ifdef has_us_gov_dfs_api
             using namespace us::gov::protocol;
-            #include <us/api/generated/c++/gov/dfs/hdlr_svc-router>
+            #include <us/api/generated/gov/c++/dfs/hdlr_svc-router>
         #endif
         break;
     }
@@ -69,9 +69,9 @@ bool c::process_work(datagram* d) {
 }
 
 #ifdef has_us_gov_dfs_api
-#include <us/api/generated/c++/gov/dfs/hdlr_svc_handler-impl>
+#include <us/api/generated/gov/c++/dfs/hdlr_svc_handler-impl>
 
-//------------------apitool - API Spec defined @ us/api/generated/c++/gov/dfs/hdlr_local-impl
+//------------------apitool - API Spec defined @ us/api/generated/gov/c++/dfs/hdlr_local-impl
 
 ko c::handle_file_request(hash_t&& content_digest, vector<uint8_t>& content) {
     log("file_request");
@@ -116,7 +116,7 @@ ko c::handle_file_request_response(vector<uint8_t>&& content) {
 
 //-/----------------apitool - End of API implementation.
 
-#include <us/api/generated/c++/gov/dfs/cllr_rpc-impl>
+#include <us/api/generated/gov/c++/dfs/cllr_rpc-impl>
 
 #endif
 

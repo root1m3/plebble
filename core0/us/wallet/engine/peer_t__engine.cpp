@@ -40,19 +40,19 @@
 using namespace us::wallet::engine;
 using c = us::wallet::engine::peer_t;
 
-#include <us/api/generated/c++/wallet/engine/cllr_rpc-impl>
+#include <us/api/generated/wallet/c++/engine/cllr_rpc-impl>
 
 bool c::process_work__engine(datagram* d) {
     using namespace protocol;
     switch (d->service) {
-        #include <us/api/generated/c++/wallet/engine/hdlr_svc-router>
+        #include <us/api/generated/wallet/c++/engine/hdlr_svc-router>
     }
     return false;
 }
 
-#include <us/api/generated/c++/wallet/engine/hdlr_svc_handler-impl>
+#include <us/api/generated/wallet/c++/engine/hdlr_svc_handler-impl>
 
-//------------------apitool - API Spec defined @ us/api/generated/c++/wallet/engine/hdlr_local-impl
+//------------------apitool - API Spec defined @ us/api/generated/wallet/c++/engine/hdlr_local-impl
 
 ko c::handle_print_grid(string& data) {
     log("print_grid");

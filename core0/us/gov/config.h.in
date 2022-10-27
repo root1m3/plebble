@@ -94,6 +94,9 @@
 #define CFG_FCGI ##str45##
 #define CFG_BLOB_VERSION ##str60##
 #define CFG_ANDROID_BLOB_ID "##str56##"
+#define CFG_API_V__GOV ##str97##
+#define CFG_API_V__WALLET ##str98##
+#define CFG_MONOTONIC_VERSION_FINGERPRINT ##str99##
 
 #ifdef PUBLIC_PERMISSIONLESS_MESH
     #define CFG_PUBLIC_NETWORK

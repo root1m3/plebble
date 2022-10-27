@@ -217,11 +217,139 @@ void c::collect_out_specs(map<string, vector<pair<string, string>>>& s) const {
     }
 }
 
-void c::compute_get_protocol_vector(const string& prefix, vector<pair<string, bool>>& r) {
+void c::compute_get_protocol_vector(const string& prefix, vector<pair<string, bool>>& r, int& nextsvc) {
     ostringstream os;
     os << prefix << '_' << name;
     r.emplace_back(make_pair(os.str(), is_sync()));
     service = os.str();
+    svc = nextsvc;
+    ++nextsvc;
+    if (is_sync()) {
+        svc_ret = nextsvc;
+        ++nextsvc;
+    }
 }
 
+void c::hitfn(netsvc_t& netsvc, const string& serv) const {
+    auto x = netsvc.netsvc_hit.find(serv);
+    if (x != netsvc.netsvc_hit.end()) {
+        netsvc.netsvc_hit.erase(x);
+    }
+    if (svc_ret != -1) {
+        auto x = netsvc.netsvc_hit.find(serv + "_response");
+        if (x != netsvc.netsvc_hit.end()) {
+            netsvc.netsvc_hit.erase(x);
+        }
+    }
+} 
+
+void c::compute_netsvc(netsvc_t& netsvc, bool& ch, svcfish_db_t& db, svcfish_db_t& dbinv) {
+    ch = false;
+    netsvc.netsvc.emplace(svc, service);
+    string service_ret;
+    if (svc_ret != -1) {
+        service_ret = service + "_response";
+        netsvc.netsvc.emplace(svc_ret, service_ret);
+    }
+    auto i = netsvc.netsvc_net2.find(service);
+    if (i == netsvc.netsvc_net2.end()) { //new function
+        db.emplace_back(svcfish_entry_t{'/', "", -1, service, svc, "New function"});
+        dbinv.emplace_back(svcfish_entry_t{'-', service, svc, "", -1, "Removed function"});
+//        os << " // + {" << svc << ' ' << service << "}\n";
+//        osinv << " { " << svc << ", -1}, " << " // - {" << svc << " " << service << "}\n";
+        if (svc_ret != -1) {
+            db.emplace_back(svcfish_entry_t{'/', "", -1, service_ret, svc_ret, "New function"});
+            dbinv.emplace_back(svcfish_entry_t{'-', service_ret, svc_ret, "", -1, "Removed function"});
+
+//            os << " // + {" << svc_ret << ' ' << service << "_response}\n";
+//            osinv << " { " << svc_ret << ", -1}, " << " // - {" << svc_ret << " " << service << "_response}\n";
+        }
+        ch = true;
+        return;
+    }
+    if (i->second == svc) {
+        db.emplace_back(svcfish_entry_t{'/', service, svc, service, svc, "Same function"});
+        dbinv.emplace_back(svcfish_entry_t{'/', service, svc, service, svc, "Same function"});
+
+//        os << " // = {" << i->first << ' ' << i->second << "}\n";
+//        osinv << " // = {" << i->first << ' ' << i->second << "}\n";
+        if (svc_ret != -1) {
+            db.emplace_back(svcfish_entry_t{'/', service_ret, svc_ret, service_ret, svc_ret, "Same function"});
+            dbinv.emplace_back(svcfish_entry_t{'/', service_ret, svc_ret, service_ret, svc_ret, "Same function"});
+//            os << " // = {" << i->first << "_response " << (i->second + 1) << "}\n";
+//            osinv << " // = {" << i->first << "_response " << (i->second + 1) << "}\n";
+        }
+        hitfn(netsvc, service);
+        return;
+    }
+    //same service distinct svc
+    int oldsvc = i->second;
+    string oldservice = i->first;
+    db.emplace_back(svcfish_entry_t{'!', oldservice, oldsvc, service, svc, "svc changed"});
+    dbinv.emplace_back(svcfish_entry_t{'!', service, svc, oldservice, oldsvc, "svc changed"});
+//    os << "{ " << oldsvc << ", " << svc << "}, " << "    // ! {" << oldservice << '(' << oldsvc << ") -> " << service << '(' << svc << ")}\n";
+//    osinv << "{ " << svc << ", " << oldsvc << "}, " << " // ! {" << service << '(' << svc << ") -> " << oldservice << '(' << oldsvc << ")}\n";
+    if (svc_ret != -1) {
+
+        db.emplace_back(svcfish_entry_t{'!', oldservice + "_ret", oldsvc + 1, service + "_ret", svc + 1, "svc changed"});
+        dbinv.emplace_back(svcfish_entry_t{'!', service + "_ret", svc + 1, oldservice + "_ret", oldsvc + 1, "svc changed"});
+//        os << "{ " << (oldsvc + 1) << ", " << (svc + 1) << "}, " << "    // ! {" << oldservice << "_response(" << (oldsvc + 1) << ") -> " << service << "_response(" << (svc + 1) << ")}\n";
+//        osinv << "{ " << (svc + 1) << ", " << (oldsvc + 1) << "}, " << " // ! {" << service << "_response(" << (svc +1) << ") -> " << oldservice << "_response(" << (oldsvc + 1) << ")}\n";
+    }
+    ch = true;
+    hitfn(netsvc, oldservice);
+}
+
+/*    
+
+
+    auto i = netsvc.netsvc_net.find(svc);
+    if (i == netsvc.netsvc_net.end()) { //new function
+        auto j = netsvc.netsvc_net2.find(service);
+        int oldsvc = -1;
+        string oldservice = "didn't exist";
+        if (j != netsvc.netsvc_net2.end()) {
+            oldsvc = j->second;
+            oldservice = j->first;
+            os << "{ " << oldsvc << ", " << svc << "}, " << "    // ! {" << oldservice << '(' << oldsvc << ") -> " << service << '(' << svc << ")}\n";
+            osinv << "{ " << svc << ", " << oldsvc << "}, " << " // ! {" << i->second << '(' << i->first << ") <- " << service << '(' << svc << ")}\n";
+            auto x = netsvc.netsvc_hit.find(oldsvc);
+            if (x != netsvc.netsvc_hit.end()) {
+                netsvc.netsvc_hit.erase(x);
+            }
+        }
+        else {
+            os << " // + {" << svc << ' ' << service << "}\n";
+            osinv << " { " << svc << ", -1}, " << " // - {" << svc << " " << service << "}\n";
+        }
+        ch = true;
+    }
+    else {
+        if (i->second == service) {
+            //cout << "= {" << i->first << ' ' << i->second << "}\n";
+            os << " // = {" << i->first << ' ' << i->second << "}\n";
+            osinv << " // = {" << i->first << ' ' << i->second << "}\n";
+        }
+        else {
+            auto j = netsvc.netsvc_net2.find(service);
+            int oldsvc = -1;
+            string oldservice = "didn't_exist";
+            if (j != netsvc.netsvc_net2.end()) {
+                oldsvc = j->second;
+                oldservice = j->first;
+                os << "{ " << oldsvc << ", " << svc << "}, " << "    // ! {" << oldservice << '(' << oldsvc << ") -> " << service << '(' << svc << ")}\n";
+                osinv << "{ " << svc << ", " << oldsvc << "}, " << " // ! {" << oldservice << '(' << oldsvc << ") <- " << service << '(' << svc << ")}\n";
+                ch = true;
+            }
+//            cout << "! {" << svc << ' ' << i->second << " -> " << service << "}\n";
+        }
+        auto x = netsvc.netsvc_hit.find(svc);
+        if (x != netsvc.netsvc_hit.end()) {
+            netsvc.netsvc_hit.erase(x);
+        }
+    }
+    netsvc.netsvc.emplace(svc, service);
+    //netsvc.netsvc2.emplace(service, svc);
+*/
+//}
 

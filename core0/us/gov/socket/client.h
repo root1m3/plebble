@@ -132,6 +132,11 @@ namespace us::gov::socket {
         atomic<int> busyrecv{0};
 
     public:
+        api_v_t peer_api_v{0};
+
+        virtual svc_t translate_svc(svc_t svc, bool inbound) const = 0;
+
+    public:
         time_point activity_recv;
         datagram* curd{nullptr};
         mutable mutex mx_curd;

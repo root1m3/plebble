@@ -55,7 +55,7 @@ namespace us::test {
             bool process_work(datagram* d) override;
             void verification_completed(pport_t rpport, pin_t pin) override;
             ko authorize(const pub_t&, pin_t) override;
-
+            svc_t translate_svc(svc_t svc0, bool inbound) const override { return svc0; }
         };
 
         static constexpr uint8_t edges{5};

@@ -79,8 +79,31 @@ void c::disconnectx(channel_t channel, seq_t seq, const reason_t& reason) {
     cv_auth.notify_all();
 }
 
+void c::upgrade_software() {
+    log("triggered upgrade_software signal!");
+}
+
+void c::verification_completed(pport_t, pin_t) {
+    if (unlikely(!verification_is_fine())) return;
+    version_fingerprint_t pv = handshakes->peer->parse_version_fingerprint();
+    if (unlikely(CFG_MONOTONIC_VERSION_FINGERPRINT) == 0) {
+        if (pv > 10) {
+            return; // peer is older
+        }
+       //I'm older
+    }
+    else {
+        if (pv <= CFG_MONOTONIC_VERSION_FINGERPRINT) {
+            // peer is older or same
+            return;
+        }
+       //I'm older
+    }
+    upgrade_software();
+}
+
 void c::dump(const string& prefix, ostream& os) const {
-    os << prefix << "    id: stage " << stagestr[stage_peer] << " pubk " << pubkey << " pubkh " << pubkey.hash() << " role " << rolestr[role] << " swver " << short_version() << '\n';
+    os << prefix << "    id: stage " << stagestr[stage_peer] << " pubk " << pubkey << " pubkh " << pubkey.hash() << " role " << rolestr[role] << " swver " << +version_fingerprint << '\n';
 }
 
 void c::dump_all(const string& prefix, ostream& os) const {
@@ -88,8 +111,8 @@ void c::dump_all(const string& prefix, ostream& os) const {
     b::dump_all(prefix, os);
 }
 
-c::handshakes_t::handshakes_t(role_t role, pport_t pport, pin_t pin) {
-    me = new handshake_t(role, pport, pin);
+c::handshakes_t::handshakes_t(api_v_t api_v, role_t role, pport_t pport, pin_t pin) {
+    me = new handshake_t(api_v, role, pport, pin);
 }
 
 c::handshakes_t::handshakes_t() {
@@ -101,30 +124,35 @@ c::handshakes_t::~handshakes_t() {
     delete peer;
 }
 
-c::handshake_t::handshake_t(role_t role, pport_t pport, pin_t pin) {
+c::handshake_t::handshake_t(api_v_t api_v, role_t role, pport_t pport, pin_t pin) {
     log("handshake_t constructor", role, pport, pin);
-    *reinterpret_cast<uint16_t*>(&msg[0]) = *reinterpret_cast<uint16_t*>(&us::vcs::codehash[0]); //LE
+    *reinterpret_cast<uint8_t*>(&msg[0]) = CFG_MONOTONIC_VERSION_FINGERPRINT; //*reinterpret_cast<uint8_t*>(&us::vcs::codehash[0]); //LE
+    *reinterpret_cast<uint8_t*>(&msg[1]) = api_v;
     *reinterpret_cast<uint16_t*>(&msg[2]) = pport; //LE
     *reinterpret_cast<uint16_t*>(&msg[4]) = pin; //LE
     msg[6] = role;
     ifstream f("/dev/urandom");
     f.read(reinterpret_cast<char*>(&msg[7]), sigmsg_hasher_t::output_size - 7);
-    log("msg", msg, "version_fingerprint", parse_version_fingerprint(), "pport", parse_pport(), "pin", parse_pin(), "role", parse_role());
+    log("msg", msg, "version_fingerprint", +parse_version_fingerprint(), "api_v", +parse_api_v(), "pport", parse_pport(), "pin", parse_pin(), "role", parse_role());
 }
 
 c::handshake_t::handshake_t() {
     log("handshake_t default constructor");
 }
 
-uint16_t c::handshake_t::parse_version_fingerprint() const {
-    return *reinterpret_cast<const uint16_t*>(&msg[0]);
+version_fingerprint_t c::handshake_t::parse_version_fingerprint() const {
+    return *reinterpret_cast<const version_fingerprint_t*>(&msg[0]);
 }
 
-uint16_t c::handshake_t::parse_pport() const {
+api_v_t c::handshake_t::parse_api_v() const {
+    return *reinterpret_cast<const api_v_t*>(&msg[1]);
+}
+
+pport_t c::handshake_t::parse_pport() const {
     return *reinterpret_cast<const uint16_t*>(&msg[2]);
 }
 
-uint16_t c::handshake_t::parse_pin() const {
+pin_t c::handshake_t::parse_pin() const {
     return *reinterpret_cast<const uint16_t*>(&msg[4]);
 }
 
@@ -138,9 +166,11 @@ void c::handshake_t::dump(const string& pfx, ostream& os) const {
     os << pfx << "role " << rolestr[r] << '\n';
     os << pfx << "pport " << parse_pport() << '\n';
     os << pfx << "pin " << parse_pin() << '\n';
-    os << pfx << "version fingerprint " << parse_version_fingerprint() << '\n';
+    os << pfx << "version fingerprint " << +parse_version_fingerprint() << '\n';
+    os << pfx << "api_v " << +parse_api_v() << '\n';
 }
 
+/*
 string c::short_version() const {
     vector<unsigned char> v;
     const char* p = reinterpret_cast<const char*>(&version_fingerprint);
@@ -148,6 +178,7 @@ string c::short_version() const {
     v.push_back(*p);
     return us::gov::crypto::b58::encode(v);
 }
+*/
 
 const keys_t& c::get_keys() const {
     log("get_keys");
@@ -231,7 +262,7 @@ pair<ko, datagram*> c::decrypt0(datagram* e) const {
     log("decrypt datagram");
     assert(e != nullptr);
     if (e->service != 0) {
-        log ("dgram arrived without encryption. svc", e->service);
+        log("dgram arrived without encryption. svc", e->service);
         inbound_traffic__was_encrypted = false;
         return make_pair(ok, e);
     }
@@ -298,7 +329,7 @@ bool c::process_work(datagram* d) {
     using namespace us::gov::protocol;
     #ifdef has_us_gov_id_api
         switch(d->service) {
-            #include <us/api/generated/c++/gov/id/hdlr_svc-router>
+            #include <us/api/generated/gov/c++/id/hdlr_svc-router>
         }
     #endif
     auto r = "KO 30298 service handled here in id::peer";
@@ -311,7 +342,7 @@ bool c::process_work(datagram* d) {
 
 #ifdef has_us_gov_id_api
 
-#include <us/api/generated/c++/gov/id/hdlr_svc_handler-impl>
+#include <us/api/generated/gov/c++/id/hdlr_svc_handler-impl>
 
 
 /*
@@ -358,14 +389,14 @@ ko c::initiate_dialogue(role_t role, pport_t pport, pin_t pin) { //role '0'peer;
     log("reseting state.");
     set_stage_peer(anonymous);
     pubkey.zero();
-    handshakes = new handshakes_t(role, pport, pin);
+    handshakes = new handshakes_t(daemon.api_v, role, pport, pin);
     logdump("  initiate_dialogue: my handshake: ", *handshakes->me);
     log("sending id_request", protocol::id_request, handshakes->me->msg, "role", rolestr[handshakes->me->parse_role()]);
     assert(role == handshakes->me->parse_role());
     return call_request(handshakes->me->msg);
 }
 
-//------------------apitool - API Spec defined @ us/api/generated/c++/gov/id/hdlr_local-impl
+//------------------apitool - API Spec defined @ us/api/generated/gov/c++/id/hdlr_local-impl
 
 ko c::handle_request(seq_t seq, sigmsg_hash_t&& msg) {
     log("request", seq);
@@ -409,7 +440,9 @@ ko c::handle_request(seq_t seq, sigmsg_hash_t&& msg) {
         disconnect(seq, r);
         return r;
     }
-    handshakes->me = new handshake_t(role, static_cast<daemon_t&>(daemon).pport, 0);
+    peer_api_v = handshakes->peer->parse_api_v();
+    log("peer api_v", +peer_api_v);
+    handshakes->me = new handshake_t(daemon.api_v, role, static_cast<daemon_t&>(daemon).pport, 0);
     logdump("  process_request: my handshake: ", *handshakes->me);
     assert(mykeys.pub.valid);
     assert(mykeys.pub == keys::get_pubkey(mykeys.priv));
@@ -476,6 +509,10 @@ ko c::handle_peer_challenge(seq_t seq, peer_challenge_in_dst_t&& o_in) {
     }
     role = peer_role;
     log("role", rolestr[role]);
+
+    peer_api_v = handshakes->peer->parse_api_v();
+    log("peer api_v", +peer_api_v);
+
     log("msgh", handshakes->me->msg, "pubk", pubkey, "sig", o_in.sig.to_b58(), "sig_der", us::gov::crypto::b58::encode(o_in.sig_der));
     if (o_in.sig.is_zero()) {
         log("using sig_der");
@@ -591,7 +628,7 @@ ko c::handle_challenge_response(seq_t seq, challenge_response_in_dst_t&& o_in) {
 
 //-/----------------apitool - End of API implementation.
 
-#include <us/api/generated/c++/gov/id/cllr_rpc-impl>
+#include <us/api/generated/gov/c++/id/cllr_rpc-impl>
 
 #endif
 

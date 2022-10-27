@@ -331,6 +331,8 @@ struct tqsend: us::test::test_platform {
 
     struct cli: client {
         using client::client;
+        svc_t translate_svc(svc_t svc, bool inbound) const override { return svc; }
+
     };
 
     void test2() {

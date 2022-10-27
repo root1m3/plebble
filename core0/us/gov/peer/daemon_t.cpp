@@ -41,20 +41,13 @@ c::daemon_t(channel_t channel): b(channel, 0, 0, 0), myself(0), t(this) {
 }
 
 c::daemon_t(channel_t channel, port_t port, pport_t pport, uint8_t dimensions, uint8_t edges, uint8_t devices, uint8_t workers): b(channel, port, pport, workers), myself(0), t(this) {
-//    {
-//        lock_guard<mutex> lock(grid.mx_);
-//        assert(grid.empty());
-//        grid.resize(edges, 0);
     assert(dimensions > 0);
     clique.resize(dimensions, edges);
-        //grid.bi = grid.begin();
-//    }
     log("grid-peer clique size. dimensions", dimensions, "edges", (*clique.begin())->size());
     {
         lock_guard<mutex> lock(grid_dev.mx_);
         assert(grid_dev.empty());
         grid_dev.resize(devices, nullptr);
-        //grid_dev.bi = grid_dev.begin();
     }
     log("grid-devices size", grid_dev.size());
 }

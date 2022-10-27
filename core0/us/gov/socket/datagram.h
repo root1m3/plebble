@@ -40,9 +40,7 @@
 #endif
 
 namespace us::gov::crypto {
-
     struct symmetric_encryption;
-
 }
 
 namespace us::gov::socket {

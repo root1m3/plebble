@@ -24,7 +24,7 @@
 #include <us/gov/io/seriable.h>
 #include "protocol.h"
 
-#if __has_include(<us/api/generated/c++/gov/peer/svc>)
+#if __has_include(<us/api/generated/gov/c++/peer/svc>)
     #define has_us_gov_peer_api
 #endif
 
@@ -34,16 +34,16 @@ namespace us::gov::peer {
 
     #ifdef has_us_gov_peer_api
         struct dto {
-            #include <us/api/generated/c++/gov/peer/cllr_dto-hdr>
-            #include <us/api/generated/c++/gov/peer/hdlr_dto-hdr>
+            #include <us/api/generated/gov/c++/peer/cllr_dto-hdr>
+            #include <us/api/generated/gov/c++/peer/hdlr_dto-hdr>
         };
 
         struct caller_api: dto {
-            #include <us/api/generated/c++/gov/peer/cllr_purevir>
+            #include <us/api/generated/gov/c++/peer/cllr_purevir>
         };
 
         struct api: caller_api {
-            #include <us/api/generated/c++/gov/peer/hdlr_purevir>
+            #include <us/api/generated/gov/c++/peer/hdlr_purevir>
         };
 
     #else

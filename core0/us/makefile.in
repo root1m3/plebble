@@ -171,8 +171,9 @@ distr-common: | targets
 	find wallet -type f -name "*.h" -exec install -D {} ${DISTRDIR}/include/us/{} \;
 	find gov -type f -name "*.inc" -exec install -D {} ${DISTRDIR}/include/us/{} \;
 	find wallet -type f -name "*.inc" -exec install -D {} ${DISTRDIR}/include/us/{} \;
-	for f in `ack -h -o --no-group "api/generated/c\+\+/gov[/a-z0-9_-]*" ${DISTRDIR}/include/us/gov`; do install -D $$f ${DISTRDIR}/include/us/$$f ; done
-	for f in `ack -h -o --no-group "api/generated/c\+\+/wallet[/a-z0-9_-]*" ${DISTRDIR}/include/us/wallet`; do install -D $$f ${DISTRDIR}/include/us/$$f ; done
+	for f in `ack -h -o --no-group "api/generated/gov/c\+\+[/a-z0-9_-]*" ${DISTRDIR}/include/us/gov`; do install -D $$f ${DISTRDIR}/include/us/$$f ; done
+	for f in `ack -h -o --no-group "api/generated/wallet/c\+\+[/a-z0-9_-]*" ${DISTRDIR}/include/us/wallet`; do install -D $$f ${DISTRDIR}/include/us/$$f ; done
+	find api/generated/ -maxdepth 3 -mindepth 1 -type f -name "svc_*" -exec install -D {} ${DISTRDIR}/include/us/{} \;
 	install vcs_git_cpp ${DISTRDIR}/include/us/
 	mkdir -p ${DISTRDIR}/wallet/trader/w2w
 	install wallet/trader/r2r/w2w/home/* ${DISTRDIR}/wallet/trader/w2w/
@@ -217,7 +218,7 @@ api/apitool:
 	$(MAKE) CXXFLAGS="${CXXFLAGS}" -C api
 
 logtool/logtool: logtool/main.cpp
-	$(MAKE) -C logtool ;
+	$(MAKE) -C logtool
 
 sdk-spongy:
 	$(MAKE) spongy -C sdk/wallet/java

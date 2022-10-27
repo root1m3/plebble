@@ -25,6 +25,7 @@
 #include <us/gov/socket/client.h>
 #include <us/gov/dfs/protocol.h>
 #include <us/gov/engine/protocol.h>
+#include <us/gov/config.h>
 
 #include "daemon_t.h"
 #include "peer_t.h"
@@ -40,12 +41,20 @@ using namespace us::gov::engine;
 using c = us::gov::engine::net_daemon_t;
 
 c::net_daemon_t(engine::daemon_t& daemon, channel_t channel): b(channel), engine_daemon(daemon) {
+    constructor();
 }
 
 c::net_daemon_t(engine::daemon_t& daemon, channel_t channel, port_t port, pport_t pport, uint8_t edges, uint8_t devices, int workers, const vector<hostport_t>& sn): b(channel, port, pport, edges, devices, workers, sn), engine_daemon(daemon) {
+    constructor();
 }
 
 c::~net_daemon_t() {
+}
+
+void c::constructor() {
+    log("constructor");
+    api_v = CFG_API_V__GOV;
+    log("set api_v", +api_v);
 }
 
 const keys_t& c::get_keys() const {

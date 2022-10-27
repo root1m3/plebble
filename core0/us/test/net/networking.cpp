@@ -57,7 +57,8 @@ namespace {
     struct rpc_cli: us::gov::socket::rpc_daemon_t {
         using b = us::gov::socket::rpc_daemon_t;
 
-        struct peer_t: us::gov::socket::peer_t {
+        //----------------------------------------------------------------------
+        struct peerx_t: us::gov::socket::peer_t {
             using b = us::gov::socket::peer_t;
             using b::peer_t;
 
@@ -95,7 +96,6 @@ namespace {
                 }
             }
 
-
             bool process_work(datagram* d) override {
                 tee("recv DGRAM channel", d->decode_channel(), "svc", d->service);
                 if (d->service < us::gov::protocol::socket_end) {
@@ -107,11 +107,16 @@ namespace {
                 return true;
             }
 
+            svc_t translate_svc(svc_t svc0, bool inbound) const override {
+                return svc0;
+            }
+
             mutex mx;
             condition_variable cv;
 
             string disconnect_reason;
         };
+        //------------------------------------------------------------------------
 
         rpc_cli(channel_t channel, shost_t shost, port_t port): b(channel, nullptr), shost(shost), port(port) {
             channel = datagram::all_channels;
@@ -124,14 +129,14 @@ namespace {
         }
 
         us::gov::socket::client* create_client() override {
-            return new peer_t(*this);
+            return new peerx_t(*this);
         }
 
         shost_t shost;
         port_t port;
     };
 
-    void check_disconnect_report(networking* n, rpc_cli::peer_t* p, int secs, const char* expected_report) {
+    void check_disconnect_report(networking* n, rpc_cli::peerx_t* p, int secs, const char* expected_report) {
         p->wait_4_disconnect_report(n, secs);
         if (!p->disconnect_reason.empty()) {
             cout << "arrived disconnection report: " << p->disconnect_reason << endl;
@@ -343,7 +348,7 @@ void c::send_bytes(size_t howmany, uint32_t decl_sz, uint16_t channel, uint16_t 
     auto sz = clients_size();
     auto bc = ban_counter();
     auto pd = connect2backend();
-    auto p = static_cast<rpc_cli::peer_t*>(pd->peer);
+    auto p = static_cast<rpc_cli::peerx_t*>(pd->peer);
     check_clients_size(sz + 1);
     check(us::gov::socket::datagram::counters.infraheader_datagram, (uint32_t)0);
     assert(datagram::size_channel == 2);

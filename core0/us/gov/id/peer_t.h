@@ -58,20 +58,23 @@ namespace us::gov::id {
         };
         constexpr static array<const char*, num_roles> rolestr = {"peer", "sysop", "device"};
 
+    public:
         peer_t(daemon_t&, sock_t sock);
         using b::peer_t;
         virtual ~peer_t();
 
+    public:
         virtual ko connect(const hostport_t&, pport_t, pin_t, role_t, bool block);
         ko connect(const shostport_t&, pport_t, pin_t, role_t, bool block);
-        virtual void verification_completed(pport_t, pin_t) {}
+        virtual void verification_completed(pport_t, pin_t);
+        virtual void upgrade_software();
         const keys_t& get_keys() const;
         virtual void dump_all(const string& prefix, ostream&) const override;
         void dump(const string& prefix, ostream&) const;
         bool process_work(datagram*) override;
         static string to_string(const vector<unsigned char>& data);
         bool verification_is_fine() const { return get_stage_peer() == verified; }
-        string short_version() const;
+        //string short_version() const;
         ko turn_on_encryption();
         ko wait_auth() const;
         pair<ko, datagram*> encrypt0(datagram*) const override;
@@ -85,15 +88,16 @@ namespace us::gov::id {
         inline bool is_role_sysop() const { return role == role_sysop; }
         inline bool is_role_device() const { return role == role_device; }
 
-        struct handshake_t {
+        struct handshake_t final {
             using sigmsg_hasher_t = crypto::ec::sigmsg_hasher_t;
             using sigmsg_hash_t = sigmsg_hasher_t::value_type;
 
-            handshake_t(role_t role, pport_t pport, pin_t pin);
+            handshake_t(api_v_t, role_t, pport_t, pin_t);
             handshake_t();
 
             role_t parse_role() const;
             version_fingerprint_t parse_version_fingerprint() const;
+            api_v_t parse_api_v() const;
             pport_t parse_pport() const;
             pin_t parse_pin() const;
             void dump(const string& pfx, ostream&) const;
@@ -101,9 +105,9 @@ namespace us::gov::id {
             sigmsg_hash_t msg;
         };
 
-        struct handshakes_t {
+        struct handshakes_t final {
 
-            handshakes_t(role_t, pport_t, pin_t);
+            handshakes_t(api_v_t, role_t, pport_t, pin_t);
             handshakes_t();
             ~handshakes_t();
 
@@ -115,9 +119,9 @@ namespace us::gov::id {
 
             virtual ko initiate_dialogue(role_t, pport_t, pin_t);
 
-            #include <us/api/generated/c++/gov/id/hdlr_override>
-            #include <us/api/generated/c++/gov/id/hdlr_svc_handler-hdr>
-            #include <us/api/generated/c++/gov/id/cllr_override>
+            #include <us/api/generated/gov/c++/id/hdlr_override>
+            #include <us/api/generated/gov/c++/id/hdlr_svc_handler-hdr>
+            #include <us/api/generated/gov/c++/id/cllr_override>
 
         #endif
 

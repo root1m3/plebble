@@ -29,7 +29,6 @@
 #define logclass "peer_t"
 #include "logs.inc"
 
-
 using namespace us::gov::socket;
 using c = us::gov::socket::peer_t;
 
@@ -258,7 +257,7 @@ bool c::process_work(datagram* d) {
     assert(d->service < protocol::socket_end);
     #ifdef has_us_gov_socket_api
         switch(d->service) {
-            #include <us/api/generated/c++/gov/socket/hdlr_svc-router>
+            #include <us/api/generated/gov/c++/socket/hdlr_svc-router>
         }
     #endif
     return false;
@@ -266,9 +265,9 @@ bool c::process_work(datagram* d) {
 
 #ifdef has_us_gov_socket_api
 
-#include <us/api/generated/c++/gov/socket/hdlr_svc_handler-impl>
+#include <us/api/generated/gov/c++/socket/hdlr_svc_handler-impl>
 
-//------------------apitool - API Spec defined @ us/api/generated/c++/gov/socket/hdlr_local-impl
+//------------------apitool - API Spec defined @ us/api/generated/gov/c++/socket/hdlr_local-impl
 
 ko c::handle_error(datagram* dgram, string&& msg) {
     log("error", "svc", dgram->service, "sz", dgram->size(), msg);
@@ -291,7 +290,7 @@ ko c::handle_finished(string&& reason) {
 //-/----------------apitool - End of API implementation.
 
 
-#include <us/api/generated/c++/gov/socket/cllr_rpc-impl>
+#include <us/api/generated/gov/c++/socket/cllr_rpc-impl>
 
 #endif
 
