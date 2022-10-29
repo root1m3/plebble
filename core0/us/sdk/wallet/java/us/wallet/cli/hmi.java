@@ -381,6 +381,10 @@ public class hmi {
         }
     }
 
+    public void upgrade_software() {
+        log("Peer is signaling the existence of a upgrade_software."); //--strip
+    }
+
     ko start_rpc_daemon(busyled_t.handler_t busyled_handler_send, busyled_t.handler_t busyled_handler_recv, datagram.dispatcher_t dis) {
         log("stating rpc_daemon"); //--strip
         if (rpc_daemon != null) {

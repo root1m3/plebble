@@ -302,6 +302,11 @@ EOF
             install wallet/trader/w2w/ico.png ${JAILDIR}${DATADIR}/wallet/trader/w2w/
         fi
 
+        # documentation
+        mkdir -p ${PREFIX}/share/doc/${US}
+        install doc/* ${PREFIX}/share/doc/${US}/
+        echo "installed documentation at ${PREFIX}/share/doc/${US}/"
+
         # post-install
         cat << EOF >> ${JAILDIR}/tmp/post-install
 chown ${GOVUSER}:${GOVUSER} /var/log/${US} -R

@@ -36,6 +36,7 @@ using c = us::gov::engine::rpc_daemon_t;
 
 c::rpc_daemon_t(channel_t channel, dispatcher_t* dispatcher): b(channel, dispatcher) {
     api_v = CFG_API_V__GOV;
+    assert(api_v != 0);
     log("set api_v", +api_v);
 }
 

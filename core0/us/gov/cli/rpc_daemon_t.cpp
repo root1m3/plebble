@@ -100,3 +100,8 @@ void c::on_stop() {
     if (parent) parent->on_stop();
 }
 
+void c::upgrade_software() {
+    log("Peer is signaling the existence of a upgrade_software.");
+    if (parent) parent->upgrade_software();
+}
+

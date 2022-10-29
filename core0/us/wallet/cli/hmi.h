@@ -128,6 +128,8 @@ namespace us::wallet::cli {
         virtual void on_connect(ko error);
         virtual string rewrite(ko r) const;
 
+        virtual void upgrade_software();
+
     public:
         ko mine_public_key(const string& pattern, ostream&); //vanity addresses
         ko digest_file(const string& file, ostream&);

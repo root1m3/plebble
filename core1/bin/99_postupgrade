@@ -172,10 +172,15 @@ function post_upgrade {
 }
 
 function save_release_history {
-    echo -n "enter new branch: "
+    let bn=`echo $branch | sed "s~alpha-\([0-9]*\)~\1~"`
+    let bn=$bn+1
+    proposed="alpha-$bn"
+    echo -n "enter new branch (or y for $proposed): "
     newb=""
     read newb
-
+    if [[ "_$nrwb == "_y" ]]; then
+        newb=$proposed
+    fi
     echo "New branch: $newb"
 
     echo "archiving distr files"
@@ -204,11 +209,20 @@ function save_release_history {
 
     echo "Updating mainnet API service numbers:"
     pushd ../core0/us/api > /dev/null
-        cp generated/svc_gov_v`cat generated/svc_gov_cur_v` netsvc/gov
-        cp generated/svc_wallet_v`cat generated/svc_wallet_cur_v` netsvc/wallet
+        cp generated/gov/svc_v`cat generated/gov/svc_cur_v` netsvc/gov
+        cp generated/wallet/svc_v`cat generated/wallet/svc_cur_v` netsvc/wallet
     popd  > /dev/null
-    echo "netsvc/* files have been updates. Please commit&poush the new branch with these changes (netsvc. release notes)"
+    echo " * netsvc/{gov,wallet} files have been updated."
 
+    let moco=`cat ../core0/us/res/strings/en-uk | grep "^str99=" | sed "s~^str99=\([0-9]*\).*~\1~"`
+    let moco=$moco+1
+    if [[ $moco -eq 256 ]]; then
+        let moco=0
+    fi
+    sed -i "s~^str99=\([0-9]*\)\(.*\)~str99=${moco}\2~" ../core0/us/res/strings/en-uk
+
+    echo " * Increased the monolitic deployments counter str99 in core0/us/res/strings/en-uk."
+    echo "Please commit the newly created branch $nreb with these changes (netsvc. release notes)"
 }
 
 post_upgrade

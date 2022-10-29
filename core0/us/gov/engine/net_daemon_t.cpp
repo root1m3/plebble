@@ -54,6 +54,7 @@ c::~net_daemon_t() {
 void c::constructor() {
     log("constructor");
     api_v = CFG_API_V__GOV;
+    assert(api_v != 0);
     log("set api_v", +api_v);
 }
 

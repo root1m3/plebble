@@ -32,6 +32,7 @@ namespace us::wallet::cli {
 
         void dump(const string& prefix, ostream&) const;
         void dump_all(const string& prefix, ostream&) const override;
+
         inline ko authorize(const pub_t&, pin_t) override { return ok; }
         void on_peer_disconnected(const reason_t&) override;
         void on_I_disconnected(const reason_t&) override;

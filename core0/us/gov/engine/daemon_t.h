@@ -219,6 +219,9 @@ namespace us::gov::engine {
         void save_evidence(const evidence&, ko calendar_result);
 
     public:
+        virtual void upgrade_software();
+
+    public:
         hash_t last_vote{0};
         hash_t last_consensus{0};
         condition_variable cv_cyc;

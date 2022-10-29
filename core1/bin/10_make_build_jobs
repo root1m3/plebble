@@ -496,9 +496,11 @@ function make_build_jobs {
                 mv ../sha256sum .
             popd > /dev/null
             echo "secp256k1 $secp256k1_hash" >> ${hash}/sha256sum
-            newhash=`cat ${hash}/sha256sum | sha256sum | awk '{ print $1 }' | cut -c1-8`
+            newhash=`cat ${hash}/sha256sum | sha256sum | awk '{ print $1 }' | cut -c1-6`
+            moco=`cat ${hash}/${brand}/core0/us/res/strings/en-uk | grep "^str99=" | sed "s~^str99=\([0-9]*\).*~\1~"` 
+            newhash="${moco}-${newhash}" # add the monotonic counter of deployments
             echo "packaging_hash=${newhash}"
-            mv ${hash} ${newhash}
+            mv ${hash} ${newhash} #directory name is the hash
             hash=${newhash}
             pushd "${hash}" > /dev/null
                 for b in `find . -maxdepth 1 -mindepth 1 -type d`; do

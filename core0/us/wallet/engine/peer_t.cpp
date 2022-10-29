@@ -93,24 +93,10 @@ bool c::process_work(datagram* d) {
         }
         //SECURITY: 'malicious' intentions can still reach this point, but only to fuck with a trader via trading_msgs.
     }
-    assert(wallet_local_api != nullptr);
-    bool root_wallet = wallet_local_api->subhome.empty();
     if (d->service < engine_end) {
-        if (!root_wallet) {
-            auto r = "KO 51151 Custodial wallet. Ignoring svc.";
-            log(r);
-            delete d;
-            return true;
-        }
         return process_work__engine(d);
     }
     if (d->service < pairing_end) {
-        if (!root_wallet) {
-            auto r = "KO 51152 Custodial wallet. Ignoring svc.";
-            log(r);
-            delete d;
-            return true;
-        }
         return process_work__pairing(d);
     }
     if (d->service < r2r_end) {
@@ -240,5 +226,10 @@ svc_t c::translate_svc(svc_t svc0, bool inbound) const {
         log("Using API versioning translator. newsvc ", svc0, "-> oldsvc", svc);
     }
     return svc;
+}
+
+void c::upgrade_software() {
+    log("Peer is signaling the existence of a software upgrade.");
+    return static_cast<daemon_t&>(daemon).upgrade_software();
 }
 

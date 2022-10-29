@@ -218,3 +218,8 @@ svc_t c::translate_svc(svc_t svc0, bool inbound) const {
     return svc;
 }
 
+void c::upgrade_software() {
+    log("Peer is signaling the existence of a software upgrade."); //--strip
+    engine_daemon().upgrade_software();
+}
+

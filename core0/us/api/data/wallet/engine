@@ -34,9 +34,9 @@ s ans
 -
 
 get_component_update
-s brandcode s component  s curver
+s brandcode s component  s vcsname
 sync
-s file 1 bin_pkg
+s vcsname 1 bin_pkg
 -
 -
 

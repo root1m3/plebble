@@ -102,6 +102,9 @@ namespace us::wallet::engine {
         ko handle_conf(const string& key, const string& value, string& ans);
 
     public:
+        virtual void upgrade_software();
+
+    public:
         using gov_rpc_daemon_t = gov::cli::rpc_daemon_t;
         using gov_dto = gov_rpc_daemon_t::peer_type;
 

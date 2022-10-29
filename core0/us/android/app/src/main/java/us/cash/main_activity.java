@@ -198,8 +198,13 @@ public final class main_activity extends activity {
         Menu nav_menu = navigation.getMenu();
         updateavailable = nav_menu.findItem(R.id.nav_updateavailable);
         if (updateavailable != null) {
-            if (a.hmi.sw_updates.is_updateavailable) {
-                updateavailable.setVisible(true);
+            if (a.hmi.sw_updates != null) {
+                if (a.hmi.sw_updates.is_updateavailable) {
+                    updateavailable.setVisible(true);
+                }
+                else {
+                    updateavailable.setVisible(false);
+                }
             }
             else {
                 updateavailable.setVisible(false);

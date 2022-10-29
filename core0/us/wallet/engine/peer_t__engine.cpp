@@ -100,14 +100,14 @@ ko c::handle_reload_file(string&& filename, string& ans) {
 }
 
 ko c::handle_get_component_update(get_component_update_in_dst_t&& o_in, get_component_update_out_t& o_out) {
-    log("get_component_update. brand_code", o_in.brandcode, "component", o_in.component, "curver", o_in.curver);
+    log("get_component_update. brand_code", o_in.brandcode, "component", o_in.component, "vcsname", o_in.vcsname);
     /// in:
     ///     string brandcode;
     ///     string component;
-    ///     string curver;
+    ///     string vcsname;
 
     /// out:
-    ///    string file;
+    ///    string vcsname;
     ///    vector<uint8_t> bin_pkg;
 
 /*
@@ -126,8 +126,18 @@ Returns:
         log(r, o_in.component);
         return r;
     }
+    string apkfilename = us::vcs::apkfilename();
+    if (apkfilename == o_in.vcsname) {
+        log("apkfilename == o_in.vcsname", apkfilename);
+        o_out.vcsname = o_in.vcsname;
+        o_out.bin_pkg.clear();
+        return ok;
+    }
+    log("apkfilename != o_in.vcsname", apkfilename);
+
+
     string branddir;
-    string blobhashfile;
+//    string blobhashfile;
     string blobfile;
     auto brandcode = o_in.brandcode;
     if (brandcode == "XaOywxt") { //any
@@ -140,10 +150,11 @@ Returns:
         ostringstream os;
         os << demon.downloads_dir << '/' << o_in.component << '/' << brandcode;
         branddir = os.str();
-        os << "/blob_name";
-        blobhashfile = os.str();
+//        os << "/blob_name";
+//        blobhashfile = os.str();
         blobfile = branddir + "/blob.apk";
     }
+/*
     string sblobhash;
     {
         log("read_file", blobhashfile);
@@ -158,26 +169,21 @@ Returns:
     }
     us::gov::io::cfg0::trim(sblobhash);
     log("sblobhash, o_in.curver", sblobhash, o_in.curver);
-    if (sblobhash == o_in.curver) {
-        log("sblobhash == o_in.curver");
-        o_out.file = o_in.curver;
-        o_out.bin_pkg.clear();
-        return ok;
-    }
-    log("sblobhash != o_in.curver");
+*/
+//    if (sblobhash == o_in.curver) {
     {
         log("read_file_", blobfile);
         auto r = us::gov::io::read_file_(blobfile, o_out.bin_pkg);
         if (is_ko(r)) {
-            o_out.file = o_in.curver;
+            o_out.vcsname = o_in.vcsname;
             o_out.bin_pkg.clear();
             auto r = "KO 70974 blob file not found.";
             log(r);
             return r;
         }
     }
-    o_out.file = sblobhash;
-    log("ok blobhash=", o_out.file, "blob", o_out.bin_pkg.size(), "bytes");
+    o_out.vcsname = apkfilename;
+    log("ok vcsname=", o_out.vcsname, "blob", o_out.bin_pkg.size(), "bytes");
     return ok;
 }
 

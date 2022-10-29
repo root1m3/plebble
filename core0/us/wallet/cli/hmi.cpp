@@ -354,6 +354,22 @@ void c::on_connect(ko r) {
     }
 }
 
+void c::upgrade_software() {
+    log("triggered upgrade_software signal!");
+/*
+        sw_updates_t sw_updates = new sw_updates_t(a, this, get_cfg(), cfg_pub);
+        r = sw_updates.start();
+        if (is_ko(r)) {
+            set_status(leds_t.led_red, r.msg);
+            on_hmi__worker(r);
+            sw_updates = null;
+            super.stop();
+            super.join();
+            return r;
+        }
+*/
+}
+
 void c::on_stop() {
     log("on_stop");
 }

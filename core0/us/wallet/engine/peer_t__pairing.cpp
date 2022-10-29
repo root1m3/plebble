@@ -26,6 +26,7 @@
 
 #include <us/gov/socket/datagram.h>
 #include <us/wallet/engine/daemon_t.h>
+#include <us/wallet/wallet/local_api.h>
 
 #define loglevel "wallet/engine"
 #define logclass "peer_t__pairing"
@@ -38,6 +39,15 @@ using c = us::wallet::engine::peer_t;
 
 bool c::process_work__pairing(datagram* d) {
     using namespace protocol;
+    assert(wallet_local_api != nullptr);
+    bool root_wallet = wallet_local_api->subhome.empty();
+    if (!root_wallet) {
+        auto r = "KO 51152 Custodial wallet. Ignoring pairing svc.";
+        log(r, d->service);
+        delete d;
+        return true;
+    }
+
     switch(d->service) {
         #include <us/api/generated/wallet/c++/pairing/hdlr_svc-router>
     }

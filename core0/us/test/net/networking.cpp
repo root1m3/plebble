@@ -120,6 +120,9 @@ namespace {
 
         rpc_cli(channel_t channel, shost_t shost, port_t port): b(channel, nullptr), shost(shost), port(port) {
             channel = datagram::all_channels;
+            api_v = CFG_API_V__GOV;
+            assert(api_v != 0);
+            log("set api_v", +api_v);
         }
 
         ko connect() override {
@@ -146,15 +149,21 @@ namespace {
 }
 
 c::networking(us::gov::crypto::ec::keys& k, uint16_t port, ostream&os): id(k), b(123, port, port, edges, (uint8_t)1, 2, vector<pair<uint32_t, uint16_t>>()), t(os), myport(port), load(this) {
+    assert(api_v == 0);
     constructor();
 }
 
 c::networking(us::gov::crypto::ec::keys& k, uint16_t port, const vector<pair<uint32_t, uint16_t>>& sn, int workers, ostream&os): id(k), b(123, port, port, edges, (uint8_t)0, workers, sn), t(os), myport(port), load(this) {
+    assert(api_v == 0);
     constructor();
 }
 
 void c::constructor() {
     myaddress = addr_from_ndx(myport - govport);
+
+    api_v = CFG_API_V__GOV;
+    assert(api_v != 0);
+    log("set api_v", +api_v);
 }
 
 bool c::wait_rnd_before_start() const {

@@ -241,12 +241,15 @@ public final class node_pairing extends activity {
                 break;
 
             case R.id.nav_softwareupdates:
-                if (dep.hmi.sw_updates != null) {
-                    dep.hmi.sw_updates.show_ui(node_pairing.this);
+//                if (dep.hmi.sw_updates != null) {
+                if (dep.hmi != null) {
+                    if (dep.hmi.sw_updates != null) {
+                        dep.hmi.sw_updates.show_ui(node_pairing.this);
+                    }
                 }
-                else {
-                    toast("software updates not available here. Check Google's Play store.");
-                }
+                //else {
+                //    toast("software updates not available here. Check Google's Play store.");
+                //}
                 break;
 
             default:

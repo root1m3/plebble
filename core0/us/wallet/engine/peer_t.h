@@ -85,6 +85,10 @@ namespace us::wallet::engine {
         #include <us/api/generated/wallet/c++/r2r/hdlr_override>
         #include <us/api/generated/wallet/c++/r2r/hdlr_svc_handler-hdr>
 
+    public:
+        void upgrade_software() override;
+
+    public:
         static string lang_en;
         inline const string& get_lang() const { return lang_en; }
 

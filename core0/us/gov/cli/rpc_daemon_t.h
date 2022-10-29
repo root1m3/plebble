@@ -66,6 +66,9 @@ namespace us::gov::cli {
         inline const keys_t& get_keys() const override { return id; }
 
     public:
+        virtual void upgrade_software();
+
+    public:
         static void apihelp(const string& prefix, ostream&);
 
     public:

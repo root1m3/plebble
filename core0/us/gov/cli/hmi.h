@@ -110,6 +110,9 @@ namespace us::gov::cli {
         rpc_peer_t* rpc_peer{nullptr};
 
     public:
+        virtual void upgrade_software();
+
+    public:
         virtual void verification_completed(bool verif_ok);
         virtual void on_I_disconnected(const string& reason);
         virtual void on_peer_disconnected(const string& reason);

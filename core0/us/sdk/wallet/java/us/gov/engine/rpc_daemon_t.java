@@ -37,6 +37,7 @@ public abstract class rpc_daemon_t extends us.gov.dfs.rpc_daemon_t {
     public rpc_daemon_t(channel_t channel, dispatcher_t dispatcher) {
         super(channel, dispatcher);
         api_v.value = us.CFG.API_V__GOV.value;
+        assert api_v.value != 0;
         log("set api_v " + api_v.value); //--strip
     }
 

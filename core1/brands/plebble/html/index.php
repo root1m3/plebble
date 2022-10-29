@@ -144,14 +144,7 @@ software version: <b><?=$swver?></b> [<a class="hdl" href="pub/release_notes.txt
 
 
 <br/>
-<button type="button" class="collapsible">Inspirational books.</button>
-<div class="content">
-<ul>
-<li>Mastering Bitcoin</li>
-</ul>
-</div>
-
-<button type="button" class="collapsible">Introduction.</button>
+<button type="button" class="collapsible">+ Introduction.</button>
 <div class="content">
 <p>P2P Network of computers running the Plebble software (100% free/open source).
 </p>
@@ -176,7 +169,7 @@ software version: <b><?=$swver?></b> [<a class="hdl" href="pub/release_notes.txt
 
 
 <br/>
-<button type="button" class="collapsible">Hardware.</button>
+<button type="button" class="collapsible">+ Hardware.</button>
 <div class="content">
 
 <p>The aim of plebble is to achieve the lowest entry barrier for running a node, by means of algorithm design and efficient coding that run in low-cost hardware.</p>
@@ -208,7 +201,7 @@ However, people who trust 3rd parties can find it easier to run a plebble node i
 </div>
 
 <br/>
-<button type="button" class="collapsible">Run a node. Node setup.</button>
+<button type="button" class="collapsible">+ Run a node. Node setup.</button>
 <div class="content">
 <h3>Run a node</h3>
 <p>On a fresh Debian 11 operating system (or Ubuntu 21.10, or Raspberri PI OS) type:</p>
@@ -300,7 +293,7 @@ Once downloaded the blob it will install it performing the following actions in 
 </div>
 
 <br/>
-<button type="button" class="collapsible">Documentation.</button>
+<button type="button" class="collapsible">+ User documentation.</button>
 <div class="content">
 <h2>Governance process. Public system.</h2>
 <h3>Daemon</h3>
@@ -668,9 +661,144 @@ Commands:
 </ul>
 </div>
 
+<!-- ----------------------------------------- -->
+<br/>
+<button type="button" class="collapsible">+ Developer documentation.</button>
+<div class="content">
+<br/>
+<h2>API</h2>
+<table border="1" width="100%">
+<tr>
+<td valign="top">
+<h2 align="center">Governance process.</h2>
+<h3 align="center">(Public System)</h3>
+<pre>
+Interactions:
+gov daemon <--> gov daemon
+gov daemon <--> RPC client
+
+</pre>
+<p>API spec: <a href="https://github.com/root1m3/plebble/blob/main/core0/us/api/netsvc/gov" target="_blank">gov</a></p>
+
+<h3>API implementation</h3>
+<table border="1" width="100%">
+<tr>
+<td>C++</td><td>Java</td>
+</tr>
+<tr valign="top">
+<td>
+<p>service handlers - c++:</p>
+<ul>
+<li><a href="https://github.com/root1m3/plebble/blob/main/core0/us/gov/engine/peer_t.h" target="_blank">peer</a></li>
+<li><a href="https://github.com/root1m3/plebble/blob/main/core0/us/gov/engine/daemon_t.h" target="_blank">daemon</a></li>
+<li><a href="https://github.com/root1m3/plebble/blob/main/core0/us/gov/engine/rpc_peer_t.h" target="_blank">rpc_peer</a></li>
+<li><a href="https://github.com/root1m3/plebble/blob/main/core0/us/gov/engine/rpc_daemon_t.h" target="_blank">rpc_daemon</a></li>
+</ul>
+<p>Binaries - c++:</p>
+<ul>
+<li><a href="https://github.com/root1m3/plebble/tree/main/core0/us/govx" target="_blank">console</a></li>
+<li><a href="https://github.com/root1m3/plebble/tree/main/core0/us/gov" target="_blank">gov SDK</a></li>
+</ul>
+</td>
+
+<td>
+<p>service handlers - java:</p>
+<ul>
+<li><a href="https://github.com/root1m3/plebble/blob/main/core0/us/sdk/wallet/java/us/gov/engine/rpc_peer_t.java" target="_blank">rpc_peer</a></li>
+<li><a href="https://github.com/root1m3/plebble/blob/main/core0/us/sdk/wallet/java/us/gov/engine/rpc_daemon_t.java" target="_blank">rpc_daemon</a></li>
+</ul>
+
+<p>Binaries - java:</p>
+<ul>
+<li><a href="https://github.com/root1m3/plebble/tree/main/core0/us/govj" target="_blank">console</a></li>
+<li><a href="https://github.com/root1m3/plebble/tree/main/core0/us/sdk/gov/java" target="_blank">gov SDK</a></li>
+</ul>
+</td>
+</tr>
+</table>
+
+
+
+</td>
+<td>
+
+<h2 align="center">Wallet process.</h2>
+<h3 align="center">(Private System)</h3>
+<pre>
+Interactions:
+wallet daemon <--> wallet daemon
+wallet daemon <--> wallet RPC client
+wallet daemon <--> gov daemon
+</pre>
+<p>API spec: <a href="https://github.com/root1m3/plebble/blob/main/core0/us/api/netsvc/gov" target="_blank">gov</a> <a href="https://github.com/root1m3/plebble/blob/main/core0/us/api/netsvc/wallet" target="_blank">wallet</a></p>
+
+<h3>API implementation</h3>
+<table border="1" width="100%">
+<tr>
+<td>C++</td><td>Java</td>
+</tr>
+<tr valign="top">
+<td>
+<p>service handlers - c++:</p>
+<ul>
+<li><a href="https://github.com/root1m3/plebble/blob/main/core0/us/wallet/engine/peer_t.h" target="_blank">peer</a></li>
+<li><a href="https://github.com/root1m3/plebble/blob/main/core0/us/wallet/engine/daemon_t.h" target="_blank">daemon</a></li>
+<li><a href="https://github.com/root1m3/plebble/blob/main/core0/us/wallet/engine/rpc_peer_t.h" target="_blank">rpc_peer</a></li>
+<li><a href="https://github.com/root1m3/plebble/blob/main/core0/us/wallet/engine/rpc_daemon_t.h" target="_blank">rpc_daemon</a></li>
+</ul>
+<p>Binaries - c++:</p>
+<ul>
+<li><a href="https://github.com/root1m3/plebble/tree/main/core0/us/walletx" target="_blank">console</a></li>
+<li><a href="https://github.com/root1m3/plebble/tree/main/core0/us/wallet" target="_blank">wallet SDK</a></li>
+</ul>
+</td>
+<td>
+<p>service handlers - java:</p>
+<ul>
+<li><a href="https://github.com/root1m3/plebble/blob/main/core0/us/sdk/wallet/java/us/gov/engine/rpc_peer_t.java" target="_blank">rpc_peer</a></li>
+<li><a href="https://github.com/root1m3/plebble/blob/main/core0/us/sdk/wallet/java/us/gov/engine/rpc_daemon_t.java" target="_blank">rpc_daemon</a></li>
+</ul>
+
+<p>Binaries - java</p>
+<ul>
+<li><a href="https://github.com/root1m3/plebble/tree/main/core0/us/walletj" target="_blank">console</a></li>
+<li><a href="https://github.com/root1m3/plebble/tree/main/core0/us/sdk/wallet/java" target="_blank">wallet SDK</a></li>
+<li><a href="https://github.com/root1m3/plebble/tree/main/core0/us/android" target="_blank">android app</a></li>
+</ul>
+</td>
+</tr>
+</table>
+
+
+
+
+</td>
+</tr>
+</table>
+
+<h2>tests</h2>
+<ul>
+<li><a href="https://github.com/root1m3/plebble/tree/main/core0/us/test" target="_blank">core0 tests</a> Covering gov/+wallet(with bank protocol</li>
+<li><a href="https://github.com/root1m3/plebble/tree/main/core1/us/trader/test" target="_blank">core1 tests</a> Covering the rest of an extensible list of r2r protocols</li>
+</ul>
+
+<h2>wallet plugins (aka role-2role/R2R protocols)</h2>
+<ul>
+<li><a href="https://github.com/root1m3/plebble/tree/main/core0/us/wallet/trader/r2r/w2w" target="_blank">bank</a>. Transfers/loans/banking services between 2 wallets.</li>
+<li><a href="https://github.com/root1m3/plebble/tree/main/core1/us/trader/r2r/bid2ask" target="_blank">bid2ask</a>. Sell/buy goods and services between 2 wallets. </li>
+</ul>
+
+<h2>Continuous integration (CI)</h2>
+<ul>
+<li><a href="https://github.com/root1m3/plebble/tree/main/core1/bin" target="_blank">upgrade network sequence</a></li>
+</ul>
 
 <br/>
-<button type="button" class="collapsible">Community.
+</div>
+</br/>
+
+<br/>
+<button type="button" class="collapsible">+ Community.
 <img src="community/reddit.png" width="20">
 <img src="community/github.png" width="20">
 <img src="community/twitter.png" width="20">
@@ -719,7 +847,16 @@ Commands:
 
 <br/>
 
-<button type="button" class="collapsible">Support Plebble.</button>
+<br/>
+<button type="button" class="collapsible">+ Inspirational books.</button>
+<div class="content">
+<ul>
+<li>Mastering Bitcoin</li>
+</ul>
+</div>
+
+<br/>
+<button type="button" class="collapsible">+ Support Plebble.</button>
 
 <div class="content" id="cdon">
 <p>Please consider donating to help the development of this project.</p>

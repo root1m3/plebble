@@ -62,6 +62,9 @@ namespace us::gov::engine {
         bool process_work__traders(datagram*);
         bool process_work__sys(datagram*);
 
+    public:
+        void upgrade_software() override;
+
     public: //engine
         #include <us/api/generated/gov/c++/engine/cllr_override>
         #include <us/api/generated/gov/c++/engine/hdlr_override>

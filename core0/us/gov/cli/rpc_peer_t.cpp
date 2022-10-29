@@ -40,8 +40,27 @@ void c::dump_all(const string& prefix, ostream& os) const {
     b::dump_all(prefix, os);
 }
 
+void c::upgrade_software() {
+    log("Peer is signaling the existence of a upgrade_software.");
+    static_cast<rpc_daemon_t&>(daemon).upgrade_software();
+}
+
+
 void c::on_peer_disconnected(const reason_t& reason) {
+    log("on_peer_disconnected", reason);
     b::on_peer_disconnected(reason);
     static_cast<rpc_daemon_t&>(daemon).on_peer_disconnected(reason);
+}
+
+void c::on_I_disconnected(const reason_t& reason) {
+    log("on_I_disconnected", reason);
+    b::on_I_disconnected(reason);
+    static_cast<rpc_daemon_t&>(daemon).on_I_disconnected(reason);
+}
+
+void c::verification_completed(pport_t pport, pin_t pin) {
+    log("verification_completed", pport, pin);
+    b::verification_completed(pport, pin);
+    static_cast<rpc_daemon_t&>(daemon).verification_completed(verification_is_fine());
 }
 

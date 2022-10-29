@@ -234,10 +234,10 @@ public abstract class rpc_peer_t extends us.gov.relay.rpc_peer_t implements call
         /// in:
         ///     string brandcode;
         ///     string component;
-        ///     string curver;
+        ///     string vcsname;
 
         /// out:
-        ///    string file;
+        ///    string vcsname;
         ///    bin_t bin_pkg;
 
         datagram d_in;

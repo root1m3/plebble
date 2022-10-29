@@ -44,6 +44,7 @@ c::rpc_daemon_t(channel_t channel, dispatcher_t* dispatcher): b(channel, dispatc
     connect_for_recv = false;
 
     api_v = CFG_API_V__WALLET;
+    assert(api_v != 0);
     log("set api_v", +api_v);
 }
 

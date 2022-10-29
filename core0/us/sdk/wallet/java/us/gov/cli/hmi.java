@@ -45,6 +45,10 @@ public class hmi {
     public void on_peer_disconnected(final reason_t reason) {
     }
 
+    public void upgrade_software() {
+        log("Peer is signaling the existence of a upgrade_software."); //--strip
+    }
+
     static class params_t {
         channel_t channel = us.CFG.CHANNEL;
     }

@@ -154,7 +154,13 @@ Production releases. beta
 Production releases. alpha
 --------------------------
 
-alpha-48 -
+alpha-49 -
+    * version hash include monotonic value increased on every new deployment.
+    * Fixed regression bug in APi handler that would terminate the connection on any guest wallet.
+    * all hmi's (gov/wallet/ are responding to "software upgrade available" signal coming from the layer 'id' in response of a peer running a newer version.
+    * changed the software upgrade mechanism in the android app. (removed polling thread, and simplified the process)
+
+alpha-48 - alpha-48_f5f5faea 2022-10-27_11-49-00 vhash f5f5faea <- R de6e3a99bc7b0a99151b06efea1490e8b32498f0 alpha-48 dbg-0 logs-0 counters-0 connlog-0 fcgi-0
     * apitool API generator produces versions based on changes in the api spec for each process (gov, wallet)
     * handshake includes api version run by the peer, and svc translator (svcfish) are automatically used to seamlessly communicate with the previous API version in 
     * code generator produces api diffs and gennerates code for svcfish (compatibility svc map)
@@ -669,7 +675,7 @@ PoC -  Mar 2017
 
 Idea - Feb 2017
 
-background: core developer at bitcoin-cash alliance
+background: core developer at bitcoin fork bitcoin-cash.
     * Identified problems with Bitcoin
       * PoW treated as dogma. No scientific reason to be.
         * It wastes valuable energy

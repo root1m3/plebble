@@ -259,6 +259,7 @@ for branddir in `find $distr -maxdepth 1 -mindepth 1 -type d`; do
    #cp sloccount.txt $distr/$brand/
    cp $distr/build_hashes $distr/$brand/
    cat doc/release_notes | grep "RELEASE NOTES" -A1000000 >  $distr/$brand/doc/release_notes
+   cp doc/user_manual $distr/$brand/doc/
    if [[ -d $branddir/html ]]; then
        pushd $branddir
            tar -I zstd -cf html.tar.zst html

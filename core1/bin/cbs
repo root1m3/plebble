@@ -34,7 +34,7 @@ fi
 function help {
     echo "$0 [-b] [--local-build] [--flags <flags10>] [--brand <brand|all] <cmd>"
     echo " clear_ccache"
-    echo " make_blobs"
+    echo " run"
     echo ""
     echo "*stop <job>"
     exit 0
@@ -71,7 +71,7 @@ while [[ true ]]; do
     fi
 done
 
-function mk_blobs_init {
+function run_cbs_init {
     if [[ -d distr ]]; then
         echo "dir distr exists."
         exit 1
@@ -103,8 +103,8 @@ function mk_blobs_init {
 
 sep="-------------------------------------------------------------------------------"
 
-function mk_blobs {
-    mk_blobs_init
+function run_cbs {
+    run_cbs_init
     date
     echo $sep
     echo "bin/10_make_build_jobs ${flags10} ${brand}"
@@ -292,8 +292,8 @@ if [[ "_$cmd" == "_status" ]]; then
     exit 0
 fi
 
-if [[ "_$cmd" == "_make_blobs" ]]; then
-    mk_blobs
+if [[ "_$cmd" == "_run" ]]; then
+    run_cbs
     exit 0
 fi
 

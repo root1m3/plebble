@@ -106,6 +106,7 @@ c::daemon_t(channel_t channel, const keys_t& k, port_t port, pport_t pport, cons
     io::cfg0::ensure_dir(downloads_dir);
 
     api_v = CFG_API_V__WALLET;
+    assert(api_v != 0);
     log("set api_v", +api_v);
 }
 
@@ -442,5 +443,9 @@ ko c::lookup_wallet(const hash_t& addr, hostport_t& hostport) {
     hostport.first = fc_out.net_addr;
     hostport.second = fc_out.port;
     return ok;
+}
+
+void c::upgrade_software() {
+    log("Peer is signaling the existence of a software upgrade.");
 }
 

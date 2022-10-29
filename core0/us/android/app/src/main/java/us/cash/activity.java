@@ -374,8 +374,10 @@ public class activity extends AppCompatActivity implements NavigationView.OnNavi
                     break;
 
                 case R.id.nav_updateavailable:
-                    if (a.hmi != null && a.hmi.sw_updates != null) {
-                        a.hmi.sw_updates.show_ui(this);
+                    if (a.hmi != null) { // && a.hmi.sw_updates != null) {
+                        if (a.hmi.sw_updates != null) {
+                            a.hmi.sw_updates.show_ui(this);
+                        }
                     }
                     break;
 
@@ -632,9 +634,11 @@ public class activity extends AppCompatActivity implements NavigationView.OnNavi
                 log("not ok"); //--strip
                 return;
             }
-            if (a.hmi != null && a.hmi.sw_updates != null) {
+            if (a.hmi != null) { // && a.hmi.sw_updates != null) {
                 if (a.getPackageManager().canRequestPackageInstalls()) {
-                    a.hmi.sw_updates.do_inst(this);
+                    if (a.hmi.sw_updates != null) {
+                        a.hmi.sw_updates.do_inst_local(this);
+                    }
                 }
             }
             else {

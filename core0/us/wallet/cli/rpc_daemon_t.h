@@ -58,6 +58,7 @@ namespace us::wallet::cli {
     public:
         void on_connect(socket::client&, ko) override;
         void on_stop() override;
+        virtual void upgrade_software();
 
     public:
         virtual void on_peer_disconnected(const reason_t&);

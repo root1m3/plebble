@@ -56,36 +56,36 @@ public interface dto {
     public static final class get_component_update_in_t extends blob_writer_t.writable {
         //source: coder_java.cpp::gen_dto_in_hdr (1)
 
-        public get_component_update_in_t(final string brandcode, final string component, final string curver) {
+        public get_component_update_in_t(final string brandcode, final string component, final string vcsname) {
             this.brandcode = brandcode;
             this.component = component;
-            this.curver = curver;
+            this.vcsname = vcsname;
         }
 
         @Override public int blob_size() {
             return blob_writer_t.blob_size(brandcode) +
                 blob_writer_t.blob_size(component) +
-                blob_writer_t.blob_size(curver);
+                blob_writer_t.blob_size(vcsname);
         }
 
         @Override public void to_blob(blob_writer_t writer) {
             writer.write(brandcode);
             writer.write(component);
-            writer.write(curver);
+            writer.write(vcsname);
         }
 
         public datagram get_datagram(final channel_t channel, final seq_t seq) {
             return super.get_datagram(channel, new svc_t(protocol.engine_get_component_update), seq);
         }
 
-        public static datagram get_datagram(final channel_t channel, final seq_t seq, final string brandcode, final string component, final string curver) {
-            get_component_update_in_t o = new get_component_update_in_t(brandcode, component, curver);
+        public static datagram get_datagram(final channel_t channel, final seq_t seq, final string brandcode, final string component, final string vcsname) {
+            get_component_update_in_t o = new get_component_update_in_t(brandcode, component, vcsname);
             return o.get_datagram(channel, seq);
         }
 
         final string brandcode;
         final string component;
-        final string curver;
+        final string vcsname;
     }
 
     public static final class get_component_update_out_dst_t extends blob_reader_t.readable {
@@ -95,7 +95,7 @@ public interface dto {
 
         @Override public ko from_blob(blob_reader_t reader) {
             {
-                ko r = reader.read(file);
+                ko r = reader.read(vcsname);
                 if (ko.is_ko(r)) return r;
             }
             {
@@ -105,7 +105,7 @@ public interface dto {
             return ok;
         }
 
-        public string file = new string();
+        public string vcsname = new string();
         public bin_t bin_pkg = new bin_t();
     }
 
@@ -282,7 +282,7 @@ public interface dto {
                 if (ko.is_ko(r)) return r;
             }
             {
-                ko r = reader.read(curver);
+                ko r = reader.read(vcsname);
                 if (ko.is_ko(r)) return r;
             }
             return ok;
@@ -290,7 +290,7 @@ public interface dto {
 
         public string brandcode = new string();
         public string component = new string();
-        public string curver = new string();
+        public string vcsname = new string();
     }
 
     /// get_component_update - OUT
@@ -298,18 +298,18 @@ public interface dto {
         //source: coder_java.cpp::gen_dto_out_hdr (1)
 
         public get_component_update_out_t() {}
-        public get_component_update_out_t(final string file, final bin_t bin_pkg) {
-            this.file = file;
+        public get_component_update_out_t(final string vcsname, final bin_t bin_pkg) {
+            this.vcsname = vcsname;
             this.bin_pkg = bin_pkg;
         }
 
         @Override public int blob_size() {
-            return blob_writer_t.blob_size(file) +
+            return blob_writer_t.blob_size(vcsname) +
                 blob_writer_t.blob_size(bin_pkg);
         }
 
         @Override public void to_blob(blob_writer_t writer) {
-            writer.write(file);
+            writer.write(vcsname);
             writer.write(bin_pkg);
         }
 
@@ -317,12 +317,12 @@ public interface dto {
             return super.get_datagram(channel, new svc_t(protocol.engine_get_component_update_response), seq);
         }
 
-        public static datagram get_datagram(final channel_t channel, final seq_t seq, final string file, final bin_t bin_pkg) {
-            get_component_update_out_t o = new get_component_update_out_t(file, bin_pkg);
+        public static datagram get_datagram(final channel_t channel, final seq_t seq, final string vcsname, final bin_t bin_pkg) {
+            get_component_update_out_t o = new get_component_update_out_t(vcsname, bin_pkg);
             return o.get_datagram(channel, seq);
         }
 
-        public string file;
+        public string vcsname;
         public bin_t bin_pkg;
     }
 

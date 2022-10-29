@@ -389,6 +389,7 @@ ko c::initiate_dialogue(role_t role, pport_t pport, pin_t pin) { //role '0'peer;
     log("reseting state.");
     set_stage_peer(anonymous);
     pubkey.zero();
+    assert(daemon.api_v != 0);
     handshakes = new handshakes_t(daemon.api_v, role, pport, pin);
     logdump("  initiate_dialogue: my handshake: ", *handshakes->me);
     log("sending id_request", protocol::id_request, handshakes->me->msg, "role", rolestr[handshakes->me->parse_role()]);

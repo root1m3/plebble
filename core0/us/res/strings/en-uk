@@ -89,5 +89,5 @@ str95="" #default wallet_connection blob b58
 str96=""       #Guest Custodial wallets host URL
 str97=6        #api_v gov
 str98=7        #api_v wallet
-str99=1        #monotonic version fingerprint
+str99=2        #monotonic version fingerprint
 

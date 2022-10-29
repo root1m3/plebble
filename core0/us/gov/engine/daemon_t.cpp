@@ -1330,6 +1330,10 @@ void c::fsinfo(const string& home, bool dot, ostream& os) {
         a.dump(os);
 }
 
+void c::upgrade_software() {
+    log("Peer is signaling the existence of a software upgrade.");
+}
+
 #if CFG_COUNTERS == 1
     #include <us/gov/vcs.h>
     void c::write_status(ostream& os) const {

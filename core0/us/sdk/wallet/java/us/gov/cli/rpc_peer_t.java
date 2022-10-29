@@ -53,7 +53,25 @@ public class rpc_peer_t extends us.gov.engine.rpc_peer_t {
 
     @Override public void on_peer_disconnected(final reason_t reason) {
         super.on_peer_disconnected(reason);
+        log("on_peer_disconnected"); //--strip
         ((rpc_daemon_t)daemon).on_peer_disconnected(reason);
+    }
+
+    @Override public void on_I_disconnected(final reason_t reason) {
+        super.on_I_disconnected(reason);
+        log("on_I_disconnected"); //--strip
+        ((rpc_daemon_t)daemon).on_I_disconnected(reason);
+    }
+
+    @Override public void verification_completed(final pport_t rpport, final pin_t pin) {
+        super.verification_completed(rpport, pin);
+        log("verification_completed"); //--strip
+        ((rpc_daemon_t)daemon).verification_completed(verification_is_fine());
+    }
+
+    @Override public void upgrade_software() {
+        log("triggered upgrade_software signal!"); //--strip
+        ((rpc_daemon_t)daemon).upgrade_software();
     }
 
 }

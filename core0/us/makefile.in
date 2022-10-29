@@ -179,6 +179,8 @@ distr-common: | targets
 	install wallet/trader/r2r/w2w/home/* ${DISTRDIR}/wallet/trader/w2w/
 	touch var/us/brand_bookmarks
 	install var/us/brand_bookmarks ${DISTRDIR}/wallet/trader/
+	mkdir -p ${DISTRDIR}/doc
+	install doc/user_manual ${DISTRDIR}/doc/
 
 install: distr
 	$(MAKE) -C distr install

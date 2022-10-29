@@ -133,6 +133,13 @@ public class rpc_daemon_t extends us.wallet.engine.rpc_daemon_t implements us.go
         super.dump(prefix, os);
     }
 
+    public void upgrade_software() {
+        if (parent == null) {
+            return;
+        }
+        parent.upgrade_software();
+    }
+
     public KeyPair id;
     public shostport_t shostport;
     public role_t role;

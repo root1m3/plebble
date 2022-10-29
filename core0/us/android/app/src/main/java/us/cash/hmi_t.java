@@ -257,7 +257,9 @@ public class hmi_t extends us.wallet.cli.hmi {
         update_network_info_from_cache(p.channel);
         set_status(leds_t.led_amber, (seeds == null ? "0" : "" + seeds.size()) + " seeds");
         cfg_android_public_t cfg_pub = new cfg_android_public_t(a, get_cfg().home);
+
         sw_updates = new sw_updates_t(a, this, get_cfg(), cfg_pub);
+/*
         r = sw_updates.start();
         if (is_ko(r)) {
             set_status(leds_t.led_red, r.msg);
@@ -267,20 +269,21 @@ public class hmi_t extends us.wallet.cli.hmi {
             super.join();
             return r;
         }
+*/
         set_status(leds_t.led_amber, "HMI running. Peer " + ip4_endpoint.to_string());
         log("super returned ok"); //--strip
         return ok;
     }
 
     @Override public void stop() {
-        if (sw_updates != null) sw_updates.stop();
+//        if (sw_updates != null) sw_updates.stop();
         super.stop();
         set_status(leds_t.led_amber, "Stopping HMI.");
         is_online = false;
     }
 
     @Override public void join() {
-        if (sw_updates != null) sw_updates.join();
+//        if (sw_updates != null) sw_updates.join();
         sw_updates = null;
         super.join();
         set_status(leds_t.led_red, "HMI stop.");
@@ -585,6 +588,24 @@ public class hmi_t extends us.wallet.cli.hmi {
         if (is_active()) {
             rpc_daemon.handler.stop_on_disconnection = p.rpc__stop_on_disconnection;
         }
+    }
+
+    @Override public void upgrade_software() {
+        log("Peer is signaling the existence of a upgrade_software. Calling check4updates."); //--strip
+        sw_updates.check4updates();
+
+/*
+        sw_updates_t sw_updates = new sw_updates_t(a, this, get_cfg(), cfg_pub);
+        r = sw_updates.start();
+        if (is_ko(r)) {
+            set_status(leds_t.led_red, r.msg);
+            on_hmi__worker(r);
+            sw_updates = null;
+            super.stop();
+            super.join();
+            return r;
+        }
+*/
     }
 
     app a;

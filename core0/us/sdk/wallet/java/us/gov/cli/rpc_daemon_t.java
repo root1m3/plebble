@@ -122,6 +122,13 @@ public class rpc_daemon_t extends us.gov.engine.rpc_daemon_t {
 
     public rpc_peer_t get_peer() { return (rpc_peer_t)peer; }
 
+    public void upgrade_software() {
+        if (parent == null) {
+            return;
+        }
+        parent.upgrade_software();
+    }
+
     public KeyPair id;
     public shostport_t shostport;
     public role_t role;
