@@ -115,7 +115,7 @@ public final class doc_viewer extends activity implements datagram_dispatcher_t.
             }
         });
         log("connect network-datagram hose");//--strip
-        dispatchid = a.hmi.dispatcher.connect_sink(this);
+        dispatchid = a.hmi().dispatcher.connect_sink(this);
         fetch_content();
     }
 
@@ -124,7 +124,7 @@ public final class doc_viewer extends activity implements datagram_dispatcher_t.
         log("onDestroy"); //--strip
         final app a = (app)getApplication();
         log("disconnect network-datagram hose");//--strip
-        a.hmi.dispatcher.disconnect_sink(dispatchid);
+        a.hmi().dispatcher.disconnect_sink(dispatchid);
     }
 
     @Override public void onPause() {
@@ -194,7 +194,7 @@ public final class doc_viewer extends activity implements datagram_dispatcher_t.
         //progressbarcontainer.setVisibility(View.VISIBLE);
         final app a = (app) getApplication();
         log("contentcommand="+contentcommand); //--strip
-        a.hmi.command_trade(tid, contentcommand);
+        a.hmi().command_trade(tid, contentcommand);
     }
 
     public static class actions_helper {

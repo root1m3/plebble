@@ -166,12 +166,12 @@ public class trader extends activity implements datagram_dispatcher_t.handler_t 
     @Override public void onPause() {
         super.onPause();
         log("onPause"); //--strip
-        if (a.hmi == null) {
+        if (!a.has_hmi()) {
             dispatchid = -1;
         }
         else {
             if (dispatchid != -1) {
-                a.hmi.dispatcher.disconnect_sink(dispatchid);
+                a.hmi().dispatcher.disconnect_sink(dispatchid);
             }
         }
     }
@@ -179,12 +179,12 @@ public class trader extends activity implements datagram_dispatcher_t.handler_t 
     @Override public void onResume() {
         super.onResume();
         log("onResume"); //--strip
-        if (a.hmi == null) {
+        if (!a.has_hmi()) {
             dispatchid = -1;
         }
         else {
             log("Connecting to datagram dispatcher");//--strip
-            dispatchid = a.hmi.dispatcher.connect_sink(this);
+            dispatchid = a.hmi().dispatcher.connect_sink(this);
             invalidate_data_fetch0();
         }
     }
@@ -446,7 +446,7 @@ public class trader extends activity implements datagram_dispatcher_t.handler_t 
 
     public void invalidate_data_fetch0() {
         app.assert_ui_thread(); //--strip
-        if (a.hmi == null) {
+        if (!a.has_hmi()) {
             log("Closing activity hmi is null"); //--strip
             finish();
             return;
@@ -455,13 +455,13 @@ public class trader extends activity implements datagram_dispatcher_t.handler_t 
         log("invalidate_data_fetch"); //--strip
         set_data(null, null);
         log("show data"); //--strip
-        a.hmi.command_trade(tid, "show data"); //backend will push data
+        a.hmi().command_trade(tid, "show data"); //backend will push data
     }
 
     public void refresh() {
         log("refresh"); //--strip
         app.assert_ui_thread(); //--strip
-        if (a.hmi == null) {
+        if (!a.has_hmi()) {
             log("Closing activity hmi is null"); //--strip
             finish();
             return;
@@ -655,7 +655,7 @@ public class trader extends activity implements datagram_dispatcher_t.handler_t 
             log("val not null");  //--strip
             if (val.equals("Y")) {
                 log("key '" + key + "' found Y");  //--strip
-                a.hmi.command_trade(tid, "show " + key + " peer");
+                a.hmi().command_trade(tid, "show " + key + " peer");
                 return true;
             }
             log("val is " + val);  //--strip
@@ -679,7 +679,7 @@ public class trader extends activity implements datagram_dispatcher_t.handler_t 
                 log("val not null");  //--strip
                 if (val.equals("Y")) {
                     log("key '" + key + "' found Y");  //--strip
-                    a.hmi.command_trade(tid, "show " + key);
+                    a.hmi().command_trade(tid, "show " + key);
                     return true;
                 }
                 log("val is " + val);  //--strip
@@ -689,7 +689,7 @@ public class trader extends activity implements datagram_dispatcher_t.handler_t 
             }
         }
         else {
-            a.hmi.command_trade(tid, "show " + key);
+            a.hmi().command_trade(tid, "show " + key);
             return true;
         }
         return false;
@@ -697,7 +697,7 @@ public class trader extends activity implements datagram_dispatcher_t.handler_t 
 
     void request_item_qrs(final String key, Context ctx) {
         app.assert_ui_thread(); //--strip
-        a.hmi.command_trade(tid, "request qrs");
+        a.hmi().command_trade(tid, "request qrs");
     }
 
     void request_item(final String key, Context ctx) {
@@ -706,7 +706,7 @@ public class trader extends activity implements datagram_dispatcher_t.handler_t 
         if (key.equals("invoice")) { //chapu until backend verb is consistent across keys
             request_verb = "query";
         }
-        a.hmi.command_trade(tid, key + " " + request_verb);
+        a.hmi().command_trade(tid, key + " " + request_verb);
     }
 
     public void openchat(byte[] chatpayload) {
@@ -761,9 +761,9 @@ public class trader extends activity implements datagram_dispatcher_t.handler_t 
 
     void close_trade() { //means archive
         app.assert_ui_thread(); //--strip
-        final pair<ko, String> b = a.hmi.kill_trade(tid);
+        final pair<ko, String> b = a.hmi().kill_trade(tid);
         if (is_ko(b.first)) {
-            Toast.makeText(trader.this, a.hmi.rewrite(b.first), 6000).show();
+            Toast.makeText(trader.this, a.hmi().rewrite(b.first), 6000).show();
             return;
         }
         finish();

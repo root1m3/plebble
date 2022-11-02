@@ -131,7 +131,7 @@ public class fragment_pat2ai_pat extends role_fragment {
     }
 
     void on_create_ai_request(final String type) {
-        a.hmi.command_trade(tr.tid, "create_aireq " + type + " " + "es");
+        a.hmi().command_trade(tr.tid, "create_aireq " + type + " " + "es");
         Toast.makeText(tr.getApplicationContext(), getResources().getString(R.string.pleasewait), 500).show();
     }
 

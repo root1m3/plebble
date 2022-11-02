@@ -39,12 +39,14 @@ c::daemon_t(channel_t channel, port_t port, uint8_t workers): b(channel), peers(
 c::~daemon_t() {
 }
 
+/*
 client* c::create_client(sock_t sock) {
     log("KO 78673 specialize peer");
     assert(false);
     return nullptr;
 //    return new peer_t(*this, sock);
 }
+*/
 
 bool c::process_unhandled(client& peer, datagram* d) {
     log("process_unhandled", d->service);
@@ -184,6 +186,7 @@ void c::dump_all(const string& prefix, ostream& os) const {
 void c::new_peer(int fd) {
     log("new_peer", fd);
     auto peer = create_client(fd);
+    assert(peer != nullptr);
     log("new inbound connection", fd, peer->endpoint());
     attach(peer);
 }

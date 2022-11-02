@@ -41,8 +41,10 @@ c::nodes_t(const nodes_t& other): b(other) {
 }
 
 void c::dump(const string& prefix, ostream& os) const {
+    os << prefix << size() << " entries:\n";
     for (auto& i: *this) {
-        os << prefix << i.first << ' '; i.second.dump(os);
+        os << prefix << i.first << "    ";
+        i.second.dump(os);
     }
 }
 

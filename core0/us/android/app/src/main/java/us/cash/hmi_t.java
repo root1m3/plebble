@@ -77,23 +77,22 @@ public class hmi_t extends us.wallet.cli.hmi {
         void on_status(ColorDrawable led, final String msg);
     }
 
-    public interface hmi_callback_t {
-        void on_hmi__worker(final ko status);
-    }
+//    public interface hmi_callback_t {
+//        void on_hmi__worker(final ko status);
+//    }
 
     boolean online = false;
 
     public void on_hmi__worker(final ko status) {
         online = (status == ok);
-        if (cb != null) {
-            cb.on_hmi__worker(status);
+        if (dep != null) {
+            dep.on_hmi__worker(status);
         }
     }
-
-    public hmi_t(app a_, hmi_callback_t cb_, final us.wallet.cli.params p, status_handler_t status_handler_, datagram_dispatcher_t dispatcher_) {
+    
+    public hmi_t(device_endpoint_t dep_, final us.wallet.cli.params p, status_handler_t status_handler_, datagram_dispatcher_t dispatcher_) {
         super(p, System.out);
-        a = a_;
-        cb = cb_;
+        dep = dep_;
         dispatcher = dispatcher_;
         status_handler = status_handler_;
         set_status(leds_t.led_red, "Stopped");
@@ -107,10 +106,10 @@ public class hmi_t extends us.wallet.cli.hmi {
         msg_log = new StringBuilder(100);
     }
 
-    void set_status(ColorDrawable led, String msg) {
+    void set_status(ColorDrawable led, final String msg) {
         app.assert_worker_thread(); //--strip
         log("set_status " + led + " " + msg); //--strip
-        if (led != leds_t.led_red) {
+        if (led == leds_t.led_green) {
             freeze = false;
         }
         if (freeze) {
@@ -245,6 +244,10 @@ public class hmi_t extends us.wallet.cli.hmi {
             p.channel = us.CFG.CHANNEL;
         }
         set_status(leds_t.led_amber, "Starting HMI. " + ip4_endpoint.to_string());
+
+        cfg_android_public_t cfg_pub = new cfg_android_public_t(dep.parent.a, get_cfg().home);
+        sw_updates = new sw_updates_t(dep.parent.a, this, get_cfg(), cfg_pub);
+
         log("super.start. stop_on_disconnection = " + p.rpc__stop_on_disconnection); //--strip
         ko r = super.start(busyled_handler_send, busyled_handler_recv, dispatcher);
         if (is_ko(r)) {
@@ -256,9 +259,7 @@ public class hmi_t extends us.wallet.cli.hmi {
         set_status(leds_t.led_amber, "Loading previous network info for channel " + p.channel.value);
         update_network_info_from_cache(p.channel);
         set_status(leds_t.led_amber, (seeds == null ? "0" : "" + seeds.size()) + " seeds");
-        cfg_android_public_t cfg_pub = new cfg_android_public_t(a, get_cfg().home);
 
-        sw_updates = new sw_updates_t(a, this, get_cfg(), cfg_pub);
 /*
         r = sw_updates.start();
         if (is_ko(r)) {
@@ -357,8 +358,11 @@ public class hmi_t extends us.wallet.cli.hmi {
         seeds = o.second.seeds;
         log("seeds length=" + seeds.size()); //--strip
         wallet_address = o.second.wallet_address;
-        subhome = o.second.subhome.value;
-        log("wallet_address=" + wallet_address.encode() + " subhome=" + subhome);  //--strip
+        if (!dep.subhome.equals(o.second.subhome.value)) {
+            log("KO 78968 Receiving contradictory results from net_info. " + o.second.subhome.value + " should be " + dep.subhome); //--strip 
+        }
+        //subhome = o.second.subhome.value;
+        log("wallet_address=" + wallet_address.encode() + " subhome=" + o.second.subhome.value);  //--strip
         return ok;
     }
 
@@ -373,8 +377,11 @@ public class hmi_t extends us.wallet.cli.hmi {
         seeds = o.seeds;
         log("seeds length=" + seeds.size()); //--strip
         wallet_address = o.wallet_address;
-        subhome = o.subhome.value;
-        log("wallet_address=" + wallet_address.encode() + " subhome=" + subhome);  //--strip
+        if (!dep.subhome.equals(o.subhome.value)) {
+            log("KO 78968 Receiving contradictory results from net_info. " + o.subhome.value + " should be " + dep.subhome); //--strip 
+        }
+//        subhome = o.subhome.value;
+        log("wallet_address=" + wallet_address.encode() + " subhome=" + o.subhome.value);  //--strip
         return ok;
     }
 
@@ -401,29 +408,42 @@ public class hmi_t extends us.wallet.cli.hmi {
         set_status(leds_t.led_amber, "handshake completed with " + ip4_endpoint.to_string());
         Thread thread = new Thread(new Runnable() {
             @Override public void run() {
+                if (!is_online) {
+                    log("Not online"); //--strip
+                    ko r = new ko("KO 82110 Device verification wasn't successful.");
+                    set_status(leds_t.led_red, r.msg);
+                    on_hmi__worker(r);
+                    return;
+                }
                 try {
-                    Thread.sleep(1000);
+                    Thread.sleep(2000);
                 }
                 catch(Exception e) {
                 }
-
-                if (is_online) {
-                    log("online task"); //--strip
-                    ko r = update_network_info(p.channel);
-                    if (r != ok) {
-                        set_status(leds_t.led_red, r.msg);
-                        on_hmi__worker(r);
-                        return;
-                    }
-                    set_status(leds_t.led_green, "online with " + ip4_endpoint.to_string());
-                    on_hmi__worker(ok);
+                if (!is_online) {
+                    return;
                 }
-                else {
-                    log("Not online"); //--strip
+                log("online task"); //--strip
+                ko r = update_network_info(p.channel);
+                if (is_ko(r)) {
+                    set_status(leds_t.led_red, r.msg);
+                    on_hmi__worker(r);
+                    return;
                 }
+                set_status(leds_t.led_green, "online with " + ip4_endpoint.to_string());
+                on_hmi__worker(ok);
             }
         });
         thread.start();
+    }
+
+    @Override public void verification_result(request_data_t request_data) {
+        log("verification_result " + request_data.value); //--strip
+        if (dep.confirm_subhome(request_data.value)) {
+            if (manual_mode_ui != null) {
+                manual_mode_ui.confirmed_subhome__worker(request_data.value);
+            }
+        }
     }
 
     public pair<ko, String> ping() {
@@ -590,9 +610,16 @@ public class hmi_t extends us.wallet.cli.hmi {
         }
     }
 
+    public void set_manual_mode(node_pairing ui) {
+        if (ui == manual_mode_ui) return;
+        manual_mode_ui = ui;
+        set_manual_mode(manual_mode_ui != null);
+    }
+
     @Override public void upgrade_software() {
         log("Peer is signaling the existence of a upgrade_software. Calling check4updates."); //--strip
-        sw_updates.check4updates();
+        log("rpc_daemon.api_v.value " + rpc_daemon.api_v.value); //--strip
+        sw_updates.check4updates__worker();
 
 /*
         sw_updates_t sw_updates = new sw_updates_t(a, this, get_cfg(), cfg_pub);
@@ -608,8 +635,7 @@ public class hmi_t extends us.wallet.cli.hmi {
 */
     }
 
-    app a;
-    hmi_callback_t cb;
+    device_endpoint_t dep;
     public boolean is_online = false;
     public boolean try_renew_ip_on_connect_failed = true;
     status_handler_t status_handler = null;
@@ -627,9 +653,10 @@ public class hmi_t extends us.wallet.cli.hmi {
     public datagram_dispatcher_t dispatcher = null;
     boolean lookingup = false;
     hash_t wallet_address = null;
-    public String subhome = "";
+    //public String subhome = "";
     us.gov.io.types.vector_tuple_hash_host_port seeds;
     public ip4_endpoint_t ip4_endpoint = null;
+    node_pairing manual_mode_ui = null;
     boolean manual_mode = false;
 
     sw_updates_t sw_updates = null;

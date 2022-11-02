@@ -48,7 +48,7 @@ namespace us::gov::engine {
         net_daemon_t& operator = (const net_daemon_t&) = delete;
 
     public:
-        socket::peer_t* create_client(int sock) override;
+        socket::client* create_client(int sock) override;
         bool check_dfs_permission(const hash_t& addr) const override;
         bool check_relay_permission(const hash_t& addr) const override;
         const keys& get_keys() const override;

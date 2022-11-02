@@ -51,7 +51,7 @@ namespace us::gov::relay {
         int clique_send(int num, const peer_t* exclude, datagram*);
         int grid_devices_send(const datagram&);
         virtual bool check_relay_permission(const hash_t& addr) const;
-        socket::client* create_client(sock_t sock) override { assert(false); return nullptr; }
+        //socket::client* create_client(sock_t sock) override { assert(false); return nullptr; }
 
         using filter_t = function<bool(const relay::peer_t&)>;
         struct push_item {

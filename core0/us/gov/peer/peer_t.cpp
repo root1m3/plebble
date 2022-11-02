@@ -51,9 +51,9 @@ c::~peer_t() {
     log("destructor");
 }
 
-ko c::connect(const hostport_t& hostport, pport_t pport, pin_t pin, role_t role, bool block) {
-    log("connecting_to", client::endpoint(hostport), "pport", pport, "pin", pin, "role", rolestr[role]);
-    auto r = b::connect(hostport, pport, pin, role, block);
+ko c::connect(const hostport_t& hostport, pport_t pport, pin_t pin, role_t role, const request_data_t& request_data, bool block) {
+    log("connecting_to", client::endpoint(hostport), "pport", pport, "pin", pin, "role", rolestr[role], "request_data", request_data);
+    auto r = b::connect(hostport, pport, pin, role, request_data, block);
     if (likely(r == ok)) {
         log("OK", "fd is", sock);
         stage = stage_service;
@@ -64,8 +64,8 @@ ko c::connect(const hostport_t& hostport, pport_t pport, pin_t pin, role_t role,
     return r;
 }
 
-ko c::authorize(const pub_t& p, pin_t) {
-    log("authorize", p);
+ko c::authorize(const pub_t& p, pin_t, request_data_t& request_data) {
+    log("authorize", p, request_data);
     #ifdef CFG_TOPOLOGY_RING
         const daemon_t& d = static_cast<daemon_t&>(daemon);
         if (d.pre == d.nodes.end() || d.cur == d.nodes.end()) {
@@ -75,9 +75,10 @@ ko c::authorize(const pub_t& p, pin_t) {
             return r;
         }
         if (d.pre->first != p.hash() && d.cur->first != p.hash()) {
-            log("unexpected node", p.hash(), d.pre->first, d.cur->first);
-            disconnect(0, "unexpected node");
-            return "KO 49884 unexpected node";
+            auto r = "KO 49884 unexpected node";
+            log(r, p.hash(), d.pre->first, d.cur->first);
+            disconnect(0, r);
+            return r;
         }
         return ok;
     #else

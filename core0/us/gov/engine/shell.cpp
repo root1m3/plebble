@@ -145,19 +145,23 @@ struct test_client final: peer_t {
         b::disconnectx(channel, seq, reason);
     }
 
-    void verification_completed(pport_t rpport, pin_t pin) override {
+    ko verification_completed(pport_t rpport, pin_t pin, request_data_t& request_data) override {
         *os << "verification_completed\n";
-        b::verification_completed(rpport, pin);
+        auto r = b::verification_completed(rpport, pin, request_data);
         if (!verification_is_fine()) {
             *os << "verification_not_fine\n";
         }
         *os << "added to grid\n";
+        return r;
     }
 
-    ko authorize(const pub_t& p, pin_t pin) override {
-        auto r = b::authorize(p, pin);
+    ko authorize(const pub_t& p, pin_t pin, request_data_t& request_data) override {
+        auto r = b::authorize(p, pin, request_data);
         *os << "authorize? " << (r == ok ? "ok" : r) << '\n';
         return r;
+    }
+
+    void verification_result(request_data_t&&) override {
     }
 
     ofstream* os;

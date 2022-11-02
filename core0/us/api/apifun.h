@@ -60,6 +60,7 @@ namespace us::apitool {
             bool pass_dgram{false};
             bool async_handler{false}; //default responses are handled with rendezvous
             bool heap{false}; //handler. false: by ref; true: by ptr
+            bool extensible_dto{false};
         };
 
         void collect_in_specs(map<string, vector<pair<string, string>>>&) const;
@@ -76,7 +77,6 @@ namespace us::apitool {
             map<string, int> netsvc_hit;
 
             map<int, string> netsvc;
-            //map<string, int> netsvc2;
         };
         void compute_netsvc(netsvc_t&, bool& ch, svcfish_db_t& db, svcfish_db_t& dbinv);
         void hitfn(netsvc_t& netsvc, const string& serv) const;

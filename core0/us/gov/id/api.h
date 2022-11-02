@@ -21,10 +21,12 @@
 //===----------------------------------------------------------------------------
 //===-
 #pragma once
-#include <us/gov/io/seriable.h>
+
+#include <us/gov/io/seriable_map.h>
 #include <us/gov/crypto/ec.h>
 
 #include "protocol.h"
+#include "types.h"
 
 #if __has_include(<us/api/generated/gov/c++/id/svc>)
     #define has_us_gov_id_api
@@ -32,9 +34,20 @@
 
 namespace us::gov::id {
 
-    using namespace gov::io;
+    using namespace us;
+    using namespace us::gov::io;
     using sig_t = us::gov::crypto::ec::sig_t;
     using sig_der_t = us::gov::crypto::ec::sig_der_t;
+
+    enum role_t: uint8_t {
+        role_peer = 0,
+        role_sysop = 1,
+        role_device = 2,
+        num_roles
+    };
+
+    using request_data_t = string;
+
 
     #ifdef has_us_gov_id_api
 

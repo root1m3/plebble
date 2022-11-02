@@ -128,7 +128,7 @@ public class redirects_view extends LinearLayout {
                             break;
                         case 1:
                             log("Copy to my bookmarks"); //--strip
-                            rf0.a.hmi.command_trade(rf0.tr.tid, "copyredirect " + (pos + 1));
+                            rf0.a.hmi().command_trade(rf0.tr.tid, "copyredirect " + (pos + 1));
 
                             break;
                     }
@@ -156,7 +156,7 @@ public class redirects_view extends LinearLayout {
             if (st.equals("Y")) {
                 card.setVisibility(View.VISIBLE);
                 if (redirects.isEmpty()) {
-                    rf.a.hmi.command_trade(rf.tr.tid, "show redirects");
+                    rf.a.hmi().command_trade(rf.tr.tid, "show redirects");
                 }
             }
             else {

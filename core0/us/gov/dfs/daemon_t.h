@@ -72,7 +72,7 @@ namespace us::gov::dfs {
         void index_clear();
         void rm_file(const hash_t&);
         size_t rm_files(const set<hash_t>& exclude);
-        socket::client* create_client(sock_t sock) override { assert(false); return nullptr; }
+        //socket::client* create_client(sock_t sock) override { assert(false); return nullptr; }
 
     public:
         ko start();

@@ -43,10 +43,11 @@ using namespace us::gov::id;
 using c = us::gov::id::peer_t;
 
 const char* c::KO_6017 = "KO 6017 authentication failed.";
-
 thread_local bool c::inbound_traffic__was_encrypted{false};
-
 constexpr array<const char*, c::num_stages> c::stagestr;
+#if CFG_COUNTERS == 1
+    c::counters_t c::counters;
+#endif
 
 c::peer_t(daemon_t& daemon, int sock): b(daemon, sock) {
     log("constructor");
@@ -58,19 +59,19 @@ c::~peer_t() {
     delete handshakes;
 }
 
-ko c::connect(const hostport_t& hostport, pport_t pport, pin_t pin, role_t asrole, bool block) {
+ko c::connect(const hostport_t& hostport, pport_t pport, pin_t pin, role_t asrole, const request_data_t& request_data, bool block) {
     log("connect_as", client::endpoint(hostport), "role", rolestr[asrole], "pport", pport, "pin", pin, "block", block);
     auto r = b::connect0(hostport, block);
     if (likely(r == ok)) {
-        log("initiating dialogue as role '", asrole, "' pport", pport, "pin", pin);
-        initiate_dialogue(asrole, pport, pin);
+        log("initiating dialogue as role '", asrole, "' pport", pport, "pin", pin, "req_data", request_data);
+        initiate_dialogue(asrole, pport, pin, request_data);
     }
     log("result", r == ok ? "ok" : r);
     return r;
 }
 
-ko c::connect(const shostport_t& shostport, pport_t pport, pin_t pin, role_t role, bool block) {
-    return connect(ip4_encode(shostport), pport, pin, role, block);
+ko c::connect(const shostport_t& shostport, pport_t pport, pin_t pin, role_t role, const request_data_t& request_data, bool block) {
+    return connect(ip4_encode(shostport), pport, pin, role, request_data, block);
 }
 
 void c::disconnectx(channel_t channel, seq_t seq, const reason_t& reason) {
@@ -83,24 +84,47 @@ void c::upgrade_software() {
     log("triggered upgrade_software signal!");
 }
 
-void c::verification_completed(pport_t, pin_t) {
-    if (unlikely(!verification_is_fine())) return;
+ko c::verification_completed(pport_t, pin_t, request_data_t&) {
+    if (unlikely(!verification_is_fine())) {
+        #if CFG_COUNTERS == 1
+            ++counters.failed_verifications;
+        #endif
+        log("verification_not_fine");
+        auto r = "KO 89742 verification_not_fine";
+        log(r);
+        return r;
+    }
+    #if CFG_COUNTERS == 1
+        ++counters.successful_verifications;
+    #endif
     version_fingerprint_t pv = handshakes->peer->parse_version_fingerprint();
     if (unlikely(CFG_MONOTONIC_VERSION_FINGERPRINT) == 0) {
         if (pv > 10) {
-            return; // peer is older
+            return ok; // peer is older
         }
        //I'm older
     }
     else {
         if (pv <= CFG_MONOTONIC_VERSION_FINGERPRINT) {
             // peer is older or same
-            return;
+            return ok;
         }
        //I'm older
     }
-    upgrade_software();
+    #if CFG_COUNTERS == 1
+        ++counters.signals_upgrade_software;
+    #endif
+    upgrade_software(); //triger automatic updates check
+    return ok;
 }
+
+#if CFG_COUNTERS == 1
+    void c::counters_t::dump(ostream& os) const {
+        os << "successful_verifications " << successful_verifications << '\n';
+        os << "failed_verifications " << failed_verifications << '\n';
+        os << "signals_upgrade_software " << signals_upgrade_software << '\n';
+    }
+#endif
 
 void c::dump(const string& prefix, ostream& os) const {
     os << prefix << "    id: stage " << stagestr[stage_peer] << " pubk " << pubkey << " pubkh " << pubkey.hash() << " role " << rolestr[role] << " swver " << +version_fingerprint << '\n';
@@ -111,12 +135,16 @@ void c::dump_all(const string& prefix, ostream& os) const {
     b::dump_all(prefix, os);
 }
 
-c::handshakes_t::handshakes_t(api_v_t api_v, role_t role, pport_t pport, pin_t pin) {
-    me = new handshake_t(api_v, role, pport, pin);
+c::handshakes_t::handshakes_t(api_v_t api_v, role_t role, pport_t pport, pin_t pin, const request_data_t& request_data) {
+    me = new handshake_t(api_v, role, pport, pin, request_data);
 }
 
 c::handshakes_t::handshakes_t() {
     peer = new handshake_t();
+}
+
+c::handshakes_t::handshakes_t(sigmsg_hash_t&& msg) {
+    peer = new handshake_t(move(msg));
 }
 
 c::handshakes_t::~handshakes_t() {
@@ -124,7 +152,7 @@ c::handshakes_t::~handshakes_t() {
     delete peer;
 }
 
-c::handshake_t::handshake_t(api_v_t api_v, role_t role, pport_t pport, pin_t pin) {
+c::handshake_t::handshake_t(api_v_t api_v, role_t role, pport_t pport, pin_t pin, const request_data_t& request_data): request_data(request_data) {
     log("handshake_t constructor", role, pport, pin);
     *reinterpret_cast<uint8_t*>(&msg[0]) = CFG_MONOTONIC_VERSION_FINGERPRINT; //*reinterpret_cast<uint8_t*>(&us::vcs::codehash[0]); //LE
     *reinterpret_cast<uint8_t*>(&msg[1]) = api_v;
@@ -134,6 +162,10 @@ c::handshake_t::handshake_t(api_v_t api_v, role_t role, pport_t pport, pin_t pin
     ifstream f("/dev/urandom");
     f.read(reinterpret_cast<char*>(&msg[7]), sigmsg_hasher_t::output_size - 7);
     log("msg", msg, "version_fingerprint", +parse_version_fingerprint(), "api_v", +parse_api_v(), "pport", parse_pport(), "pin", parse_pin(), "role", parse_role());
+}
+
+c::handshake_t::handshake_t(sigmsg_hash_t&& msg): msg(move(msg)) {
+    log("handshake_t sigmsg_hash_t constructor");
 }
 
 c::handshake_t::handshake_t() {
@@ -169,16 +201,6 @@ void c::handshake_t::dump(const string& pfx, ostream& os) const {
     os << pfx << "version fingerprint " << +parse_version_fingerprint() << '\n';
     os << pfx << "api_v " << +parse_api_v() << '\n';
 }
-
-/*
-string c::short_version() const {
-    vector<unsigned char> v;
-    const char* p = reinterpret_cast<const char*>(&version_fingerprint);
-    v.push_back(*p++);
-    v.push_back(*p);
-    return us::gov::crypto::b58::encode(v);
-}
-*/
 
 const keys_t& c::get_keys() const {
     log("get_keys");
@@ -318,12 +340,14 @@ bool c::process_work(datagram* d) {
         return b::process_work(d);
     }
     if (stage_peer != anonymous) {
-        auto r = "KO 30299 stage_peer != anonymous";
-        log(r, stagestr[stage_peer]);
-        auto seq = d->decode_sequence();
-        delete d;
-        disconnect(seq, r);
-        return true;
+        if (d->service != protocol::id_verification_result) {
+            auto r = "KO 30299 stage_peer != anonymous";
+            log(r, stagestr[stage_peer]);
+            auto seq = d->decode_sequence();
+            delete d;
+            disconnect(seq, r);
+            return true;
+        }
     }
     log("process_work", "using keys at", &get_keys(), get_keys().pub, "svc", d->service);
     using namespace us::gov::protocol;
@@ -369,14 +393,14 @@ completed(hs.peer.pport)                                           -------------
                                                                    completed(hs.peer.pport)
 */
 
-ko c::initiate_dialogue(role_t role, pport_t pport, pin_t pin) { //role '0'peer; '1'sysop; '2'device
+ko c::initiate_dialogue(role_t role, pport_t pport, pin_t pin, const request_data_t& req_data) {
     /*
-    initiate_dialogue()
+    initiate_dialogue() - Executed by Initiator
     -------------------
     hs(me,peer)=(new,0)
-    send (hs.me)      ----------------------gov_id_request---------->
+    send (hs.me)      ----------------------gov_id_request2---------->
     */
-    log("initiate_dialogue as ", rolestr[role], pport, pin);
+    log("initiate_dialogue as ", rolestr[role], pport, pin, req_data);
     if (se != nullptr) {
         log("Found existing encryption module. destroying it.");
         delete se;
@@ -390,7 +414,7 @@ ko c::initiate_dialogue(role_t role, pport_t pport, pin_t pin) { //role '0'peer;
     set_stage_peer(anonymous);
     pubkey.zero();
     assert(daemon.api_v != 0);
-    handshakes = new handshakes_t(daemon.api_v, role, pport, pin);
+    handshakes = new handshakes_t(daemon.api_v, role, pport, pin, req_data);
     logdump("  initiate_dialogue: my handshake: ", *handshakes->me);
     log("sending id_request", protocol::id_request, handshakes->me->msg, "role", rolestr[handshakes->me->parse_role()]);
     assert(role == handshakes->me->parse_role());
@@ -400,8 +424,9 @@ ko c::initiate_dialogue(role_t role, pport_t pport, pin_t pin) { //role '0'peer;
 //------------------apitool - API Spec defined @ us/api/generated/gov/c++/id/hdlr_local-impl
 
 ko c::handle_request(seq_t seq, sigmsg_hash_t&& msg) {
-    log("request", seq);
+    log("request2", seq);
     /*
+     - Executed by Follower
               ----------------------gov_id_request---------->  process_request()
                                                                -----------------
                                                                hs(me,peer)=(0,new)
@@ -420,8 +445,7 @@ ko c::handle_request(seq_t seq, sigmsg_hash_t&& msg) {
         return r;
 */
     }
-    handshakes = new handshakes_t();
-    handshakes->peer->msg = msg;
+    handshakes = new handshakes_t(move(msg));
     logdump("  process_request: their handshake: ", *handshakes->peer);
     auto peer_role = handshakes->peer->parse_role();
     if (peer_role != role_peer && peer_role != role_sysop && peer_role != role_device) {
@@ -443,7 +467,7 @@ ko c::handle_request(seq_t seq, sigmsg_hash_t&& msg) {
     }
     peer_api_v = handshakes->peer->parse_api_v();
     log("peer api_v", +peer_api_v);
-    handshakes->me = new handshake_t(daemon.api_v, role, static_cast<daemon_t&>(daemon).pport, 0);
+    handshakes->me = new handshake_t(daemon.api_v, role, static_cast<daemon_t&>(daemon).pport, 0, request_data_t());
     logdump("  process_request: my handshake: ", *handshakes->me);
     assert(mykeys.pub.valid);
     assert(mykeys.pub == keys::get_pubkey(mykeys.priv));
@@ -457,7 +481,7 @@ ko c::handle_request(seq_t seq, sigmsg_hash_t&& msg) {
 }
 
 ko c::handle_peer_challenge(seq_t seq, peer_challenge_in_dst_t&& o_in) {
-    log("peer_challenge", seq);
+    log("peer_challenge2", seq);
     /// in:
     ///     sigmsg_hash_t msg;
     ///     pub_t pub;
@@ -465,6 +489,7 @@ ko c::handle_peer_challenge(seq_t seq, peer_challenge_in_dst_t&& o_in) {
     ///     sig_der_t sig_der;
 
     /*
+     - Executed by Initiator
     process_peer_challenge <-------------gov_id_peer_challenge--------
     ----------------------
     hs(me,peer)=(*,new)
@@ -473,7 +498,7 @@ ko c::handle_peer_challenge(seq_t seq, peer_challenge_in_dst_t&& o_in) {
     send (signature)-------------------gov_id_challenge_response----->
     */
     auto& mykeys = get_keys();
-    log("process_peer_challenge. seq", seq);
+    log("process_peer_challenge2. seq", seq);
     if (unlikely(handshakes == nullptr)) {
         auto r = "KO 84410 Invalid handshakes object.";
         log(r);
@@ -488,8 +513,7 @@ ko c::handle_peer_challenge(seq_t seq, peer_challenge_in_dst_t&& o_in) {
         disconnect(seq, r);
         return r;
     }
-    handshakes->peer = new handshake_t();
-    handshakes->peer->msg = o_in.msg;
+    handshakes->peer = new handshake_t(move(o_in.msg));
     pubkey = o_in.pub;
     logdump("  process_peer_challenge: their handshake: ", *handshakes->peer);
     if (unlikely(!pubkey.valid)) {
@@ -539,8 +563,14 @@ ko c::handle_peer_challenge(seq_t seq, peer_challenge_in_dst_t&& o_in) {
     }
     crypto::ec::sig_der_t sig_der;
     {
-        log("sending id_challenge_response", protocol::id_challenge_response, mykeys.pub, sig.to_b58());
-        auto r = call_challenge_response(challenge_response_in_t(mykeys.pub, sig, sig_der));
+        log("sending id_challenge_response", protocol::id_challenge2_response, mykeys.pub, sig.to_b58());
+        ko r;
+        if (daemon.api_v == handshakes->peer->parse_api_v()) {
+            r = call_challenge2_response(challenge2_response_in_t(mykeys.pub, sig, sig_der, handshakes->me->request_data));
+        }
+        else {
+            r = call_challenge_response(challenge_response_in_t(mykeys.pub, sig, sig_der));
+        }
         if (unlikely(is_ko(r))) {
             set_stage_peer(verified_fail);
             disconnect(seq, r);
@@ -556,7 +586,21 @@ ko c::handle_peer_challenge(seq_t seq, peer_challenge_in_dst_t&& o_in) {
         }
     }
     log("call verification_completed", handshakes->peer->parse_pport(), handshakes->peer->parse_pin());
-    verification_completed(handshakes->peer->parse_pport(), handshakes->peer->parse_pin());
+
+    request_data_t follower_request_data = ""; // Follower is not sending request_data
+    request_data_t new_request_data = follower_request_data; // Follower is not sending request_data
+    {
+        auto r = verification_completed(handshakes->peer->parse_pport(), handshakes->peer->parse_pin(), new_request_data); // Deliver to upper logic layers. We havent collected request_data from non-initiator peer TODO (Exchangue capabilities: Verificator Address-Range, CPU, Disc, bandwidth capacity/free)
+        if (is_ko(r)) {
+            disconnect(seq, r);
+            return r;
+        }
+    }
+    if (new_request_data != follower_request_data) {
+        log("sending verification_result", protocol::id_verification_result, new_request_data);
+        call_verification_result(move(new_request_data));
+    }
+    
     delete handshakes;
     handshakes = nullptr;
     log("signaling VERIF_COMPLETED.");
@@ -572,6 +616,7 @@ ko c::handle_challenge_response(seq_t seq, challenge_response_in_dst_t&& o_in) {
     ///     sig_der_t sig_der;
 
     /*
+     - Executed by Follower
             -------------------gov_id_challenge_response-----> process_challenge_response
                                                                --------------------------
                                                                verify signature
@@ -619,11 +664,97 @@ ko c::handle_challenge_response(seq_t seq, challenge_response_in_dst_t&& o_in) {
         }
     }
     log("call verification_completed", handshakes->peer->parse_pport(), handshakes->peer->parse_pin());
-    verification_completed(handshakes->peer->parse_pport(), handshakes->peer->parse_pin());
+    request_data_t request_data;
+    auto r = verification_completed(handshakes->peer->parse_pport(), handshakes->peer->parse_pin(), request_data);
+    delete handshakes;
+    handshakes = nullptr;
+    if (is_ko(r)) {
+        disconnect(seq, r);
+        return r;
+    }
+    log("signaling VERIF_COMPLETED.");
+    cv_auth.notify_all();
+    return ok;
+}
+
+ko c::handle_challenge2_response(seq_t seq, challenge2_response_in_dst_t&& o_in) {
+    log("challenge2_response", seq);
+    /// in:
+    ///     pub_t pub;
+    ///     sig_t sig;
+    ///     sig_der_t sig_der;
+    ///     request_data_t request_data;
+
+    /*
+     - Executed by Follower
+            -------------------gov_id_challenge_response-----> process_challenge_response
+                                                               --------------------------
+                                                               verify signature
+                                                               completed(hs.peer.pport)
+    */
+    if (unlikely(handshakes == nullptr)) {
+        auto r = "KO 75040 Invalid handshake.";
+        set_stage_peer(verified_fail);
+        disconnect(seq, r);
+        return r;
+    }
+    if (unlikely(handshakes->peer == nullptr)) {
+        auto r = "KO 63201 handshakes->peer==nullptr";
+        set_stage_peer(verified_fail);
+        disconnect(seq, r);
+        return r;
+    }
+    pubkey = o_in.pub;
+    if (unlikely(!pubkey.valid)) {
+        auto r = "KO 85048 Invalid public key";
+        set_stage_peer(verified_fail);
+        disconnect(seq, r);
+        return r;
+    }
+    log("msgh", handshakes->me->msg, "pubk", pubkey, "sig", o_in.sig.to_b58(), "sig_der", us::gov::crypto::b58::encode(o_in.sig_der));
+    if (o_in.sig.is_zero()) {
+        assert(role == role_device);
+        log("using sig_der sent by HMI device");
+        o_in.sig = crypto::ec::instance.sig_from_der(o_in.sig_der);
+    }
+    if (unlikely(!crypto::ec::instance.verify_not_normalized(pubkey, handshakes->me->msg, o_in.sig))) { //verify my message signed by peer
+        auto r = "KO 10210 Invalid signature.";
+        set_stage_peer(verified_fail);
+        disconnect(seq, r);
+        return r;
+    }
+    set_stage_peer(verified);
+    log("verified", pubkey);
+    {
+        auto r = turn_on_encryption();
+        if (unlikely(is_ko(r))) {
+            disconnect(seq, r);
+            return r;
+        }
+    }
+    log("call verification_completed", handshakes->peer->parse_pport(), handshakes->peer->parse_pin());
+    auto new_request_data = o_in.request_data;
+    {
+        auto r = verification_completed(handshakes->peer->parse_pport(), handshakes->peer->parse_pin(), new_request_data); //deliver to upper logic layers
+        if (is_ko(r)) {
+            disconnect(seq, r);
+            return r;
+        }
+    }
+    if (new_request_data != o_in.request_data) {
+        log("sending verification_result", protocol::id_verification_result, new_request_data);
+        call_verification_result(move(new_request_data));
+    }
     delete handshakes;
     handshakes = nullptr;
     log("signaling VERIF_COMPLETED.");
     cv_auth.notify_all();
+    return ok;
+}
+
+ko c::handle_verification_result(seq_t seq, request_data_t&& request_data) {
+    log("verification_result", seq);
+    verification_result(move(request_data));
     return ok;
 }
 

@@ -44,14 +44,14 @@ jar: ${build}/${jarfile}
 
 ${build}/${jarfile}: ${depjar} ${classfiles}
 	mkdir -p ${build}
-	cd ${build}; jar cfe ${jarfile} * main.class; echo "produced file ${jarfile}"; cd ..
+	cd ${build}; jar cfe ${jarfile} * main_t*.class; echo "produced file ${jarfile}"; cd ..
 
 ${build}/%.class: %.java
 	mkdir -p ${build}
 	${javac} -Xlint ${flags} -d ${build} -cp ${depjar}:${libspath}:${build} $^
 
-${build}/main.class: ${build}/us/gov/crypto/test/symmetric_encryption.class ${build}/us/gov/crypto/test/ec.class main.java
-	${javac} -Xlint ${flags} -d ${build} -cp ${depjar}:${libspath}:${build} main.java
+${build}/main_t.class: ${build}/us/gov/crypto/test/symmetric_encryption.class ${build}/us/gov/crypto/test/ec.class main_t.java
+	${javac} -Xlint ${flags} -d ${build} -cp ${depjar}:${libspath}:${build} main_t.java
 
 clean:
 	rm build_* -rf

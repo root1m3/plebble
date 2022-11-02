@@ -21,6 +21,7 @@
 //===----------------------------------------------------------------------------
 //===-
 package us.gov.cli;
+import us.CFG;                                                                                 // CFG
 import static us.gov.id.types.*;                                                               // *
 import static us.gov.io.types.*;                                                               // *
 import static us.gov.socket.types.*;                                                           // *
@@ -29,6 +30,10 @@ import us.ko;                                                                   
 import static us.ko.ok;                                                                        // ok
 
 public class hmi {
+
+    static void log(final String line) {                        //--strip
+        CFG.log_gov("gov/cli/hmi: " + line);              //--strip
+    }                                                           //--strip
 
     public void on_connect(ko r) {
     }
@@ -47,6 +52,10 @@ public class hmi {
 
     public void upgrade_software() {
         log("Peer is signaling the existence of a upgrade_software."); //--strip
+    }
+
+    public void verification_result(request_data_t request_data) {
+        log("verification_result " + request_data.value); //--strip
     }
 
     static class params_t {

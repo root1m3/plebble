@@ -68,12 +68,12 @@ public class rpc_daemon_t extends us.gov.engine.rpc_daemon_t {
 
     @Override public ko connect() {
         log("connect"); //--strip
-        return connect(new pin_t(0));
+        return connect(new pin_t(0), new request_data_t());
     }
 
-    public ko connect(pin_t pin) {
-        log("connect with pin "+ pin.value); //--strip
-        ko r = get_peer().connect(shostport, new pport_t(0), pin, role, true);
+    public ko connect(pin_t pin, request_data_t request_data) {
+        log("connect with pin " + pin.value + " request_data " + request_data.value); //--strip
+        ko r = get_peer().connect(shostport, new pport_t(0), pin, role, request_data, true);
         if (is_ko(r)) {
             return r;
         }
@@ -91,6 +91,11 @@ public class rpc_daemon_t extends us.gov.engine.rpc_daemon_t {
     public void verification_completed(boolean verif_ok) {
         log("verification_completed " + verif_ok); //--strip
         if (parent != null) parent.verification_completed(verif_ok);
+    }
+
+    public void verification_result(request_data_t request_data) {
+        log("verification_result " + request_data); //--strip
+        if (parent != null) parent.verification_result(request_data);
     }
 
     public void on_I_disconnected(reason_t reason) {

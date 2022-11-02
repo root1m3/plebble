@@ -295,11 +295,22 @@ Once downloaded the blob it will install it performing the following actions in 
 <br/>
 <button type="button" class="collapsible">+ User documentation.</button>
 <div class="content">
+
+<p>
+unformatted <a href="">definitions</a> To do...
+</p>
+<p>
+unformatted <a href="doc/user_manual.txt">gov user manual</a> In progress...
+</p>
+<p>
+unformatted <a href="doc/user_manual.txt">wallet user manual</a> In progress...
+</p>
+
 <h2>Governance process. Public system.</h2>
 <h3>Daemon</h3>
 <p>Checking the process:</p>
 <pre style="background-color:#000000; color:#ffffff;display: inline-block"">
-<font color="#00FF00"> root@plebble:~# </font>ps ax | grep plebble-gov 
+<font color="#00FF00"> root@plebble:~# </font>ps ax | grep plebble-gov
  2148296 ?        S&gtsl  26:42 /usr/local/bin/plebble-gov -ds -e 12 -v 3 -c 0 -p 16672 -pp 16672 -status 0
 </pre>
 

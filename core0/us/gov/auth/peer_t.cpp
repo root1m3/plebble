@@ -36,31 +36,28 @@ constexpr array<const char*, c::num_stages> c::stagestr;
     c::counters_t c::counters;
 #endif
 
-void c::verification_completed(pport_t rpport, pin_t pin) {
+ko c::verification_completed(pport_t rpport, pin_t pin, request_data_t& request_data) {
     log("verification_completed", endpoint(), rpport, sock);
-    if (unlikely(!verification_is_fine())) {
-        #if CFG_COUNTERS == 1
-            ++counters.failed_verifications;
-        #endif
-        log("verification_not_fine");
-        return;
+    {
+        auto r = b::verification_completed(rpport, pin, request_data);
+        if (unlikely(is_ko(r))) {
+            return r;
+        }
     }
-    #if CFG_COUNTERS == 1
-        ++counters.successful_verifications;
-    #endif
-    auto r = authorize(pubkey, pin);
+    auto r = authorize(pubkey, pin, request_data);
     if (unlikely(is_ko(r))) {
         #if CFG_COUNTERS == 1
             ++counters.failed_authorizations;
         #endif
-        log("authorization denied", pubkey, r);
-        return;
+//        log("authorization denied", pubkey, r);
+        return r;
     }
     #if CFG_COUNTERS == 1
         ++counters.successful_authorizations;
     #endif
     stage = authorized;
     log("stage", stagestr[stage]);
+    return ok;
 }
 
 void c::dump(const string& prefix, ostream& os) const {
@@ -74,8 +71,6 @@ void c::dump_all(const string& prefix, ostream& os) const {
 
 #if CFG_COUNTERS == 1
     void c::counters_t::dump(ostream& os) const {
-        os << "successful_verifications " << successful_verifications << '\n';
-        os << "failed_verifications " << failed_verifications << '\n';
         os << "successful_authorizations " << successful_authorizations << '\n';
         os << "failed_authorizations " << failed_authorizations << '\n';
     }

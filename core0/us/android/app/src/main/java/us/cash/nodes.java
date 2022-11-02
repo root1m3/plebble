@@ -142,7 +142,7 @@ public final class nodes extends activity implements datagram_dispatcher_t.handl
         o.ensureCapacity(bm.size());
         for (hash_t i: bm) {
             try {
-                endpoint_t ep = new endpoint_t(a.hmi.p.channel, i);
+                endpoint_t ep = new endpoint_t(a.hmi().p.channel, i);
                 o.add(new pair<String, bookmark_t>("wallet", new bookmark_t(ep)));
             }
             catch (Exception e) {
@@ -209,7 +209,7 @@ public final class nodes extends activity implements datagram_dispatcher_t.handl
                                 bm.second.label = String.valueOf(input.getText()).trim();
                                 us.wallet.engine.rpc_peer_t.bookmark_add_in_t o = new us.wallet.engine.rpc_peer_t.bookmark_add_in_t(new string(bm.first), bm.second);
                                 string s = new string();
-                                ko r = a.hmi.rpc_peer.call_bookmark_add(o, s);
+                                ko r = a.hmi().rpc_peer.call_bookmark_add(o, s);
                                 if (is_ko(r)) {             //--strip
                                     log(r.msg);             //--strip
                                 }                           //--strip
@@ -252,12 +252,12 @@ public final class nodes extends activity implements datagram_dispatcher_t.handl
     @Override public void onPause() {
         super.onPause();
         log("onPause"); //--strip
-        if (a.hmi == null) {
+        if (!a.has_hmi()) {
             dispatchid = -1;
         }
         else {
             if (dispatchid != -1) {
-                a.hmi.dispatcher.disconnect_sink(dispatchid);
+                a.hmi().dispatcher.disconnect_sink(dispatchid);
             }
         }
     }
@@ -265,12 +265,12 @@ public final class nodes extends activity implements datagram_dispatcher_t.handl
     @Override public void onResume() {
         super.onResume();
         log("onResume"); //--strip
-        if (a.hmi == null) {
+        if (!a.has_hmi()) {
             dispatchid = -1;
         }
         else {
             log("Connecting to datagram dispatcher");//--strip
-            dispatchid = a.hmi.dispatcher.connect_sink(this);
+            dispatchid = a.hmi().dispatcher.connect_sink(this);
         }
     }
 
@@ -318,7 +318,7 @@ public final class nodes extends activity implements datagram_dispatcher_t.handl
                             break;
                         case 2:
                             string ans = new string();
-                            ko r = a.hmi.rpc_peer.call_bookmark_delete(new string(bm.first), ans);
+                            ko r = a.hmi().rpc_peer.call_bookmark_delete(new string(bm.first), ans);
                             Toast.makeText(a.main, ans.value, Toast.LENGTH_LONG).show();
                             refresh();
                             break;
@@ -339,7 +339,7 @@ public final class nodes extends activity implements datagram_dispatcher_t.handl
                             break;
                         case 1:
                             log("Copy to my bookmarks"); //--strip
-                            a.hmi.command_trade(a.main._nodes_mode_custom_tid, "copybm " + (pos + 1));
+                            a.hmi().command_trade(a.main._nodes_mode_custom_tid, "copybm " + (pos + 1));
                             break;
                     }
                 }
@@ -377,7 +377,7 @@ public final class nodes extends activity implements datagram_dispatcher_t.handl
             @Override public void run() {
                 log("load_bookmarks-run"); //--strip
                 bookmarks_t bm = new bookmarks_t();
-                ko r = a.hmi.rpc_peer.call_bookmark_list(bm);
+                ko r = a.hmi().rpc_peer.call_bookmark_list(bm);
                 if (is_ko(r)) {
                     set_busy__worker(false);
                     log(r.msg); //--strip
@@ -398,13 +398,13 @@ public final class nodes extends activity implements datagram_dispatcher_t.handl
             @Override public void run() {
                 log("load_world-run"); //--strip
                 us.gov.io.types.vector_hash vh = new us.gov.io.types.vector_hash();
-                if (a.hmi == null || a.hmi.rpc_peer == null) {
+                if (!a.has_hmi() || a.hmi().rpc_peer == null) {
                     ko r = new ko("KO 70699 HMI is not on"); //--strip
                     set_busy__worker(false);
                     log(r.msg); //--strip
                     return;
                 }
-                ko r = a.hmi.rpc_peer.call_world(vh);
+                ko r = a.hmi().rpc_peer.call_world(vh);
                 if (is_ko(r)) {
                     set_busy__worker(false);
                     log(r.msg); //--strip
@@ -446,7 +446,7 @@ public final class nodes extends activity implements datagram_dispatcher_t.handl
 
     @Override public void refresh() {
         a.assert_ui_thread(); //--strip
-        if (a.hmi == null) {
+        if (!a.has_hmi()) {
             log("Closing activity hmi is null"); //--strip
             finish();
             return;

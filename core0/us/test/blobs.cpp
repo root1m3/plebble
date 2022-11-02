@@ -35,11 +35,15 @@
 #include <us/gov/cash/t_t.h>
 #include <us/gov/cash/f_t.h>
 #include <us/gov/cash/ttx.h>
+#include <us/gov/io/types.h>
+#include <us/gov/io/seriable_vector.h>
 #include <us/gov/dfs/fileattr_t.h>
 #include <us/gov/engine/signed_data.h>
 #include <us/gov/traders/app.h>
 
 #include <us/wallet/wallet/algorithm.h>
+#include <us/wallet/engine/wallet_connection_t.h>
+#include <us/wallet/engine/ip4_endpoint_t.h>
 
 #include "test_platform.h"
 
@@ -551,11 +555,124 @@ struct blobs_t: us::test::test_platform {
         //#include <us/api/apitool_generated__c++__datagram_tests_impl>
     }
 
+    using wallet_connection_t = us::wallet::engine::wallet_connection_t;
+    using serid_t = us::gov::io::blob_reader_t::serid_t;
+    using ip4_endpoint_t = us::wallet::engine::ip4_endpoint_t;
+    using blob_writer_t = us::gov::io::blob_writer_t;
+    using blob_reader_t = us::gov::io::blob_reader_t;
+    using blob_header_t = us::gov::io::blob_writer_t::blob_header_t;
+
+    struct wrapper_wallet_connection_t: wallet_connection_t {
+        using b = wallet_connection_t;
+
+        wrapper_wallet_connection_t(): wallet_connection_t("nm1", ip4_endpoint_t((shost_t)"192.167.66.3", (port_t)18782, (channel_t)0)) {
+            ts = 52;
+            addr = "addr_1";
+            subhome = "subhome_1";
+            ssid = "ssid_1";
+            
+        }
+
+        size_t blob_size() const override {
+            return b::blob_size();
+        }
+
+        void to_blob(blob_writer_t& w) const override {
+            b::to_blob(w);
+        }
+
+        ko from_blob(blob_reader_t& reader) override {
+            {
+                auto r = b::from_blob(reader);
+                if (is_ko(r)) return r;
+            }
+            return ok;
+        }
+
+    };
+
+    struct container_wc_t: us::gov::io::seriable_vector<wrapper_wallet_connection_t> {
+        using b = us::gov::io::seriable_vector<wrapper_wallet_connection_t>;
+
+        using b::seriable_vector;
+
+        serid_t serial_id() const override { return 'X'; }
+
+    };
+
+    string container_of_5_wrapper_wallet_connection_a50_curblob;
+
+    void test_wallet_connection() {
+        container_wc_t container_wc(5, wrapper_wallet_connection_t());
+        blob_t blob;
+        container_of_5_wrapper_wallet_connection_a50_curblob = container_wc.encode();        
+        cout << "container_of_5_wrapper_wallet_connection_a50_curblob=" << container_of_5_wrapper_wallet_connection_a50_curblob << endl;
+    }
+
+    void wrapper_test_wallet_connection2() {
+        string container_of_5_wrapper_wallet_connection_t_a49_blob = "24HGz9KDSkRWJvUzGCe2fJkngCb8v7XfmMMjnLtWXds1YaL5RtMcjTxoCZCGQKwsvCt7YJKRBDTq3k9aYoXzRvqMx4aModzMpjTqZduRBVbFbh9vyNsTC9jVLtER2Rod1WExpYC4My4ikxGMvrz7ZTtwDgoNAh9eTnPR1P8uqGLvErrNEXgDSbzHMEhgDv19Ckd9myzgXuDmRXMBxbr4p8obcwKGMDPR5ALCcdBvgWehGPqvhFZmXYwtrtedJ7zaJ7HB3AXLMtS2Fi9ZbeBc5orcBFycV7275nNcV1h";
+        string container_of_5_wrapper_wallet_connection_t_a50_blob = "3JxT8NUbu3u9xYXNVCwQi1kqTuCJyiAQBc8h3kTvBTKVz9w898JiC1HAyB4eHaZiYQnjzAGCpWmATosNReVAeKATNz4MDdGEKUFcVANCpnu1V8Y2dHKFApuzxnKqJweYJ758hrRijLxKNtPkaKuW2r9b4HDHAtHHerUTaKsHDCBpAozpZ43taHWvtC8kBcGgVwonmT8FhoXCaiEsWWQJWkvStCtarrEbYAL9Q6jyVUDnLw3hDRa2JoFVdpZvwfa7mn1sKBrDUvnEFTRWKa2j1rVrhgiAHToYNQsW9bLCdVoQywCfYRNchKu25eKV1puU8kexK1uuf5bcp5qH6VgVFQQEQikydSeamY4621DnwUZiCF";
+        cout << "container_of_5_wrapper_wallet_connection_t_a49_blob=" << container_of_5_wrapper_wallet_connection_t_a49_blob << endl;
+        cout << "container_of_5_wrapper_wallet_connection_t_a50_blob=" << container_of_5_wrapper_wallet_connection_t_a50_blob << endl;
+        assert(container_of_5_wrapper_wallet_connection_t_a50_blob == container_of_5_wrapper_wallet_connection_a50_curblob);
+        container_wc_t cw;
+        assert(is_ko(cw.read(container_of_5_wrapper_wallet_connection_t_a49_blob)));
+
+        string a49h = blob_writer_t::add_header(blob_header_t{blob_reader_t::current_version - 1, 'X'}, container_of_5_wrapper_wallet_connection_t_a49_blob);
+        cout << "a49h = {blob_reader_t::current_version - 1}'X' + container_of_5_wrapper_wallet_connection_t_a49_blob = " << a49h << endl;
+        ko r = cw.read(a49h);
+        if (is_ko(r)) {
+            tee(r);
+        }
+        assert(is_ok(r));
+        assert(cw.size() == 5);
+
+        assert(is_ok(cw.read(container_of_5_wrapper_wallet_connection_t_a50_blob)));
+        assert(cw.size() == 5);
+    }
+
+    void wrapper_test_wallet_connection() {
+        string wallet_connection_t_a49_blob="XvkfoSNzekbT3FwZdtp99Mg1aqRhkJ3EmvvMm66pddv9aBHdonSAqfD";
+        wallet_connection_t wc;
+        assert(is_ko(wc.read(wallet_connection_t_a49_blob)));
+    }
+
+    void convert_fromv9(const string& blobb58_v9) {
+        string a49h = blob_writer_t::add_header(blob_header_t{blob_reader_t::current_version - 1, 'X'}, blobb58_v9);
+        cout << "--- convert-str95------------" << endl;
+        cout << "input: " << blobb58_v9 << endl;
+        cout << "a49h = {blob_reader_t::current_version - 1}'X' + blobb58_v9 = " << a49h << endl;
+
+        struct wc_t: wallet_connection_t {
+            serid_t serial_id() const override { return 'X'; }
+        };
+
+        wc_t wc;
+        ko r = wc.read(a49h);
+        if (is_ko(r)) {
+            tee(r);
+        }
+        assert(is_ok(r));
+        wc.subhome = "new";
+
+        wallet_connection_t wc2(wc); //serialization with no header
+        cout << "a50= " << wc2.encode() << endl;
+        cout << "-/- convert------------------" << endl;
+    }
+
     void test() {
         test_bin_ser();
         test_datagram_parse(0);
         test_datagram_parse(1);
         test_datagram_parse(2);
+        test_wallet_connection();
+        wrapper_test_wallet_connection();
+        wrapper_test_wallet_connection2();
+        /*
+        convert_fromv9("Sk8adPorUZdLvsqufDQdnCp2r2KDABwmcKXwDYKJrmsQEEbSxe5jxmdUjz9BKLMoCetgS7my");
+        convert_fromv9("6bJY8RxitpYoDA3AmpxpXhpWQvPqgYPP3XAGMWMez7aGWMzA4iiWs22xgfMQd76BEBEAwjm");
+        convert_fromv9("4HuXw4HAXDiqGmyhVdDN5S1X4cQk4ejM98cXXQDrffYc3wScHDHBRHmzQQLdjwHpU87");
+        */
     }
 
     mt19937_64 rng;

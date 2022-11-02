@@ -190,7 +190,7 @@ public final class position extends activity {
 
     @Override public void refresh() {
         app.assert_ui_thread(); //--strip
-        if (a.hmi == null) {
+        if (!a.has_hmi()) {
             log("Closing activity hmi is null"); //--strip
             finish();
             return;

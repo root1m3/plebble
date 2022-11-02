@@ -85,14 +85,14 @@ public class fragment_w2w extends role_fragment  {
                 on_select_coin();
             }
         });
-        dispatchid = a.hmi.dispatcher.connect_sink(this);
+        dispatchid = a.hmi().dispatcher.connect_sink(this);
         return v;
    }
 
     @Override public void onDestroyView() {
         super.onDestroyView();
         log("onDestroyView"); //--strip
-        a.hmi.dispatcher.disconnect_sink(dispatchid);
+        a.hmi().dispatcher.disconnect_sink(dispatchid);
     }
 
     @Override public void onPause() {
@@ -130,7 +130,7 @@ public class fragment_w2w extends role_fragment  {
             return false;
         }
         if (txlog.entries == null || txlog.entries.isEmpty()) {
-            a.hmi.command_trade(tid, "show txlog");
+            a.hmi().command_trade(tid, "show txlog");
         }
         return true;
     }
@@ -154,7 +154,7 @@ public class fragment_w2w extends role_fragment  {
                 return;
             }
             String cmd = "transfer " + amount.value + " " + coin.encode();
-            a.hmi.command_trade(tid, cmd);
+            a.hmi().command_trade(tid, cmd);
             Toast.makeText(getActivity().getApplicationContext(), "Commanded '" + cmd + "'to remote wallet...", 6000).show();
         }
         amount.setText("");
@@ -167,10 +167,10 @@ public class fragment_w2w extends role_fragment  {
             @Override public void run() {
                 log("call_balance"); //--strip
                 final string ans = new string();
-                final ko r = a.hmi.rpc_peer.call_balance(new uint16_t(0), ans);
+                final ko r = a.hmi().rpc_peer.call_balance(new uint16_t(0), ans);
                 String x = null;
                 if (is_ko(r)) {
-                    x = a.hmi.rewrite(r);
+                    x = a.hmi().rewrite(r);
                 }
                 final String y = x;
                 getActivity().runOnUiThread(new Runnable() {

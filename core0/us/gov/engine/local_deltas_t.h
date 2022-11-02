@@ -42,6 +42,8 @@ namespace us::gov::engine {
         local_deltas_t(): id(0) {}
         local_deltas_t(const local_deltas_t&) = delete;
         ~local_deltas_t();
+
+    public:
         void clear();
 
         using s::get_datagram;

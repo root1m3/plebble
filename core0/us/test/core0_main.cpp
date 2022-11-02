@@ -127,17 +127,34 @@ struct tengine: us::gov::engine::daemon_t, us::test::test_platform {
     static constexpr int govport{22222};
     static constexpr const char* govaddr{"127.0.0.1"};
 
+    uint8_t vprev;
+    uint8_t vcur;
+
     tengine(const string& home, uint16_t port, ostream& os): b(123, crypto::ec::keys::generate(), home, port, port, edges, 1, threadpool_size, vector<pair<uint32_t, uint16_t>>(), home + "/status"), t(os) {
         sysop_allowed = true;
+
+        vcur = us::gov::io::blob_reader_t::current_version;
+        assert(vcur > 0);
+        vprev = vcur - 1;
+
     }
     ~tengine() override {
     }
 
-    void acase() { //gov::io::blob_reader_t::current_version
-        cout << "V8 diff sys app\n"; // proc1 VX where X=prev char
+    void serialization_local_deltas(int id, function<us::gov::engine::local_deltas_t*()> create_local_deltas, function<void(const us::gov::engine::local_deltas_t&)> check_g) { //gov::io::blob_reader_t::current_version
+        cout << "V" << +vprev << " diff sys app\n"; // proc1 VX where X=prev char
         //proc1. leave this value of s, execute test to obtain the new value
 
-         string s = /*v9*/ "GULccCrFbqsYqaGQRfwbjoy6fNf8sLQkdxqy7dQo6yetkdeRWkrdTKtteYEeErCDyNqu9gBSqvmJU4hCGaj9AtLa49cy71FQeMga3rfrR8oJsdTSQsq9veC3jvD1Co2Rhhw6rUVNAo1K3ddb4EK";
+        //string s = /*v9*/ "GULccCrFbqsYqaGQRfwbjoy6fNf8sLQkdxqy7dQo6yetkdeRWkrdTKtteYEeErCDyNqu9gBSqvmJU4hCGaj9AtLa49cy71FQeMga3rfrR8oJsdTSQsq9veC3jvD1Co2Rhhw6rUVNAo1K3ddb4EK";
+
+
+        string localdeltas_prev;
+        {
+            ostringstream fn;
+            fn << "verser/" << +vprev << "/local_deltas_" << id; 
+            localdeltas_prev = fn.str();
+        }
+
 //       History:
 //         string s = /*v8*/ "EopTPw3SmupNkf6Dsaqx6zhnsM59cZVrjRMZhMm7rY8Fvgbpru9KYZF3rRTkaYJF9aTziwz8gJAsgu2GcMtq5pTztcLh1cqskznXPge5pP5jTVoQWXT9SiT42hAVUipesRPo7KUUCJmw6HMxhnP";
 //        string s = /*v7*/ "vbdLr3mC5fY6VzR7Edt86y5Uv4bJJkCuQKWPx1ZS1uhpLJpuCBKaT3NZv6c93CqAL2XhxLriHzKtr3HFcAd9VXCa2ccmVU2tZNSs3d7fE5g7P3DpLexxr5s7gsHyJY2sbiAe3biCbSregy6EhxxX";
@@ -151,13 +168,33 @@ struct tengine: us::gov::engine::daemon_t, us::test::test_platform {
 //        string s="1 ocu5W22cciHEZoDCmfmtvVc7Z1y1p2Y1uDZxQ5yEkND8 AN1rKvtaooWV4rY9FvXB8Rr6b2m9oSuiQz5wEGxtyuYAQMd7zvUSSVLDEwnRjDcMvuzDqmiMqqJWn4sF4xKDLWkwVAPLsmweD 1545565800000000000 3 1 2p5DodGLZg6wbYRnAHPn8CfARWpc 6bfee5f17ef45e36c9d2bcac18f5278a71040190 5ZnmQCJyBmX1GiRkEcTbfkWypmR 50 5866 0.8 0 258 16720 6 400 0 0 0 0 404 0 0 0 0 408 0 0 0 0 800 12 428 15 536 804 15 2674 12 2148 808 12 1796 15 2254 162 0.5 0 0.4 10 11 953821266 2661973948 1822982076 3961463889 1569376443 3582345221 3582345221 3582345221 3971129167 1720009656 1039151964 1 20 4 3gaEPErNicpAyBxqrpMRoXcZFou9 1822982076 17888 8Pg6QViJtuxBuFpdXcdfzxGeDGr 2661973948 17888 GutkKVYN1Q6n75XHdhtX4pvCWFi 953821266 17888 4XbkvPxxMQjC3g9Z8o119H3oLeJ7 3961463889 17888 0 30 0 0 ";
 //        string s="0 ocu5W22cciHEZoDCmfmtvVc7Z1y1p2Y1uDZxQ5yEkND8 AN1rKvtaooWV4rY9FvXB8Rr6b2m9oSuiQz5wEGxtyuYAQMd7zvUSSVLDEwnRjDcMvuzDqmiMqqJWn4sF4xKDLWkwVAPLsmweD 1545565800000000000 3 1 2p5DodGLZg6wbYRnAHPn8CfARWpc 6bfee5f17ef45e36c9d2bcac18f5278a71040190 5ZnmQCJyBmX1GiRkEcTbfkWypmR 50 5866 0.8 0 258 16720 6 400 0 0 0 0 404 0 0 0 0 408 0 0 0 0 800 12 428 15 536 804 15 2674 12 2148 808 12 1796 15 2254 162 0.5 0 0.4 10 11 953821266 2661973948 1822982076 3961463889 1569376443 3582345221 3582345221 3582345221 3971129167 1720009656 1039151964 1 20 4 3gaEPErNicpAyBxqrpMRoXcZFou9 1822982076 17888 8Pg6QViJtuxBuFpdXcdfzxGeDGr 2661973948 17888 GutkKVYN1Q6n75XHdhtX4pvCWFi 953821266 17888 4XbkvPxxMQjC3g9Z8o119H3oLeJ7 3961463889 17888 0 30 0 0 ;
 
-        auto g = new us::gov::engine::local_deltas_t();
-        auto r = g->read(s);
+        auto g = create_local_deltas(); //new us::gov::engine::local_deltas_t();
+        auto r = g->load(localdeltas_prev);
         if (is_ko(r)) {
             cout << r << endl;
         }
         assert(is_ok(r));
         assert(g != nullptr);
+
+/*
+        if (g->empty()) {  //genesis local_delta:
+
+            us::gov::cash::app::local_delta* cld = new us::gov::cash::app::local_delta();
+            cld->fees=123;
+            hash_t addr("2pCcSDYA1Zt5gY4UD25vRZnhmJ2G");
+            hash_t addr2("cdCSmHMvyYemaAw5Sm3u7Aw7z75");
+            us::gov::cash::safe_deposit_box box(567);
+            check(box.value, (cash_t)567);
+            { bool b=box.store("a", "b"); check(b,true); }
+            { bool b=box.store("a2", "b2");  check(b,true); }
+            { bool b=box.store("path1", addr, 101);  check(b,true); }
+            { bool b=box.store("path2", addr2, 202);  check(b,true); }
+            cld->accounts.emplace(addr, us::gov::cash::account_t(1, box));
+            g->emplace(20, cld);
+            g->id = 128564;
+        }
+*/
+        check_g(*g);
 
         /* Code used to create the blob
         auto& r=dynamic_cast<us::gov::cash::app::local_delta&>(*g->find(us::gov::cash::app::id())->second);
@@ -172,6 +209,30 @@ struct tengine: us::gov::engine::daemon_t, us::test::test_platform {
         { bool b=box.store(addr2, 202);  check(b,true); }
         r.accounts.emplace(addr,us::gov::cash::app::local_delta::account_t(1,box));
         */
+        string localdeltas_cur;
+        {
+            ostringstream fn;
+            fn << "verser/" << +vcur << "/local_deltas_" << id; 
+            localdeltas_cur = fn.str();
+        }
+
+        g->save(localdeltas_cur);
+        cout << ">>>>>>>>>>>>>>>>>>> writen file " << localdeltas_cur << endl;
+
+        {
+            auto g2 = create_local_deltas(); //new us::gov::engine::local_deltas_t();
+            auto r = g2->load(localdeltas_cur);
+            if (is_ko(r)) {
+                cout << r << endl;
+            }
+            assert(is_ok(r));
+            check_g(*g2);
+            delete g2;
+        }
+
+/*
+        auto s = g->encode();
+
 
         blob_t blob;
         g->write(blob);
@@ -181,32 +242,137 @@ struct tengine: us::gov::engine::daemon_t, us::test::test_platform {
         if (s != s2) {
             cout << "acase V9:\n"; // proc1 VX, X=new char
             cout << "----------------------proc1 -1-------------------\n";
-            cout << "PREV        string s = /*v8*/ \"" << s << "\";\n";
-            cout << "NEW         string s = /*v9*/ \"" << s2 << "\";\n";
+            cout << "PREV        string s = / *v8* / \"" << s << "\";\n";
+            cout << "NEW         string s = / *v9* / \"" << s2 << "\";\n";
             cout << "-/--------------------proc1 -1-------------------\n";
             cout << "you updated gov::io::blob_reader_t::current_version to " << +gov::io::blob_reader_t::current_version << ", replace the previous definition of 's' above in this function.\n";
         }
         check(s2, s);
+*/
         delete g;
+
+        {
+            auto g = create_local_deltas();
+            auto r = g->load(localdeltas_prev);
+            if (is_ko(r)) {
+                delete g;
+                assert(false);
+            }
+            assert(g != nullptr);
+
+            blob_t out;
+            g->write(out);
+            string cur = us::gov::crypto::b58::encode(out);
+            os << "cur: " << cur << endl;
+            auto g2 = new engine::local_deltas_t();
+            assert(g2->read(out) == ok);
+
+            blob_t out2;
+            g2->write(out2);
+            string inp2 = us::gov::crypto::b58::encode(out2);
+            os << "cur: " << inp2 << endl;
+
+            auto g3 = create_local_deltas();
+            assert(g3->read(out2) == ok);
+
+            engine::diff* d = new engine::diff();
+            if (!d->add(g)) {
+                assert(false);
+            }
+            if (d->add(g2)) {
+                assert(false);
+            }
+            if (d->add(g3)) {
+                assert(false);
+            }
+            delete d;
+        }
+    }
+
+    void check_g1(const us::gov::engine::local_deltas_t& g) { //gov::io::blob_reader_t::current_version
+        g.dumpX(cout);
+        assert(g.size() == 1);
+        assert(g.id == 128564);
+        //TODO more checks. seel below: genesis local_delta:
+    }
+
+    void check_g2(const us::gov::engine::local_deltas_t& g) { //gov::io::blob_reader_t::current_version
+        g.dumpX(cout);
+        assert(g.size() == 4);
+        assert(g.id == 0);
+        //TODO more checks. seel below: genesis local_delta:
     }
 
     void serialization_local_deltas() {
-        acase();
-        string prev;
+        serialization_local_deltas(1, [](){ return new us::gov::engine::local_deltas_t(); }, [&](const us::gov::engine::local_deltas_t& o) { check_g1(o); });
+        serialization_local_deltas(2, [&](){ return create_local_deltas(0); }, [&](const us::gov::engine::local_deltas_t& o) { check_g2(o); });
+//        string prev;
+    
+/*
+        string localdeltas_prev;
+        {
+            string prev = "7pCHkfZs4WhJwtFiiSicNuSidornaGckDpoeKXusL57d33u8cobUqFtSYTomAhHCHDw9dkDevKQxjpmp7Sma7wP6LQ45zi672cg6g6TLG9eyczDqBN94Mgsym2YhMPqCQv4Eg3GUh8zQve7HHzuya3j7hffhjqSHbWE6CecvRqkTf1sFT9sDoiWo1AmjThkocMm";
+
+            auto g = new us::gov::engine::local_deltas_t();
+            auto r = g->read(prev);
+            if (is_ko(r)) {
+                delete g;
+                assert(false);
+            }
+            assert(g != nullptr);
+            {
+                ostringstream fn;
+                fn << "verser/" << +vprev << "/local_deltas_2"; 
+                localdeltas_prev = fn.str();
+            }
+            g->save(localdeltas_prev);
+        }
+        assert(false);
+*/
+/*
+        string localdeltas_cur;
         {
             auto* ld = create_local_deltas(0);
-            blob_t out;
-            ld->write(out);
+            cout << "local deltas created contains " << ld->size() << " app local_deltas" << endl;
+            ld->dumpX(cout);
+            auto sz = ld->size();
+            auto id = ld->id;
+            {
+                ostringstream fn;
+                fn << "verser/" << +vcur << "/local_deltas_2"; 
+                localdeltas_cur = fn.str();
+            }
+
+//            blob_t out;
+            ld->save(localdeltas_cur);
+
+            { //check loads correctly
+                auto g = new us::gov::engine::local_deltas_t();
+                auto r = g->load(localdeltas_cur);
+                if (is_ko(r)) {
+                    cout << r << endl;
+                }
+                assert(is_ok(r));
+                assert(g != nullptr);
+                assert(sz == g->size());
+                assert(id == g->id);
+                delete g;
+            }
+*/
+//assert(false);
+/*
             prev = us::gov::crypto::b58::encode(out);
             cout << "----------------------proc1 -2-------------------\n";
             cout << "V8 serialization_local_deltas. Line for future V10. Search XC5549Xyte \n";
             cout << "        prev=/" << "*v9*" << "/\"" << prev << "\";\n"; //proc1. VX, X=new vchar
             cout << "-/--------------------proc1 -2-------------------\n";
             delete ld;
-        }
+*/
+ //       }
 
-        //XC5549Xyte here
-        prev=/*v8*/"75grxngBPUeQBgTtHTPsiofju4Zju3cf2xCu3aMup18NKAZ2iLM1NSeFhp7PL4fYrCzrm2Jf8LSS53MfKpa8BgwuAnNrt8r7QmwAqjboTMcvUaZ9y1SfgtQS8RxchrcRRfnvUUPsXG93Nba9i3RKfta16y1m1Dnpgxvu9S2ij8t6rkUBAKVK2TwoRKqwFausfR9";
+        //XC5549Xyte here. Next: search here proc1
+        //prev=/*v9*/"7pCHkfZs4WhJwtFiiSicNuSidornaGckDpoeKXusL57d33u8cobUqFtSYTomAhHCHDw9dkDevKQxjpmp7Sma7wP6LQ45zi672cg6g6TLG9eyczDqBN94Mgsym2YhMPqCQv4Eg3GUh8zQve7HHzuya3j7hffhjqSHbWE6CecvRqkTf1sFT9sDoiWo1AmjThkocMm";
+        //prev=/*v8*/"75grxngBPUeQBgTtHTPsiofju4Zju3cf2xCu3aMup18NKAZ2iLM1NSeFhp7PL4fYrCzrm2Jf8LSS53MfKpa8BgwuAnNrt8r7QmwAqjboTMcvUaZ9y1SfgtQS8RxchrcRRfnvUUPsXG93Nba9i3RKfta16y1m1Dnpgxvu9S2ij8t6rkUBAKVK2TwoRKqwFausfR9";
         //prev=/*v7*/"Qc4fRa6F55ohCjrtYCKpxpT7gy7XxqKGQ14BBZRHc5aJEYRzxPa75PENmfnJ2Tb2AWBhEXgoYFsZEC1VrhAvYqcFsoECYdyXH5QQ48Vja7NdZidMBHLh9WxfP6AWzRFKgn4nwa4h1j8TCtA9trRdogM12k61k9UZ5uhk77xr23FrFvmJXBkFnXL3Mn5FkgHpjHm9";
         //prev=/*v6*/"TqgkQxoSWtYCJ3Hbn1tGq63upPMd2zU8bgZGzdqx1jJxFsNRrHqHrMbgaVddAdyP3njjNTRE8fTQSrSuCmK7jtNizES7afuowQZMZBdkkjbMJK1R1QLF3o1cYcZ92VvmB4jy9yGNCrS7AmEKSDfhipyQP4DYxAd8TciNRLT2HJPZ2y3PGWxeNdkAWvNNqAb2Qz95";
         //prev="5 d4yp7kjDKiQN12jbbp4saFotg4eAFJvmjXSHjr8Hz1DM 381yXZRuczk7rgy6MqVZYFHXYHk4ridp3Tv7iBe2uurFfCLqDPH1wmdrctCXtd7qJ93X34MEZbcJEmm5RxmYHyc5cS5P8qVk 0 3 1 tDKRyCNBzMgKQRe12ETU6wMkq7u 20 0 0 30 0 0 ";
@@ -220,42 +386,7 @@ struct tengine: us::gov::engine::daemon_t, us::test::test_platform {
         //prev="0 gyJV3HWobi5naUegrKxPcDcyRAz8PURfHpRjiAQoo5HG 381yXZUQgCUPT8M1XxA3Ss8MVYtfHTkT6HmmZ3GKp6v8tgDZkTU6XJukLFKUpYJh7RyahQB8SFkJFrdcyC3ZpPJsPSc1icSV 0 3 1 2oDPP3nWogQ2dQd7wDY7XLNGKH7k 826e25eded05b5af1b4a658e93a3903ba9214bfe 2fXeh8zDNJrKbjWAjLjZ5uRSsSEQ 52 6185 1.09 461 369 147314 6 400 0 0 0 0 404 0 0 0 0 408 0 0 0 0 800 0 0 0 0 804 0 0 0 0 808 0 0 0 0 0 0.1 0 0 1 0 1 20 0 0 30 0 0 ";
         //prev="4 25A1KZ8wmLssH1eHcYqcnrSrMnKnAqWeEbRMCHo2nyWK3 AN1rKvszcWZmxkhZgc1LC2bVPGs1qQnBD2mgKNL3DmPFps54wpZ2RyGPvbciX72bi2FJBcVieUsz1tgqgonJLLfHEXGUJbHyC 0 3 1 4Htbk7pZkG2nNtD1Cdgxq6vfMkqS f0b2a5cb8ad5409194f6fd105f2ebd5c88cbb8a3 2DrCcbyA9JPe9aTTCVcoFap61m5t 52 6185 1.16 3095 509 147883 6 400 0 0 0 0 404 0 0 0 0 408 0 0 0 0 800 0 0 0 0 804 0 0 0 0 808 0 0 0 0 0 0.1 0 2.41624e+08 1 0 1 20 0 0 30 0 0 ";
         //prev="3 yQXZpmn3ybnqnDt145TpPsAY2U7hAbTZPHsxUnyGmQTT AN1rKvthvXpojE9EWi2N7oaqKGq95nr8dWg2BrKUMQ6S8FtwZ2zzJzk6qGVXTfN4gCBEupNyEoe3tjCtf4fCZRGb5ckDAUDoT 0 3 1 2hVXqqpap7GThRWcHPkRSLTDMkCD 012d59ee3ccd0a9243c207bec4f0dd750a010f8d 2N3687UUKxYk3457EasUpi2pyZXd 52 6185 0.98 4042 367 148143 6 400 0 0 0 0 404 0 0 0 0 408 0 0 0 0 800 0 0 0 0 804 0 0 0 0 808 0 0 0 0 0 0.1 0 4.5765e-41 1 0 20 0 0 30 0 0 ";
-        os << "prev: " << prev << endl;
 
-        auto g = new us::gov::engine::local_deltas_t();
-        auto r = g->read(prev);
-        if (is_ko(r)) {
-            delete g;
-            assert(false);
-        }
-        assert(g != nullptr);
-
-        blob_t out;
-        g->write(out);
-        string cur = us::gov::crypto::b58::encode(out);
-        os << "cur: " << cur << endl;
-        auto g2 = new engine::local_deltas_t();
-        assert(g2->read(out) == ok);
-
-        blob_t out2;
-        g2->write(out2);
-        string inp2 = us::gov::crypto::b58::encode(out2);
-        os << "cur: " << inp2 << endl;
-
-        auto g3 = new engine::local_deltas_t();
-        assert(g3->read(out2) == ok);
-
-        engine::diff* d = new engine::diff();
-        if (!d->add(g)) {
-            assert(false);
-        }
-        if (d->add(g2)) {
-            assert(false);
-        }
-        if (d->add(g3)) {
-            assert(false);
-        }
-        delete d;
     }
 
     void serialization_diff_prev(const string& prev) {
@@ -310,16 +441,25 @@ struct tengine: us::gov::engine::daemon_t, us::test::test_platform {
 
     using blob_reader_t = us::gov::io::blob_reader_t;
 
-    void blocks_v8(const string& datadir) { //proc1 - blocks_vX, X=prev char
+    void blocks_v_prev() { //proc1 - blocks_vX, X=prev char
+        string dir;
+        {
+            ostringstream os;
+            os << "verser/" << +vprev << "/blocks";
+            dir = os.str();
+        }
+        assert(us::gov::io::cfg0::dir_exists(dir));
+        tee("loading blocks v.", +vprev, "from", dir);
+//        string datadir = datadir + "/blocks_v8"
         vector<string> r;
-        for(auto& p: fs::directory_iterator(datadir)) {
+        for(auto& p: fs::directory_iterator(dir)) {
             if (!is_regular_file(p.path())) continue;
             if (p.path().filename() == "head") continue;
             r.push_back(p.path().filename());
         }
         for (auto& i: r) {
             cout << "##################################### " << i << ' ';
-            string file = datadir + "/" + i;
+            string file = dir + "/" + i;
             blob_reader_t::blob_header_t hdr;
             ko r = blob_reader_t::read_header(file, hdr);
             assert(is_ok(r));
@@ -337,10 +477,31 @@ struct tengine: us::gov::engine::daemon_t, us::test::test_platform {
         }
     }
 
-    void serialization(const string& datadir) {
+    void serialization() {
+        {
+            ostringstream fn;
+            fn << "verser/" << +vprev;
+            assert(us::gov::io::cfg0::dir_exists(fn.str()));
+        }
+        {
+            ostringstream fn;
+            fn << "verser/" << +vcur;
+            auto b = us::gov::io::cfg0::dir_exists(fn.str());
+            if (!b) {
+                cout << "#######################################################\n";
+                cout << "You've increased the serial_version, " << fn.str() << " directory must be created and git controlled." << endl;
+                cout << "#######################################################\n";
+                cout << "TASK: Update per-brand default connection blobs after new verser (str95)\n";
+            }
+            assert(b);
+        }
+
+
         os << "local_deltas" << endl;
         serialization_local_deltas();
-        blocks_v8(datadir + "/blocks_v8"); //proc1 - blocks_vX where X=previous char streams_version
+
+        os << "blocks" << endl;
+        blocks_v_prev(); //proc1 - blocks_vX where X=previous char streams_version
     }
 
     void dashboard() {
@@ -564,11 +725,11 @@ struct tengine: us::gov::engine::daemon_t, us::test::test_platform {
         }
     }
 
-    void self_test(const string& datadir) {
+    void self_test() {
         cout << endl << "dashboard" << endl;
         dashboard();
         cout << endl << "serialization" << endl;
-        serialization(datadir);
+        serialization();
         cout << endl << "cash" << endl;
         test_cash();
         test_calendar();
@@ -613,7 +774,23 @@ void test_engine_daemon(const string& datadir) {
         #if CFG_LOGS == 1
             e.logdir = log_dir() + "/self_test";
         #endif
-        e.self_test(datadir);
+        e.self_test();
+    }
+    delete conf.second;
+}
+
+void test_engine_daemon__only_verser() {
+    using us::gov::io::cfg_daemon;
+    string homedir = log_dir() + "/home/test_engine_daemon__only_verser";
+    auto conf = cfg_daemon::load(123, homedir + "/gov", true);
+    assert(conf.first == ok);
+    assert(conf.second != nullptr);
+    {
+        tengine e(homedir, tengine::govport, cout);
+        #if CFG_LOGS == 1
+            e.logdir = log_dir() + "/verser";
+        #endif
+        e.serialization();
     }
     delete conf.second;
 }
@@ -784,6 +961,7 @@ bool l1_tests = true;
 bool l1_shard_tests = true;
 bool l2_tests = true;
 bool runsim = false;
+bool verser_info = false;
 
 void sig_handler_l1(int s) {
     cout << "------------------\n";
@@ -794,6 +972,11 @@ void sig_handler_l1(int s) {
     signal(SIGTERM, SIG_DFL);
     signal(SIGPIPE, SIG_DFL);
     raise(s);
+}
+
+void test_verser() {
+    cout << "verser..." << endl;
+    test_engine_daemon__only_verser();
 }
 
 void test_l1() {
@@ -854,16 +1037,18 @@ void test_l1() {
 //    test_db_analyst(string(argv[1])+"/db_analyst");
 }
 
-void help() {
-    cout << "--batch        Unattended/not interactive\n";
-    cout << "--shell        Bootstrap network and start interactive shell.\n";
-    cout << "--only-l1      Skip L2 tests.\n";
-    cout << "--only-l1-shard\n";
-    cout << "--only-l2      Skip L1 tests.\n";
-    cout << "--runsim       Run simulations.\n";
-    cout << "--valgrind     Omit heavy tests.\n";
-    cout << "--wait-between-steps     capture unexpected push_data datagrams before entering next step.\n";
-    cout << "--no_restart_wallet     Go through tests without restarting wallets .\n";
+void help(ostream& os) {
+    os << "--batch        Unattended/not interactive\n";
+    os << "--shell        Bootstrap network and start interactive shell.\n";
+    os << "--only-l1      Skip L2 tests.\n";
+    os << "--only-l1-shard\n";
+    os << "--only-l2      Skip L1 tests.\n";
+    os << "--runsim       Run simulations.\n";
+    os << "--valgrind     Omit heavy tests.\n";
+    os << "--wait-between-steps     capture unexpected push_data datagrams before entering next step.\n";
+    os << "--no_restart_wallet      Go through tests without restarting wallets .\n";
+    os << "--verser                 Prints info about current blob serialization versioning.\n";
+
 }
 
 int core0_main(int argc, char** argv) {
@@ -885,6 +1070,12 @@ int core0_main(int argc, char** argv) {
             l1_tests = true;
             l1_shard_tests = true;
             l2_tests = false;
+        }
+        else if (command == "--verser") {
+            l1_tests = true;
+            l1_shard_tests = true;
+            l2_tests = false;
+            verser_info = true;
         }
         else if (command == "--only-l1-shard") {
             l1_tests = false;
@@ -915,11 +1106,19 @@ int core0_main(int argc, char** argv) {
             break;
         }
         else {
-            help();
+            help(cout);
             cout << "Invalid command/option." << endl;
             return 1;
         }
     }
+
+    if (verser_info) {
+        test_verser();
+        us::gov::cli::hmi::process_cleanup();
+        us::wallet::cli::hmi::process_cleanup();
+        return 0;        
+    }
+
 
     if (runsim) {
         us::sim::sim_main();

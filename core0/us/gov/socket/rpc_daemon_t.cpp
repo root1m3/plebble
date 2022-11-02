@@ -54,12 +54,14 @@ ko c::wait_recv_connection(bool initiate) {
     return handler::wait_connection(initiate);
 }
 
+/*
 client* c::create_client() {
     log("KO 68759 This class needs to be specialized.");
     assert(false);
     return nullptr;
     //return new peer_t(*this);
 }
+*/
 
 bool c::process_unhandled(client& peer, datagram* d) {
     log("process_unhandled", d->service);

@@ -25,6 +25,7 @@
 
 #include <us/gov/io/screen.h>
 #include <us/gov/io/seriable.h>
+#include <us/gov/id/api.h>
 #include <us/gov/crypto/types.h>
 
 #include <us/wallet/engine/rpc_daemon_t.h>
@@ -39,9 +40,10 @@ namespace us::wallet::cli {
     struct rpc_daemon_t: engine::rpc_daemon_t, us::gov::io::screen::supervisor {
         using b = engine::rpc_daemon_t;
         using peer_type = rpc_peer_t;
+        using request_data_t = us::gov::id::request_data_t;
 
-        rpc_daemon_t(channel_t, const keys&, const shostport_t&, role_t role, dispatcher_t*);
-        rpc_daemon_t(hmi&, const keys&, const shostport_t&, role_t role, dispatcher_t*);
+        rpc_daemon_t(channel_t, const keys&, const shostport_t&, role_t role, const string& subhome, dispatcher_t*);
+        rpc_daemon_t(hmi&, const keys&, const shostport_t&, role_t role, const string& subhome, dispatcher_t*);
 
     public:
         socket::client* create_client() override;
@@ -64,6 +66,7 @@ namespace us::wallet::cli {
         virtual void on_peer_disconnected(const reason_t&);
         virtual void on_I_disconnected(const reason_t&);
         virtual void verification_completed(bool verif_ok);
+        virtual void verification_result(request_data_t&&);
 
     public:
         inline const keys_t& get_keys() const override { return id; }
@@ -75,6 +78,7 @@ namespace us::wallet::cli {
         keys_t id;
         shostport_t shostport;
         role_t role;
+        string subhome;
 
         hmi* parent{nullptr};
     };

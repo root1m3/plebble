@@ -361,6 +361,13 @@ public class hmi {
         log("verification_completed " + verif_ok); //--strip
     }
 
+    public void verification_result(request_data_t request_data) {
+        log("verification_result " + request_data.value); //--strip
+        scr.lock.lock();
+        scr.os.println("subhome is " + request_data.value);
+        scr.lock.unlock();
+    }
+
     public void on_I_disconnected(final reason_t reason) {
         log("I disconnected. Reason: " + reason.value); //--strip
     }
@@ -401,7 +408,7 @@ public class hmi {
             cfg = r.second;
         }
         shostport_t shostport = new shostport_t(p.walletd_host, p.walletd_port);
-        rpc_daemon = new us.wallet.cli.rpc_daemon_t(this, cfg.keys, shostport, rpc_peer_t.role_t.role_device, dis);
+        rpc_daemon = new us.wallet.cli.rpc_daemon_t(this, cfg.keys, shostport, rpc_peer_t.role_t.role_device, p.subhome, dis);
         rpc_daemon.handler.connect_for_recv = p.rpc__connect_for_recv;
         rpc_daemon.handler.stop_on_disconnection = p.rpc__stop_on_disconnection;
         log("rpc_daemon.handler.connect_for_recv = " + rpc_daemon.handler.connect_for_recv); //--strip
@@ -1036,6 +1043,7 @@ public class hmi {
             twocol(ind, "RPC to wallet-daemon (" + us.CFG.PLATFORM + "-wallet) parameters:", "", os);
             twocol(ind____, "-whost <address>", "walletd address", tostr(p.walletd_host.value), os);
             twocol(ind____, "-wp <port>", "walletd port", tostr(p.walletd_port.value), os);
+            twocol(ind____, "--custodial_wallet_id <string>", "(rpc) Select custodial wallet, or '-' for non-custodial", p.subhome.isEmpty() ? "'-'" : p.subhome, os);
         }
         os.println();
         os.println("Commands:");

@@ -101,20 +101,20 @@ public class fragment_bid2ask_bid extends role_fragment  {
     }
 
     void fetch_cat() {
-        a.hmi.command_trade(tr.tid, "show cat");
+        a.hmi().command_trade(tr.tid, "show cat");
     }
 
     void request_cat() {
-        a.hmi.command_trade(tr.tid, "request cat");
+        a.hmi().command_trade(tr.tid, "request cat");
     }
 
     void checkout() {
-        a.hmi.command_trade(tr.tid, "request inv");
+        a.hmi().command_trade(tr.tid, "request inv");
         scroll_down();
     }
 
     void pay() {
-        a.hmi.command_trade(tr.tid, "inv_pay trade_" + tid.encode());
+        a.hmi().command_trade(tr.tid, "inv_pay trade_" + tid.encode());
         scroll_down();
     }
 
@@ -149,7 +149,7 @@ public class fragment_bid2ask_bid extends role_fragment  {
             Bundle extras = data.getExtras();
             String item = extras.getString("selection");
             log("SEL: " + item); //--strip
-            a.hmi.command_trade(tr.tid, "select " + item + " 1");
+            a.hmi().command_trade(tr.tid, "select " + item + " 1");
         }
     }
 
@@ -163,7 +163,7 @@ public class fragment_bid2ask_bid extends role_fragment  {
                 @Override
                 public void on_remove(basket_item_view v) {
                     log("on_remove" + v.prod.encode()); //--strip
-                    a.hmi.command_trade(tr.tid, "select " + v.prod.encode() + " -1");
+                    a.hmi().command_trade(tr.tid, "select " + v.prod.encode() + " -1");
                 }
 
                 @Override

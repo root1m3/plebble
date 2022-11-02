@@ -143,7 +143,7 @@ public final class endpoint extends activity {
                     refresh();
                 }
             });
-            pair<ko, bookmarks_t> r = a.hmi.bookmarks_me();
+            pair<ko, bookmarks_t> r = a.hmi().bookmarks_me();
             if (is_ko(r.first)) {
                 finish();
                 return;
@@ -174,7 +174,7 @@ public final class endpoint extends activity {
 
     @Override public void refresh() {
         log("refresh"); //--strip
-        if (a.hmi == null) {
+        if (!a.has_hmi()) {
             log("Closing activity hmi is null"); //--strip
             finish();
             return;

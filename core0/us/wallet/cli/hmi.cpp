@@ -184,7 +184,7 @@ ko c::start_daemon(busyled_t::handler_t* busyled_handler_send, busyled_t::handle
         daemon = nullptr;
         return r;
     }
-    string subhome;
+    string subhome = ""; // Daemon non-custodial wallet
     log("selecting wallet. subhome =", subhome);
     w = daemon->users.get_wallet(subhome);
     { /// Import gov key
@@ -230,7 +230,7 @@ ko c::start_rpc_daemon(busyled_t::handler_t* busyled_handler_send, busyled_t::ha
         cfg = r.second;
     }
     shostport_t shostport = make_pair(p.walletd_host, p.walletd_port);
-    rpc_daemon = new rpc_daemon_t(*this, cfg->keys, shostport, rpc_peer_t::role_device, dis);
+    rpc_daemon = new rpc_daemon_t(*this, cfg->keys, shostport, rpc_peer_t::role_t::role_device, p.subhome, dis);
     rpc_daemon->connect_for_recv = p.rpc__connect_for_recv;
     rpc_daemon->stop_on_disconnection = p.rpc__stop_on_disconnection;
     #if CFG_LOGS == 1
@@ -386,6 +386,12 @@ void c::on_peer_disconnected(const string& reason) {
     log("peer disconnected. Reason: ", reason);
     screen::lock_t lock(scr, true);
     lock.os << "Peer disconnected with reason: " << reason << '\n';
+}
+
+void c::verification_result(request_data_t&& request_data) {
+    log("verification_result", request_data);
+    screen::lock_t lock(scr, true);
+    lock.os << "subhome is " << request_data << '\n';
 }
 
 void c::stop() {
@@ -1384,6 +1390,7 @@ void c::help(const params& p, ostream& os) { //moved
         fmt::twocol(ind____, "-pin <PIN number>", "Connect using PIN.", tostr(p.pin), os);
         fmt::twocol(ind____, "-c <channel>", "System channel", tostr(p.channel), os);
         fmt::twocol(ind____, "-B <connection_blob>", "User the given connection blob to connect to a wallet backend", "", os);
+        fmt::twocol(ind____, "--custodial_wallet_id <string>", "(rpc) Select custodial wallet, or '-' for non-custodial", p.subhome.empty() ? "'-'" : p.subhome, os);
         #if CFG_FCGI == 1
             fmt::twocol(ind____, "-fcgi", "Behave as a fast-cgi program. requires -d", tostr(p.fcgi ? "yes" : "no"), os);
         #endif

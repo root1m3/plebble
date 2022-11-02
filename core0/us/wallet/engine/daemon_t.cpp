@@ -95,7 +95,7 @@ c::daemon_t(channel_t channel, const keys_t& k, port_t port, pport_t pport, cons
         housekeeping(this),
         trusted_address(AUTOMATIC_UPDATES_ACCOUNT),
         home(home_),
-        gov_rpc_daemon(channel, k, backend, rpc_peer_t::role_device, new my_dispatcher_t(*this)),
+        gov_rpc_daemon(channel, k, backend, rpc_peer_t::role_t::role_device, new my_dispatcher_t(*this)),
         pm(*this),
         users(*this),
         devices(home_),
@@ -306,9 +306,9 @@ socket::client* c::create_client(sock_t sock) {
     return new peer_t(*this, sock);
 }
 
-pair<ko, string> c::authorize_device(const pub_t& p, pin_t pin) {
+ko c::authorize_device(const pub_t& p, pin_t pin, request_data_t& request_data) {
     log("is device authorized?", pin);
-    return devices.authorize(p, pin);
+    return devices.authorize(p, pin, request_data);
 }
 
 void c::on_peer_wallet(const hash_t& addr, host_t address, pport_t rpport) {

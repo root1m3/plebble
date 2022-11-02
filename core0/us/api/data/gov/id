@@ -16,3 +16,15 @@ async
 -
 -
 
+challenge2_response
+[peerinfo] p pub  sig_t sig  sig_der_t sig_der  request_data_t request_data
+async
+-
+-
+
+verification_result
+[peerinfo] request_data_t request_data
+async
+-
+-
+

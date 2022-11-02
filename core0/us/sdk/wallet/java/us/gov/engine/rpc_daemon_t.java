@@ -41,10 +41,12 @@ public abstract class rpc_daemon_t extends us.gov.dfs.rpc_daemon_t {
         log("set api_v " + api_v.value); //--strip
     }
 
+/*
     @Override public client create_client() {
         log("create_client"); //--strip
         return new rpc_peer_t(this);
     }
+*/
 
     @Override public void dump(final String prefix, PrintStream os) {
         os.println(prefix + "engine::rpc_daemon_t:");

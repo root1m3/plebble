@@ -241,6 +241,17 @@ ko c::android_app_test_automatic_updates() {
     return ok;
 }
 
+ko c::android_app_test__auto_custodial_wallet(string subhome, node& n) {
+    tee("Set conf key=value authorize_and_create_guest_wallet=1"); 
+    string ans;
+    auto r = n.wallet_cli->rpc_daemon->get_peer().call_conf(us::wallet::cli::rpc_peer_t::conf_in_t("authorize_and_create_guest_wallet", "1"), ans);
+    if (r != ok) {
+        cout << n.wallet_cli->rpc_daemon->rewrite(r) << endl;
+        assert(false);
+    }
+    return ok;
+}
+
 ko c::android_app_test__prepair(string subhome, node& n) {
     cout << "PIN (or auto): "; cout.flush();
     string inputPIN;
@@ -354,6 +365,7 @@ ko c::android_app_test() {
         cout << "3- pair from unauthorized attempts & continue (Do a connection attempt with the app before choosing 3)\n";
         cout << "4- set_consume_pin [consume_pin " << (n.wallet->daemon->devices.get_consume_pin() ? "1" : "0") << "]\n";
         cout << "5- Prepair & continue\n";
+        cout << "6- toggle Automatic authorization (new custodial wallet)\n";
         string input;
         getline(cin, input);
         us::gov::io::cfg0::trim(input);
@@ -382,6 +394,13 @@ ko c::android_app_test() {
         }
         else if (input == "5") {
             auto r = android_app_test__prepair(inputsubhome, n);
+            if (is_ko(r)) {
+                return r;
+            }
+            break;
+        }
+        else if (input == "6") {
+            auto r = android_app_test__auto_custodial_wallet(inputsubhome, n);
             if (is_ko(r)) {
                 return r;
             }

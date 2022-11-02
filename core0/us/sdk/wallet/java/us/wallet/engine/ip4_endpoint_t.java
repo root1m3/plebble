@@ -23,12 +23,12 @@
 package us.wallet.engine;
 import us.gov.io.blob_reader_t;                                                                // blob_reader_t
 import us.gov.io.blob_writer_t;                                                                // blob_writer_t
+import us.CFG;                                                                                 // CFG
 import static us.stdint.*;                                                                     // *
 import us.gov.socket.types.*;                                                                  // *
 import us.ko;                                                                                  // ko
 import static us.ko.ok;                                                                        // ok
 import static us.gov.io.types.blob_t.serid_t;                                                  // serid_t
-import us.CFG;
 
 public class ip4_endpoint_t implements us.gov.io.seriable {
 

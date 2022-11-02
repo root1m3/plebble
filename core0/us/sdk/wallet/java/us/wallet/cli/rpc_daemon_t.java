@@ -44,21 +44,23 @@ public class rpc_daemon_t extends us.wallet.engine.rpc_daemon_t implements us.go
 
     public static ko KO_20195 = new ko("KO 20195 Connection terminated by peer.");
 
-    public rpc_daemon_t(KeyPair keys, channel_t channel, final shostport_t shostport, role_t role, dispatcher_t dispatcher) {
+    public rpc_daemon_t(KeyPair keys, channel_t channel, final shostport_t shostport, role_t role, String subhome, dispatcher_t dispatcher) {
         super(channel, dispatcher);
         id = keys;
         this.shostport = shostport;
         this.role = role;
+        this.subhome = subhome;
         this.parent = parent;
         this.parent = null;
         log("constructor"); //--strip
     }
 
-    public rpc_daemon_t(hmi parent, KeyPair keys, final shostport_t shostport, role_t role, dispatcher_t dispatcher) {
+    public rpc_daemon_t(hmi parent, KeyPair keys, final shostport_t shostport, role_t role, String subhome, dispatcher_t dispatcher) {
         super(parent.p.channel, dispatcher);
         id = keys;
         this.shostport = shostport;
         this.role = role;
+        this.subhome = subhome;
         this.parent = parent;
         log("constructor"); //--strip
    }
@@ -85,7 +87,7 @@ public class rpc_daemon_t extends us.wallet.engine.rpc_daemon_t implements us.go
             log(r.msg);  //--strip
             return r;
         }
-        ko r = get_peer().connect(shostport, new pport_t(0), pin, role, true);
+        ko r = get_peer().connect(shostport, new pport_t(0), pin, role, new request_data_t(subhome), true);
         if (is_ko(r)) {
             return r;
         }
@@ -113,6 +115,13 @@ public class rpc_daemon_t extends us.wallet.engine.rpc_daemon_t implements us.go
     public void on_peer_disconnected(final reason_t reason) {
         log("peer disconnected. Reason: " + reason.value); //--strip
         if (parent != null) parent.on_peer_disconnected(reason);
+    }
+
+    public void verification_result(request_data_t request_data) {
+        log("verification_result" + request_data); //--strip
+        log("backend authorized a different wallet. requested: " + subhome + " given: " + request_data.value); //--strip
+        subhome = request_data.value;
+        if (parent != null) parent.verification_result(request_data);
     }
 
     public static void apihelp(final String prefix, PrintStream os) {
@@ -143,6 +152,7 @@ public class rpc_daemon_t extends us.wallet.engine.rpc_daemon_t implements us.go
     public KeyPair id;
     public shostport_t shostport;
     public role_t role;
+    public String subhome = "";
 
     hmi parent;
 }

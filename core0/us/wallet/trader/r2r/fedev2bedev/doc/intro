@@ -1,0 +1,36 @@
+Anuncement - https://twitter.com/KatlasC/status/1587426812757508096?s=20&t=hqRXGjx5D7mHCAKzHnA9zw
+
+Human chat: -> Electronic aid chat
+
+Node fe: running fe2be fe
+Node be: running fe2be be
+
+
+be welcomes anyone arriving without protocol_selection.
+Invitates to run fe role.
+
+
+back-end dev
+============
+be is in charge of the release pipeline
+be offers fe
+  chat message admission
+  running API
+  API spec
+  src codebase
+  patch admission
+
+front-end dev
+=============
+fe is in charge of coding improvements over the codebase.
+fe offers be
+  chat delivery
+  chat message admission
+  patch delivery
+
+
+
+Objective: maximize inflow of software patches, key in increasing the frequency of system-wide feature releases.
+patch ingest is an automated pipeline. fe will receive reason for rejection or acknowledgement of reception.
+
+

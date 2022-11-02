@@ -51,12 +51,12 @@ c::wallet_connection_t(const string& nm, const ip4_endpoint_t& ep): name_(nm), i
     log("constructor 3 ");
 }
 
-c::wallet_connection_t(uint64_t ts_, const string& addr_, const string& nm, const string& ssid_, const ip4_endpoint_t& ep): name_(nm), ssid(ssid_), addr(addr_), ip4_endpoint(ep), ts(ts_) {
+c::wallet_connection_t(uint64_t ts_, const string& addr_, const string& subhome, const string& nm, const string& ssid_, const ip4_endpoint_t& ep): name_(nm), ssid(ssid_), addr(addr_), subhome(subhome), ip4_endpoint(ep), ts(ts_) {
     log("constructor 2 ");
     
 }
 
-c::wallet_connection_t(const wallet_connection_t& other): name_(other.name_), ssid(other.ssid), addr(other.addr), ip4_endpoint(other.ip4_endpoint), ts(other.ts) {
+c::wallet_connection_t(const wallet_connection_t& other): name_(other.name_), ssid(other.ssid), addr(other.addr), subhome(other.subhome), ip4_endpoint(other.ip4_endpoint), ts(other.ts) {
     log("copy constructor");
 }
 
@@ -64,6 +64,7 @@ void c::dump(ostream& os) const {
     os << "name " << name_ << '\n';
     os << "ssid " << ssid << '\n';
     os << "addr " << addr << '\n';
+    os << "subhome " << subhome << '\n';
     os << ip4_endpoint.to_string() << '\n';
 }
 
@@ -71,6 +72,7 @@ c c::copy() const {
     log("copy");
     c wc(*this);
     wc.name_ = string("copy_") + name_;
+    wc.subhome = "";
     wc.ssid = "";
     wc.addr = "";
     wc.ts = 0;
@@ -110,6 +112,7 @@ size_t c::blob_size() const {
     size_t sz = blob_writer_t::blob_size(name_) +
              blob_writer_t::blob_size(ssid) +
              blob_writer_t::blob_size(addr) +
+             blob_writer_t::blob_size(subhome) +
              blob_writer_t::blob_size(ip4_endpoint) +
              blob_writer_t::blob_size(ts);
     log("blob_size", sz);
@@ -121,6 +124,7 @@ void c::to_blob(blob_writer_t& writer) const {
     writer.write(name_);
     writer.write(ssid);
     writer.write(addr);
+    writer.write(subhome);
     writer.write(ip4_endpoint);
     writer.write(ts);
 }
@@ -139,6 +143,16 @@ ko c::from_blob(blob_reader_t& reader) {
         ko r = reader.read(addr);
         if (is_ko(r)) return r;
     }
+    if (reader.header.serid == 'X' && reader.header.version == 11) {
+        cerr << "Remove old code. sync with sdk/wallet/java/us/wallet/engine/wallet_connection_t.java" << endl;
+        assert(false);
+        return "KO 59200 Remove old code";
+    }
+    bool miss_subhome = (reader.header.serid == 'X' && reader.header.version == 9);
+    if (!miss_subhome) {
+        ko r = reader.read(subhome);
+        if (is_ko(r)) return r;
+    }
     {
         ko r = reader.read(ip4_endpoint);
         if (is_ko(r)) return r;
@@ -147,6 +161,7 @@ ko c::from_blob(blob_reader_t& reader) {
         ko r = reader.read(ts);
         if (is_ko(r)) return r;
     }
+cout << "Read ts " << ts << endl;
     log("read wallet connection named", name_);
     return ok;
 }

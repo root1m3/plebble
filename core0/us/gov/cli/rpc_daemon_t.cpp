@@ -50,12 +50,12 @@ socket::client* c::create_client() {
 
 ko c::connect() { //callback. called from the depths
     log("connect"); //--strip
-    return connect(0);
+    return connect(0, request_data_t());
 }
 
-ko c::connect(pin_t pin) {
+ko c::connect(pin_t pin, request_data_t&& request_data) {
     log("connect with pin", pin);
-    auto r = get_peer().connect(shostport, 0, pin, role, true);
+    auto r = get_peer().connect(shostport, 0, pin, role, move(request_data), true);
     if (is_ko(r)) {
         return r;
     }
@@ -83,6 +83,11 @@ void c::on_I_disconnected(const string& reason) {
 void c::on_peer_disconnected(const string& reason) {
     log("peer disconnected. Reason: ", reason);
     if (parent) parent->on_peer_disconnected(reason);
+}
+
+void c::verification_result(request_data_t&& request_data) {
+    log("verification_result", request_data);
+    if (parent) parent->verification_result(move(request_data));
 }
 
 void c::apihelp(const string& prefix, ostream& os) {

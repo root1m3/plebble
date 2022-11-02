@@ -196,7 +196,7 @@ public class scan extends activity implements ZXingScannerView.ResultHandler {
 /*
     boolean additem(final String product) {
         app.assert_ui_thread(); //--strip
-        a.hmi.command_trade(tid, "select " + product + " 1");
+        a.hmi().command_trade(tid, "select " + product + " 1");
         return true;
     }
 */

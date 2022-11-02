@@ -77,7 +77,7 @@ public class logo_view extends LinearLayout {
         tries++;
         log("tries " + tries); //--strip
         rlogo = null;
-        rf.a.hmi.command_trade(rf.tr.tid, "request logo");
+        rf.a.hmi().command_trade(rf.tr.tid, "request logo");
     }
 
     void loadlogo() {

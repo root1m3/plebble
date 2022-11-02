@@ -186,8 +186,8 @@ public final class trades extends activity {
         log("received payload: "); //--strip
         final ArrayList<trade> al = new ArrayList<trade>();
         if (is_ko(e)) {
-            log(e.msg + " " + a.hmi.rewrite(e)); //--strip
-            Toast.makeText(this, a.hmi.rewrite(e), Toast.LENGTH_LONG).show();
+            log(e.msg + " " + a.hmi().rewrite(e)); //--strip
+            Toast.makeText(this, a.hmi().rewrite(e), Toast.LENGTH_LONG).show();
         }
         else {
             log(">" + payload + "<");  //--strip
@@ -214,12 +214,12 @@ public final class trades extends activity {
 
     void fetch() {
         a.assert_ui_thread(); //--strip
-        if (a.hmi == null) {
+        if (!a.has_hmi()) {
             log("Closing activity hmi is null"); //--strip
             finish();
             return;
         }
-        if (a.hmi.rpc_peer == null) {
+        if (a.hmi().rpc_peer == null) {
             log("Closing activity hmi is not connected"); //--strip
             finish();
             return;
@@ -233,7 +233,7 @@ public final class trades extends activity {
         }
         log("calling API list_trades"); //--strip
         string s = new string();
-        ko r = a.hmi.rpc_peer.call_list_trades(s);
+        ko r = a.hmi().rpc_peer.call_list_trades(s);
         on_trades(r, s.value);
     }
 

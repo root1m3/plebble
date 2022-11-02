@@ -49,7 +49,7 @@ namespace us::gov::socket {
         bool process_unhandled(client&, datagram*) final override;
         inline busyled_t& recv_led() final override { return handler::busyled; }
         void on_destroy_(client&) override {}
-        virtual client* create_client(sock_t sock);
+        virtual client* create_client(sock_t sock) = 0;
         inline void wakeup_handler() { handler::task_wakeup(); }
         inline void wakeup_caller() { caller::task_wakeup(); }
         inline void wakeup_gc() { peers.gc.task_wakeup(); }

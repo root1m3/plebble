@@ -662,11 +662,11 @@ void c::gen_dto_in_hdr(const apifun& f, bool side_caller, ostream& os) const {
     if (iotypes.size() == 1) {
         return;
     }
+    string final = iotypes.extensible_dto ? "" : "final";
 
     if (side_caller) {
         os << "/// " << f.name << " - IN\n";
-
-        os << "struct " << f.name << "_in_t final: blob_writer_t::writable {\n";
+        os << "struct " << f.name << "_in_t " << final << ": blob_writer_t::writable {\n";
         os << pfx << "using b = blob_writer_t::writable;\n";
         os << "\n";
 
@@ -685,7 +685,7 @@ void c::gen_dto_in_hdr(const apifun& f, bool side_caller, ostream& os) const {
         os << "\n";
     }
     else {
-        os << "struct " << f.name << "_in_dst_t final: blob_reader_t::readable {\n";
+        os << "struct " << f.name << "_in_dst_t " << final << ": blob_reader_t::readable {\n";
         os << pfx << "using b = blob_reader_t::readable;\n";
         os << "\n";
 
@@ -742,11 +742,12 @@ void c::gen_dto_out_hdr(const apifun& f, bool side_caller, ostream& os) const {
     if (iotypes.size() == 1) {
         return;
     }
+    string final = iotypes.extensible_dto ? "" : "final";
 
     if (!side_caller) {
         os << "/// " << f.name << " - OUT\n";
 
-        os << "struct " << f.name << "_out_t final: blob_writer_t::writable {\n";
+        os << "struct " << f.name << "_out_t " << final << ": blob_writer_t::writable {\n";
         os << pfx << "using b = blob_writer_t::writable;\n";
         os << "\n";
 
@@ -765,7 +766,7 @@ void c::gen_dto_out_hdr(const apifun& f, bool side_caller, ostream& os) const {
         os << "\n";
     }
     else {
-        os << "struct " << f.name << "_out_dst_t final: blob_reader_t::readable {\n";
+        os << "struct " << f.name << "_out_dst_t " << final << ": blob_reader_t::readable {\n";
         os << pfx << "using b = blob_reader_t::readable;\n";
         os << "\n";
 

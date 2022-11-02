@@ -100,6 +100,41 @@
 
             </LinearLayout>
 
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:layout_marginLeft="8dp"
+                android:layout_marginRight="8dp"
+                android:orientation="horizontal">
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="8dp"
+                    android:layout_marginRight="8dp"
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                    android:hint="Custodial wallet (or 'new', or empty for non-custodial)"
+                    >
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/subhome"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text=""
+                            android:textSize="16dp"
+                         />
+
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/save_subhome"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="save"
+                    />
+
+            </LinearLayout>
 
             <com.google.android.material.textfield.TextInputLayout
                 android:layout_width="match_parent"
@@ -148,14 +183,6 @@
                 android:layout_marginRight="8dp"
                 android:orientation="vertical">
 
-<!--
-                    app:helperTextEnabled="true"
-                    app:helperText="This app unique cryptographic id."
-                    app:helperTextEnabled="true"
-                    app:helperText="Connection status."
-                    app:helperTextEnabled="true"
-                    app:helperText="wallet id."
--->
                 <com.google.android.material.textfield.TextInputLayout
                     android:id="@+id/connection_status_lo"
                     android:layout_width="match_parent"
@@ -197,7 +224,6 @@
 
             </LinearLayout>
 
-            
             <TextView
                 android:id="@+id/current_endpoint"
                 android:layout_width="match_parent"

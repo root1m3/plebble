@@ -32,11 +32,11 @@
 using namespace us::wallet::cli;
 using c = us::wallet::cli::rpc_daemon_t;
 
-c::rpc_daemon_t(channel_t channel, const keys_t& keys, const shostport_t& shostport, role_t role, dispatcher_t* dispatcher): b(channel, dispatcher), id(keys), shostport(shostport), role(role), parent(nullptr) {
+c::rpc_daemon_t(channel_t channel, const keys_t& keys, const shostport_t& shostport, role_t role, const string& subhome, dispatcher_t* dispatcher): b(channel, dispatcher), id(keys), shostport(shostport), role(role), parent(nullptr) {
     log("constructor");
 }
 
-c::rpc_daemon_t(hmi& parent, const keys_t& keys, const shostport_t& shostport, role_t role, dispatcher_t* dispatcher): b(parent.p.channel, dispatcher), id(keys), shostport(shostport), role(role), parent(&parent) {
+c::rpc_daemon_t(hmi& parent, const keys_t& keys, const shostport_t& shostport, role_t role, const string& subhome, dispatcher_t* dispatcher): b(parent.p.channel, dispatcher), id(keys), shostport(shostport), role(role), parent(&parent) {
     log("constructor-hmi");
 }
 
@@ -52,7 +52,7 @@ ko c::connect() { //callback. called from the depths
 
 ko c::connect(pin_t pin) {
     log("connect with pin ", pin);
-    auto r = get_peer().connect(shostport, 0, pin, role, true);
+    auto r = get_peer().connect(shostport, 0, pin, role, subhome, true);
     if (is_ko(r)) {
         return r;
     }
@@ -80,6 +80,13 @@ void c::on_I_disconnected(const string& reason) {
 void c::on_peer_disconnected(const string& reason) {
     log("peer disconnected. Reason: ", reason);
     if (parent) parent->on_peer_disconnected(reason);
+}
+
+void c::verification_result(request_data_t&& request_data) {
+    log("verification_result", request_data);
+    log("backend authorized a different wallet. requested:", subhome, "given:", request_data);
+    subhome = request_data;
+    if (parent) parent->verification_result(move(request_data));
 }
 
 void c::apihelp(const string& prefix, ostream& os) {

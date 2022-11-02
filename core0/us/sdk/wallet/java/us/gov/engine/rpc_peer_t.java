@@ -38,7 +38,7 @@ import java.security.PublicKey;                                                 
 import java.net.Socket;                                                                        // Socket
 import us.string;                                                                              // string
 
-public class rpc_peer_t extends us.gov.dfs.rpc_peer_t implements caller_api {
+public abstract class rpc_peer_t extends us.gov.dfs.rpc_peer_t implements caller_api {
 
     static void log(final String line) {                        //--strip
         CFG.log_gov("engine.rpc_peer_t: " + line);              //--strip
@@ -52,7 +52,7 @@ public class rpc_peer_t extends us.gov.dfs.rpc_peer_t implements caller_api {
         super(rpc_daemon, sock);
     }
 
-    @Override public ko authorizeX(final PublicKey pub, final pin_t pin) { return ko.ok; }
+    @Override public ko authorize(final PublicKey pub, final pin_t pin, request_data_t request_data) { return ko.ok; }
 
     public svc_t translate_svc(svc_t svc, boolean inbound) {
         if (inbound) {

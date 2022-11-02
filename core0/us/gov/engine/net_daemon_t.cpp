@@ -104,7 +104,7 @@ void c::send_vote(datagram* d) {
     clique_send(0, nullptr, d);
 }
 
-socket::peer_t* c::create_client(int sock) {
+socket::client* c::create_client(int sock) {
     log("create_client");
     return new peer_t(*this, sock);
 }

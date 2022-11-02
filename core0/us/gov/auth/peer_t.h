@@ -34,6 +34,7 @@ namespace us::gov::auth {
 
     struct peer_t: base_ns::peer_t, api {
         using b = base_ns::peer_t;
+        using request_data_t = us::gov::id::request_data_t;
 
         enum stage_t {
             denied = 0,
@@ -49,8 +50,8 @@ namespace us::gov::auth {
         bool process_work(datagram*) override;
 
     public:
-        void verification_completed(pport_t, pin_t) override;
-        virtual ko authorize(const pub_t&, pin_t) = 0;
+        ko verification_completed(pport_t, pin_t, request_data_t&) override;
+        virtual ko authorize(const pub_t&, pin_t, request_data_t&) = 0;
 
     public:
         void dump_all(const string& prefix, ostream&) const override;
@@ -66,8 +67,6 @@ namespace us::gov::auth {
     public:
     #if CFG_COUNTERS == 1
         struct counters_t {
-           uint32_t successful_verifications{0};
-           uint32_t failed_verifications{0};
            uint32_t successful_authorizations{0};
            uint32_t failed_authorizations{0};
 

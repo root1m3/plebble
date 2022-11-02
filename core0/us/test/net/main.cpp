@@ -335,6 +335,18 @@ struct tqsend: us::test::test_platform {
 
     };
 
+    struct socket_daemon_t: us::gov::socket::daemon_t {
+        using b = us::gov::socket::daemon_t;
+        socket_daemon_t(): b(0, 0, 0) {
+        }
+
+        client* create_client(sock_t sock) override {
+            return new cli(*this, sock); // Receiver
+        }
+
+
+    };
+
     void test2() {
         using namespace us::gov::io;
         cout << "============================test2" << endl;
@@ -343,8 +355,8 @@ struct tqsend: us::test::test_platform {
             qsend.logdir = logdir + "/test2";
         #endif
         assert(qsend.start() == ok);
-        us::gov::socket::daemon_t d(0, 0, 0);
-        cli cl(d);
+        socket_daemon_t socket_daemon;
+        cli cl(socket_daemon); // Sender
         cl.sock = 123;
         check(cl.sendref.load(),0);
         uint16_t pri = 0;
@@ -370,8 +382,8 @@ struct tqsend: us::test::test_platform {
 
     void test3() {
         using namespace us::gov::io;
-        us::gov::socket::daemon_t d(0, 0, 0);
-        cli cl(d);
+        socket_daemon_t socket_daemon;
+        cli cl(socket_daemon); // Sender
         check(cl.sendref.load(),0);
         {
             queue_t qsend;
@@ -387,8 +399,8 @@ struct tqsend: us::test::test_platform {
     void test1() {
         using namespace us::gov::io;
         queue_t qsend;
-        us::gov::socket::daemon_t d(0, 0, 0);
-        cli cl(d);
+        socket_daemon_t socket_daemon;
+        cli cl(socket_daemon); // Sender
         qsend.send(io::blob_writer_t::get_datagram(0, 1, 0, string("")), &cl, 0);
         check(qsend.size() == 1, true);
         auto i = qsend.top();

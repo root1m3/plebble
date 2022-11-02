@@ -56,6 +56,7 @@ public class blob_writer_t {
         void to_blob(blob_writer_t writer);
     }
 
+    //------------------------------------------------------------------------------
     public static abstract class writable implements writable_if {
 
         public serid_t serial_id() {
@@ -115,6 +116,7 @@ public class blob_writer_t {
         }
 
     }
+    //------------------------------------------------------------------------------
 
     public static void write(final writable_if o, blob_t blob) {
         log("writable::write to blob"); //--strip
@@ -537,6 +539,18 @@ public class blob_writer_t {
         blob_t blob = new blob_t();
         blob_writer_t w = new blob_writer_t(blob, blob_size(payload));
         w.write(payload);
+        return blob;
+    }
+
+    public static String add_header(final blob_reader_t.blob_header_t h, final String blobb58) {
+        return add_header(h, new blob_t(blobb58)).encode();
+    }
+
+    public static blob_t add_header(final blob_reader_t.blob_header_t h, final blob_t blob0) {
+        blob_t blob = new blob_t(blob_reader_t.blob_header_t.sersize + blob0.size());
+        h.version.write(blob.value, 0);
+        h.serid.write(blob.value, 1);
+        System.arraycopy(blob0.value, 0, blob.value, 2, blob0.size());
         return blob;
     }
 

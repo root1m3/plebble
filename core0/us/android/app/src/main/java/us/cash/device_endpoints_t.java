@@ -49,10 +49,11 @@ import static us.ko.ok;                                                         
 import java.io.OutputStream;                                                                   // OutputStream
 import java.io.OutputStreamWriter;                                                             // OutputStreamWriter
 import us.pair;                                                                                // pair
-import static us.gov.io.types.blob_t.serid_t;                                                  // serid_t
 import us.string;                                                                              // string
 import us.wallet.engine.wallet_connection_t;
 import us.wallet.engine.ip4_endpoint_t;
+import us.gov.io.types.blob_t.serid_t;                                                         // serid_t
+import static us.gov.io.types.blob_t.version_t;                                                // version_t
 
 public final class device_endpoints_t extends ArrayList<device_endpoint_t> implements us.gov.io.seriable {
 
@@ -93,7 +94,9 @@ public final class device_endpoints_t extends ArrayList<device_endpoint_t> imple
         }
         log("adding default device_endpoint " + dd.cfg.home); //--strip
         add(dd);
-        on = 0; //index
+        if (dd.hmi_req_on) {
+            on = 0; //index
+        }
         return on;
     }
 
@@ -115,6 +118,7 @@ public final class device_endpoints_t extends ArrayList<device_endpoint_t> imple
     }
 
     public int init() throws Exception {
+/*
         {
             //TODO: purge >= alpha-44
             log("import_old_settings"); //--strip
@@ -127,6 +131,7 @@ public final class device_endpoints_t extends ArrayList<device_endpoint_t> imple
                 clear();
             }
         }
+*/
 
         home = "device_endpoints";
         log("loading configuration. sz=" + size()); //--strip
@@ -193,6 +198,7 @@ public final class device_endpoints_t extends ArrayList<device_endpoint_t> imple
         return ok;
     }
 
+/*
     private pair<ko, Integer> import_old_settings(Context ctx) {
         pair<ko, Integer> r = load_prev();
         if (is_ko(r.first)) {
@@ -203,7 +209,9 @@ public final class device_endpoints_t extends ArrayList<device_endpoint_t> imple
         cfg_android_private_t.delete_file(ctx, "", "node_settings.json");
         return r;
     }
+*/
 
+/*
     public pair<ko, JSONObject> read_settings_json() {
         log("read_settings_json"); //--strip
         String sdata = cfg_android_private_t.read_file_string(a.getApplicationContext(), "", "node_settings.json");
@@ -229,16 +237,24 @@ public final class device_endpoints_t extends ArrayList<device_endpoint_t> imple
         }
         return new pair<ko, JSONObject>(ok, root);
     }
+*/
 
-    public hmi_t poweron(app a, int pos, pin_t pin, app.progress_t progress) {
-        device_endpoint_t dep = get(pos);
-        dep.poweron(a, pin, progress);
-        return dep.hmi;
+    public void poweron(app a, int pos, final pin_t pin, app.progress_t progress) {
+        set_cur(pos);
+//        device_endpoint_t dep = get(pos);
+        cur.poweron(a, pin, progress);
+        save();
+        //return dep.hmi;
     }
 
     public void poweroff(app a, int pos, app.progress_t progress) {
-        device_endpoint_t dep = get(pos);
-        dep.poweroff(progress);
+        set_cur(pos);
+
+//        device_endpoint_t dep = get(pos);
+//        assert dep != null; //--strip
+        cur.poweroff(progress);
+        assert cur.hmi == null; //--strip
+        save();
     }
 
     void write(blob_t blob) {
@@ -296,21 +312,30 @@ public final class device_endpoints_t extends ArrayList<device_endpoint_t> imple
         }
         ko r = read(blob);
         if (is_ko(r)) {
-            return new pair<ko, Integer>(r, null);
+            log("check if it's prev version"); //--strip
+            blob_reader_t.blob_header_t header = new blob_reader_t.blob_header_t(new version_t((short)(blob_reader_t.current_version.value - 1)), new serid_t((short)'X'));
+            blob_t blob_a49 = blob_writer_t.add_header(header, blob);
+            r = read(blob_a49);
+            if (is_ko(r)) {
+                log("It wasn't"); //--strip
+                return new pair<ko, Integer>(r, null);
+            }
+            log("It was prev version"); //--strip
         }
         log("" + size() + " items."); //--strip
-
-        int p =-1;
+        int p = -1;
         for (device_endpoint_t i: this) {
             ++p;
             if (i.hmi_req_on) {
                 pwr = p;
+                i.hmi_req_on = false;
                 break;
             }
         }
         return new pair<ko, Integer>(ok, new Integer(pwr));
     }
 
+/*
     pair<ko, Integer> load_prev() {
         log("load_prev"); //--strip
         int pwr = -1;
@@ -375,6 +400,7 @@ public final class device_endpoints_t extends ArrayList<device_endpoint_t> imple
         log("loaded - ok"); //--strip
         return new pair<ko, Integer>(ok, new Integer(pwr));
     }
+*/
 
     public ko set_name(String name) {
         cur.name_.value = name;
@@ -386,7 +412,10 @@ public final class device_endpoints_t extends ArrayList<device_endpoint_t> imple
         return save();
     }
 
-    @Override public serid_t serial_id() { return serid_t.no_header; }
+//    @Override public serid_t serial_id() { return serid_t.no_header; }
+    public static serid_t my_serid_id = new serid_t((short)'X');
+
+    @Override public serid_t serial_id() { return my_serid_id; }
 
     @Override public int blob_size() {
         int sz = blob_writer_t.sizet_size(size());

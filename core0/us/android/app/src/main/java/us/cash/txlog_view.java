@@ -107,12 +107,12 @@ public class txlog_view extends LinearLayout {
 
         void on_cancel(track_t track) {
             log("on_cancel. track " + track.value); //--strip
-            rf.a.hmi.command_trade(rf.tr.tid, "cancel " + track.value);
+            rf.a.hmi().command_trade(rf.tr.tid, "cancel " + track.value);
         }
 
         void on_confirm(track_t track) {
             log("on_confirm. track " + track.value); //--strip
-            rf.a.hmi.command_trade(rf.tr.tid, "pay " + track.value);
+            rf.a.hmi().command_trade(rf.tr.tid, "pay " + track.value);
         }
 
         String draw_gov_state(uint8_t x) {

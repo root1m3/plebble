@@ -25,6 +25,7 @@
 #include <us/gov/config.h>
 #include <us/gov/io/shell_args.h>
 #include <us/gov/io/cfg1.h>
+#include <us/gov/id/api.h>
 #include <us/gov/crypto/ripemd160.h>
 #include <us/gov/crypto/ec.h>
 #include <us/gov/socket/datagram.h>
@@ -61,6 +62,7 @@ namespace us::wallet::cli {
         using chat_t = us::wallet::trader::chat_t;
         using bookmarks_t = us::wallet::trader::bookmarks_t;
         using blob_t = us::wallet::trader::blob_t;
+        using request_data_t = us::gov::id::request_data_t;
 
     public:
         static const char *KO_11000, *KO_10020, *KO_10021, *KO_91810, *KO_40322;
@@ -127,6 +129,7 @@ namespace us::wallet::cli {
         virtual void on_peer_disconnected(const string& reason);
         virtual void on_connect(ko error);
         virtual string rewrite(ko r) const;
+        virtual void verification_result(request_data_t&&);
 
         virtual void upgrade_software();
 

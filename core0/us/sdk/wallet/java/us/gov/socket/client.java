@@ -42,7 +42,6 @@ import java.io.PrintStream;                                                     
 import us.gov.protocol;                                                                        // protocol
 import java.net.Socket;                                                                        // Socket
 import java.util.concurrent.TimeUnit;                                                          // TimeUnit
-import static us.gov.socket.types.*;
 
 public abstract class client {
 

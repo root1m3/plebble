@@ -69,11 +69,11 @@ public class activity extends AppCompatActivity implements NavigationView.OnNavi
     }
 
     public int menuid() {
-        if (a.hmi == null) {
+        if (!a.has_hmi()) {
             log("menuid menu_nohmi"); //--strip
             return R.menu.menu_nohmi;
         }
-        if (a.hmi.online) {
+        if (a.hmi().online) {
             log("menuid menu_hmi_online"); //--strip
             return R.menu.menu_hmi_online;
         }
@@ -132,15 +132,15 @@ public class activity extends AppCompatActivity implements NavigationView.OnNavi
         a.set_foreground_activity(this, true);
         resume_leds();
         refresh();
-        if (a.hmi == null) {
+        if (!a.has_hmi()) {
             log("HMI is null"); //--strip
             return;
         }
         if (walletd_leds != null || govd_leds != null) {
             Thread worker = new Thread(new Runnable() {
                 @Override public void run() {
-                    if (walletd_leds != null) a.hmi.report_status();
-                    if (govd_leds != null) a.hmi.report_status_gov();
+                    if (walletd_leds != null) a.hmi().report_status();
+                    if (govd_leds != null) a.hmi().report_status_gov();
                 }
             });
             worker.start();
@@ -313,7 +313,7 @@ public class activity extends AppCompatActivity implements NavigationView.OnNavi
 
         }
 
-        if (a.hmi == null) {
+        if (!a.has_hmi()) {
             switch (item_id) {
 /*
                 case R.id.starthmi:
@@ -374,9 +374,9 @@ public class activity extends AppCompatActivity implements NavigationView.OnNavi
                     break;
 
                 case R.id.nav_updateavailable:
-                    if (a.hmi != null) { // && a.hmi.sw_updates != null) {
-                        if (a.hmi.sw_updates != null) {
-                            a.hmi.sw_updates.show_ui(this);
+                    if (a.has_hmi()) { // && a.hmi().sw_updates != null) {
+                        if (a.hmi().sw_updates != null) {
+                            a.hmi().sw_updates.show_ui(this);
                         }
                     }
                     break;
@@ -413,6 +413,14 @@ public class activity extends AppCompatActivity implements NavigationView.OnNavi
         log("launching connections..."); //--strip
         Intent intent = new Intent(activity.this, connections.class);
         startActivity(intent);        
+    }
+
+    public void go_conf(final int index) {
+        a.assert_ui_thread(); //--strip
+        log("launching connection settings..."); //--strip
+        Intent intent = new Intent(activity.this, node_pairing.class);
+        intent.putExtra("conf_index", index);
+        startActivity(intent);
     }
 
     void new_connection() {
@@ -509,29 +517,25 @@ public class activity extends AppCompatActivity implements NavigationView.OnNavi
         activity ac = this;
         return new View.OnClickListener() {
             @Override public void onClick(View v) {
-/*
-                String[] options = {"Go to network settings...", "Test leds.", (activity.a.is_HMI_poweron() ? "Stop HMI" : "Start HMI"), a.getResources().getString(R.string.cancel)};
+                String[] options = {"Go to connection settings...", "Go to connections...", "Test leds.", (activity.a.is_HMI_poweron() ? "Stop HMI" : "Start HMI"), a.getResources().getString(R.string.cancel)};
                 new AlertDialog.Builder(ac).setTitle("Quick access to...").setItems(options,new DialogInterface.OnClickListener() {
                     @Override public void onClick(DialogInterface dialog, int which) {
                         switch(which) {
                             case 0:
-                                activity.a.main.launch_settings();
+                                a.launch_connection_settings();
                                 break;
                             case 1:
-                                activity.a.led_test();
+                                a.launch_connections();
                                 break;
                             case 2:
-                                if (activity.a.is_HMI_poweron()) {
-                                    ac.power_off();
-                                }
-                                else {
-                                    ac.power_on();
-                                }
+                                a.led_test();
+                                break;
+                            case 3:
+                                a.toggle_poweron();
                                 break;
                         }
                     }
                 }).setIcon(R.drawable.ic_world).show();
-*/
             }
         };
     }
@@ -634,10 +638,10 @@ public class activity extends AppCompatActivity implements NavigationView.OnNavi
                 log("not ok"); //--strip
                 return;
             }
-            if (a.hmi != null) { // && a.hmi.sw_updates != null) {
+            if (a.has_hmi()) { // && a.hmi().sw_updates != null) {
                 if (a.getPackageManager().canRequestPackageInstalls()) {
-                    if (a.hmi.sw_updates != null) {
-                        a.hmi.sw_updates.do_inst_local(this);
+                    if (a.hmi().sw_updates != null) {
+                        a.hmi().sw_updates.do_inst_local(this);
                     }
                 }
             }

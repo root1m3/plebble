@@ -39,6 +39,7 @@ namespace us::gov::io {
         using serid_t = blob_reader_t::serid_t;
         using blob_header_t = blob_reader_t::blob_header_t;
 
+        //---------------------------------------------------
         struct writable {
         public:
             virtual ~writable() {}
@@ -56,6 +57,7 @@ namespace us::gov::io {
             string encode() const;
             ko save(const string& filename) const;
         };
+        //---------------------------------------------------
 
     public:
         blob_writer_t(blob_t& blob, const size_t& sz);
@@ -66,6 +68,9 @@ namespace us::gov::io {
     public:
         constexpr static size_t header_size() { return sizeof(version_t) + sizeof(serid_t); }
         void write_header(const serid_t&);
+
+        static string add_header(blob_header_t&&, const string& blobb58);
+        static blob_t add_header(blob_header_t&&, const blob_t&);
 
         static size_t sizet_size(const uint64_t&);
         void write_sizet(const uint64_t&);

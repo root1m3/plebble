@@ -43,10 +43,12 @@ c::rpc_daemon_t(channel_t channel, dispatcher_t* dispatcher): b(channel, dispatc
 c::~rpc_daemon_t() {
 }
 
+/*
 socket::client* c::create_client() {
     log("create_client");
     return new rpc_peer_t(*this);
 }
+*/
 
 void c::dump(const string& prefix, ostream& os) const {
     os << prefix << "engine::rpc_daemon_t\n";

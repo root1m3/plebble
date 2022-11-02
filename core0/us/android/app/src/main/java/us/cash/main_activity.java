@@ -181,7 +181,7 @@ public final class main_activity extends activity {
 */
 /*
     @Override public int menuid() {
-        if (a.hmi == null) {
+        if (!a.has_hmi()) {
             return R.menu.menu_nohmi;
         }
         else {
@@ -198,8 +198,8 @@ public final class main_activity extends activity {
         Menu nav_menu = navigation.getMenu();
         updateavailable = nav_menu.findItem(R.id.nav_updateavailable);
         if (updateavailable != null) {
-            if (a.hmi.sw_updates != null) {
-                if (a.hmi.sw_updates.is_updateavailable) {
+            if (a.hmi().sw_updates != null) {
+                if (a.hmi().sw_updates.is_updateavailable) {
                     updateavailable.setVisible(true);
                 }
                 else {
@@ -213,7 +213,7 @@ public final class main_activity extends activity {
         boolean showiot = true;
         //release builds (which don't incluce lines marked '--strip' ) doesn't show the experimental IoT menu.
         showiot = true; //--strip
-        if (showiot && a.hmi != null) {
+        if (showiot && a.has_hmi()) {
             nav_menu.add(R.id.group5, 5948, Menu.NONE, "IoT");
         }
     }

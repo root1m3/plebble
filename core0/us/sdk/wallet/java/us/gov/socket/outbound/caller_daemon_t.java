@@ -25,10 +25,10 @@ import us.CFG;                                                                  
 import us.gov.socket.client;                                                                   // client
 import us.gov.socket.datagram;                                                                 // datagram
 import java.util.Date;                                                                         // Date
+import static us.gov.socket.types.*;                                                           // *
 import us.ko;                                                                                  // ko
 import us.pair;                                                                                // pair
 import java.io.PrintStream;                                                                    // PrintStream
-import static us.gov.socket.types.*;
 
 public class caller_daemon_t extends send_queue_t {
 

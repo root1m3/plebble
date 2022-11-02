@@ -37,7 +37,7 @@ namespace us::gov::id {
 
         bool is_duplicate(const pub_t&) const;
         void disconnect(const pub_t&, seq_t seq, const reason_t&);
-        socket::client* create_client(sock_t sock) override;
+        //socket::client* create_client(sock_t sock) override;
 
     public:
         void dump(const string& prefix, ostream&) const;

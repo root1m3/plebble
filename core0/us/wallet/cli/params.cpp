@@ -136,6 +136,9 @@ c::params(const shell_args& a): args(a) {
                 walletd_host = wc.ip4_endpoint.shost;
             }
         }
+        else if (command == "--custodial_wallet_id") {
+            subhome = args.next<string>();
+        }
         #if CFG_FCGI == 1
         else if (command == "-fcgi") {
            fcgi = true;

@@ -138,30 +138,53 @@ void c::save_() const {
     log("saved devices file", file);
 }
 
-pair<ko, string> c::authorize(const pub_t& p, pin_t pin) {
-    log("authorization request for device", p, "using pin", pin);
+ko c::authorize(const pub_t& p, pin_t pin, request_data_t& request_data) {
+    log("authorization request for device", p, "using pin", pin, "request_data", request_data);
     lock_guard<mutex> lock(mx);
     attempts.purge();
     auto i = find(p.hash());
     if (i != end()) {
         log("found in lookup table", p, "authorized!");
         attempts.purge(p);
-        return make_pair(ok, i->second.subhome);
+        if (!request_data.empty()) { // empty: ok if other subhome is returned; non-empty: ko if other subhome is returned.
+            if (i->second.subhome != request_data) {
+                auto r = "KO 78916 Intended subhome doesn't match the authorized subhome.";
+                log(r);
+                request_data = i->second.subhome; // return back the authorized subhome
+                return r;
+            }
+        }
+        request_data = i->second.subhome;
+        return ok;
     }
     log("not found in pairing table", p);
     auto j = prepaired.find(pin);
     if (j != prepaired.end()) {
         log("found prepaired device");
         string subhome = j->second.subhome;
-        if (subhome == "auto") {
-            ostringstream os;
-            os << p.hash();
-            subhome = os.str();
-            log("auto subhome", subhome);
+        if (subhome == "auto") { // Sysop has authorized to create a new guest wallet if user use this pin.
+            if (request_data.empty()) {
+                ostringstream os;
+                os << p.hash();
+                subhome = os.str();
+                log("auto subhome", subhome); //User choose root wallet; no way, he goes to a new custodial wallet
+            }
+            else {
+                subhome = request_data; // User's choice
+            }
         }
+        //using subhome given by sysop
+        if (!request_data.empty()) { // User didn't shut up.
+            if (subhome != request_data) { // User wants to use certain wallet but other different was given.
+                auto r = "KO 78916 Intended subhome doesn't match the authorized subhome.";
+                log(r);
+                return r;
+            }
+        }
+        request_data = subhome; //whatever user asks the right wallet is given.
         auto r = device_pair_(p, subhome, j->second.name, false);
         if (is_ko(r)) {
-            return make_pair(r, "");
+            return r;
         }
         log("paired device", p, subhome, j->second.name);
         if (consume_pin) {
@@ -171,28 +194,32 @@ pair<ko, string> c::authorize(const pub_t& p, pin_t pin) {
         log("authorized for the first time.", "used pin", pin, "pubkey", p, "subhome", subhome);
         save_();
         attempts.purge(p);
-        return make_pair(ok, subhome);
+        return ok;
     }
-    log("not found in prepairing table", p);
+    log("Device not found in prepairing table.", p); //It's a new device
     if (authorize_and_create_guest_wallet) {
-        ostringstream newuserdir;
-        newuserdir << p.hash();
-        log("Suggesting a new wallet at ", newuserdir.str());
-        auto r = device_pair_(p, newuserdir.str(), "guest first seen device");
+        if (request_data == "new") {
+            ostringstream newuserdir;
+            newuserdir << p.hash();
+            request_data = newuserdir.str();
+            log("new custodial wallet is requested", request_data);
+        }
+        log("Suggesting a new wallet at ", request_data);
+        auto r = device_pair_(p, request_data, "guest first seen device");
         if (is_ko(r)) {
-            log(r, p, newuserdir.str());
-            return make_pair(r, "");
+            log(r, p, request_data);
+            return r;
         }
         attempts.purge(p);
-        return make_pair(ok, newuserdir.str());
+        return ok;
     }
     log("user used pin", pin);
-    if (pin != 0) {
+    //if (pin != 0) {
         //TODO not-authorize if the throttle is < 10 seconds from the last trial
-    }
+    //}
     attempts.add(p);
     log("not authorized. registered attempt.", p);
-    return make_pair(KO_30291, "");
+    return KO_30291;
 }
 
 pair<ko, pin_t> c::device_prepair_(pin_t pin, string subhome, string name) {
@@ -341,7 +368,7 @@ void c::set_consume_pin(bool b) {
 }
 
 ko c::handle_conf(const string& key, const string& value, string& ans) {
-    log("handle_conf");
+    log("handle_conf", key, value);
     if (key == "authorize_and_create_guest_wallet") {
         lock_guard<mutex> lock(mx);
         if (value == "1") {

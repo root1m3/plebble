@@ -28,6 +28,7 @@
 #include <chrono>
 
 #include <us/gov/types.h>
+#include <us/gov/id/api.h>
 
 #include "device_t.h"
 #include "types.h"
@@ -35,6 +36,8 @@
 namespace us::wallet::engine {
 
     struct devices_t: unordered_map<hash_t, device_t> {
+
+        using request_data_t = us::gov::id::request_data_t;
 
         static ko KO_30291;
         static ko KO_30292;
@@ -53,7 +56,7 @@ namespace us::wallet::engine {
         devices_t(const string& home);
         void load();
         void save() const;
-        pair<ko, string> authorize(const pub_t&, pin_t pin); //returns subhome
+        ko authorize(const pub_t&, pin_t pin, request_data_t&); //returns subhome
         void dump(ostream&) const;
         ko device_pair(const pub_t&, string subhome, string name);
         pair<ko, string> device_unpair(const pub_t&);

@@ -38,6 +38,7 @@ namespace us::gov::cli {
     struct rpc_daemon_t: engine::rpc_daemon_t {
         using b = engine::rpc_daemon_t;
         using peer_type = rpc_peer_t;
+        using request_data_t = peer_type::request_data_t;
 
         rpc_daemon_t(channel_t, const keys&, const shostport_t&, role_t, dispatcher_t*);
         rpc_daemon_t(hmi&, const keys&, const shostport_t&, role_t, dispatcher_t*);
@@ -47,7 +48,7 @@ namespace us::gov::cli {
 
     public:
         ko connect() override;
-        ko connect(pin_t pin);
+        ko connect(pin_t pin, request_data_t&&);
 
     public:
         inline const rpc_peer_t& get_peer() const { return static_cast<const rpc_peer_t&>(*peer); }
@@ -61,6 +62,7 @@ namespace us::gov::cli {
         virtual void on_peer_disconnected(const reason_t&);
         virtual void on_I_disconnected(const reason_t&);
         virtual void verification_completed(bool verif_ok);
+        virtual void verification_result(request_data_t&&);
 
     public:
         inline const keys_t& get_keys() const override { return id; }

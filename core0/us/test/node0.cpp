@@ -184,8 +184,10 @@ void test_wallet_rpc_keys(const string& homedir) {
     d.dump(cout);
     cout << "Random device not authorized\n";
     {
-        auto r = d.authorize(us::gov::crypto::ec::keys::generate().pub, 0);
-        assert(r.first == us::wallet::engine::devices_t::KO_30291);
+        using request_data_t = us::gov::id::request_data_t;
+        request_data_t request_data;
+        auto r = d.authorize(us::gov::crypto::ec::keys::generate().pub, 0, request_data);
+        assert(r == us::wallet::engine::devices_t::KO_30291);
     }
     cout << "Console entry.\n";
     string privk;
@@ -200,9 +202,11 @@ void test_wallet_rpc_keys(const string& homedir) {
     cout << "  pubkey '" << pubk << "'\n";
     cout << "  pubkeyh '" << pubk.hash() << "'\n";
     assert(d.size() == 1);
-    auto r = d.authorize(pubk, 0);
-    assert(r.first == ok); //authorized
-    assert(r.second == ""); //given subhome
+    using request_data_t = us::gov::id::request_data_t;
+    request_data_t request_data;
+    auto r = d.authorize(pubk, 0, request_data);
+    assert(r == ok); //authorized
+    assert(request_data.empty()); //given subhome
 }
 
 govx_t* start_gov_daemon(const string& homedir) {

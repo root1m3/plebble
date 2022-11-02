@@ -43,7 +43,7 @@ us=$str3
 echo "================================================================bouncy"
 echo "testing $us-sdk_bc.jar"
 if [[ -f $us-sdk_bc.jar ]]; then
-    $java -ea -cp $us-sdk-test_bc.jar:libs_bouncy/*:$us-sdk_bc.jar:. main
+    $java -ea -cp $us-sdk-test_bc.jar:libs_bouncy/*:$us-sdk_bc.jar:. main_t
 fi
 
 #echo "================================================================spongy"

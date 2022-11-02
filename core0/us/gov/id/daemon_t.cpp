@@ -35,6 +35,7 @@ c::daemon_t(channel_t channel, port_t port, pport_t pport, int workers): b(chann
     log("set pport", pport);
 }
 
+/*
 socket::client* c::create_client(sock_t sock) {
     log("KO 78673 specialize peer");
     assert(false);
@@ -42,6 +43,7 @@ socket::client* c::create_client(sock_t sock) {
 //    log("create_client", sock);
 //    return new peer_t(*this, sock);
 }
+*/
 
 void c::dump(const string& prefix, ostream& os) const {
     os << prefix << "id::daemon_t: This node public key: " << get_keys().pub << " addr " << get_keys().pub.hash() << '\n';

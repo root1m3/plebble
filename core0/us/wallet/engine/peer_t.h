@@ -48,8 +48,8 @@ namespace us::wallet::engine {
         peer_t(daemon_t&, sock_t);
         ~peer_t() override;
 
-        void verification_completed(pport_t, pin_t) override;
-        ko authorize(const pub_t&, pin_t) override;
+        ko verification_completed(pport_t, pin_t, request_data_t&) override;
+        ko authorize(const pub_t&, pin_t, request_data_t&) override;
         bool process_work(datagram*) override;
         bool process_work__engine(datagram*);
         bool process_work__pairing(datagram*);
@@ -58,6 +58,7 @@ namespace us::wallet::engine {
         void announce(pport_t) const;
         void disconnect_hilarious(datagram*);
         svc_t translate_svc(svc_t svc0, bool inbound) const override;
+        void verification_result(request_data_t&&) override {}
 
     public:
         void schedule_push(socket::datagram*);

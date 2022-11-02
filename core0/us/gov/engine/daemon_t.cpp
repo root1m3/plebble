@@ -603,6 +603,7 @@ bool c::get_prev_block(const hash_t& h, hash_t& prev) const {
     if (!is.good()) {
         return false;
     }
+/*
     if (unlikely(header.version != blob_reader_t::current_version)) {
         log("Blob is not current version.", +header.version, +blob_reader_t::current_version);
         if (header.version == blob_reader_t::current_version - 1) {
@@ -613,6 +614,7 @@ bool c::get_prev_block(const hash_t& h, hash_t& prev) const {
             return false;
         }
     }
+*/
     if (header.serid == diff::serid) {
         is.read((char*)prev.data(), hasher_t::output_size);
         if (!is.good()) {
@@ -1385,10 +1387,13 @@ void c::upgrade_software() {
         os << '\n';
         os << "-socket::datagram:\n";
         gov::socket::datagram::counters.dump(os);
-        gov::socket::datagram::counters.dump_bw(running_since,os);
+        gov::socket::datagram::counters.dump_bw(running_since, os);
         os << '\n';
         os << "-socket::client:\n";
         gov::socket::client::counters.dump(os);
+        os << '\n';
+        os << "-id::peer:\n";
+        gov::id::peer_t::counters.dump(os);
         os << '\n';
         os << "-auth::peer:\n";
         gov::auth::peer_t::counters.dump(os);

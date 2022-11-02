@@ -114,7 +114,7 @@ public final class protocol_choose extends activity implements datagram_dispatch
             }
         });
         log("connect network-datagram hose");//--strip
-        dispatchid = a.hmi.dispatcher.connect_sink(this);
+        dispatchid = a.hmi().dispatcher.connect_sink(this);
     }
 
     @Override public void onDestroy() {
@@ -122,7 +122,7 @@ public final class protocol_choose extends activity implements datagram_dispatch
         log("onDestroy"); //--strip
         final app a = (app)getApplication();
         log("disconnect network-datagram hose");//--strip
-        a.hmi.dispatcher.disconnect_sink(dispatchid);
+        a.hmi().dispatcher.disconnect_sink(dispatchid);
     }
 
     @Override public void onResume() {
@@ -142,7 +142,7 @@ public final class protocol_choose extends activity implements datagram_dispatch
     void dorefresh() {
         app.assert_ui_thread(); //--strip
         if (selected_protocol == null) {
-            a.hmi.command_trade(tid, "show roles");
+            a.hmi().command_trade(tid, "show roles");
         }
 
     }

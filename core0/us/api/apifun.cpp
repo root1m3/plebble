@@ -124,6 +124,10 @@ bool c::io_types_t::from_stream(istream& is) {
             heap = true;
             continue;
         }
+        if (mne == "[extensible_dto]") {
+            extensible_dto = true;
+            continue;
+        }
         string argname;
         l >> argname;
         if (!mne.empty() && !argname.empty()) {

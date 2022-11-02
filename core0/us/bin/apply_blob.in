@@ -29,7 +29,7 @@ US="##str3##"
 GOVUSER="##str11##"
 ANDROID_BRANDID="##str56##"
 defaultr2r="##str77##"
-
+PREFIX=/usr/local
 export USRHOME=/home/$GOVUSER
 
 function help {
@@ -283,7 +283,7 @@ function do_upgrade {
     if [[ $install_android_apk -eq 1 ]]; then
         echo "Installing android app"
         component="android"
-        if [ -d wallet-cli ]; then
+        if [[ -d wallet-cli ]]; then
             compdir=${JAILDIR}/home/${GOVUSER}/downloads/${component}
             apkdownload=${compdir}/${ANDROID_BRANDID}
             mkdir -p $apkdownload
@@ -315,6 +315,12 @@ function do_upgrade {
         popd > /dev/null
     fi
     #-----------------------
+
+    #-------------------DOC
+    mkdir -p ${JAILDIR}${PREFIX}/share/doc/${US}
+    install doc/release_notes ${JAILDIR}${PREFIX}/share/doc/${US}/
+    #-------------------
+
     echo "finished do_upgrade" 
     return 0
 }

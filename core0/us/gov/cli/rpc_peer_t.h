@@ -31,23 +31,14 @@ namespace us::gov::cli {
 
         void dump(const string& prefix, ostream&) const;
         void dump_all(const string& prefix, ostream&) const override;
-//        inline ko authorize(const pub_t&, pin_t) override { return ok; } //Improve this to authenticate our connection against gov daemon
-//        void on_peer_disconnected(const reason_t&) override;
-//        void on_I_disconnected(const reason_t&) override;
 
-        inline ko authorize(const pub_t&, pin_t) override { return ok; }
+        inline ko authorize(const pub_t&, pin_t, request_data_t&) override { return ok; }
         void on_peer_disconnected(const reason_t&) override;
         void on_I_disconnected(const reason_t&) override;
-        void verification_completed(pport_t, pin_t) override;
+        ko verification_completed(pport_t, pin_t, request_data_t&) override;
         void upgrade_software() override;
+        void verification_result(request_data_t&&) override;
 
-/*
-        virtual void verification_completed(bool verif_ok);
-        virtual void on_I_disconnected(const string& reason);
-        virtual void on_peer_disconnected(const string& reason);
-        virtual void on_connect(ko error);
-        virtual string rewrite(ko r) const;
-*/
     };
 
 }

@@ -88,7 +88,7 @@ bool c::process_work(datagram* d) {
     return false;
 }
 
-ko c::authorize(const pub_t& p, pin_t pin) {
+ko c::authorize(const pub_t& p, pin_t pin, request_data_t& request_data) {
     log("authorize?", endpoint(), sock, p, pin);
     if (unlikely(engine_daemon().db->auth_app->node_pubkey != p)) {
         return ok; //Any pubkey is welcome in the public protocol
@@ -96,6 +96,10 @@ ko c::authorize(const pub_t& p, pin_t pin) {
     log("sysop pubkey->sysop_intent", (is_role_sysop() ? "yes" : "no"));
     if (unlikely(is_role_sysop())) {
         return ok;  //allow multiple sysop connections, reject self non-sysop connections
+    }
+    if (!request_data.empty()) {
+        log("peer sent unuable request_data", request_data);
+        request_data = "";
     }
     auto r = "KO 90483 non-sysop self connection";
     log(r);
@@ -110,20 +114,21 @@ const daemon_t& c::engine_daemon() const {
     return static_cast<const net_daemon_t&>(daemon).engine_daemon;
 }
 
-void c::verification_completed(pport_t rpport, pin_t pin) {
+ko c::verification_completed(pport_t rpport, pin_t pin, request_data_t& request_data) {
     log("verification_completed", endpoint(), sock, "rpport", rpport, "pin", pin);
-    b::verification_completed(rpport, pin);
-    if (unlikely(!verification_is_fine())) {
-        auto r = "KO 50342 verification_not_fine";
-        log(r, "verification_not_fine->disconnect", endpoint());
-        disconnect(0, r);
-        return;
+    {
+        auto r = b::verification_completed(rpport, pin, request_data);
+        if (unlikely(is_ko(r))) {
+            log(r, "disconnect", endpoint());
+            disconnect(0, r);
+            return r;
+        }
     }
     if (static_cast<gov::auth::peer_t*>(this)->stage != gov::auth::peer_t::authorized) {
         auto r = "KO 50091 Not authorized.";
         log(r, "disconnect-not authorized", endpoint());
         disconnect(0, r);
-        return;
+        return r;
     }
     log("role", role, "=", rolestr[role]);
     if (is_role_peer() || is_role_sysop()) {
@@ -133,26 +138,24 @@ void c::verification_completed(pport_t rpport, pin_t pin) {
             log(r, "disconnect - stage set to unknown");
             gov::auth::peer_t::stage = gov::auth::peer_t::denied;
             disconnect(0, r);
-            return;
+            return r;
         }
         if (unlikely(stage == sysop)) {
             log("sysop");
-            if (engine_daemon().sysop_allowed) {
-                gov::auth::peer_t::stage = gov::auth::peer_t::authorized;
-            }
-            else {
+            if (!engine_daemon().sysop_allowed) {
                 auto r = "KO 30090 Sysop connections are not allowed.";
                 log(r, "engine doesnt allow sysop connections (-ds)");
                 gov::auth::peer_t::stage = gov::auth::peer_t::denied;
                 disconnect(0, r);
-                return;
+                return r;
             }
+            gov::auth::peer_t::stage = gov::auth::peer_t::authorized;
         }
         if (unlikely(gov::auth::peer_t::stage != gov::auth::peer_t::authorized)) { //looks like redundant, handled above
             auto r = "KO 32030 Not authorized.";
             log(r, "->disconnect");
             disconnect(0, r);
-            return;
+            return r;
         }
         log("stage", stagestr[stage]);
         if (stage == node || stage == out || stage == hall || stage == sysop) {
@@ -162,7 +165,7 @@ void c::verification_completed(pport_t rpport, pin_t pin) {
                 gov::auth::peer_t::stage = gov::auth::peer_t::denied;
                 log(r, "disconnect-grid doesn't accept", endpoint(), sock);
                 disconnect(0, r);
-                return;
+                return r;
             }
             log("added to grid");
         }
@@ -171,29 +174,27 @@ void c::verification_completed(pport_t rpport, pin_t pin) {
             log(r, "disconnect-unknown stage", stage);
             gov::auth::peer_t::stage = gov::auth::peer_t::denied;
             disconnect(0, r);
-            return;
+            return r;
         }
+        return ok;
     }
-    else {
-        if (is_role_device()) {
-            log("device");
-            stage = device;
-            if (!static_cast<gov::peer::daemon_t&>(daemon).grid_dev.add(*this, false)) {
-                auto r = "KO 50400 All lines are busy.";
-                log(r, "disconnect-grid_dev doesn't accept", endpoint(), sock);
-                disconnect(0, r);
-                return;
-            }
-            log("added to grid-dev");
-        }
-        else {
-            auto r = "KO 10500 Unknown role.";
-            log(r, "disconnect-unknown role", role);
-            gov::auth::peer_t::stage = gov::auth::peer_t::denied;
+    if (is_role_device()) {
+        log("device");
+        stage = device;
+        if (!static_cast<gov::peer::daemon_t&>(daemon).grid_dev.add(*this, false)) {
+            auto r = "KO 50400 All lines are busy.";
+            log(r, "disconnect-grid_dev doesn't accept", endpoint(), sock);
             disconnect(0, r);
-            return;
+            return r;
         }
+        log("added to grid-dev");
+        return ok;
     }
+    auto r = "KO 10500 Unknown role.";
+    log(r, "disconnect-unknown role", role);
+    gov::auth::peer_t::stage = gov::auth::peer_t::denied;
+    disconnect(0, r);
+    return r;
 }
 
 void c::dump(const string& prefix, ostream& os) const {

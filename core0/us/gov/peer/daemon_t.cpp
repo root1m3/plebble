@@ -138,7 +138,7 @@ void c::on_destroy_(socket::client& cli) {
 
 bool c::grid_connect_test(peer_t* p, const hostport_t& hostport, ostream& os) {
     os << "connecting to " << peer_t::endpoint(hostport) << " pport " << pport << '\n';
-    auto r = p->connect(hostport, pport, 0, peer_t::role_peer, true);
+    auto r = p->connect(hostport, pport, 0, role_t::role_peer, request_data_t(), true);
     if (likely(r == ok)) {
         os << "connected\n";
         attach(p);
@@ -150,8 +150,9 @@ bool c::grid_connect_test(peer_t* p, const hostport_t& hostport, ostream& os) {
 
 ko c::grid_connect(const hostport_t& hostport, function<void(peer_t*)> pre_connect, function<void(peer_t*)> pre_attach) {
     auto* p = static_cast<peer_t*>(create_client(-1));
+    assert(p != nullptr);
     pre_connect(p);
-    auto r = p->connect(hostport, pport, 0, peer_t::role_peer, true);
+    auto r = p->connect(hostport, pport, 0, role_t::role_peer, request_data_t(), true);
     if (likely(r == ok)) {
         log("grid-connect", peer_t::endpoint(hostport), "pport", pport, p);
         pre_attach(p);

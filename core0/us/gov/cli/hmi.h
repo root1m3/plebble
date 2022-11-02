@@ -23,6 +23,7 @@
 #pragma once
 #include <us/gov/config.h>
 #include <us/gov/socket/busyled_t.h>
+#include <us/gov/id/api.h>
 #include <us/gov/io/shell_args.h>
 #include <us/gov/io/screen.h>
 #include <us/gov/io/params.h>
@@ -51,6 +52,7 @@ namespace us::gov::cli {
         using screen = us::gov::io::screen;
         using datagram = us::gov::socket::datagram;
         using busyled_t = us::gov::socket::busyled_t;
+        using request_data_t = us::gov::id::request_data_t;
 
         static const char* KO_10100, *KO_91809, *KO_11000;
 
@@ -118,6 +120,7 @@ namespace us::gov::cli {
         virtual void on_peer_disconnected(const string& reason);
         virtual void on_connect(ko error);
         virtual string rewrite(ko r) const;
+        virtual void verification_result(request_data_t&&);
 
     public:
         bool interactive{false};

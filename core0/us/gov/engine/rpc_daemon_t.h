@@ -36,7 +36,7 @@ namespace us::gov::engine {
         rpc_daemon_t(channel_t channel, dispatcher_t*);
         ~rpc_daemon_t() override;
 
-        socket::client* create_client() override;
+        //socket::client* create_client() override;
 
         const rpc_peer_t& get_peer() const { return static_cast<const rpc_peer_t&>(*peer); }
         rpc_peer_t& get_peer() { return static_cast<rpc_peer_t&>(*peer); }

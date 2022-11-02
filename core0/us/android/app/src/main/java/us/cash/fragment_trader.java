@@ -105,7 +105,7 @@ public class fragment_trader extends Fragment implements datagram_dispatcher_t.h
             log("KO 4033 - missing tid"); //--strip
         } //--strip
         log("connect network-datagram hose");//--strip
-        dispatchid = a.hmi.dispatcher.connect_sink(this);
+        dispatchid = a.hmi().dispatcher.connect_sink(this);
         return view;
     }
 
@@ -113,7 +113,7 @@ public class fragment_trader extends Fragment implements datagram_dispatcher_t.h
         super.onDestroyView();
         log("onDestroyView"); //--strip
         log("disconnect network-datagram hose.");//--strip
-        a.hmi.dispatcher.disconnect_sink(dispatchid);
+        a.hmi().dispatcher.disconnect_sink(dispatchid);
     }
 
     @Override public void onResume() {
@@ -127,17 +127,17 @@ public class fragment_trader extends Fragment implements datagram_dispatcher_t.h
     }
 
     void reset() {
-        a.hmi.command_trade(tid, "reset");
+        a.hmi().command_trade(tid, "reset");
     }
 
     void reload() {
-        a.hmi.command_trade(tid, "reload");
+        a.hmi().command_trade(tid, "reload");
     }
 
     void show_roles() {
         app.assert_ui_thread(); //--strip
         log("show roles"); //--strip
-        a.hmi.command_trade(tid, "show roles");
+        a.hmi().command_trade(tid, "show roles");
     }
 
     void close_trade() { //means archive
@@ -154,7 +154,7 @@ public class fragment_trader extends Fragment implements datagram_dispatcher_t.h
     void exchange_personality() {
         app.assert_ui_thread();  //--strip
         final String myp = get_my_personality().getText().toString();
-        if (!a.hmi.isAddressValid(myp)) {
+        if (!a.hmi().isAddressValid(myp)) {
             Toast.makeText(getActivity().getApplicationContext(), getResources().getString(R.string.invalidpersonality), 6000).show();
             return;
         }
@@ -169,7 +169,7 @@ public class fragment_trader extends Fragment implements datagram_dispatcher_t.h
 
     public void select_roles(us.wallet.trader.roles_t roles) {
         app.assert_ui_thread();  //--strip
-        if(a.hmi == null) return;
+        if(!a.has_hmi()) return;
         String[] options = roles.as_options();
         new AlertDialog.Builder(tr).setTitle("Select role:")
             .setItems(options, new DialogInterface.OnClickListener() {
@@ -257,8 +257,8 @@ public class fragment_trader extends Fragment implements datagram_dispatcher_t.h
         online.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override public void onCheckedChanged(CompoundButton buttonView, boolean is_checked) {
                 if (a == null) return;
-                if (a.hmi == null) return;
-                a.hmi.command_trade(tid, is_checked ? "connect" : "disconnect");
+                if (!a.has_hmi()) return;
+                a.hmi().command_trade(tid, is_checked ? "connect" : "disconnect");
             }
         });
     }
@@ -345,7 +345,7 @@ public class fragment_trader extends Fragment implements datagram_dispatcher_t.h
         ++tries;
         log("tries " + tries); //--strip
         r_peer_ico = null;
-        a.hmi.command_trade(tid, "request ico");
+        a.hmi().command_trade(tid, "request ico");
     }
 
     ImageView peer_ico_imageview(data_t data) {
@@ -485,7 +485,7 @@ public class fragment_trader extends Fragment implements datagram_dispatcher_t.h
     }
 
     void change_to_anon() {
-        a.hmi.command_trade(tid, "change personality 0 Anonymous");
+        a.hmi().command_trade(tid, "change personality 0 Anonymous");
     }
 
     void on_personality_me(final String cur) {

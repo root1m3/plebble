@@ -111,6 +111,13 @@ Shortlisted features/fixes:
     * ceo2ceo protocol
     * deferred blobs. blob hash_lookup wallet function
     * bookmarks suppering deferred blobs
+    * collapse version numbering "branch alpha-49" = alpha-N ; instead of being arbitrary N comes from current monotonic counter cycling on 256 values
+
+    * All addresses are mints with max supply. 
+    * wallet. Coin Metadata. rate related to gas. (not listed in ledger)
+    * w2w. exchange coins protocol. 
+
+    * frontend(dev)2backend(dev) R2R Protocol. Coordinate the merging of front-end / back-end codebases. Interoperatibitily.
 
 In progress/testing:
     * Continuous build System. Produces final assets or error report for every git commit.
@@ -154,7 +161,15 @@ Production releases. beta
 Production releases. alpha
 --------------------------
 
-alpha-49 -
+alpha-50
+    * added field subhome to select an specific custodial/non-custodial, with the keyword 'new' meaning user's desire to allocate a custodial wallet.
+    * apitool can generate c++ dto's without being marked final selectively with the arg prefix [extensible_dto]
+    * Added test option --verser to select only maintenance tasks associated with a change in blob serialization versions.
+    * Added an extra function in gov/id api so rpc-clients are notified about their assigned wallet subhome, if this doesn't match the proposed one.
+    * blob serialization version (verser) 9 -> 10
+    * Updated per-brand default connection blobs after new verser.
+
+alpha-49 - alpha-49_2-12e646 2022-10-29_15-41-36 vhash 2-12e646 <- R 71a5d1ff98c280dd3c89a0cfa22ea2689d66a766 alpha-49 dbg-0 logs-0 counters-0 connlog-0 fcgi-0
     * version hash include monotonic value increased on every new deployment.
     * Fixed regression bug in APi handler that would terminate the connection on any guest wallet.
     * all hmi's (gov/wallet/ are responding to "software upgrade available" signal coming from the layer 'id' in response of a peer running a newer version.

@@ -35,7 +35,7 @@ namespace us::gov::auth {
         void dump(const string& prefix, ostream&) const;
         void dump_all(const string& prefix, ostream&) const override;
 
-        socket::client* create_client(sock_t sock) override { assert(false); return nullptr; }
+        //socket::client* create_client(sock_t sock) override { assert(false); return nullptr; }
 
     };
 

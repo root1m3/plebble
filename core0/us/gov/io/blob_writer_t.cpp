@@ -309,3 +309,15 @@ datagram* c::writable::get_datagram(channel_t channel, svc_t svc, seq_t seq) con
     return d;
 }
 
+string c::add_header(blob_header_t&& h, const string& blob0) {
+    return crypto::b58::encode(add_header(move(h), crypto::b58::decode(blob0)));
+}
+
+blob_t c::add_header(blob_header_t&& h, const blob_t& blob0) {
+    blob_t blob(sizeof(blob_header_t) + blob0.size());
+    blob[0] = h.version;
+    blob[1] = h.serid;
+    memcpy(blob.data() + 2, blob0.data(), blob0.size());
+    return blob;
+}
+

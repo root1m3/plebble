@@ -34,7 +34,7 @@ namespace us::gov::id {
 
         using b::rpc_daemon_t;
 
-        socket::client* create_client() override;
+        //socket::client* create_client() override;
 
     public:
         void dump(const string& prefix, ostream&) const;

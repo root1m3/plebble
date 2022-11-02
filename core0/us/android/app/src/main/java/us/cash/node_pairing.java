@@ -97,6 +97,7 @@ import us.gov.io.types.vector_tuple_hash_host_port;                             
 import android.view.ViewGroup;                                                                 // ViewGroup
 import android.view.View;                                                                      // View
 import us.wallet.engine.ip4_endpoint_t;                                                  // hash_t
+import android.text.method.KeyListener;
 
 public final class node_pairing extends activity {
 
@@ -107,6 +108,7 @@ public final class node_pairing extends activity {
     static class state_t {
         public ip4_endpoint_t ip4_endpoint = null;
         public pin_t pin;
+        public String subhome = "";
         public boolean success = false;
         public boolean called = false;
         public boolean lookingup = false;
@@ -121,10 +123,11 @@ public final class node_pairing extends activity {
             return true;
         }
 
-        public void start_testing(ip4_endpoint_t ep, pin_t pin_) {
+        public void start_testing(ip4_endpoint_t ep, pin_t pin_, String subhome_) {
             log("start_testing " + (ep == null ? "NULL EP" : ep.to_string())); //--strip
             ip4_endpoint = ep;
             pin = pin_;
+            subhome = subhome_;
             testing = true;
             called = true;
             success = false;
@@ -212,6 +215,10 @@ public final class node_pairing extends activity {
                connection_log();
            }
         });
+
+        //Disabled feature (unneeded for now as users can select their non custodial wallet or which custodial wallet they'd like to connect with).
+        unpair_btn.setVisibility(View.GONE);
+
     }
 
     void do_unpair() {
@@ -276,7 +283,7 @@ public final class node_pairing extends activity {
         channel = findViewById(R.id.channel);
         nodepkh = findViewById(R.id.nodepkh);
         connection_status = findViewById(R.id.connection_status);
-        connection_status_lo=findViewById(R.id.connection_status_lo);
+        connection_status_lo = findViewById(R.id.connection_status_lo);
         devicepk = findViewById(R.id.devicepk);
         done = findViewById(R.id.done);
         refresh = findViewById(R.id.refresh);
@@ -287,11 +294,17 @@ public final class node_pairing extends activity {
         upgrade2noncustodial = findViewById(R.id.upgrade2noncustodial);
         imagenode = findViewById(R.id.imagenode);
         current_endpoint = findViewById(R.id.current_endpoint);
+
         name = findViewById(R.id.name);
-        ssid = findViewById(R.id.ssid);
         save_name = findViewById(R.id.save_name);
+
+        ssid = findViewById(R.id.ssid);
         read_ssid = findViewById(R.id.read_ssid);
         save_ssid = findViewById(R.id.save_ssid);
+
+        subhome = findViewById(R.id.subhome);
+        save_subhome = findViewById(R.id.save_subhome);
+
         poweron = findViewById(R.id.poweron);
         layoutnode = findViewById(R.id.layoutnode);
         redled = ContextCompat.getDrawable(this, R.drawable.led).mutate();
@@ -345,7 +358,8 @@ public final class node_pairing extends activity {
         conf_index = getIntent().getExtras().getInt("conf_index", 0);
         log("conf_index " + conf_index); //--strip
         dep = a.device_endpoints.get(conf_index);
-        dep.log_blob(); //--strip
+        dep.ui = this;
+        //dep.log_blob(); //--strip
         final ip4_endpoint_t ep = dep.ip4_endpoint;
         log("ip4_endpoint " + (ep == null ? "Null" : ep.to_string())); //--strip
         if (ep != null) {
@@ -361,6 +375,7 @@ public final class node_pairing extends activity {
         nodepkh.setInputType(InputType.TYPE_NULL);
         nodepkh.setTextIsSelectable(true);
         nodepkh.setKeyListener(null);
+        upgrade2noncustodial.setVisibility(View.GONE);
         set_handlers();
         toolbar_button refresh_btn = findViewById(R.id.refresh);
         refresh_btn.setOnClickListener(new View.OnClickListener() {
@@ -403,23 +418,42 @@ public final class node_pairing extends activity {
                 set_ssid();
             }
         });
+
+/*
+        subhome.addTextChangedListener(new TextWatcher() {
+            @Override public void afterTextChanged(Editable s) { save_subhome.setVisibility(View.VISIBLE); }
+            @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            @Override public void onTextChanged(CharSequence s, int start, int before, int count) {}
+        });
+*/
+
+        save_subhome.setOnClickListener(new View.OnClickListener() {
+            @Override public void onClick(View view) {
+                dep.subhome.value = subhome.getText().toString();
+                a.device_endpoints.save();
+                save_subhome.setVisibility(View.GONE);
+            }
+        });
+
     }
 
     @Override public void onPause() {
        log("onPause"); //--strip
        super.onPause();
-       if (dep.hmi == null) return;
-       dep.hmi.set_manual_mode(false);
-       dep.hmi.add_status_handler(null);
+       update_hmi(false);
+    }
+
+    @Override public void onResume() {
+       log("onResume"); //--strip
+       super.onResume();
+       update_hmi(true);
     }
 
     @Override public void onDestroy() {
         super.onDestroy();
         log("onDestroy"); //--strip
-        if (dep.hmi != null) {
-            dep.hmi.set_manual_mode(false);
-            dep.hmi.add_status_handler(null);
-        }
+        update_hmi(false);
+        dep.ui = null;
     }
 
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
@@ -502,22 +536,50 @@ public final class node_pairing extends activity {
         }
     }
 
-    void update_hmi() {
+    void confirmed_subhome(String sbhome) {
+        a.assert_ui_thread(); //--strip
+        state.subhome = sbhome;
+        subhome.setText(sbhome);
+        if (sbhome.isEmpty()) {
+            toast("Non-Custodial wallet");
+        }
+        else {
+            toast("Custodial wallet " + sbhome);
+        }
+    }
+
+    public void confirmed_subhome__worker(String subhome) {
+        log("confirmed_subhome__worker " + subhome); //--strip
+        runOnUiThread(new Runnable() {
+            @Override public void run() {
+                confirmed_subhome(subhome);
+            }
+        });
+
+    }
+
+    void update_hmi(boolean set_manual) {
         if (dep.hmi == null) {
             return;
         }
-        if (!dep.hmi.manual_mode) {
-            dep.hmi.set_manual_mode(true);
-            dep.hmi.add_status_handler(new hmi_t.status_handler_t() {
-                public void on_status(ColorDrawable ledstate, final String msg) {
-                    runOnUiThread(new Runnable() {
-                        @Override public void run() {
-                            log("HMI status: " + msg); //--strip
-                            set_status_led(ledstate, msg);
-                        }
-                    });
-                }
-            });
+        if (set_manual) {
+            if (dep.hmi.manual_mode_ui == null) {
+                dep.hmi.set_manual_mode(this);
+                dep.hmi.add_status_handler(new hmi_t.status_handler_t() {
+                    public void on_status(ColorDrawable ledstate, final String msg) {
+                        runOnUiThread(new Runnable() {
+                            @Override public void run() {
+                                log("HMI status: " + msg); //--strip
+                                set_status_led(ledstate, msg);
+                            }
+                        });
+                    }
+                });
+            }
+        }
+        else {
+           dep.hmi.set_manual_mode(null);
+           dep.hmi.add_status_handler(null);
         }
     }
 
@@ -535,7 +597,7 @@ public final class node_pairing extends activity {
             b.append("  active: " + dep.hmi.is_active() + '\n');
             b.append("  online: " + dep.hmi.is_online + '\n');
             b.append("  wallet_address:\n    " + (dep.hmi.wallet_address == null ? "KO null" : dep.hmi.wallet_address.encode()) + '\n');
-            b.append("  wloc: " + (dep.hmi.subhome.isEmpty() ? "[Non Custodial (empty)]" : dep.hmi.subhome) + '\n');
+            b.append("  wloc: " + (dep.subhome.value.isEmpty() ? "[Non Custodial (empty)]" : dep.subhome.value) + '\n');
             b.append("  trader_endpoints:\n");
             pair<ko, bookmarks_t> r = dep.hmi.bookmarks_me();
             if (is_ko(r.first)) {
@@ -625,15 +687,15 @@ public final class node_pairing extends activity {
         log("show_PIN_dialog"); //--strip
         final EditText input = new EditText(c);
         input.setOnFocusChangeListener(new OnFocusChangeListener() {
-                @Override public void onFocusChange(View v, boolean hasFocus) {
-                    input.post(new Runnable() {
-                        @Override public void run() {
-                            InputMethodManager inputMethodManager= (InputMethodManager) node_pairing.this.getSystemService(Context.INPUT_METHOD_SERVICE);
-                            inputMethodManager.showSoftInput(input, InputMethodManager.SHOW_IMPLICIT);
-                        }
-                    });
-                }
-            });
+            @Override public void onFocusChange(View v, boolean hasFocus) {
+                input.post(new Runnable() {
+                    @Override public void run() {
+                        InputMethodManager inputMethodManager= (InputMethodManager) node_pairing.this.getSystemService(Context.INPUT_METHOD_SERVICE);
+                        inputMethodManager.showSoftInput(input, InputMethodManager.SHOW_IMPLICIT);
+                    }
+                });
+            }
+        });
         input.requestFocus();
         input.setSingleLine();
         input.setInputType(InputType.TYPE_CLASS_NUMBER);
@@ -642,21 +704,21 @@ public final class node_pairing extends activity {
             .setMessage("Authentication for new devices. If you have a PIN number type it, or leave the field empty for sending default pin 00000. PINS are one-shot. Already authenticated devices don't need to enter any PIN.")
             .setView(input)
             .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
-                    @Override public void onClick(DialogInterface dialog, int which) {
-                        String v = String.valueOf(input.getText());
-                        pin_t pin;
-                        try {
-                            pin = new pin_t(Integer.parseInt(v));
-                        }
-                        catch(Exception e) {
-                            log("KO 30291 Exception " + e.getMessage()); //--strip
-                            pin = new pin_t(0);
-                        }
-                        log("collected PIN " + pin.value); //--strip
-                        do_test(pin);
+                @Override public void onClick(DialogInterface dialog, int which) {
+                    String v = String.valueOf(input.getText());
+                    pin_t pin;
+                    try {
+                        pin = new pin_t(Integer.parseInt(v));
                     }
-                })
-            .create();
+                    catch(Exception e) {
+                        log("KO 30291 Exception " + e.getMessage()); //--strip
+                        pin = new pin_t(0);
+                    }
+                    log("collected PIN " + pin.value); //--strip
+
+                    do_test(pin);
+                }
+            }).create();
         dialog.show();
     }
 
@@ -769,15 +831,16 @@ public final class node_pairing extends activity {
                     });
                 }
             };
-            log("Connecting to " + state.ip4_endpoint.to_string() + " using PIN>0 " + (state.pin.value > 0 ? "yes" : "no")); //--strip
+            log("Connecting to " + state.ip4_endpoint.to_string() + " using PIN>0 " + (state.pin.value > 0 ? "yes" : "no") + " subhome " + state.subhome); //--strip
             if (dep.hmi != null) {
                 a.HMI_power_off__worker(conf_index, progress);
             }
             ans = dep.set_ip4_endpoint(state.ip4_endpoint);
+            ans = dep.set_subhome(state.subhome);
             a.device_endpoints.save();
             a.HMI_power_on__worker(conf_index, state.pin, progress);
 
-            update_hmi();
+            update_hmi(true);
 
             log("hmi ans " + (is_ok(ans) ? "ok" : ans.msg)); //--strip
             Timer timer = new Timer();
@@ -800,9 +863,10 @@ public final class node_pairing extends activity {
     }
 
     void do_test(final pin_t pin) {
-        log("do_test"); //--strip
         ip4_endpoint_t ep = ip4_endpoint_from_widgets();
-        state.start_testing(ep, pin);
+        String sbhome = subhome.getText().toString();
+        log("do_test" + pin.value + " subhome " + sbhome); //--strip
+        state.start_testing(ep, pin, sbhome);
         refresh();
         set_status_led(leds_t.led_amber, "Trying " + (state.ip4_endpoint != null ? state.ip4_endpoint.to_string() : ""));
         Thread thread = new Thread(new Runnable() {
@@ -869,7 +933,7 @@ public final class node_pairing extends activity {
         log("custodial_info"); //--strip
         if (dep.hmi == null) {
             mode.setVisibility(View.GONE);
-            upgrade2noncustodial.setVisibility(View.GONE);
+            //upgrade2noncustodial.setVisibility(View.GONE);
             return;            
         }
         if (!dep.hmi.is_online) {
@@ -879,18 +943,18 @@ public final class node_pairing extends activity {
             return;
         }
         log("hmi is up"); //--strip
-        String subhome = dep.hmi.subhome;
+        String subhome = dep.subhome.value;
         if (subhome.isEmpty()) {
             mode.setText(R.string.mode_non_custodial);
             mode.setTextColor(darkgreen);
-            upgrade2noncustodial.setVisibility(View.GONE);
+            //upgrade2noncustodial.setVisibility(View.GONE);
         }
         else {
             String mcs = r_(R.string.mode_custodial);
             log("mcs=" + mcs); //--strip
             mode.setText(mcs + "\n(subhome " + subhome + ")");
             mode.setTextColor(orange);
-            upgrade2noncustodial.setVisibility(View.VISIBLE);
+            //upgrade2noncustodial.setVisibility(View.VISIBLE);
         }
         mode.setVisibility(View.VISIBLE);
         dep.hmi.report_status__ui();
@@ -915,8 +979,8 @@ public final class node_pairing extends activity {
         else {
             log("wallet_address " + wallet_address.encode()); //--strip
             String addr = dep.hmi.wallet_address.encode();
-            if (!dep.hmi.subhome.isEmpty()) {
-                addr += "." + dep.hmi.subhome;
+            if (!dep.subhome.value.isEmpty()) {
+                addr += "." + dep.subhome.value;
             }
             nodepkh.setText(addr);
         }
@@ -942,13 +1006,13 @@ public final class node_pairing extends activity {
             connect_btn.setEnabled(true);
             connect_btn.setVisibility(View.VISIBLE);
             current_endpoint.setVisibility(View.VISIBLE);
-            unpair_btn.setEnabled(true);
-            unpair_btn.setVisibility(View.VISIBLE);
+            //unpair_btn.setEnabled(true);
+            //unpair_btn.setVisibility(View.VISIBLE);
         }
         else {
             connect_btn.setVisibility(View.GONE);
             current_endpoint.setVisibility(View.GONE);
-            unpair_btn.setVisibility(View.GONE);
+            //unpair_btn.setVisibility(View.GONE);
         }    
     }
 
@@ -971,6 +1035,35 @@ public final class node_pairing extends activity {
             log("ssid.setText()->'" + dep.ssid.value + "'"); //--strip
             ssid.setText(dep.ssid.value);
             save_ssid.setVisibility(View.GONE);
+        }
+    }
+
+
+    KeyListener subhome_key_listener = null;
+
+    TextWatcher subhome_TextWatcher = new TextWatcher() {
+            @Override public void afterTextChanged(Editable s) { save_subhome.setVisibility(View.VISIBLE); }
+            @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            @Override public void onTextChanged(CharSequence s, int start, int before, int count) {}
+    };
+
+    void refresh_subhome_widgets() {
+        String subhometxt = subhome.getText().toString();
+        log("subhome.getText()='" + subhometxt + "'"); //--strip
+
+        subhome.removeTextChangedListener(subhome_TextWatcher);
+        subhome.setText(dep.subhome.value);
+        save_subhome.setVisibility(View.GONE);
+        subhome.setTextIsSelectable(true);
+        if (dep.hmi == null) { //only allow taking input in power-off mode.
+            if (subhome.getKeyListener() == null && subhome_key_listener != null) { //restore original keylistener and allow input
+                subhome.setKeyListener(subhome_key_listener);
+                subhome.addTextChangedListener(subhome_TextWatcher);
+            }
+        }
+        else {
+            subhome_key_listener = subhome.getKeyListener();
+            subhome.setKeyListener(null);
         }
     }
 
@@ -1006,14 +1099,27 @@ public final class node_pairing extends activity {
         });
     }
 
+    public void refresh__worker() {
+        app.assert_worker_thread(); //--strip
+        runOnUiThread(new Thread(new Runnable() {
+            public void run() {
+                refresh();
+            }
+        }));
+
+    }
+
     public void refresh() {
         log("refresh"); //--strip
-        update_hmi();
+        app.assert_ui_thread();  //--strip
+        update_hmi(true);
 
         name.setText(dep.name_.value);
         save_name.setVisibility(View.GONE);
 
         refresh_ssid_widgets();
+        refresh_subhome_widgets();
+
         refresh_device_widgets();
         refresh_poweron();
         refresh_node_address_n_lookupip();
@@ -1046,6 +1152,9 @@ public final class node_pairing extends activity {
     private TextInputEditText ssid;
     MaterialButton save_ssid;
     MaterialButton read_ssid;
+
+    private TextInputEditText subhome;
+    MaterialButton save_subhome;
 
     private Switch poweron;
 

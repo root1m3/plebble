@@ -44,15 +44,20 @@ namespace us::gov::engine {
         };
         constexpr static array<const char*, num_stages> stagestr = {"unknown", "sysop", "out", "hall", "node", "device"};
 
+    public:
         peer_t(net_daemon_t&, int sock);
         ~peer_t() override;
+
+    public:
         void dump(const string& prefix, ostream&) const;
         void dump_all(const string& prefix, ostream&) const override;
-        void verification_completed(pport_t, pin_t) override;
-        ko authorize(const pub_t&, pin_t) override;
+        ko verification_completed(pport_t, pin_t, request_data_t&) override;
+        ko authorize(const pub_t&, pin_t, request_data_t&) override;
         daemon_t& engine_daemon();
         const daemon_t& engine_daemon() const;
         svc_t translate_svc(svc_t svc0, bool inbound) const override;
+
+        void verification_result(request_data_t&&) override {};
 
     public:
         bool process_work(datagram*) override;

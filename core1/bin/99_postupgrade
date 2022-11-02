@@ -178,10 +178,12 @@ function save_release_history {
     echo -n "enter new branch (or y for $proposed): "
     newb=""
     read newb
-    if [[ "_$nrwb == "_y" ]]; then
+    if [[ "_$newb" == "_y" ]]; then
         newb=$proposed
     fi
     echo "New branch: $newb"
+    echo "y/ctrl-c"
+    read a
 
     echo "archiving distr files"
     dir=release_history/$branch

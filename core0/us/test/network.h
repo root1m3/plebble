@@ -82,6 +82,7 @@ namespace us::test {
         bookmarks_t bookmarks() const;
         ko android_app_test__prepair(string subhome, node&);
         ko android_app_test__pair(string subhome, node&);
+        ko android_app_test__auto_custodial_wallet(string subhome, node&);
         void set_consume_pin(node&);
         void sleep_for(uint64_t secs) const;
         void abort_tests();

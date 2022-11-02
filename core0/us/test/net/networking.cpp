@@ -683,7 +683,7 @@ void c::test_load(int num_dgrams, chrono::milliseconds& timebetweendgrams) {
     };
 
     shostport_t shostport = make_pair(myaddress, myport);
-    cli_t cli(123, k, shostport, peer_t::role_device, nullptr);
+    cli_t cli(123, k, shostport, peer_t::role_t::role_device, nullptr);
     #if CFG_LOGS == 1
         cli.logdir = logdir;
     #endif
@@ -765,20 +765,21 @@ bool c::peer_t::process_work(datagram* d) {
     return false;
 }
 
-void c::peer_t::verification_completed(pport_t rpport, pin_t pin) {
-    b::verification_completed(rpport, pin);
-    if (!verification_is_fine()) {
+ko c::peer_t::verification_completed(pport_t rpport, pin_t pin, request_data_t& request_data) {
+    auto r = b::verification_completed(rpport, pin, request_data);
+    if (is_ko(r)) {
         disconnect(0, "");
-        return;
+        return r;
     }
     if (!static_cast<us::gov::peer::daemon_t&>(daemon).clique.add(*this, true)) {
         disconnect(0, "");
-        return;
+        return "KO 50912";
     }
+    return ok;
 }
 
-ko c::peer_t::authorize(const pub_t& p, pin_t pin) {
-    cout << "Authorizing incoming peer pub " << p << " pin " << pin << '\n';
+ko c::peer_t::authorize(const pub_t& p, pin_t pin, request_data_t& request_data) {
+    cout << "Authorizing incoming peer pub " << p << " pin " << pin << " request_data " << request_data << '\n';
     return ok;
 }
 

@@ -42,16 +42,17 @@ import us.pair;                                                                 
 import java.io.PrintStream;                                                                    // PrintStream
 import java.security.PrivateKey;                                                               // PrivateKey
 import java.security.PublicKey;                                                                // PublicKey
+import static us.gov.id.types.request_data_t;                                                  // request_data_t
 import us.gov.crypto.ripemd160;                                                                // ripemd160
 import us.gov.io.types.blob_t.serid_t;                                                         // serid_t
 import us.gov.crypto.sha256;                                                                   // sha256
 import us.string;                                                                              // string
-import us.gov.io.types.blob_t.version_t;                                                       // version_t
+import static us.gov.io.types.blob_t.version_t;                                                // version_t
 
 public class blob_reader_t {
 
     static ko KO_67217 = new ko("KO 67217 Overflow.");
-    static ko KO_60499 = new ko("KO 60499 Invalid blob version.");
+    //static ko KO_60499 = new ko("KO 60499 Invalid blob version.");
     static ko KO_60498 = new ko("KO 60498 Invalid blob object.");
 
     public static final blob_t.version_t current_version = CFG.BLOB_VERSION;
@@ -60,15 +61,17 @@ public class blob_reader_t {
         CFG.log_gov_io("blob_reader_t: " + line);            //--strip
     }                                                        //--strip
 
-    public class blob_header_t {
+    public static class blob_header_t {
+
+        public static int sersize = 2;
 
         public blob_header_t(version_t version, serid_t serid) {
             this.version = version;
             this.serid = serid;
         }
 
-        version_t version;
-        serid_t serid;
+        public version_t version;
+        public serid_t serid;
     }
 
     public interface readable_if {
@@ -76,6 +79,7 @@ public class blob_reader_t {
         ko from_blob(blob_reader_t reader);
     }
 
+    //------------------------------------------------------------------------------
     public static abstract class readable implements readable_if {
 
         public serid_t serial_id() { return new serid_t((short)0); }
@@ -195,6 +199,7 @@ public class blob_reader_t {
             return ret;
         }
     }
+    //------------------------------------------------------------------------------
 
     public blob_reader_t(final blob_t blob_) {
         assert blob_ != null;
@@ -252,6 +257,11 @@ public class blob_reader_t {
     }
 
     public static ko readD(final datagram d, vector_string o) {
+        blob_reader_t reader = new blob_reader_t(d);
+        return reader.read(o);
+    }
+
+    public static ko readD(final datagram d, request_data_t o) {
         blob_reader_t reader = new blob_reader_t(d);
         return reader.read(o);
     }
@@ -644,15 +654,6 @@ public class blob_reader_t {
             ko r = read(header.serid);
             if (is_ko(r)) return r;
         }
-        if (header.version.value != current_version.value) {
-            log("Blob is not current version. " + header.version.value + " " + current_version.value); //--strip
-            if (header.version.value == current_version.value - 1) {
-                log("Blob is prev version. " + header.version.value + " " + current_version.value);  //--strip
-                return ok;
-            }
-            log(KO_60499.msg + " " + header.version.value + " " + current_version.value); //--strip
-            return KO_60499;
-        }
         if (header.serid.value != serid.value) {
             log(KO_60498.msg);  //--strip
             return KO_60498;
@@ -670,17 +671,18 @@ public class blob_reader_t {
             ko r = read(header.serid);
             if (is_ko(r)) return r;
         }
+        /*
         if (header.version.value != current_version.value) {
             log(KO_60499.msg); //--strip
             return KO_60499;
         }
+        */
         return ok;
     }
-
 
     blob_t blob;
     int cur;
     int end;
-    blob_header_t header = new blob_header_t(new version_t((short)0), new serid_t((short)0));
+    public blob_header_t header = new blob_header_t(new version_t((short)0), new serid_t((short)0));
 }
 

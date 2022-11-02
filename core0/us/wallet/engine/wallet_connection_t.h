@@ -23,20 +23,19 @@
 #pragma once
 #include <us/gov/io/seriable.h>
 #include <us/gov/socket/types.h>
+#include <us/gov/config.h>
 
 #include "ip4_endpoint_t.h"
 
 namespace us::wallet::engine {
 
-    struct wallet_connection_t final: gov::io::seriable {
+    struct wallet_connection_t final_: gov::io::seriable {
 
     public:
         wallet_connection_t();
         wallet_connection_t(const string& nm, const ip4_endpoint_t& ep);
-        wallet_connection_t(uint64_t ts_, const string& addr_, const string& nm, const string& ssid_, const ip4_endpoint_t&);
-
-    private:
-         wallet_connection_t(const wallet_connection_t& other);
+        wallet_connection_t(uint64_t ts_, const string& addr_, const string& subhome, const string& nm, const string& ssid_, const ip4_endpoint_t&);
+        wallet_connection_t(const wallet_connection_t& other);
 
     public:
         wallet_connection_t copy() const;
@@ -54,6 +53,7 @@ namespace us::wallet::engine {
         string name_;
         string ssid;
         string addr;
+        string subhome;
         ip4_endpoint_t ip4_endpoint;
         uint64_t ts{0};
     };

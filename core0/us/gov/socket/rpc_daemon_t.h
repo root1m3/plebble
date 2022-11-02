@@ -47,7 +47,7 @@ namespace us::gov::socket {
 
     public:
         void set_busy_handlers(busyled_t::handler_t* hsend, busyled_t::handler_t* hrecv);
-        virtual client* create_client();
+        virtual client* create_client() = 0;
         bool process_unhandled(client&, datagram*) final override;
         inline busyled_t& recv_led() final override { return handler::busyled; }
         inline void wakeup_handler() { handler::task_wakeup(); }

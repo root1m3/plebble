@@ -102,7 +102,7 @@ public abstract class role_fragment extends Fragment implements datagram_dispatc
                 @Override public void on_send(workflow_item_view v) {
                     String docname = v.local.name;
                     log("on_send " + docname); //--strip
-                    a.hmi.command_trade(tr.tid, "send " + docname);
+                    a.hmi().command_trade(tr.tid, "send " + docname);
                 }
                 @Override public void on_show(workflow_item_view v) {
                     String docname = v.local.name;
@@ -116,7 +116,7 @@ public abstract class role_fragment extends Fragment implements datagram_dispatc
             });
 
         log("connect network-datagram hose");//--strip
-        dispatchid = a.hmi.dispatcher.connect_sink(this);
+        dispatchid = a.hmi().dispatcher.connect_sink(this);
         return v;
     }
 
@@ -124,8 +124,8 @@ public abstract class role_fragment extends Fragment implements datagram_dispatc
         super.onDestroyView();
         log("onDestroyView"); //--strip
         assert a != null;
-        assert a.hmi.dispatcher != null;
-        a.hmi.dispatcher.disconnect_sink(dispatchid);
+        assert a.hmi().dispatcher != null;
+        a.hmi().dispatcher.disconnect_sink(dispatchid);
     }
 
     @Override public void on_push(final hash_t target_tid, final uint16_t code, final byte[] payload) {
@@ -190,7 +190,7 @@ public abstract class role_fragment extends Fragment implements datagram_dispatc
         }
         String cmd = data.getStringExtra("actioncommand");
         log("Xecuting action: " + cmd); //--strip
-        a.hmi.command_trade(tid, cmd);
+        a.hmi().command_trade(tid, cmd);
     }
 
     void scroll_down() {

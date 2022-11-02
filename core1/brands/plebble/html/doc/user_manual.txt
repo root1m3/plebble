@@ -1,0 +1,1 @@
+/usr/local/share/doc/plebble/user_manual

@@ -60,7 +60,7 @@ namespace us::gov::peer {
         ~peer_t() override;
 
     public:
-        ko connect(const hostport_t&, pport_t, pin_t, role_t, bool block) final override;
+        ko connect(const hostport_t&, pport_t, pin_t, role_t, const request_data_t&, bool block) final override;
         using b::disconnect;
         void disconnectx(channel_t, seq_t, const reason_t&) override;
         void dump_all(const string& prefix, ostream&) const override;
@@ -68,7 +68,7 @@ namespace us::gov::peer {
         bool check_auth_not_granted() const;
         bool check_idle() const;
         void dump(const string& prefix, ostream&) const;
-        ko authorize(const pub_t&, pin_t) override;
+        ko authorize(const pub_t&, pin_t, request_data_t&) override;
         bool process_work(datagram*) override;
 
     public:

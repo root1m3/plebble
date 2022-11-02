@@ -31,6 +31,7 @@
 using namespace us::gov::id;
 using c = us::gov::id::rpc_daemon_t;
 
+/*
 socket::client* c::create_client() {
     log("KO 78673 specialize peer");
     assert(false);
@@ -38,6 +39,7 @@ socket::client* c::create_client() {
 //    log("create_client");
 //    return new peer_t(*this);
 }
+*/
 
 void c::dump(const string& prefix, ostream& os) const {
     os << prefix << "id::rpc_daemon_t: caller public key: " << get_keys().pub << " addr " << get_keys().pub.hash() << '\n';

@@ -75,14 +75,14 @@ public final class tradelog extends activity implements datagram_dispatcher_t.ha
             }
         });
         log("connect network-datagram hose");//--strip
-        dispatchid = a.hmi.dispatcher.connect_sink(this);
+        dispatchid = a.hmi().dispatcher.connect_sink(this);
     }
 
     @Override public void onDestroy() {
         super.onDestroy();
         log("onDestroy"); //--strip
         log("disconnect network-datagram hose");//--strip
-        a.hmi.dispatcher.disconnect_sink(dispatchid);
+        a.hmi().dispatcher.disconnect_sink(dispatchid);
     }
 
    @Override public void onPause() {
@@ -146,11 +146,11 @@ public final class tradelog extends activity implements datagram_dispatcher_t.ha
         app.assert_ui_thread(); //--strip
         if (content_type.equals("log")) {
             tvlog.setText("retrieving log...");
-            a.hmi.command_trade(tid, "show log");
+            a.hmi().command_trade(tid, "show log");
         }
         else if (content_type.equals("data")) {
             tvlog.setText("retrieving data...");
-            a.hmi.command_trade(tid, "show data");
+            a.hmi().command_trade(tid, "show data");
         }
     }
 

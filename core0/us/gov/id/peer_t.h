@@ -42,7 +42,7 @@ namespace us::gov::id {
 
         static const char* KO_6017;
 
-        enum stage_t {
+        enum stage_t: uint8_t {
             anonymous = 0,
             verified,
             verified_fail,
@@ -50,12 +50,7 @@ namespace us::gov::id {
         };
         constexpr static array<const char*, num_stages> stagestr = {"anonymous", "verified", "verified_fail"};
 
-        enum role_t {
-            role_peer = 0,
-            role_sysop = 1,
-            role_device = 2,
-            num_roles
-        };
+        using role_t = us::gov::id::role_t;
         constexpr static array<const char*, num_roles> rolestr = {"peer", "sysop", "device"};
 
     public:
@@ -64,9 +59,9 @@ namespace us::gov::id {
         virtual ~peer_t();
 
     public:
-        virtual ko connect(const hostport_t&, pport_t, pin_t, role_t, bool block);
-        ko connect(const shostport_t&, pport_t, pin_t, role_t, bool block);
-        virtual void verification_completed(pport_t, pin_t);
+        virtual ko connect(const  hostport_t&, pport_t, pin_t, role_t, const request_data_t& request_data, bool block);
+                ko connect(const shostport_t&, pport_t, pin_t, role_t, const request_data_t& request_data, bool block);
+        virtual ko verification_completed(pport_t, pin_t, request_data_t&);
         virtual void upgrade_software();
         const keys_t& get_keys() const;
         virtual void dump_all(const string& prefix, ostream&) const override;
@@ -74,7 +69,6 @@ namespace us::gov::id {
         bool process_work(datagram*) override;
         static string to_string(const vector<unsigned char>& data);
         bool verification_is_fine() const { return get_stage_peer() == verified; }
-        //string short_version() const;
         ko turn_on_encryption();
         ko wait_auth() const;
         pair<ko, datagram*> encrypt0(datagram*) const override;
@@ -84,16 +78,18 @@ namespace us::gov::id {
         stage_t get_stage_peer() const;
         void set_stage_peer(stage_t);
 
-        inline bool is_role_peer() const { return role == role_peer; }
-        inline bool is_role_sysop() const { return role == role_sysop; }
-        inline bool is_role_device() const { return role == role_device; }
+        inline bool is_role_peer() const { return role == role_t::role_peer; }
+        inline bool is_role_sysop() const { return role == role_t::role_sysop; }
+        inline bool is_role_device() const { return role == role_t::role_device; }
 
         struct handshake_t final {
             using sigmsg_hasher_t = crypto::ec::sigmsg_hasher_t;
             using sigmsg_hash_t = sigmsg_hasher_t::value_type;
 
-            handshake_t(api_v_t, role_t, pport_t, pin_t);
+            handshake_t(api_v_t, role_t, pport_t, pin_t, const request_data_t&);
             handshake_t();
+            handshake_t(sigmsg_hash_t&&);
+
 
             role_t parse_role() const;
             version_fingerprint_t parse_version_fingerprint() const;
@@ -103,11 +99,13 @@ namespace us::gov::id {
             void dump(const string& pfx, ostream&) const;
 
             sigmsg_hash_t msg;
+            request_data_t request_data;
         };
 
         struct handshakes_t final {
 
-            handshakes_t(api_v_t, role_t, pport_t, pin_t);
+            handshakes_t(api_v_t, role_t, pport_t, pin_t, const request_data_t&);
+            handshakes_t(sigmsg_hash_t&&);
             handshakes_t();
             ~handshakes_t();
 
@@ -117,13 +115,26 @@ namespace us::gov::id {
 
         #ifdef has_us_gov_id_api
 
-            virtual ko initiate_dialogue(role_t, pport_t, pin_t);
+            virtual ko initiate_dialogue(role_t, pport_t, pin_t, const request_data_t&);
 
             #include <us/api/generated/gov/c++/id/hdlr_override>
             #include <us/api/generated/gov/c++/id/hdlr_svc_handler-hdr>
             #include <us/api/generated/gov/c++/id/cllr_override>
 
         #endif
+
+    public:
+        #if CFG_COUNTERS == 1
+            struct counters_t {
+               uint32_t successful_verifications{0};
+               uint32_t failed_verifications{0};
+               uint32_t signals_upgrade_software{0};
+               void dump(ostream&) const;
+            };
+            static counters_t counters;
+        #endif
+
+        virtual void verification_result(request_data_t&&) = 0;
 
     public:
         stage_t stage_peer{anonymous};

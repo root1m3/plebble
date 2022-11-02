@@ -33,7 +33,7 @@ using namespace us::gov::io;
 using c = us::gov::io::blob_reader_t;
 
 const char* c::KO_67217 = "KO 67217 Overflow.";
-const char* c::KO_60499 = "KO 60499 Invalid blob version.";
+//const char* c::KO_60499 = "KO 60499 Invalid blob version.";
 const char* c::KO_60498 = "KO 60498 Invalid blob object.";
 const char* c::KO_75643 = "KO 75643 sizet exceeded max limit.";
 
@@ -292,6 +292,11 @@ ko c::read_header(serid_t serid) {
         auto r = read(header.serid);
         if (is_ko(r)) return r;
     }
+    if (header.serid != serid) {
+        log(KO_60498);
+        return KO_60498;
+    }
+/*
     if (unlikely(header.version != current_version)) {
         log("Blob is not current version.", +header.version, +current_version);
         if (header.version == current_version - 1) {
@@ -301,10 +306,7 @@ ko c::read_header(serid_t serid) {
         log(KO_60499, +header.version, +current_version);
         return KO_60499;
     }
-    if (header.serid != serid) {
-        log(KO_60498);
-        return KO_60498;
-    }
+*/
     return ok;
 }
 
@@ -318,6 +320,7 @@ ko c::read_header() {
         auto r = read(header.serid);
         if (is_ko(r)) return r;
     }
+/*
     if (unlikely(header.version != current_version)) {
         log("Blob is not current version.", +header.version, +current_version);
         if (header.version == current_version - 1) {
@@ -327,6 +330,7 @@ ko c::read_header() {
         log(KO_60499, +header.version, +current_version);
         return KO_60499;
     }
+*/
     return ok;
 }
 
@@ -340,6 +344,7 @@ ko c::read_header(const string& file, blob_header_t& header) {
     if (unlikely(!is.good())) {
         return KO_60498;
     }
+/*
     if (unlikely(header.version != current_version)) {
         log("Blob is not current version.", +header.version, +current_version);
         if (header.version == current_version - 1) {
@@ -349,6 +354,7 @@ ko c::read_header(const string& file, blob_header_t& header) {
         log(KO_60499, +header.version, +current_version);
         return KO_60499;
     }
+*/
     return ok;
 }
 

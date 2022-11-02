@@ -108,12 +108,13 @@ bool c::process_work(datagram* d) {
     return false;
 }
 
-ko c::authorize(const pub_t& p, pin_t pin) {
+ko c::authorize(const pub_t& p, pin_t pin, request_data_t& request_data) { // request_data = requested subhome
     log("authorize", p, pin);
     auto& demon = static_cast<daemon_t&>(daemon);
     if (is_role_peer() || is_role_sysop()) {
         log("role peer or sysop", "authorized", is_role_peer(), is_role_sysop());
-        wallet_local_api = demon.users.get_wallet("");
+        string subhome_trading = ""; //the wallet I want to use to handle trades. Empty = root non-custodial wallet
+        wallet_local_api = demon.users.get_wallet(subhome_trading);
         return ok;
     }
     if (!is_role_device()) {
@@ -121,23 +122,22 @@ ko c::authorize(const pub_t& p, pin_t pin) {
         log(r, "not authorized");
         return r;
     }
-    log("role device");
-    auto r = demon.authorize_device(p, pin);
-    if (is_ko(r.first)) {
-        return r.first;
+    log("role device"); // HMI device, using wallet given by authenticator. 
+    auto r = demon.authorize_device(p, pin, request_data);
+    if (is_ko(r)) {
+        return r;
     }
-    if (!r.second.empty() && demon.devices.is_enabled__authorize_and_create_guest_wallet()) {
-        //revocation is writen in peer_t::handle_unpair_device (peer_t__pairing.cpp)
-        ostringstream file;
-        file << demon.wallet_home(r.second) << "/revoked";
+    if (!request_data.empty() && demon.devices.is_enabled__authorize_and_create_guest_wallet()) {
+        ostringstream file; //revocation is writen in peer_t::handle_unpair_device (peer_t__pairing.cpp)
+        file << demon.wallet_home(request_data) << "/revoked";
         if (us::gov::io::cfg0::file_exists(file.str())) {
-            auto r = "KO 55710 This device has its access revoked to its automatic guest wallet.";
+            auto r = "KO 55710 This device has been revoked from accessing its assigned guest wallet.";
             log(r);
             return r;
         }
     }
-    wallet_local_api = demon.users.get_wallet(r.second);
-    log("device authorized. subhome", r.second, "wallet local_api", wallet_local_api);
+    wallet_local_api = demon.users.get_wallet(request_data);
+    log("device authorized. subhome", request_data, "wallet local_api", wallet_local_api);
     return ok;
 }
 
@@ -146,53 +146,56 @@ void c::announce(pport_t rpport) const {
     static_cast<daemon_t&>(daemon).on_peer_wallet(pubkey.hash(), hostport.first, rpport);
 }
 
-void c::verification_completed(pport_t rpport, pin_t pin) {
+ko c::verification_completed(pport_t rpport, pin_t pin, request_data_t& request_data) {
     log("verification_completed", endpoint(), sock, rpport, pin);
-    b::verification_completed(rpport, pin);
-    if (unlikely(!verification_is_fine())) {
-        log("verification_not_fine->disconnect", client::endpoint());
-        disconnect(0, "KO 40043 Verification_not_fine.");
-        return;
+    {
+        auto r = b::verification_completed(rpport, pin, request_data);
+        if (is_ko(r)) {
+            return r;
+        }
     }
     auto ap = static_cast<us::gov::auth::peer_t*>(this);
     if (ap->stage != us::gov::auth::peer_t::authorized) {
-        log("disconnect-not authorized", client::endpoint());
-        disconnect(0, "KO 32032 Not authorized.");
-        return;
+        auto r = "KO 32032 Not authorized.";
+        log(r, "disconnect-not authorized", client::endpoint());
+        disconnect(0, r);
+        return r;
     }
     if (is_role_peer() || is_role_sysop()) {
         log("role_peer or role_sysop");
         if (unlikely(us::gov::auth::peer_t::stage != us::gov::auth::peer_t::authorized)) {
-            log("not_authorized->disconnect");
-            disconnect(0, "KO 12011 Not authorized");
-            return;
+            auto r = "KO 12011 Not authorized";
+            log(r, "not_authorized->disconnect");
+            disconnect(0, r);
+            return r;
         }
         if (is_role_peer()) {
             log("role_peer");
             if (!static_cast<daemon_t&>(daemon).clique.add(*this, false)) {
-                log ("disconnect-grid doesn't accept", endpoint(), "sock", sock);
-                disconnect(0, "KO 90547 All lines are busy.");
-                return;
+                auto r = "KO 90547 All lines are busy.";
+                log(r, "disconnect-grid doesn't accept", endpoint(), "sock", sock);
+                disconnect(0, r);
+                return r;
             }
             log("post_auth", "TRACE 8c");
             post_auth(rpport);
         }
+        return ok;
     }
-    else {
-        if (is_role_device()) {
-            log("role_device");
-            if (!static_cast<daemon_t&>(daemon).grid_dev.add(*this, false)) {
-                log ("disconnect-grid_dev doesn't accept", endpoint(), sock);
-                disconnect(0, "KO 12001 All lines are busy.");
-                return;
-            }
+    if (is_role_device()) {
+        log("role_device");
+        if (!static_cast<daemon_t&>(daemon).grid_dev.add(*this, false)) {
+            auto r = "KO 12001 All lines are busy.";
+            log(r, "disconnect-grid_dev doesn't accept", endpoint(), sock);
+            disconnect(0, r);
+            return r;
         }
-        else {
-            log("disconnect-unknown role", client::endpoint(), sock);
-            disconnect(0, "KO 43003 Unknown role.");
-            return;
-        }
+        return ok;
     }
+    auto r = "KO 43003 Unknown role.";
+    log(r, "disconnect-unknown role", client::endpoint(), sock);
+    disconnect(0, r);
+    return r;
 }
 
 void c::schedule_push(socket::datagram* d) {

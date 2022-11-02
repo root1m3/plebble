@@ -577,7 +577,7 @@ ko c::start_rpc_daemon(busyled_t::handler_t* busyled_handler_send, busyled_t::ha
     }
     log("device public key", cfgcli->keys.pub, "address", cfgcli->keys.pub.hash());
     shostport_t shostport = make_pair(p.sysophost, p.port);
-    rpc_daemon = new rpc_daemon_t(*this, cfgcli->keys, shostport, rpc_peer_t::role_sysop, dis);
+    rpc_daemon = new rpc_daemon_t(*this, cfgcli->keys, shostport, rpc_peer_t::role_t::role_sysop, dis);
     rpc_daemon->connect_for_recv = p.rpc__connect_for_recv;
     rpc_daemon->stop_on_disconnection = p.rpc__stop_on_disconnection;
     #if CFG_LOGS == 1
@@ -736,6 +736,12 @@ void c::on_peer_disconnected(const string& reason) {
     log("peer disconnected. Reason: ", reason);
     screen::lock_t lock(scr, true);
     lock.os << "Peer disconnected with reason: " << reason << '\n';
+}
+
+void c::verification_result(request_data_t&& request_data) {
+    log("verification_result", request_data);
+    screen::lock_t lock(scr, true);
+    lock.os << "subhome is " << request_data << '\n';
 }
 
 void c::write_rpc_client_key() {

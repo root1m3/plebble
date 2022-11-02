@@ -48,16 +48,20 @@ namespace us::gov::peer {
     struct daemon_t: base_ns::daemon_t, peer::mezzanine {
         using b = base_ns::daemon_t;
         using t = peer::mezzanine;
+        using request_data_t = us::gov::id::request_data_t;
 
+    public:
         daemon_t(channel_t);
         daemon_t(channel_t, port_t port, pport_t pport, uint8_t dimensions, uint8_t edges, uint8_t devices, uint8_t workers);
         ~daemon_t() override;
 
+    public:
         void visit(const function<void(peer_t&)>& visitor);
         vector<hostport_t> list_neighbours() const;
         vector<hostport_t> list_dev_neighbours() const;
         void purge_idle();
 
+    public:
         ko start();
         ko wait_ready(const time_point& deadline) const;
         ko wait_ready(int seconds_deadline) const;
@@ -66,6 +70,7 @@ namespace us::gov::peer {
         bool is_active() const { return b::is_active() && t::is_active(); }
         inline bool isup() const { return b::isup() && t::isup(); }
 
+    public:
         inline void wakeup_grids() { t::task_wakeup(); }
         void wait();
         void dump_random_nodes(size_t num, ostream&) const;
@@ -81,6 +86,7 @@ namespace us::gov::peer {
             virtual string homedir() const = 0;
         #endif
 
+    public:
         //------ ring/mesh implementations
         void grid_rotate(nodes_t&, mutex&, grid_t&);
         void clique_rotate(nodes_t&, mutex&);
@@ -89,14 +95,14 @@ namespace us::gov::peer {
         void on_t_wakeup();
         //-/---- ring/mesh implementations
 
+    public:
         void set_seed_nodes(const vector<hostport_t>&);
         ko add_seed_node(const hostport_t&);
         void set_nodes(const vector<pair<hash_t, hostport_t>>&);
         void grid_setcur();
-//        void disconnect_one();
         ko grid_connect(const hostport_t& ipport, function<void(peer::peer_t*)> pre_connect, function<void(peer::peer_t*)> pre_attach);
         bool grid_connect_test(peer::peer_t*, const hostport_t&, ostream&);
-        socket::client* create_client(sock_t sock) override { assert(false); return nullptr; }
+        //socket::client* create_client(sock_t sock) override { assert(false); return nullptr; }
         void dump(const string& prefix, ostream&) const;
         void watch(ostream&) const;
 

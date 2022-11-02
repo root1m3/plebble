@@ -68,7 +68,7 @@ namespace us::wallet::engine {
     public:
         socket::client* create_client(sock_t sock) override;
         const keys_t& get_keys() const override { return id; }
-        std::pair<ko, string> authorize_device(const pub_t&, pin_t pin);
+        ko authorize_device(const pub_t&, pin_t pin, request_data_t&);
         bool send_response(socket::peer_t*, datagram*, const string& payload);
         bool send_response(socket::peer_t*, datagram*, const vector<uint8_t>& payload);
         bool send_error_response(socket::peer_t*, datagram*, const string& error);

@@ -147,15 +147,11 @@ public final class app extends Application implements datagram_dispatcher_t.hand
 CFG.sdk_logs = true; //--strip
         log("SDK logs: " + CFG.sdk_logs);                                   //--strip
         us.CFG.logs.set(CFG.sdk_logs);                                      //--strip
-
     }
 
     void abort(String reason) {
         log("ABORT"); //--strip
-        //error_manager.manage(new GeneralSecurityException(reason), "KO 50493");
         android.os.Process.killProcess(android.os.Process.myPid());
-        //finishAndRemoveTask();
-
         System.exit(0);
     }
 
@@ -202,8 +198,7 @@ CFG.sdk_logs = true; //--strip
     };
 
     static class i18n_es implements i18n_t {
-        @Override
-        public String resolve(sid s) {
+        @Override public String resolve(sid s) {
             switch(s) {
                 case app: return "Cita";
                 case pres: return "Receta";
@@ -259,7 +254,7 @@ CFG.sdk_logs = true; //--strip
 
         tone = new ToneGenerator(AudioManager.STREAM_MUSIC, 100);
 
-        hmi = null;
+//        hmi = null;
         int pwr = create_device_endpoints();
         if (a.device_endpoints == null) {
             log("KO 55061"); //--strip
@@ -272,8 +267,11 @@ CFG.sdk_logs = true; //--strip
             HMI_power_on(pwr, new pin_t(0), null);
         }
         else {
-            hmi = a.device_endpoints.cur.hmi;
+            launch_connections();
         }
+//        else {
+//            hmi = a.device_endpoints.cur.hmi;
+//        }
     }
 
     void test_hmi() {
@@ -284,6 +282,7 @@ CFG.sdk_logs = true; //--strip
         log("hmi test succeed"); //--strip
     }
 
+/*
     void test_device_endpoint() {
         device_endpoints_t x = new device_endpoints_t(this);
 
@@ -300,10 +299,11 @@ CFG.sdk_logs = true; //--strip
             assert false;
         }
     }
+*/
 
     void tests() {                                  //--strip
         test_hmi();                                 //--strip
-        test_device_endpoint();                     //--strip
+        //test_device_endpoint();                     //--strip
         log("boot test succeed");                   //--strip
     }                                               //--strip
 
@@ -563,8 +563,8 @@ CFG.sdk_logs = true; //--strip
             lock_active_ac.unlock();
         }
         log("report status"); //--strip
-        if (hmi != null) {
-            hmi.report_status();
+        if (has_hmi()) {
+            hmi().report_status();
         }
     }
 
@@ -589,7 +589,7 @@ CFG.sdk_logs = true; //--strip
         Thread thread = new Thread(new Runnable() {
             @Override
             public void run() {
-                hmi.command_trade(tid, "use_personality " + personality);
+                hmi().command_trade(tid, "use_personality " + personality);
             }
         });
         thread.start();
@@ -600,7 +600,7 @@ CFG.sdk_logs = true; //--strip
         Thread thread = new Thread(new Runnable() {
             @Override public void run() {
                 log("starting protocol " + procol); //--strip
-                hmi.command_trade(tid, "start " + procol);
+                hmi().command_trade(tid, "start " + procol);
             }
         });
         thread.start();
@@ -743,10 +743,6 @@ CFG.sdk_logs = true; //--strip
 */
 
 /*
-    public boolean is_HMI_poweron() {
-        if (hmi == null) return false;
-        return true;
-    }
 */
 
 /*
@@ -812,12 +808,12 @@ CFG.sdk_logs = true; //--strip
     public void new_trade(final hash_t parent_trade, final String datasubdir, final qr_t qr) {
         assert_ui_thread();  //--strip
         log("new_trade " + qr.to_string()); //--strip
-        hmi.new_trade(parent_trade, datasubdir, qr);
+        hmi().new_trade(parent_trade, datasubdir, qr);
         log("invoked API new_trade"); //--strip
 /*
         Thread thread = new Thread(new Runnable() {
             @Override public void run() {
-                a.hmi.new_trade(parent_trade, datasubdir, qr);
+                a.hmi().new_trade(parent_trade, datasubdir, qr);
                 log("invoked API new_trade"); //--strip
             }
         });
@@ -863,13 +859,13 @@ CFG.sdk_logs = true; //--strip
     }
 
     public String balance(string s) {
-        if (hmi == null) {
+        if (!has_hmi()) {
             return KO_89700;
         }
-        final ko r = hmi.rpc_peer.call_balance(new uint16_t(0), s);
+        final ko r = hmi().rpc_peer.call_balance(new uint16_t(0), s);
         String x = null;
         if (is_ko(r)) {
-            x = a.hmi.rewrite(r);
+            x = a.hmi().rewrite(r);
         }
         return x;
     }
@@ -881,7 +877,9 @@ CFG.sdk_logs = true; //--strip
             if (active_ac == null) {
             	log("Could not toast, active activity = null. " + msg); //--strip
             }
-            active_ac.toast__worker(msg);
+            else {
+                active_ac.toast__worker(msg);
+            }
         }
         finally {
             lock_active_ac.unlock();
@@ -929,6 +927,10 @@ CFG.sdk_logs = true; //--strip
         }
     }
 
+    public void HMI_power_on__worker(pin_t pin, progress_t progress) {
+        HMI_power_on__worker(device_endpoints.cur_index.value, pin, progress);
+    }
+
     public void HMI_power_on__worker(int pos, final pin_t pin, progress_t progress) {
         assert_worker_thread();  //--strip
         set_walletd_leds_off();
@@ -938,36 +940,40 @@ CFG.sdk_logs = true; //--strip
             progress = new app.progress_t() {
                 @Override public void on_progress(final String report) {
                     log("progress: " + report); //--strip
+                    toast__worker("progress: " + report);
                 }
             };
         }
-        if (hmi != null) {
+        if (has_hmi()) {
             progress.on_progress("Cannot power on other endpoint while " + device_endpoints.cur.name_ + " is already powereded ON.");
             return;
         }
-        hmi = device_endpoints.poweron(this, pos, pin, progress);
-        if (hmi != null) {
-            dispatchid = hmi.dispatcher.connect_sink(this);
+        device_endpoints.poweron(this, pos, pin, progress);
+        if (has_hmi()) {
+            dispatchid = hmi().dispatcher.connect_sink(this);
         }
+    }
 
+    public void HMI_power_off__worker(progress_t progress) {
+        HMI_power_off__worker(device_endpoints.cur_index.value, progress);
     }
 
     public void HMI_power_off__worker(final int pos, final progress_t progress) {
         assert_worker_thread();  //--strip
         log("HMI_power_off__worker"); //--strip
-        if (hmi == null) {
+        if (!has_hmi()) {
+            log("HMI is already OFF"); //--strip
             dispatchid = -1;
-            return;
         }
         if (dispatchid != -1) {
-            hmi.dispatcher.disconnect_sink(dispatchid);
+            hmi().dispatcher.disconnect_sink(dispatchid);
             dispatchid = -1;
         }
         log("set leds off"); //--strip
         device_endpoints.poweroff(this, pos, progress);
         set_walletd_leds_off();
         set_govd_leds_off();
-        hmi = null;
+//        hmi = null;
     }
 
     public void HMI_power_on(final int pos, final pin_t pin, final progress_t progress) {
@@ -975,6 +981,16 @@ CFG.sdk_logs = true; //--strip
         Thread thread = new Thread(new Runnable() {
             @Override public void run() {
                 HMI_power_on__worker(pos, pin, progress);
+            }
+        });
+        thread.start();
+    }
+
+    public void HMI_power_on(final pin_t pin, final progress_t progress) {
+        assert_ui_thread();  //--strip
+        Thread thread = new Thread(new Runnable() {
+            @Override public void run() {
+                HMI_power_on__worker(pin, progress);
             }
         });
         thread.start();
@@ -990,14 +1006,39 @@ CFG.sdk_logs = true; //--strip
         thread.start();
     }
 
+    public void HMI_power_off(final progress_t progress) {
+        a.assert_ui_thread(); //--strip
+        Thread thread = new Thread(new Runnable() {
+            @Override public void run() {
+                HMI_power_off__worker(progress);
+            }
+        });
+        thread.start();
+    }
+
+    public boolean is_HMI_poweron() {
+        if (!has_hmi()) return false;
+        return true;
+    }
+
     final app a = (app) this;
     PrintStream cout = System.out;
     activity active_ac = null;
     main_activity main = null;
 
     Lock lock_active_ac = new ReentrantLock();
-    hmi_t hmi = null; ///current hmi
+    //hmi_t hmi = null; ///current hmi
 
+    public hmi_t hmi() {
+        assert device_endpoints.cur != null; //--strip
+        assert device_endpoints.cur.hmi != null;  //--strip
+        return device_endpoints.cur.hmi;
+    }
+
+    public boolean has_hmi() {
+        assert device_endpoints.cur != null; //--strip
+        return device_endpoints.cur.hmi != null;
+    }
 /*
     public void set_hmi(int position) {
         log("set_hmi " + position); //--strip
@@ -1067,6 +1108,33 @@ CFG.sdk_logs = true; //--strip
         }
         return "unknown";
     }
+
+
+    public void launch_connections() {
+        assert_ui_thread(); //--strip
+        main.manage_connections();
+    }
+
+    public void launch_connection_settings() {
+        assert_ui_thread(); //--strip
+        main.go_conf(device_endpoints.cur_index.value);
+    }
+
+    public void toggle_poweron() {
+        assert_ui_thread(); //--strip
+        app.progress_t progress = new app.progress_t() {
+            @Override public void on_progress(final String report) {
+                toast__worker(report);
+            }
+        };
+        if (!has_hmi()) {
+            HMI_power_on(new pin_t(0), progress);
+            return;
+        }
+        HMI_power_off(progress);
+    }
+
+
 
     public static String KO_68874 = "KO 68874 Invalid endpoint.";
     public static String KO_89700 = "KO 89700 HMI is off.";

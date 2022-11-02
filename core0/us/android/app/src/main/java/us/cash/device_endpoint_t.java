@@ -42,7 +42,7 @@ import us.string;                                                               
 import us.wallet.engine.ip4_endpoint_t;                                                           // *
 import us.wallet.engine.wallet_connection_t;                                                           // *
 
-public final class device_endpoint_t extends wallet_connection_t implements hmi_t.hmi_callback_t {
+public final class device_endpoint_t extends wallet_connection_t { // implements hmi_t.hmi_callback_t {
 
     private static void log(final String line) {                        //--strip
         CFG.log_android("device_endpoint_t: " + line);                  //--strip
@@ -102,6 +102,7 @@ public final class device_endpoint_t extends wallet_connection_t implements hmi_
 
     public void poweron(app a, pin_t pin, app.progress_t progress) {
         log("poweron"); //--strip
+        app.assert_worker_thread();  //--strip
         if (progress == null) {
             log("adding default progress"); //--strip
             progress = new app.progress_t() {
@@ -122,11 +123,12 @@ public final class device_endpoint_t extends wallet_connection_t implements hmi_
         us.wallet.cli.params p = new us.wallet.cli.params();
         p.daemon = false;
         p.homedir = cfg.home + "/hmi";
+        p.subhome = subhome.value;
         log("hmi homedir=" + p.homedir); //--strip
         p.rpc__connect_for_recv = true;
         p.rpc__stop_on_disconnection = false;
         log("creating datagram dispatcher"); //--strip
-        hmi = new hmi_t(a, this, p, new app.walletd_status_handler_t(a), new datagram_dispatcher_t(3));
+        hmi = new hmi_t(this, p, new app.walletd_status_handler_t(a), new datagram_dispatcher_t(3));
         hmi.cfg = cfg;
         hmi.busyled_handler_recv = new app.walletd_led_handler(a, 0);
         hmi.busyled_handler_send = new app.walletd_led_handler(a, 1);
@@ -140,6 +142,9 @@ public final class device_endpoint_t extends wallet_connection_t implements hmi_
             progress.on_progress(r.msg);
             return;
         }
+        if (ui != null) {
+            ui.refresh__worker();
+        }
 
         log("starting HMI with ep " + ip4_endpoint.to_string() + "; pin " + pin.value); //--strip
         progress.on_progress("Starting connection to " + (ip4_endpoint == null ? "null" : ip4_endpoint.to_string()));
@@ -151,10 +156,14 @@ public final class device_endpoint_t extends wallet_connection_t implements hmi_
         }
         log("hmi started"); //--strip
         progress.on_progress("HMI restarted " + (ip4_endpoint == null ? "null" : ip4_endpoint.to_string()));
+        if (ui != null) {
+            ui.refresh__worker();
+        }
     }
 
     public void poweroff(app.progress_t progress) {
         log("poweroff"); //--strip
+        app.assert_worker_thread();  //--strip
         if (hmi == null) {
             log("hmi was null"); //--strip
             progress.on_progress("HMI was already powered OFF");
@@ -168,9 +177,12 @@ public final class device_endpoint_t extends wallet_connection_t implements hmi_
         hmi = null;
         log("hmi is now null"); //--strip
         progress.on_progress("HMI powered OFF");
+        if (ui != null) {
+            ui.refresh__worker();
+        }
     }
 
-    public @Override void on_hmi__worker(final ko status) {
+    public void on_hmi__worker(final ko status) {
         app.assert_worker_thread(); //--strip
         log("on_hmi__worker"); //--strip
         if (status == ok) {
@@ -190,6 +202,21 @@ public final class device_endpoint_t extends wallet_connection_t implements hmi_
         return ok;
     }
 
+    public ko set_subhome(String subhome_) {
+        if (hmi != null) return new ko("KO 92002 Cannot change subhome while HMI is running.");
+        subhome.value = subhome_;
+        return ok;
+    }
+
+    public boolean confirm_subhome(String subhome_) {
+        if (subhome_.equals(subhome)) {
+            return false;
+        }
+        subhome.value = subhome_;
+        parent.save();
+        return true;
+    }
+
     @Override public serid_t serial_id() { return serid_t.no_header; }
 
     @Override public int blob_size() {
@@ -202,11 +229,15 @@ public final class device_endpoint_t extends wallet_connection_t implements hmi_
     @Override public void to_blob(blob_writer_t writer) {
         log("to_blob"); //--strip
         uint8_t pwr = new uint8_t(hmi != null ? (short)1 : (short)0);
-        if (hmi_req_on) pwr.value = 1;
+        if (hmi_req_on) {
+            log("hmi_req_on is 1"); //--strip
+            pwr.value = 1;
+        }
         priv_t priv = new priv_t(cfg.keys.getPrivate());
         super.to_blob(writer);
         writer.write(priv);
         writer.write(pwr);
+        log("to_blob ok. name=" + name_.value + " pwr=" + pwr.value); //--strip
     }
 
     @Override public ko from_blob(blob_reader_t reader) {
@@ -233,14 +264,15 @@ public final class device_endpoint_t extends wallet_connection_t implements hmi_
             hmi_req_on = pwr.value != 0;
             log("hmi_req_on " + hmi_req_on); //--strip
         }
-        log("from_blob ok"); //--strip
+        log("from_blob ok. name=" + name_.value + " hmi_req_on=" + hmi_req_on); //--strip
         return ok;
     }
 
     public hmi_t hmi;
     public boolean hmi_req_on = false;
-    hmi_t.hmi_callback_t cb;
+    //hmi_t.hmi_callback_t cb;
     device_endpoints_t parent;
     cfg_android_private_t cfg;
+    node_pairing ui = null;
 }
 

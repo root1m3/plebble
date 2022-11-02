@@ -62,6 +62,13 @@ void c::hash_data(hasher_t& h) const {
 }
 
 void c::dumpX(ostream& os) const {
+    os << "local deltas sz " << size() << '\n';
+    os << "local deltas tsid " << id << '\n';
+    for (auto& i: *this) {
+        ostringstream pfx;
+        pfx << "appid " << i.first << ": ";
+        i.second->dump(pfx.str(), os);
+    }
 }
 
 size_t c::blob_size() const {

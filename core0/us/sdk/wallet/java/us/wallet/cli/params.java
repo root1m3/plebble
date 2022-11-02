@@ -123,12 +123,15 @@ public class params {
             else if (command.equals("-w")) {
                 workers = args.next_uint16();
             }
-            else if (command == "-om") {
+            else if (command.equals("-om")) {
                 uint16_t m=args.next_uint16();
                 if (m.value<output_mode.num_modes.as_short()) om = output_mode.from_short((short)m.value);
             }
-            else if (command == "-dd") {
+            else if (command.equals("-dd")) {
                 downloads_dir = args.next_string();
+            }
+            else if (command.equals("--custodial_wallet_id")) {
+                subhome = args.next_string();
             }
             else if (!command.isEmpty()) {
                 cmd = command;

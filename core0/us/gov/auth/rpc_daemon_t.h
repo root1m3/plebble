@@ -31,8 +31,6 @@ namespace us::gov::auth {
         using b = base_ns::rpc_daemon_t;
         using b::rpc_daemon_t;
 
-        socket::client* create_client() override { assert(false); return nullptr; }
-
     public:
         void dump(const string& prefix, ostream&) const;
         void dump_all(const string& prefix, ostream&) const override;

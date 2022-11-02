@@ -189,7 +189,7 @@ public final class connections extends activity {
 
 /*
     @Override public int menuid() {
-        if (a.hmi == null) {
+        if (!a.has_hmi()) {
             return R.menu.menu_nohmi;
         }
         else {
@@ -306,14 +306,14 @@ public final class connections extends activity {
         }
         String[] options;
         if (CFG.default_wallet_connection.isEmpty()) {
-            options = new String[]{onoff_hmi, "Edit connection", "Delete connection", "Copy into a new connection", a.getResources().getString(R.string.cancel)};
+            options = new String[]{"Open/Edit connection", onoff_hmi, "Delete connection", "Copy into a new connection", a.getResources().getString(R.string.cancel)};
         }
         else {
             String txt = "New custodial wallet.";
             if (!CFG.custodial_wallet_host.isEmpty()) {
                 txt += " (hosted at " + CFG.custodial_wallet_host + ")";
             }
-            options = new String[]{onoff_hmi, "Edit connection", "Delete connection", "Copy into a new connection", txt, a.getResources().getString(R.string.cancel)};
+            options = new String[]{"Open/Edit connection", onoff_hmi, "Delete connection", "Copy into a new connection", txt, a.getResources().getString(R.string.cancel)};
         }
         final connections i = this;
         new AlertDialog.Builder(this).setTitle(name)
@@ -321,6 +321,10 @@ public final class connections extends activity {
                     @Override public void onClick(DialogInterface dialog, int which) {
                         switch(which) {
                             case 0:
+                                i.select_device_endpoint2(pos);
+                                break;
+
+                            case 1:
                                 if (dep.hmi != null) {
                                     log("stop HMI"); //--strip
                                     stop_hmi();
@@ -331,9 +335,6 @@ public final class connections extends activity {
                                 }
                                 break;
 
-                            case 1:
-                                i.select_device_endpoint2(pos);
-                                break;
                             case 2:
                                 {
                                     ko r = i.a.device_endpoints.erase(pos);
@@ -388,14 +389,6 @@ public final class connections extends activity {
             toast(r.msg);
         }
         refresh();
-    }
-
-    public void go_conf(final int index) {
-        a.assert_ui_thread(); //--strip
-        log("launching settings..."); //--strip
-        Intent intent = new Intent(connections.this, node_pairing.class);
-        intent.putExtra("conf_index", index);
-        startActivity(intent);
     }
 
     AbsListView lv;

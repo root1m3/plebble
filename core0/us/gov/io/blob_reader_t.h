@@ -58,13 +58,14 @@ namespace us::gov::io {
         static constexpr version_t current_version{CFG_BLOB_VERSION};
         static constexpr uint64_t max_sizet_containers{numeric_limits<uint16_t>::max()};
 
-        static const char* KO_67217, *KO_60499, *KO_60498, *KO_75643;
+        static const char* KO_67217, *KO_60498, *KO_75643;
 
         struct blob_header_t {
             version_t version;
             serid_t serid;
         };
 
+        //---------------------------------------------------
         struct readable {
             virtual ~readable() {}
 
@@ -87,6 +88,7 @@ namespace us::gov::io {
             static pair<ko, readable*> load(const string& filename, function<readable*(const serid_t&)>);
 
         };
+        //---------------------------------------------------
 
         blob_reader_t(const blob_t&);
         blob_reader_t(const datagram&);

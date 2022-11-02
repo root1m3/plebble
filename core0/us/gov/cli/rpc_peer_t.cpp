@@ -58,9 +58,14 @@ void c::on_I_disconnected(const reason_t& reason) {
     static_cast<rpc_daemon_t&>(daemon).on_I_disconnected(reason);
 }
 
-void c::verification_completed(pport_t pport, pin_t pin) {
+ko c::verification_completed(pport_t pport, pin_t pin, request_data_t& request_data) {
     log("verification_completed", pport, pin);
-    b::verification_completed(pport, pin);
+    auto r = b::verification_completed(pport, pin, request_data);
     static_cast<rpc_daemon_t&>(daemon).verification_completed(verification_is_fine());
+    return r;
+}
+
+void c::verification_result(request_data_t&& request_data) {
+    static_cast<rpc_daemon_t&>(daemon).verification_result(move(request_data));
 }
 

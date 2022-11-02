@@ -81,7 +81,7 @@ public final class chat extends Fragment implements datagram_dispatcher_t.handle
             }
             app.assert_ui_thread(); //--strip
             log("MSG " + smessage.getText().toString()); //--strip
-            a.hmi.command_trade(tid, "msg " + smessage.getText().toString());
+            a.hmi().command_trade(tid, "msg " + smessage.getText().toString());
             smessage.setText("");
         });
     }
@@ -123,7 +123,7 @@ public final class chat extends Fragment implements datagram_dispatcher_t.handle
         message_adapter.setHasStableIds(true);
         smessage.requestFocus();
         log("connect network-datagram hose"); //--strip
-        dispatchid = a.hmi.dispatcher.connect_sink(this);
+        dispatchid = a.hmi().dispatcher.connect_sink(this);
         set_payload(raw);
         return v;
     }
@@ -132,7 +132,7 @@ public final class chat extends Fragment implements datagram_dispatcher_t.handle
         super.onDestroy();
         log("onDestroy"); //--strip
         log("disconnect network-datagram hose");//--strip
-        a.hmi.dispatcher.disconnect_sink(dispatchid);
+        a.hmi().dispatcher.disconnect_sink(dispatchid);
     }
 
     @Override public void on_push(final hash_t target_tid, final uint16_t code, final byte[] payload) {
@@ -244,7 +244,7 @@ public final class chat extends Fragment implements datagram_dispatcher_t.handle
         app.assert_ui_thread(); //--strip;
         //progressbarcontainer.setVisibility(View.VISIBLE);
         log("fetch - UI thread"); //--strip
-        a.hmi.command_trade(tid, "show chat");
+        a.hmi().command_trade(tid, "show chat");
     }
 
     EditText smessage;

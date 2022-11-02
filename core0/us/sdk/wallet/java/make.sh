@@ -172,24 +172,23 @@ function dosource0 {
 
 function test {
     jarfile=$us-sdk-test_$suffix.jar
-    make flags="$flags" libspath="$libspath" suffix="$suffix" us="$us"  test -j8
+    make flags="$flags" libspath="$libspath" suffix="$suffix" us="$us" test -j8
     return;
+    #jarfile=$us-sdk_$suffix.jar
+    #jartfile=$us-sdk-test_${suffix}.jar
+    #rm -f $jartfile
+    #mkdir -p test_build
+    #echo "compiling files:"
+    #find test/us -type f -name "*.java"
 
-        jarfile=$us-sdk_$suffix.jar
-        jartfile=$us-sdk-test_${suffix}.jar
-    rm -f $jartfile
-        mkdir -p test_build
-        echo "compiling files:"
-        find test/us -type f -name "*.java"
-
-        find test/us -type f -name "*.java" -exec $javac -Xlint $flags -d test_build -cp $jarfile:$libspath {} \;
-        echo "Compiling main"
-        $javac -Xlint $flags -d test_build -cp test_build:$jarfile:$libspath test/main.java
-        echo "packing"
-    pushd test_build >/dev/null
-            jar cfe ../$jartfile main.class *
-            echo "produced file $jartfile"
-    popd >/dev/null
+    #find test/us -type f -name "*.java" -exec $javac -Xlint $flags -d test_build -cp $jarfile:$libspath {} \;
+    #echo "Compiling main"
+    #$javac -Xlint $flags -d test_build -cp test_build:$jarfile:$libspath test/main_t.java
+    #echo "packing"
+    #pushd test_build >/dev/null
+    #        jar cfe ../$jartfile main_t.class *
+    #        echo "produced file $jartfile"
+    #popd >/dev/null
 }
 
 function select_cryptosuite {

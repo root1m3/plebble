@@ -30,6 +30,7 @@ import static us.stdint.*;                                                      
 import static us.tuple.*;                                                                      // *
 import us.ko;                                                                                  // ko
 import us.pair;                                                                                // pair
+import us.string;                                                                              // string
 
 public class types {
 
@@ -40,12 +41,11 @@ public class types {
     public static class blob_t {
 
         public static class version_t extends uint8_t {
-
             public version_t(short v) {
                 value = v;
             }
-
         }
+
 
         public static class serid_t extends uint8_t {
 
@@ -70,6 +70,20 @@ public class types {
             value = bytes;
         }
 
+        public blob_t(String b58) {
+            log("blob_t String constructor "); //--strip
+            value = us.gov.crypto.base58.decode(b58);
+        }
+
+        public blob_t(string b58) {
+            log("blob_t String constructor "); //--strip
+            value = us.gov.crypto.base58.decode(b58.value);
+        }
+
+        public String encode() {
+            return us.gov.crypto.base58.encode(value);
+        }
+
         public void resize(int sz) {
             value = new byte[sz];
         }
@@ -84,6 +98,7 @@ public class types {
 
         public byte[] value;
     }
+
 
     public static class bin_t {
 

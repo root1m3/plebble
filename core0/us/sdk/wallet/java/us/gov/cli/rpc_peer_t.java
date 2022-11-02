@@ -49,7 +49,7 @@ public class rpc_peer_t extends us.gov.engine.rpc_peer_t {
         super.dump(prefix, os);
     }
 
-    @Override public ko authorizeX(final PublicKey p, final pin_t pin) { return ko.ok; }
+    @Override public ko authorize(final PublicKey p, final pin_t pin, request_data_t request_data) { return ko.ok; }
 
     @Override public void on_peer_disconnected(final reason_t reason) {
         super.on_peer_disconnected(reason);
@@ -63,10 +63,18 @@ public class rpc_peer_t extends us.gov.engine.rpc_peer_t {
         ((rpc_daemon_t)daemon).on_I_disconnected(reason);
     }
 
-    @Override public void verification_completed(final pport_t rpport, final pin_t pin) {
-        super.verification_completed(rpport, pin);
+    @Override public ko verification_completed(final pport_t rpport, final pin_t pin, request_data_t request_data) {
+        ko r = super.verification_completed(rpport, pin, request_data);
+        if (ko.is_ko(r)) {
+            return r;
+        }
         log("verification_completed"); //--strip
         ((rpc_daemon_t)daemon).verification_completed(verification_is_fine());
+        return r;
+    }
+
+    @Override public void verification_result(request_data_t request_data) {
+        ((rpc_daemon_t)daemon).verification_result(request_data);
     }
 
     @Override public void upgrade_software() {
