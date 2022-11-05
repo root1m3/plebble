@@ -564,13 +564,7 @@ ko c::handle_peer_challenge(seq_t seq, peer_challenge_in_dst_t&& o_in) {
     crypto::ec::sig_der_t sig_der;
     {
         log("sending id_challenge_response", protocol::id_challenge2_response, mykeys.pub, sig.to_b58());
-        ko r;
-        if (daemon.api_v == handshakes->peer->parse_api_v()) {
-            r = call_challenge2_response(challenge2_response_in_t(mykeys.pub, sig, sig_der, handshakes->me->request_data));
-        }
-        else {
-            r = call_challenge_response(challenge_response_in_t(mykeys.pub, sig, sig_der));
-        }
+        ko r = call_challenge2_response(challenge2_response_in_t(mykeys.pub, sig, sig_der, handshakes->me->request_data));
         if (unlikely(is_ko(r))) {
             set_stage_peer(verified_fail);
             disconnect(seq, r);
@@ -603,75 +597,6 @@ ko c::handle_peer_challenge(seq_t seq, peer_challenge_in_dst_t&& o_in) {
     
     delete handshakes;
     handshakes = nullptr;
-    log("signaling VERIF_COMPLETED.");
-    cv_auth.notify_all();
-    return ok;
-}
-
-ko c::handle_challenge_response(seq_t seq, challenge_response_in_dst_t&& o_in) {
-    log("challenge_response", seq);
-    /// in:
-    ///     pub_t pub;
-    ///     sig_t sig;
-    ///     sig_der_t sig_der;
-
-    /*
-     - Executed by Follower
-            -------------------gov_id_challenge_response-----> process_challenge_response
-                                                               --------------------------
-                                                               verify signature
-                                                               completed(hs.peer.pport)
-    */
-    log("process_challenge_response. seq", seq);
-    if (unlikely(handshakes == nullptr)) {
-        auto r = "KO 75040 Invalid handshake.";
-        set_stage_peer(verified_fail);
-        disconnect(seq, r);
-        return r;
-    }
-    if (unlikely(handshakes->peer == nullptr)) {
-        auto r = "KO 63201 handshakes->peer==nullptr";
-        set_stage_peer(verified_fail);
-        disconnect(seq, r);
-        return r;
-    }
-    pubkey = o_in.pub;
-    if (unlikely(!pubkey.valid)) {
-        auto r = "KO 85048 Invalid public key";
-        set_stage_peer(verified_fail);
-        disconnect(seq, r);
-        return r;
-    }
-    log("msgh", handshakes->me->msg, "pubk", pubkey, "sig", o_in.sig.to_b58(), "sig_der", us::gov::crypto::b58::encode(o_in.sig_der));
-    if (o_in.sig.is_zero()) {
-        assert(role == role_device);
-        log("using sig_der sent by HMI device");
-        o_in.sig = crypto::ec::instance.sig_from_der(o_in.sig_der);
-    }
-    if (unlikely(!crypto::ec::instance.verify_not_normalized(pubkey, handshakes->me->msg, o_in.sig))) { //verify my message signed by peer
-        auto r = "KO 10210 Invalid signature.";
-        set_stage_peer(verified_fail);
-        disconnect(seq, r);
-        return r;
-    }
-    set_stage_peer(verified);
-    log("verified", pubkey);
-    {
-        auto r = turn_on_encryption();
-        if (unlikely(is_ko(r))) {
-            disconnect(seq, r);
-            return r;
-        }
-    }
-    log("call verification_completed", handshakes->peer->parse_pport(), handshakes->peer->parse_pin());
-    request_data_t request_data;
-    auto r = verification_completed(handshakes->peer->parse_pport(), handshakes->peer->parse_pin(), request_data);
-    delete handshakes;
-    handshakes = nullptr;
-    if (is_ko(r)) {
-        disconnect(seq, r);
-        return r;
-    }
     log("signaling VERIF_COMPLETED.");
     cv_auth.notify_all();
     return ok;

@@ -178,6 +178,7 @@ public class wallet_connection_t implements us.gov.io.seriable {
             ko r = reader.read(addr);
             if (ko.is_ko(r)) return r;
         }
+/*
         if (reader.header.serid.value == 'X' && reader.header.version.value == 11) {
             System.err.println("Remove old code");
             assert false; //--strip
@@ -185,6 +186,8 @@ public class wallet_connection_t implements us.gov.io.seriable {
         }
         boolean miss_subhome = (reader.header.serid.value == 'X' && reader.header.version.value == 9);
         if (!miss_subhome) {
+*/
+        {
             ko r = reader.read(subhome);
             if (is_ko(r)) return r;
         }

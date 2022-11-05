@@ -69,24 +69,24 @@ function update {
     fi
 
     mkdir -p $pub
-    pushd $pub  > /dev/null
+#    pushd $pub  > /dev/null
 
-        srcdir="/var/us/distr/$us"
+#        srcdir="/var/us/distr/$us"
 
-        symlink $srcdir/release_notes release_notes.txt
-        symlink $srcdir/sloccount.txt
+#        symlink $srcdir/release_notes release_notes.txt
+#        symlink $srcdir/sloccount.txt
 
-        rm -f $us-wallet_android*
-        srcfile=`find /var/www/${us}_html/downloads/android -type f | grep "$us-wallet_android_"`
+#        rm -f $us-wallet_android*
+#        srcfile=`find /var/www/${us}_html/downloads/android -type f | grep "$us-wallet_android_"`
 
-        symlink $srcfile latest
+#        symlink $srcfile latest
 
-        mkdir -p install_instructions
-        pushd install_instructions  > /dev/null
-                symlink $srcdir/node_setup_instructions_linux.txt
-                symlink $srcdir/node_setup_instructions_windows.txt
-        popd  > /dev/null
-    popd  > /dev/null
+#        mkdir -p install_instructions
+#        pushd install_instructions  > /dev/null
+#                symlink $srcdir/node_setup_instructions_linux.txt
+#                symlink $srcdir/node_setup_instructions_windows.txt
+#        popd  > /dev/null
+#    popd  > /dev/null
 
 
     gov="$us-gov -c ${CHANNEL} -p ${PORT}"

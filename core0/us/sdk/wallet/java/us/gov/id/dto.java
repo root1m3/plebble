@@ -82,42 +82,6 @@ public interface dto {
         final sig_der_t sig_der;
     }
 
-    /// challenge_response - IN
-    public static final class challenge_response_in_t extends blob_writer_t.writable {
-        //source: coder_java.cpp::gen_dto_in_hdr (1)
-
-        public challenge_response_in_t(final pub_t pub, final sig_t sig, final sig_der_t sig_der) {
-            this.pub = pub;
-            this.sig = sig;
-            this.sig_der = sig_der;
-        }
-
-        @Override public int blob_size() {
-            return blob_writer_t.blob_size(pub) +
-                blob_writer_t.blob_size(sig) +
-                blob_writer_t.blob_size(sig_der);
-        }
-
-        @Override public void to_blob(blob_writer_t writer) {
-            writer.write(pub);
-            writer.write(sig);
-            writer.write(sig_der);
-        }
-
-        public datagram get_datagram(final channel_t channel, final seq_t seq) {
-            return super.get_datagram(channel, new svc_t(protocol.id_challenge_response), seq);
-        }
-
-        public static datagram get_datagram(final channel_t channel, final seq_t seq, final pub_t pub, final sig_t sig, final sig_der_t sig_der) {
-            challenge_response_in_t o = new challenge_response_in_t(pub, sig, sig_der);
-            return o.get_datagram(channel, seq);
-        }
-
-        final pub_t pub;
-        final sig_t sig;
-        final sig_der_t sig_der;
-    }
-
     /// challenge2_response - IN
     public static final class challenge2_response_in_t extends blob_writer_t.writable {
         //source: coder_java.cpp::gen_dto_in_hdr (1)
@@ -192,33 +156,6 @@ public interface dto {
         }
 
         public sha256.hash_t msg = new sha256.hash_t();
-        public pub_t pub = new pub_t();
-        public sig_t sig = new sig_t();
-        public sig_der_t sig_der = new sig_der_t();
-    }
-
-    public static final class challenge_response_in_dst_t extends blob_reader_t.readable {
-        //source: coder_java.cpp::gen_dto_in_hdr (2)
-
-        public challenge_response_in_dst_t() {}
-
-
-        @Override public ko from_blob(blob_reader_t reader) {
-            {
-                ko r = reader.read(pub);
-                if (ko.is_ko(r)) return r;
-            }
-            {
-                ko r = reader.read(sig);
-                if (ko.is_ko(r)) return r;
-            }
-            {
-                ko r = reader.read(sig_der);
-                if (ko.is_ko(r)) return r;
-            }
-            return ok;
-        }
-
         public pub_t pub = new pub_t();
         public sig_t sig = new sig_t();
         public sig_der_t sig_der = new sig_der_t();

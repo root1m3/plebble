@@ -301,7 +301,7 @@ public class main_t extends us.wallet.cli.hmi {
         assert is_ok(r);
 
         String a49h = blob_writer_t.add_header(new blob_header_t(new version_t((short)(blob_reader_t.current_version.value - 1)), new serid_t((short)'X')), container_of_5_wrapper_wallet_connection_t_a49_blob);
-        log("a49h = {blob_reader_t::current_version - 1}'X' + container_of_5_wrapper_wallet_connection_t_a49_blob = " + a49h);
+        log("a49h = {blob_reader_t::current_version - 1}'X' + container_of_5_wrapper_wallet_connection_t_a49_blob = " + a49h); //--strip
         assert is_ok(cw.read(a49h));
         assert cw.size() == 5;
     }

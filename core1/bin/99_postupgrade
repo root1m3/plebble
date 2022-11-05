@@ -22,36 +22,6 @@
 #===----------------------------------------------------------------------------
 #===-
 
-. .cbs/config
-
-#if [[ -d $branch ]]; then
-#    echo "KO 33928 $branch exists"
-#    exit 1
-#fi
-if [[ ! -d distr ]]; then
-    echo "KO 20199 distr doesn't exists"
-    exit 1
-fi
-let ne=`cat distr/build_hashes | grep "$branch" | wc -l`
-if [[ $ne -ne 5 ]]; then  #arch
-    echo "KO 43398 expecting 5 entries containing $branch in distr/build_hashes"
-    exit 1
-fi
-if [[ ! -d blobs ]]; then
-    echo "KO 40398 blobs doesn't exists"
-    exit 1
-fi
-let ne=`ls blobs -1 | grep "$branch" | wc -l`
-let ene=`ls ${brands}/ -1 | wc -l`
-if [[ $ne -ne $ene ]]; then
-    echo "KO 43398 expecting $ene blobs containing $branch in blobs/"
-    exit 1
-fi
-
-echo "Confirm that the network is running ${branch}."
-echo "Yes?"
-read a
-
 function update_devjobs {
     brand=$1
     echo "=================== github brand $brand branch $branch"
@@ -227,13 +197,67 @@ function save_release_history {
     echo "Please commit the newly created branch $nreb with these changes (netsvc. release notes)"
 }
 
-post_upgrade
-save_release_history
+function postupgrade_entry_point {
+    if [[ ! -d distr ]]; then
+        echo "KO 20199 distr doesn't exists"
+        exit 1
+    fi
+    let ne=`cat distr/build_hashes | grep "$branch" | wc -l`
+    if [[ $ne -ne 5 ]]; then  #arch
+        echo "KO 43398 expecting 5 entries containing $branch in distr/build_hashes"
+        exit 1
+    fi
+    if [[ ! -d blobs ]]; then
+        echo "KO 40398 blobs doesn't exists"
+        exit 1
+    fi
+    let ne=`ls blobs -1 | grep "$branch" | wc -l`
+    let ene=`ls ${brands}/ -1 | wc -l`
+    if [[ $ne -ne $ene ]]; then
+        echo "KO 43398 expecting $ene blobs containing $branch in blobs/"
+        exit 1
+    fi
 
-echo "==============================================="
+    echo "Confirm that the network is running ${branch}."
+    echo "Yes?"
+    read a
 
-echo "Last, but not least, modify doc/release_notes, commit, and push the new branch."
-echo "cypherpunks write code."
+    post_upgrade
+    save_release_history
 
-exit $ecode
+    echo "==============================================="
 
+    echo "Last, but not least, modify doc/release_notes, commit, and push the new branch."
+    echo "cypherpunks write code."
+
+    exit $ecode
+
+}
+
+function help {
+    cat << EOF
+$0 <cmd>
+Commands:
+  run                                               postupgrade entry point
+  post_upgrade <brand>                              can be called between network upgrades
+EOF
+}
+
+. .cbs/config
+
+cmd=$1
+shift
+
+if [[ "_$cmd" == "_run" ]]; then
+    postupgrade_entry_point
+    exit 1
+fi
+if [[ "_$cmd" == "_post_upgrade" ]]; then
+    brand=$1
+    shift
+    post_upgrade0 $brand
+    exit 1
+fi
+
+help
+exit 1

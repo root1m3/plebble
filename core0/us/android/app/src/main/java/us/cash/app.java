@@ -267,6 +267,7 @@ CFG.sdk_logs = true; //--strip
             HMI_power_on(pwr, new pin_t(0), null);
         }
         else {
+            log("none device endpoints were powered on."); //--strip
             launch_connections();
         }
 //        else {
@@ -1112,6 +1113,9 @@ CFG.sdk_logs = true; //--strip
 
     public void launch_connections() {
         assert_ui_thread(); //--strip
+        if (main == null) {
+            return;
+        }
         main.manage_connections();
     }
 

@@ -184,7 +184,7 @@ function run_cbs {
     echo "Next step: execute postupgrade scripts."
     echo "yes?"
     read x
-    bin/99_postupgrade
+    bin/99_postupgrade run
     if [[ $? -ne 0 ]]; then
         exit 1
     fi

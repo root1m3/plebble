@@ -158,7 +158,7 @@ function sign_apks {
         mv $file $newfile
         echo "signature $newfile"
         echo "$file -> $newfile"
-        $keytool -list -printcert -jarfile $newfile
+        $keytool -printcert -jarfile $newfile
     done
     if [[ $signed -ne 1 ]]; then
         echo "WA 86954 No unsigned apk found for brand $brand"

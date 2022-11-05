@@ -113,6 +113,7 @@ Shortlisted features/fixes:
     * bookmarks suppering deferred blobs
     * collapse version numbering "branch alpha-49" = alpha-N ; instead of being arbitrary N comes from current monotonic counter cycling on 256 values
 
+    * private addresses, not backed in the blockchain.
     * All addresses are mints with max supply. 
     * wallet. Coin Metadata. rate related to gas. (not listed in ledger)
     * w2w. exchange coins protocol. 
@@ -161,7 +162,11 @@ Production releases. beta
 Production releases. alpha
 --------------------------
 
-alpha-50
+alpha-51 -
+    * android. hotfix alpha-51_7477d2+.5d5b3c (upstream git 90cfc9c21043e1eaebcb9ba0c84db2f449db9181) deployed only to PlayStore. app Crashes on install-from-scratch (Note: this use case wasnt tested!). The app tried to open settings before main activity was created. 
+    * removed old api gov::id::peer_challenge_response. superseded by peer_challenge2_response
+
+alpha-50 - alpha-50_3-5ccae0 2022-11-02_15-57-23 vhash 3-5ccae0 <- R 2862548edd44a468a18bcbb9a1253a428381b5ad alpha-50 dbg-0 logs-0 counters-0 connlog-0 fcgi-0
     * added field subhome to select an specific custodial/non-custodial, with the keyword 'new' meaning user's desire to allocate a custodial wallet.
     * apitool can generate c++ dto's without being marked final selectively with the arg prefix [extensible_dto]
     * Added test option --verser to select only maintenance tasks associated with a change in blob serialization versions.
