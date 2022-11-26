@@ -32,6 +32,7 @@
 #include <us/gov/log/thread_logger.h>
 #include <us/gov/io/blob_reader_t.h>
 
+#include <us/wallet/wallet/local_api.h>
 #include <us/wallet/trader/trader_t.h>
 #include <us/wallet/trader/workflow/trader_protocol.h>
 
@@ -79,8 +80,8 @@ string c::codename(uint16_t code) {
         case trader_t::push_trade: return "push_trade";
         case trader_t::push_killed: return "push_killed";
         case trader_t::push_help: return "push_help";
-        case trader_t::push_local_functions: return "push_local_functions";
-        case trader_t::push_remote_functions: return "push_remote_functions";
+        //case trader_t::push_local_functions: return "push_local_functions";
+        //case trader_t::push_remote_functions: return "push_remote_functions";
         case us::wallet::trader::workflow::trader_protocol::push_workflow_item: return "push_workflow_item";
         case us::wallet::trader::workflow::trader_protocol::push_doc: return "push_doc";
         case trader_t::protocol::push_logo: return "push_logo";
@@ -195,6 +196,13 @@ void c::expected_code_t::decrement(uint16_t code) {
     assert(i != end());
     --i->second;
     assert(i->second >= 0);
+}
+
+int c::expected_code_t::remaining(uint16_t code) const {
+    unique_lock<mutex> lock(mx);
+    auto i = find(code);
+    if (i == end()) return 0;
+    return i->second;
 }
 
 void c::expected_code_t::increase(uint16_t code) {

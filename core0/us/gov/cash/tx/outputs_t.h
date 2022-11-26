@@ -21,10 +21,9 @@
 //===----------------------------------------------------------------------------
 //===-
 #pragma once
+#include "output_t.h"
 #include <us/gov/io/seriable_vector.h>
 #include <us/gov/cash/sigcode_section_t.h>
-
-#include "output_t.h"
 
 namespace us::gov::cash::tx {
 

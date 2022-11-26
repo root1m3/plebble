@@ -45,7 +45,10 @@ namespace us::wallet::engine {
 
         users_t(daemon_t&);
         ~users_t();
+
+    public:
         wallet::local_api* get_wallet(const string& subhome); //returns soft pointer
+        void release_wallet(wallet::local_api*);
 
     public:
         void dump(ostream&) const;

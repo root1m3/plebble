@@ -360,7 +360,7 @@ void test_wallet_daemon_files(const string& h) {
     assert(cfg0::file_exists(d + "/d"));
     assert(cfg0::dir_exists(d + "/trader"));
     assert(cfg0::dir_exists(d + "/trader/lib"));
-    assert(cfg0::dir_exists(d + "/trader/bin"));
+    //assert(cfg0::dir_exists(d + "/trader/bin"));
     assert(cfg0::dir_exists(d + "/trader/w2w"));
     test_wallet_rpc_keys(d);
 }

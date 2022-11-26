@@ -42,7 +42,15 @@ namespace us::wallet::trader::bootstrap {
         using protocol = us::wallet::trader::trader_protocol;
         using hash_t = us::gov::crypto::ripemd160::value_type;
 
-        initiator_t(qr_t&& remote_qr, wallet::local_api&);
+        struct inverted_qr_t: qr_t {
+            inverted_qr_t(qr_t&&);
+
+            size_t blob_size() const override { return 0; }
+            void to_blob(blob_writer_t&) const override {}
+            ko from_blob(blob_reader_t&) override { return "KO 68794"; }
+        };
+
+        initiator_t(inverted_qr_t&&, wallet::local_api&);
         ~initiator_t() ;
 
     public:
@@ -55,7 +63,7 @@ namespace us::wallet::trader::bootstrap {
 
     public:
         handshake_t* handshake{nullptr};
-        qr_t remote_qr;
+        inverted_qr_t inverted_qr;
         wallet::local_api& w;
     };
 

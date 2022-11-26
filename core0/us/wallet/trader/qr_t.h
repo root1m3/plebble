@@ -21,10 +21,14 @@
 //===----------------------------------------------------------------------------
 //===-
 #pragma once
-#include "endpoint_t.h"
-#include "protocol_selection_t.h"
+
 #include <iostream>
 #include <us/gov/io/seriable.h>
+#include <us/gov/io/blob_reader_t.h>
+#include <us/gov/io/blob_writer_t.h>
+
+#include "endpoint_t.h"
+#include "protocol_selection_t.h"
 
 namespace us::wallet::trader {
 
@@ -43,7 +47,7 @@ namespace us::wallet::trader {
         void dump(const string& pfx, ostream& os) const;
 
     public: //serialization blob
-        using serid_t = blob_reader_t::serid_t;
+        //using serid_t = blob_reader_t::serid_t;
         static constexpr serid_t serid{'Q'};
         serid_t serial_id() const override { return serid; }
         size_t blob_size() const override;
@@ -63,11 +67,11 @@ namespace us::wallet::trader {
     };
 
 }
-
+/*
 namespace us::gov::io {
 
     template<> inline ko blob_reader_t::readD(const us::gov::socket::datagram& d, us::wallet::trader::qr_t& o) { return o.read(d); }
     template<> inline datagram* blob_writer_t::get_datagram(channel_t channel, svc_t svc, seq_t seq, const us::wallet::trader::qr_t& o) { return o.get_datagram(channel, svc, seq); }
 
 }
-
+*/

@@ -20,13 +20,16 @@
 //===-
 //===----------------------------------------------------------------------------
 //===-
-#include "node.h"
-#include "dispatcher_t.h"
 #include <us/gov/engine/daemon_t.h>
 #include <us/gov/config.h>
 #include <us/gov/engine/db_t.h>
+
 #include <us/wallet/engine/daemon_t.h>
 #include <us/wallet/engine/rpc_daemon_t.h>
+#include <us/wallet/wallet/local_api.h>
+
+#include "node.h"
+#include "dispatcher_t.h"
 
 #define loglevel "test"
 #define logclass "node"
@@ -211,7 +214,7 @@ void c::create_wallet_cli() {
     p.homedir = homedir;
     p.walletd_host = localip;
     p.walletd_port = wallet->p.published_port;
-    //p.logd = logdir + "/wallet_cli";
+    p.subhome = wallet_cli_subhome; //empty=NC Wallet; non-empty=custodial wallet (guest)
     assert(wallet_cli == nullptr);
     wallet_cli = new walletx_t(p, cout);
 }
@@ -581,14 +584,14 @@ void test_traders1() {
 void c::copy_state(const string& dest) const {
     tee("copy_state", dest);
     ostringstream cmd;
-    cmd << "cp " << wallet->daemon->traders.sername() << ' ' << dest << "__traders";
+    cmd << "cp " << wallet->daemon->root_wallet->traders.sername() << ' ' << dest << "__traders";
     tee(cmd.str());
     assert(system(cmd.str().c_str()) == 0);
-    for (auto& i: wallet->daemon->traders) {
+    for (auto& i: wallet->daemon->root_wallet->traders) {
         if (i.second->id.is_zero()) continue;
-        size_t utid = traders_t::get_utid_rootwallet(i.second->id);
+        hash_t tid = i.second->id; //traders_t::get_utid_rootwallet();
         ostringstream cmd;
-        cmd << "cp " << i.second->sername(utid).first << "/" << i.second->sername(utid).second << ' ' << dest << "__utid_" << utid;
+        cmd << "cp " << i.second->sername().first << "/" << i.second->sername().second << ' ' << dest << "__tid_" << tid;
         tee(cmd.str());
         assert(system(cmd.str().c_str()) == 0);
     }
@@ -599,11 +602,12 @@ void c::diff_state(const string& st0, const string& st1) const {
     cmd << "diff " << st0 << "__traders " << st1 << "__traders";
     tee(cmd.str());
     assert(system(cmd.str().c_str()) == 0);
-    for (auto& i: wallet->daemon->traders) {
+    for (auto& i: wallet->daemon->root_wallet->traders) {
         if (i.second->id.is_zero()) continue;
-        size_t utid = traders_t::get_utid_rootwallet(i.second->id);
+//        size_t utid = traders_t::get_utid_rootwallet(i.second->id);
+        hash_t tid = i.second->id;
         ostringstream cmd;
-        cmd << "diff " << st0 << "__utid_" << utid << " " << st1 << "__utid_" << utid;
+        cmd << "diff " << st0 << "__tid_" << tid << " " << st1 << "__tid_" << tid;
         tee(cmd.str());
         assert(system(cmd.str().c_str()) == 0);
     }
@@ -621,7 +625,7 @@ void c::traders_serialization_save(const traders_t& o) {
 }
 
 void c::traders_serialization_save() {
-    traders_serialization_save(wallet->daemon->traders);
+    traders_serialization_save(wallet->daemon->root_wallet->traders);
 }
 
 void c::print_pointers(ostream& os) const {

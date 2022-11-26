@@ -63,11 +63,9 @@ namespace us::trader::r2r::bid2ask::bid {
         void register_factories(protocol_factories_t&) override;
 
     public:
-        //pair<ko, trader_protocol*> create_protocol(protocol_selection_t&&) override;
-        pair<ko, trader_protocol*> create_opposite_protocol(protocol_selection_t&&) override;
+        //pair<ko, trader_protocol*> create_opposite_protocol(protocol_selection_t&&) override;
         pair<ko, trader_protocol*> create_protocol() override;
         void list_protocols(ostream&) const override; //human format
-        void invert(protocols_t&) const override;
         void published_protocols(protocols_t&, bool inverse) const override;
 
     };

@@ -37,7 +37,7 @@
 #include <us/gov/crypto/crypto.h>
 #include <us/gov/io/seriable.h>
 #include <us/gov/dfs/fileattr_t.h>
-#include <us/gov/engine/diff.h>
+//#include <us/gov/engine/diff.h>
 #include <us/gov/engine/app.h>
 #include <us/gov/engine/evidence.h>
 

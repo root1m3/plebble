@@ -26,9 +26,15 @@
 #include <us/gov/relay/pushman.h>
 #include <us/gov/engine/track_status_t.h>
 
+#include <us/wallet/engine/bookmark_index_t.h>
+#include <us/wallet/trader/bootstrap/protocols_t.h>
+#include <us/wallet/trader/businesses_t.h>
+#include <us/wallet/trader/traders_t.h>
+
 #include "handler_api.h"
 #include "algorithm.h"
 #include "txlog_t.h"
+#include "bookmarksman_t.h"
 #include "types.h"
 
 namespace us::wallet::engine {
@@ -37,6 +43,8 @@ namespace us::wallet::engine {
 
 namespace us::wallet::trader {
         struct traders_t;
+//        struct businesses_t;
+        struct bookmark_info_t;
 }
 
 namespace us::wallet::wallet {
@@ -45,6 +53,11 @@ namespace us::wallet::wallet {
         using w = algorithm;
         using daemon_t = engine::daemon_t;
         using track_status_t = us::gov::engine::track_status_t;
+        using protocols_t = us::wallet::trader::bootstrap::protocols_t;
+        using bookmark_index_t = us::wallet::engine::bookmark_index_t;
+        using traders_t = us::wallet::trader::traders_t;
+        using protocol_selection_t = us::wallet::trader::protocol_selection_t;
+        using bookmark_info_t = us::wallet::trader::bookmark_info_t;
 
         static const char* KO_20183;
 
@@ -75,18 +88,52 @@ namespace us::wallet::wallet {
         void on_tx_tracking_status(const track_status_t&);
 
     public:
+        void published_bookmarks(bookmarks_t&) const;
+        //void guest_published_protocols(protocols_t&) const;
+        void published_bookmark_infos(vector<pair<protocol_selection_t, bookmark_info_t>>&) const;
+
+        bookmarksman_t bookmarks;
+
+    public:
+        void schedule_push(socket::datagram*);
+        void schedule_push(vector<socket::datagram*>&&);
+
+        ko push_KO(ko) const;
+        ko push_OK(const string& msg) const;
+        ko push_KO(const hash_t& tid, ko msg) const;
+        ko push_OK(const hash_t& tid, const string& msg) const;
+
+    public:
+        ko start();
+        ko wait_ready(const time_point& deadline) const;
+        void stop();
+        void join();
+
+    public:
+        ko exec(const string& cmd); ///API
+        ko exec(istream&);
+        void exec_help(const string& prefix, ostream&) const;
+        ko exec(const hash_t& tid, const string& cmd); /// API command_trade
+
+    public:
+        daemon_t& daemon;
+        int refcount{0};
         relay::pushman::filter_t device_filter;
         string subhome;
         hash_t subhomeh;
         string lang{"en"};
         string home;
         trader::endpoint_t local_endpoint;
-        daemon_t& daemon;
         txlog_t txlog;
 
         #if CFG_LOGS == 1
             string logdir;
         #endif
+
+        traders_t traders;
+
+    public: //components depending on (this)
+        us::wallet::trader::businesses_t businesses;
     };
 
 }

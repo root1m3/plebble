@@ -30,12 +30,12 @@ namespace us::gov::cash {
     struct accounts_t;
 
     struct db_t final: io::seriable {
+
         db_t();
         db_t(const db_t&) = delete;
         db_t& operator = (const db_t&) = delete;
         db_t(db_t&&);
         ~db_t();
-        void clear();
 
     public:
         bool add_(const hash_t&, const cash_t& amount);
@@ -43,6 +43,7 @@ namespace us::gov::cash {
         cash_t budget() const;
         void tax_accounts(const cash_t& amount);
         cash_t cash_in_circulation() const;
+        void clear();
 
     public:
         void dump(const string& prefix, int detail, ostream&) const;

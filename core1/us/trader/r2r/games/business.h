@@ -54,17 +54,16 @@ namespace us::trader::r2r::games {
         ~business_t() override;
 
     public:
-        ko init(const string& r2rhome, us::wallet::trader::traders_t::protocol_factories_t&) override;
+        ko init(const string& r2rhome, protocol_factories_t&) override;
         string homedir() const override;
 
     public:
-        pair<ko, trader_protocol*> create_opposite_protocol(protocol_selection_t&&) override;
         pair<ko, trader_protocol*> create_protocol() override;
         void list_protocols(ostream&) const override; //human format
-        void invert(protocols_t&) const override;
+        bool invert(protocol_selection_t&) const override;
         void published_protocols(protocols_t&, bool inverse) const override;
         void exec_help(const string& prefix, ostream&) const override;
-        ko exec(istream&, traders_t&, wallet_local_api&) override;
+        ko exec(istream&, wallet_local_api&) override;
     };
 
 }

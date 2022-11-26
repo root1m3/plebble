@@ -25,6 +25,8 @@
 #include <string>
 
 #include <us/gov/config.h>
+#include <us/gov/io/blob_reader_t.h>
+#include <us/gov/io/blob_writer_t.h>
 #include <us/gov/ko.h>
 
 #define loglevel "test/net"

@@ -28,13 +28,16 @@
     #define has_us_gov_relay_api
 #endif
 
-namespace us { namespace gov { namespace relay {
+namespace us::gov::relay {
 
     using namespace gov::io;
 
     #ifdef has_us_gov_relay_api
 
         struct dto {
+            using readable = us::gov::io::readable;
+            using writable = us::gov::io::writable;
+
             #include <us/api/generated/gov/c++/relay/hdlr_dto-hdr>
             #include <us/api/generated/gov/c++/relay/cllr_dto-hdr>
         };
@@ -52,7 +55,8 @@ namespace us { namespace gov { namespace relay {
         struct api {};
 
     #endif
-}}}
+
+}
 
 
 

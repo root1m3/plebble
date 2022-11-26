@@ -31,6 +31,7 @@
 #include <us/gov/crypto/ec.h>
 #include <us/gov/io/cfg0.h>
 #include <us/gov/socket/client.h>
+#include <us/gov/crypto/ec.h>
 #include <us/gov/traders/wallet_address.h>
 #include <us/gov/engine/track_status_t.h>
 
@@ -72,7 +73,9 @@ namespace {
             }
             using track_status_t = us::gov::engine::daemon_t::ev_track_t::status_t;
             track_status_t status;
-            auto r = blob_reader_t::readD(*d, status);
+            us::gov::io::blob_reader_t reader(*d);
+            auto r = reader.read(status);
+//            auto r = blob_reader_t::readD(*d, status);
             delete d;
             if (is_ko(r)) {
                 log("engine_track", r);
@@ -97,9 +100,10 @@ c::daemon_t(channel_t channel, const keys_t& k, port_t port, pport_t pport, cons
         home(home_),
         gov_rpc_daemon(channel, k, backend, rpc_peer_t::role_t::role_device, new my_dispatcher_t(*this)),
         pm(*this),
-        users(*this),
         devices(home_),
-        traders(*this, home_ + "/trader") {
+        trades(*this),
+        bookmark_index(*this),
+        users(*this) {
 
     assert(!home.empty());
     log("downloads directory:", downloads_dir);
@@ -108,9 +112,12 @@ c::daemon_t(channel_t channel, const keys_t& k, port_t port, pport_t pport, cons
     api_v = CFG_API_V__WALLET;
     assert(api_v != 0);
     log("set api_v", +api_v);
+
+    root_wallet = users.get_wallet("");
 }
 
 c::~daemon_t() {
+    users.release_wallet(root_wallet);
     join();
 }
 
@@ -245,7 +252,7 @@ ko c::start() {
         users.logdir = logdir + "/users";
         pm.logdir = logdir;
         pm.logfile = "pushman";
-        traders.logdir = logdir + "/traders";
+        trades.logdir = logdir + "/trades";
     #endif
     log("starting server");
     {
@@ -264,23 +271,10 @@ ko c::start() {
             return r;
         }
     }
-    log("starting traders");
-    {
-        auto r = traders.start();
-        if (unlikely(is_ko(r))) {
-            log(r);
-            housekeeping::stop();
-            pm.stop();
-            gov_rpc_daemon.stop();
-            b::stop();
-            return r;
-        }
-    }
     log("starting pushman");
     {
         auto r = pm.start();
         if (unlikely(is_ko(r))) {
-            traders.stop();
             gov_rpc_daemon.stop();
             b::stop();
             return r;
@@ -292,7 +286,6 @@ ko c::start() {
         if (unlikely(is_ko(r))) {
             log(r);
             pm.stop();
-            traders.stop();
             gov_rpc_daemon.stop();
             b::stop();
             return r;
@@ -306,9 +299,88 @@ socket::client* c::create_client(sock_t sock) {
     return new peer_t(*this, sock);
 }
 
+void c::hook_new_wallet__worker(const string& subhome, const string& wallet_template) {
+    #if CFG_LOGS == 1
+        log_start("hooks", "new_wallet");
+    #endif
+    struct w_t  {
+        w_t(daemon_t& d, const string& subhome): d(d) {
+            w = d.users.get_wallet(subhome);
+        }
+
+        ~w_t() {
+            d.users.release_wallet(w);
+        }
+        wallet::local_api* w;
+        daemon_t& d;
+    };
+    w_t w(*this, subhome);
+    if (unlikely(w.w == nullptr)) {
+        auto r = "KO 76885 Subhome cannot be instantiated.";
+        log(r, subhome);
+        return;
+    }
+    bookmark_index.add(*w.w);
+}
+
+void c::hook_new_wallet(const string& subhome, const string& wallet_template) {
+    //create wallet tree from template;
+    ostringstream hook; // .us/wallet/bin/hook
+    hook << home << "/bin/hook";
+    if (us::gov::io::cfg0::file_exists(hook.str())) {
+        auto k = gov::crypto::ec::keys::generate();
+        hook << " new_wallet " << wallet_template_home(wallet_template) << ' ' << wallet_home(subhome) << ' ' << k.priv;
+        log("calling system hook ", hook.str());
+        int r = system(hook.str().c_str());
+        if (r != 0) {
+            log("KO 77864 system hook returned error code.");
+        }
+    }
+    else {
+        log("hook file doesn't exist.", hook.str());
+    }
+    thread work(&c::hook_new_wallet__worker, this, subhome, wallet_template);
+    work.detach();
+}
+
 ko c::authorize_device(const pub_t& p, pin_t pin, request_data_t& request_data) {
     log("is device authorized?", pin);
-    return devices.authorize(p, pin, request_data);
+    string subhome_req;
+    string wallet_template;
+    bool trigger_hook{false};
+    {
+        istringstream is(request_data);
+        is >> subhome_req;
+        if (subhome_req == "new") {
+            is >> wallet_template;
+            trigger_hook = true;
+        }
+    }
+    auto r = devices.authorize(p, pin, subhome_req);
+    if (is_ko(r)) {
+        return r;
+    }
+    request_data = subhome_req;
+    if (wallet_template.empty()) {
+        return ok;
+    }
+    if (trigger_hook) {
+        log("trigger hook new_wallet");
+        hook_new_wallet(subhome_req, wallet_template);
+    }
+/*
+    ostringstream hook; // .us/wallet/bin/hook
+    hook << home << "/bin/hook";
+    if (us::gov::io::cfg0::file_exists(hook.str())) {
+        hook << " new_wallet " << subhome_req << ' ' << wallet_template;
+        log("calling hook ", hook.str());
+        system(cmd.str().c_str());
+    }
+    else {
+        log("hook file doesn't exist.", hook.str());
+    }
+*/
+    return ok;
 }
 
 void c::on_peer_wallet(const hash_t& addr, host_t address, pport_t rpport) {
@@ -361,7 +433,7 @@ us::ko c::wait_ready(const time_point& deadline) const {
             return r;
         }
     }
-    return traders.wait_ready(deadline);
+    return ok;
 }
 
 ko c::wait_ready(int seconds_deadline) const {
@@ -373,8 +445,6 @@ void c::stop() {
     housekeeping::stop();
     log("stopping pushman");
     pm.stop();
-    log("stopping traders");
-    traders.stop();
     log("stopping gov_rpc_daemon");
     gov_rpc_daemon.stop();
     log("stopping daemon");
@@ -386,11 +456,9 @@ void c::join() {
     housekeeping::join();
     log("waiting for pushman");
     pm.join();
-    log("waiting for traders");
-    traders.join();
     log("waiting for gov_rpc_daemon");
     gov_rpc_daemon.join();
-    log("waiting for server");
+    log("waiting for daemon");
     b::join();
 }
 
@@ -405,8 +473,17 @@ bool c::has_home(const string& subhome) const {
     return io::cfg0::dir_exists(os.str());
 }
 
+string c::wallet_template_home(const string& template_name) const {
+    ostringstream os;
+    os << home << "/template/" << template_name;
+    io::cfg0::ensure_dir(os.str());
+    return os.str();
+}
+
 string c::wallet_home(const string& subhome) const {
-    if (subhome.empty()) return home;
+    if (subhome.empty()) {
+        return home;
+    }
     ostringstream os;
     os << home << "/guest/" << subhome;
     io::cfg0::ensure_dir(os.str());

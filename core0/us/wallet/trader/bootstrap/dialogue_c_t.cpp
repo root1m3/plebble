@@ -30,6 +30,7 @@
 #include <us/wallet/trader/trader_t.h>
 #include <us/wallet/trader/traders_t.h>
 #include <us/wallet/wallet/local_api.h>
+#include <us/wallet/trader/businesses_t.h>
 
 #include "c_t.h"
 
@@ -63,7 +64,7 @@ void c::reset() {
 }
 
 ko c::initiate(peer_t& peer, const string& wloc, const protocol_selection_t& protocol_selection) {
-    log("dialogue_c_t::initiate", "TRACE 8c", protocol_selection.first, protocol_selection.second);
+    log("dialogue_c_t::initiate", "TRACE 8c", protocol_selection.to_string2());
     unique_lock<mutex> lock(mx);
     log("mx locked");
     if (state != nullptr) {
@@ -71,8 +72,8 @@ ko c::initiate(peer_t& peer, const string& wloc, const protocol_selection_t& pro
         reset();
     }
     state = new state_t();
-    auto p = parent.trader->parent.create_opposite_protocol(protocol_selection_t(protocol_selection));
-    if (p.first != ok) {
+    auto p = parent.trader->w->businesses.create_protocol(protocol_selection_t(protocol_selection));
+    if (is_ko(p.first)) {
         log(p.first);
         assert(p.second == nullptr);
         reset();
@@ -92,12 +93,12 @@ ko c::initiate(peer_t& peer, const string& wloc, const protocol_selection_t& pro
         c1_t x(parent.trader->w->local_endpoint, wloc, protocol_selection_t(protocol_selection), parent.trader->shared_params(), parent.trader->my_challenge);
         x.write(blob);
     }
-    return peer.call_trading_msg(peer_t::trading_msg_in_t(parent.trader->id, trader_t::svc_handshake_c1, blob));
+    return parent.trader->call_trading_msg(peer, trader_t::svc_handshake_c1, blob);
 }
 
 ko c::handshake(peer_t& peer, c1_t&& o) {
     log("dialogue_c_t::handshake_1", "seq = 0");
-    if (!parent.trader->parent.daemon.has_home(o.wloc)) {
+    if (!parent.trader->daemon.has_home(o.wloc)) {
         auto r = "KO 80795 Invalid wallet.";
         log(r);
         return r;
@@ -115,7 +116,7 @@ ko c::handshake(peer_t& peer, c1_t&& o) {
     state = new state_t();
     ++state->seq;
     lock.unlock();
-    auto w = parent.trader->parent.daemon.users.get_wallet(o.wloc);
+    auto w = parent.trader->daemon.users.get_wallet(o.wloc);
     parent.trader->init(parent.trade_id, o.endpoint, *w);
     parent.trader->online(peer);
     ch_t ch(0);
@@ -276,7 +277,7 @@ ko c::update_peer(peer_t& peer, ch_t&& ch) {
         reset();
         return ok;
     }
-    return peer.call_trading_msg(peer_t::trading_msg_in_t(parent.trader->id, svc, blob));
+    return parent.trader->call_trading_msg(peer, svc, blob);
 }
 
 ko c::update_peer2(peer_t& peer, ch_t&& ch) {
@@ -305,6 +306,6 @@ ko c::update_peer2(peer_t& peer, ch_t&& ch) {
         reset();
         return ok;
     }
-    return peer.call_trading_msg(peer_t::trading_msg_in_t(parent.trader->id, svc, blob));
+    return parent.trader->call_trading_msg(peer, svc, blob);
 }
 

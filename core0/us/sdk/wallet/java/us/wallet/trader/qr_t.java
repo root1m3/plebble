@@ -144,12 +144,12 @@ public class qr_t implements us.gov.io.seriable {
         }
         return protocol_selection.from_scanner(sc);
     }
-/*
-    public void to_stream(OutputStream os) {
-        endpoint.to_stream(os);
-        protocol_selection.to_stream(os);
+
+    public void to_streamX(PrintStream os) {
+        endpoint.to_streamX(os);
+        protocol_selection.to_streamX(os);
     }
-*/
+
     public String to_string() {
         return endpoint.to_string() + protocol_selection.to_string();
 //        ByteArrayOutputStream os = new ByteArrayOutputStream();

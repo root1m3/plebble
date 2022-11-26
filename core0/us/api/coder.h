@@ -106,9 +106,12 @@ f(in_t&& o_in, out_dst_t& o_out)                                       function(
         void gen_dto(const api_t&) const;
         void gen_dto(const api_t&, bool side_caller) const;
         void gen_dto_hdr(const api_t&, bool side_caller, ostream&) const;
+        void gen_dto_impl(const api_t&, bool side_caller, ostream&) const;
 
         virtual void gen_dto_out_hdr(const apifun&, bool side_caller, ostream&) const = 0;
+        virtual void gen_dto_out_impl(const apifun&, bool side_caller, ostream&) const = 0;
         virtual void gen_dto_in_hdr(const apifun&, bool side_caller, ostream&) const = 0;
+        virtual void gen_dto_in_impl(const apifun&, bool side_caller, ostream&) const = 0;
 
         void gen_svc_v() const;
         void gen_svc_v0() const;

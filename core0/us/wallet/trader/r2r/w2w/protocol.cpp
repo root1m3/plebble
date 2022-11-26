@@ -157,7 +157,7 @@ ko c::exec_online(peer_t& peer, const string& cmd0, ch_t& ch) {
         blob_t blob;
         track_t track = w().txlog.register_transfer(amount, coin, tid(), blob);
         log("send peer svc_invoice_query");
-        auto r = peer.call_trading_msg(peer_t::trading_msg_in_t(tid(), svc_invoice_query, blob));
+        auto r = tder->call_trading_msg(peer, svc_invoice_query, blob);
         if (is_ko(r)) {
             w().txlog.cancel(track);
             return move(r);
@@ -181,7 +181,7 @@ ko c::exec_online(peer_t& peer, const string& cmd0, ch_t& ch) {
             }
         }
         log("Forward to peer. track", track);
-        auto r = peer.call_trading_msg(peer_t::trading_msg_in_t(tid(), svc_tx, response_blob));
+        auto r = tder->call_trading_msg(peer, svc_tx, response_blob);
         if (is_ko(r)) {
             return r;
         }
@@ -202,7 +202,7 @@ ko c::exec_online(peer_t& peer, const string& cmd0, ch_t& ch) {
         if (is_ko(r)) {
             return r;
         }
-        return peer.call_trading_msg(peer_t::trading_msg_in_t(tid(), svc_cancel, response_blob));
+        return tder->call_trading_msg(peer, svc_cancel, response_blob);
     }
     auto r = WP_29101;
     log(r);
@@ -214,14 +214,14 @@ void c::exec_help(const string& prefix , ostream& os) {
     os << prefix << "info\n";
 }
 
-ko c::exec(istream& is, traders_t& traders, wallet::local_api& w) {
+ko c::exec(istream& is, wallet::local_api& w) {
     string cmd;
     is >> cmd;
     if (cmd == "info") {
-        return traders.push_OK("info TBD.", w);
+        return w.push_OK("info TBD.");
     }
     if (cmd == "basic") {
-        return b::exec(is, traders, w);
+        return b::exec(is, w);
     }
     auto r = "KO 10918 Invalid command";
     log(r);
@@ -248,7 +248,7 @@ ko c::trading_msg(peer_t& peer, svc_t svc, blob_t&& blob) {
                 }
             }
             {
-                auto r = peer.call_trading_msg(peer_t::trading_msg_in_t(tid(), svc_invoice, response_blob));
+                auto r = tder->call_trading_msg(peer, svc_invoice, response_blob);
                 if (is_ko(r)) {
                     return r;
                 }

@@ -171,14 +171,14 @@ ko c::push_(trader_t& tder, const_iterator i, bool compact) const {
         log("compact form");
         blob_t blob;
         i->second->write(blob);
-        d = peer_t::push_in_t(tid, workflow::trader_protocol::push_workflow_item, blob).get_datagram(tder.parent.daemon.channel, 0);
+        d = peer_t::push_in_t(tid, workflow::trader_protocol::push_workflow_item, blob).get_datagram(tder.daemon.channel, 0);
     }
     else {
         log("dumping content");
         ostringstream os;
         i->second->doc->write_pretty(os);
         blob_t blob = io::blob_writer_t::make_blob(os.str());
-        d = peer_t::push_in_t(tid, workflow::trader_protocol::push_doc, blob).get_datagram(tder.parent.daemon.channel, 0);
+        d = peer_t::push_in_t(tid, workflow::trader_protocol::push_doc, blob).get_datagram(tder.daemon.channel, 0);
     }
     tder.schedule_push(d);
     return ok;

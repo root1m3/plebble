@@ -39,6 +39,7 @@ import android.os.Bundle;                                                       
 import android.widget.Button;                                                                  // Button
 import java.nio.ByteOrder;                                                                     // ByteOrder
 import android.graphics.Color;                                                                 // Color
+import android.widget.CompoundButton;                                                          // CompoundButton
 import android.content.res.Configuration;                                                      // Configuration
 import android.net.ConnectivityManager;                                                        // ConnectivityManager
 import androidx.core.content.ContextCompat;                                                    // ContextCompat
@@ -102,6 +103,7 @@ import android.provider.Settings;                                               
 import us.string;                                                                              // string
 import android.view.SubMenu;                                                                   // SubMenu
 import android.annotation.SuppressLint;                                                        // SuppressLint
+import android.widget.Switch;                                                                  // Switch
 import androidx.core.app.TaskStackBuilder;                                                     // TaskStackBuilder
 import android.widget.TextView;                                                                // TextView
 import java.util.Timer;                                                                        // Timer
@@ -114,8 +116,7 @@ import android.net.wifi.WifiManager;                                            
 import android.view.Window;                                                                    // Window
 import android.view.WindowManager;                                                             // WindowManager
 import org.xmlpull.v1.XmlPullParser;                                                           // XmlPullParser
-import android.widget.Switch;                                                                  // Switch
-import android.widget.CompoundButton;                                                          // CompoundButton
+import android.widget.ImageButton;
 
 public final class connections extends activity {
 
@@ -138,19 +139,19 @@ public final class connections extends activity {
         }
 
         static final int pwr_off = Color.parseColor("#a0a0a0");
-        static final int pwr_on = Color.parseColor("#0010BB");
+        static final int pwr_on = Color.parseColor("#3399ff");
 
         @Override public View getView(int position, View view, ViewGroup parent) {
             View vi = view;
             if (vi == null) {
                 vi = inflater.inflate(R.layout.device_endpoint, null, true);
             }
-            Button b = vi.findViewById(R.id.hmibutton);
+            ImageButton b = vi.findViewById(R.id.hmibutton);
+            TextView label = vi.findViewById(R.id.label);
             Switch poweron = vi.findViewById(R.id.poweron);
             device_endpoint_t itm = getItem(position);
             String caption = itm.get_title();
-            b.setBackgroundColor(pwr_off);
-
+            label.setBackgroundColor(pwr_off);
             poweron.setOnCheckedChangeListener(null);
             if (itm.hmi == null) {
                 poweron.setChecked(false);
@@ -172,9 +173,9 @@ public final class connections extends activity {
             });
 
             if (itm.hmi != null) {
-                b.setBackgroundColor(pwr_on);
+                label.setBackgroundColor(pwr_on);
             }
-            b.setText(caption);
+            label.setText(caption);
             View.OnClickListener lner = new View.OnClickListener() {
                 @Override public void onClick(View v) {
                     activity_.select_device_endpoint(position);
@@ -237,7 +238,7 @@ public final class connections extends activity {
                 });
             }
         };
-        a.HMI_power_off(position, progress);
+        a.HMI_power_off(position, true, progress);
         Timer timer = new Timer();
         timer.schedule(new TimerTask() {
           @Override public void run() {
@@ -305,8 +306,9 @@ public final class connections extends activity {
             onoff_hmi = "Turn OFF";
         }
         String[] options;
-        if (CFG.default_wallet_connection.isEmpty()) {
+//        if (CFG.default_wallet_connections.isEmpty()) {
             options = new String[]{"Open/Edit connection", onoff_hmi, "Delete connection", "Copy into a new connection", a.getResources().getString(R.string.cancel)};
+/*
         }
         else {
             String txt = "New custodial wallet.";
@@ -315,60 +317,62 @@ public final class connections extends activity {
             }
             options = new String[]{"Open/Edit connection", onoff_hmi, "Delete connection", "Copy into a new connection", txt, a.getResources().getString(R.string.cancel)};
         }
+*/
         final connections i = this;
-        new AlertDialog.Builder(this).setTitle(name)
-                .setItems(options, new DialogInterface.OnClickListener() {
-                    @Override public void onClick(DialogInterface dialog, int which) {
-                        switch(which) {
-                            case 0:
-                                i.select_device_endpoint2(pos);
-                                break;
+        new AlertDialog.Builder(this).setTitle(name).setItems(options, new DialogInterface.OnClickListener() {
+            @Override public void onClick(DialogInterface dialog, int which) {
+                switch(which) {
+                    case 0:
+                        i.select_device_endpoint2(pos);
+                        break;
 
-                            case 1:
-                                if (dep.hmi != null) {
-                                    log("stop HMI"); //--strip
-                                    stop_hmi();
-                                }
-                                else {
-                                    log("start HMI"); //--strip
-                                    start_hmi(pos);
-                                }
-                                break;
-
-                            case 2:
-                                {
-                                    ko r = i.a.device_endpoints.erase(pos);
-                                    if (is_ko(r)) {
-                                        toast(r.msg);
-                                    }
-                                    else {
-                                        refresh();
-                                    }
-                                    break;
-                                }
-                            case 3:
-                                {
-                                    ko r = i.a.device_endpoints.copy_device_endpoint(pos);
-                                    if (is_ko(r)) {
-                                        toast(r.msg);
-                                    }
-                                    else {
-                                        refresh();
-                                    }
-                                    break;
-                                }
-                            case 4:
-                                {
-                                    if (!CFG.custodial_wallet_host.isEmpty()) {
-                                        a.device_endpoints.add_default_wallet_connection_off();
-                                        refresh();
-                                    }
-                                }
-                            case 5:
+                    case 1:
+                        if (dep.hmi != null) {
+                            log("stop HMI"); //--strip
+                            stop_hmi(true);
                         }
-                    }
-                })
-                .setIcon(R.drawable.ic_itemlist).show();
+                        else {
+                            log("start HMI"); //--strip
+                            start_hmi(pos);
+                        }
+                        break;
+
+                    case 2:
+                        {
+                            ko r = i.a.device_endpoints.erase(pos);
+                            if (is_ko(r)) {
+                                toast(r.msg);
+                            }
+                            else {
+                                refresh();
+                            }
+                            break;
+                        }
+                    case 3:
+                        {
+                            ko r = i.a.device_endpoints.copy_device_endpoint(pos);
+                            if (is_ko(r)) {
+                                toast(r.msg);
+                            }
+                            else {
+                                refresh();
+                            }
+                            break;
+                        }
+
+/*
+                    case 4:
+                        {
+                            if (!CFG.custodial_wallet_host.isEmpty()) {
+                                a.device_endpoints.add_default_wallet_connection_off();
+                                refresh();
+                            }
+                        }
+                    case 5:
+*/                }
+            }
+        })
+        .setIcon(R.drawable.ic_itemlist).show();
     }
 
     void select_device_endpoint2(int position) {

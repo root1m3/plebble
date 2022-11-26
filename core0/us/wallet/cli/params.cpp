@@ -136,7 +136,7 @@ c::params(const shell_args& a): args(a) {
                 walletd_host = wc.ip4_endpoint.shost;
             }
         }
-        else if (command == "--custodial_wallet_id") {
+        else if (command == "--custodial") {
             subhome = args.next<string>();
         }
         #if CFG_FCGI == 1
@@ -232,6 +232,12 @@ void c::dump(const string& pfx, ostream& os) const {
         os << pfx << "  wallet daemon at: " << walletd_host << ":" << walletd_port << '\n';
         os << pfx << "  connect_for_recv " << rpc__connect_for_recv << '\n';
         os << pfx << "  stop_on_disconnection " << rpc__stop_on_disconnection << '\n';
+        if (subhome.empty()) {
+            os << pfx << "  remote wallet is non-custodial.\n";
+        }
+        else {
+            os << pfx << "  remote wallet is custodial. id: " << subhome << '\n';
+        }
     }
 }
 

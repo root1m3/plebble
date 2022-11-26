@@ -32,11 +32,11 @@
 using namespace us::wallet::cli;
 using c = us::wallet::cli::rpc_daemon_t;
 
-c::rpc_daemon_t(channel_t channel, const keys_t& keys, const shostport_t& shostport, role_t role, const string& subhome, dispatcher_t* dispatcher): b(channel, dispatcher), id(keys), shostport(shostport), role(role), parent(nullptr) {
+c::rpc_daemon_t(channel_t channel, const keys_t& keys, const shostport_t& shostport, role_t role, const string& subhome, dispatcher_t* dispatcher): b(channel, dispatcher), id(keys), shostport(shostport), role(role), subhome(subhome), parent(nullptr) {
     log("constructor");
 }
 
-c::rpc_daemon_t(hmi& parent, const keys_t& keys, const shostport_t& shostport, role_t role, const string& subhome, dispatcher_t* dispatcher): b(parent.p.channel, dispatcher), id(keys), shostport(shostport), role(role), parent(&parent) {
+c::rpc_daemon_t(hmi& parent, const keys_t& keys, const shostport_t& shostport, role_t role, const string& subhome, dispatcher_t* dispatcher): b(parent.p.channel, dispatcher), id(keys), shostport(shostport), role(role), subhome(subhome), parent(&parent) {
     log("constructor-hmi");
 }
 
@@ -51,7 +51,7 @@ ko c::connect() { //callback. called from the depths
 }
 
 ko c::connect(pin_t pin) {
-    log("connect with pin ", pin);
+    log("connect with pin ", pin, "subhome", subhome);
     auto r = get_peer().connect(shostport, 0, pin, role, subhome, true);
     if (is_ko(r)) {
         return r;

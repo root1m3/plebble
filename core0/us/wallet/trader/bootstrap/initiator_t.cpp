@@ -35,8 +35,8 @@ using namespace us::wallet::trader::bootstrap;
 using c = us::wallet::trader::bootstrap::initiator_t;
 using us::ko;
 
-c::initiator_t(qr_t&& remote_qr, wallet::local_api& w): remote_qr(move(remote_qr)), w(w) {
-    log("constructor", "TRACE 8c", "qr:", this, remote_qr.to_string());
+c::initiator_t(inverted_qr_t&& inverted_qr, wallet::local_api& w): inverted_qr(move(inverted_qr)), w(w) {
+    log("constructor", "TRACE 8c", "qr:", this, inverted_qr.to_string());
 }
 
 c::~initiator_t() {
@@ -46,7 +46,7 @@ c::~initiator_t() {
 c::hash_t c::make_new_id() const { //TODO add some entropy. tid can be deduced with three inputs who-who-when
     us::gov::crypto::ripemd160 h;
     w.local_endpoint.hash(h);
-    remote_qr.endpoint.hash(h);
+    inverted_qr.endpoint.hash(h);
     h.write(trader->ts_creation);
     hash_t tid;
     h.finalize(tid); //unique hash for trade-id (tid)
@@ -60,10 +60,10 @@ pair<ko, c::hash_t> c::start(trader_t& tder) {
     if (is_ko(r.first)) {
         return r;
     }
-    log("start", "protocol selection", this, remote_qr.protocol_selection.first, remote_qr.protocol_selection.second);
+    log("start", "protocol selection", this, inverted_qr.protocol_selection.to_string2());
     trade_id = make_new_id();
     log("constructor initiator", trade_id);
-    trader->init(trade_id, remote_qr.endpoint, w);
+    trader->init(trade_id, inverted_qr.endpoint, w);
     trader->set_state(conman::state_req_online);
     return make_pair(ok, trade_id);
 }
@@ -71,14 +71,14 @@ pair<ko, c::hash_t> c::start(trader_t& tder) {
 void c::online(peer_t& peer) {
     b::online(peer);
     log("TRACE 8c");
-    log("online", trader->has_protocol(), "protocol selection", this, remote_qr.protocol_selection.first, remote_qr.protocol_selection.second);
-    if (remote_qr.protocol_selection.first.empty() || remote_qr.protocol_selection.second.empty()) {
-        log("spawning dialogue_a");
-        dialogue_a.initiate(peer, remote_qr.endpoint.wloc);
+    log("online", trader->has_protocol(), "protocol selection", this, inverted_qr.protocol_selection.to_string2());
+    if (inverted_qr.protocol_selection.is_set()) {
+        log("spawning dialogue_c");
+        dialogue_c.initiate(peer, inverted_qr.endpoint.wloc, inverted_qr.protocol_selection);
     }
     else {
-        log("spawning dialogue_c");
-        dialogue_c.initiate(peer, remote_qr.endpoint.wloc, remote_qr.protocol_selection);
+        log("spawning dialogue_a");
+        dialogue_a.initiate(peer, inverted_qr.endpoint.wloc);
     }
 }
 
@@ -98,5 +98,8 @@ ko c::on_c(int n) {
     }
     assert(n == 2 || n == 3 || n == 4);
     return ok;
+}
+
+c::inverted_qr_t::inverted_qr_t(qr_t&& qr): qr_t(move(qr)) {
 }
 

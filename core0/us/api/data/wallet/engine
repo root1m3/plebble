@@ -89,3 +89,25 @@ s ans
 -
 -
 
+r2r_all_index_hdr
+-
+sync
+protocols_t protocols
+-
+-
+
+r2r_all_bookmarks
+protocol_selection_t protocol_selection
+sync
+bookmarks_t bookmarks
+-
+-
+
+r2r_all_index
+-
+sync
+bookmark_index_t bookmark_index
+-
+-
+
+

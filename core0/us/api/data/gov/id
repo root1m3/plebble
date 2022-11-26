@@ -17,7 +17,7 @@ async
 -
 
 verification_result
-[peerinfo] request_data_t request_data
+[notser] [peerinfo] request_data_t request_data
 async
 -
 -

@@ -33,7 +33,6 @@ using namespace us::gov::io;
 using c = us::gov::io::blob_reader_t;
 
 const char* c::KO_67217 = "KO 67217 Overflow.";
-//const char* c::KO_60499 = "KO 60499 Invalid blob version.";
 const char* c::KO_60498 = "KO 60498 Invalid blob object.";
 const char* c::KO_75643 = "KO 75643 sizet exceeded max limit.";
 
@@ -357,164 +356,18 @@ ko c::read_header(const string& file, blob_header_t& header) {
 */
     return ok;
 }
-
-template<> ko c::readD(const datagram& d, blob_t& o) {
-    log("readD");
+/*
+template<>
+ko c::readD(const datagram& d, blob_t& o) {
+    log("readD blob");
     o.resize(d.size() - datagram::h);
     memcpy(o.data(), d.data() + datagram::h, d.size() - datagram::h);
     return ok;
 }
 
-//--readable------------------------------
-
-ko c::readable::read(const blob_t& blob) {
-    blob_reader_t reader(blob);
-    auto serid = serial_id();
-    log("readable::read from blob", blob.size(), "serid", +serid);
-    if (serid != 0) {
-        auto r = reader.read_header(serid);
-        if (is_ko(r)) {
-            return r;
-        }
-    }
-    return reader.read(*this);
+template<>
+ko c::readD(const datagram& d, blob_reader_t::readable& o) {
+    log("readD readable");
+    return o.read(d);
 }
-
-ko c::readable::read(const string& blob_b58) {
-    log("readable::read from encoded blob");
-    return read(us::gov::crypto::b58::decode(blob_b58));
-}
-
-ko c::readable::read(const datagram& d) {
-    log("readable::read from datagram");
-    blob_reader_t reader(d);
-    auto serid = serial_id();
-    if (serid != 0) {
-        auto r = reader.read_header(serid);
-        if (is_ko(r)) {
-            return r;
-        }
-    }
-    return reader.read(*this);
-}
-
-ko c::readable::load(const string& filename) {
-    log("readable::load", filename);
-    blob_t blob;
-    {
-        auto r = io::read_file_(filename, blob);
-        if (is_ko(r)) {
-            return r;
-        }
-    }
-    return read(blob);
-}
-
-pair<ko, c::blob_header_t> c::readable::read1(const blob_t& blob) {
-    pair<ko, blob_header_t> ret;
-    blob_reader_t reader(blob);
-    auto serid = serial_id();
-    if (serid != 0) {
-        auto r = reader.read_header(serid);
-        if (is_ko(r)) {
-            ret.first = r;
-            return move(ret);
-        }
-    }
-    ret.first = reader.read(*this);
-    ret.second = reader.header;
-    return move(ret);
-}
-
-pair<ko, c::blob_header_t> c::readable::read1(const string& blob_b58) {
-    return read1(us::gov::crypto::b58::decode(blob_b58));
-}
-
-pair<ko, c::blob_header_t> c::readable::load1(const string& filename) {
-    pair<ko, blob_header_t> ret;
-    blob_t blob;
-    {
-        auto r = io::read_file_(filename, blob);
-        if (is_ko(r)) {
-            ret.first = r;
-            return move(ret);
-        }
-    }
-    return read1(blob);
-}
-
-pair<ko, blob_t> c::readable::load3(const string& filename) {
-    pair<ko, blob_t> ret;
-    {
-        auto r = io::read_file_(filename, ret.second);
-        if (is_ko(r)) {
-            ret.first = r;
-            return move(ret);
-        }
-    }
-    ret.first = ok;
-    return move(ret);
-}
-
-pair<ko, pair<c::blob_header_t, hash_t>> c::readable::read2(const string& blob_b58) {
-    return read2(us::gov::crypto::b58::decode(blob_b58));
-}
-
-pair<ko, pair<c::blob_header_t, hash_t>> c::readable::read2(const blob_t& blob) {
-    pair<ko, pair<blob_header_t, hash_t>> ret;
-    {
-        auto r = read1(blob);
-        if (is_ko(r.first)) {
-            ret.first = r.first;
-            return move(ret);
-        }
-        ret.second.first = move(r.second);
-    }
-    ret.second.second = hasher_t::digest(blob);
-    return move(ret);
-}
-
-pair<ko, pair<c::blob_header_t, hash_t>> c::readable::load2(const string& filename) {
-    blob_t blob;
-    {
-        auto r = io::read_file_(filename, blob);
-        if (is_ko(r)) {
-            pair<ko, pair<blob_header_t, hash_t>> ret;
-            ret.first = r;
-            return move(ret);
-        }
-    }
-    return read2(blob);
-}
-
-pair<ko, c::readable*> c::readable::load(const string& filename, function<readable*(const serid_t&)> f) {
-    pair<ko, readable*> ret;
-    blob_t blob;
-    {
-        auto r = io::read_file_(filename, blob);
-        if (is_ko(r)) {
-            ret.first = r;
-            ret.second = nullptr;
-            return move(ret);
-        }
-    }
-    blob_reader_t reader(blob);
-    auto r = reader.read_header();
-    if (is_ko(r)) {
-        ret.first = r;
-        return move(ret);
-    }
-    ret.second = f(reader.header.serid);
-    if (ret.second == nullptr) {
-        ret.first = "KO 40091 factory not found for blob type.";
-        log(ret.first);
-        return move(ret);
-    }
-    ret.first = reader.read(*ret.second);
-    if (is_ko(ret.first)) {
-        delete ret.second;
-        ret.second = nullptr;
-    }
-    return move(ret);
-}
-
+*/

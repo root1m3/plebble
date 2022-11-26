@@ -135,7 +135,7 @@ void c::run_recv() {
         os << "traffic-inbound-multipeer-port_" << port;
         log_start(logdir, os.str());
     #endif
-    assert(EAGAIN == EWOULDBLOCK); //assuming they are the same value for this POSIX impl. POSIX does not require these value have the same value.
+    static_assert(EAGAIN == EWOULDBLOCK); //assuming they are the same value for this POSIX impl. POSIX does not require these value have the same value.
     log("recv thread init");
     busyled.set();
     fd_set read_fd_set;

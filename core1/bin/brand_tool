@@ -785,7 +785,7 @@ fi
 Copyright 2022 ${company} <a href="${company_url}" target="_blank">${company_url}</a>.
 Copyright 2017-2022 KATLAS Technology <a href="https://katlastechnology.com" target="_blank">https://katlastechnology.com</a>.
 </body>
-</html> 
+</html>
 EOF
 
     ppolicydir=${indexdir}/privacy
@@ -961,4 +961,3 @@ fi
 help
 echo "KO 68493 Invalid command."
 exit 1
-

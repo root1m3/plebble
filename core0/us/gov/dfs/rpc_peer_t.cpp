@@ -25,6 +25,7 @@
 #define loglevel "gov/dfs"
 #define logclass "rpc_peer_t"
 #include "logs.inc"
+#include "dto.inc"
 
 using namespace us::gov::dfs;
 using c = us::gov::dfs::rpc_peer_t;

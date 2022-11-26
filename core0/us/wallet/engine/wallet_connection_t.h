@@ -22,6 +22,7 @@
 //===-
 #pragma once
 #include <us/gov/io/seriable.h>
+#include <us/gov/io/seriable_vector.h>
 #include <us/gov/socket/types.h>
 #include <us/gov/config.h>
 
@@ -33,7 +34,7 @@ namespace us::wallet::engine {
 
     public:
         wallet_connection_t();
-        wallet_connection_t(const string& nm, const ip4_endpoint_t& ep);
+        wallet_connection_t(const string& nm, const string& subhome, const ip4_endpoint_t& ep);
         wallet_connection_t(uint64_t ts_, const string& addr_, const string& subhome, const string& nm, const string& ssid_, const ip4_endpoint_t&);
         wallet_connection_t(const wallet_connection_t& other);
 
@@ -42,7 +43,7 @@ namespace us::wallet::engine {
         string log_string() const;
         ko set_endpoint(const ip4_endpoint_t&);
         string get_title() const;
-        void dump(ostream&) const;
+        void dump(const string& pfx, ostream&) const;
 
     public: //serialization blob
         size_t blob_size() const override;
@@ -56,6 +57,10 @@ namespace us::wallet::engine {
         string subhome;
         ip4_endpoint_t ip4_endpoint;
         uint64_t ts{0};
+    };
+
+    struct wallet_connections_t: gov::io::seriable_vector<wallet_connection_t> {
+        void dump(ostream&) const;
     };
 
 }

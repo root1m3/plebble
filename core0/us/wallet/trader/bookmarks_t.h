@@ -69,7 +69,7 @@ namespace us::wallet::trader {
         void dump(const string& pfx, ostream& os) const;
 
     public: //serialization
-        using serid_t = blob_reader_t::serid_t;
+        //using serid_t = blob_reader_t::serid_t;
         static constexpr serid_t serid{'b'};
         serid_t serial_id() const override { return serid; }
         size_t blob_size() const override;
@@ -92,7 +92,7 @@ namespace us::wallet::trader {
         const_iterator find_protocol_role(const string& prot, const string& role) const;
 
     public: //serialization
-        using serid_t = blob_reader_t::serid_t;
+        //using serid_t = blob_reader_t::serid_t;
         static constexpr serid_t serid{'B'};
         serid_t serial_id() const override { return serid; }
         size_t blob_size() const override;
@@ -102,7 +102,7 @@ namespace us::wallet::trader {
 
 
 }
-
+/*
 namespace us::gov::io {
 
     template<> inline ko blob_reader_t::readD(const us::gov::socket::datagram& d, us::wallet::trader::bookmark_t& o) { return o.read(d); }
@@ -111,4 +111,6 @@ namespace us::gov::io {
     template<> inline datagram* blob_writer_t::get_datagram(channel_t channel, svc_t svc, seq_t seq, const us::wallet::trader::bookmarks_t& o) { return o.get_datagram(channel, svc, seq); }
 
 }
+*/
+
 

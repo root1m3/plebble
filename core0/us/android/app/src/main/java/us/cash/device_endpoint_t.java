@@ -23,8 +23,8 @@
 package us.cash;
 import java.util.ArrayList;                                                                    // ArrayList
 import us.gov.crypto.base58;                                                                   // base58
-import us.gov.io.types.blob_t;                                                                 // blob_t
 import us.gov.io.blob_reader_t;                                                                // blob_reader_t
+import us.gov.io.types.blob_t;                                                                 // blob_t
 import us.gov.io.blob_writer_t;                                                                // blob_writer_t
 import java.util.Date;                                                                         // Date
 import us.gov.crypto.ec;                                                                       // ec
@@ -32,6 +32,7 @@ import static us.gov.crypto.types.*;                                            
 import static us.gov.id.types.*;                                                               // *
 import static us.gov.socket.types.*;                                                           // *
 import us.stdint.*;                                                                            // *
+import us.wallet.engine.ip4_endpoint_t;                                                        // ip4_endpoint_t
 import static us.ko.is_ko;                                                                     // is_ko
 import java.security.KeyPair;                                                                  // KeyPair
 import us.ko;                                                                                  // ko
@@ -39,8 +40,7 @@ import static us.ko.ok;                                                         
 import java.security.PrivateKey;                                                               // PrivateKey
 import static us.gov.io.types.blob_t.serid_t;                                                  // serid_t
 import us.string;                                                                              // string
-import us.wallet.engine.ip4_endpoint_t;                                                           // *
-import us.wallet.engine.wallet_connection_t;                                                           // *
+import us.wallet.engine.wallet_connection_t;                                                   // wallet_connection_t
 
 public final class device_endpoint_t extends wallet_connection_t { // implements hmi_t.hmi_callback_t {
 
@@ -54,16 +54,16 @@ public final class device_endpoint_t extends wallet_connection_t { // implements
         cfg = null;
     }
 
-    public device_endpoint_t(device_endpoints_t parent_, String k_b58, wallet_connection_t wallet_connection) {
-        super(wallet_connection.name_.value, wallet_connection.ip4_endpoint);
+    public device_endpoint_t(device_endpoints_t parent_, String k_b58, String subhome, wallet_connection_t wallet_connection) {
+        super(wallet_connection.name_.value, subhome, wallet_connection.ip4_endpoint);
         parent = parent_;
         hmi = null;
         cfg = new cfg_android_private_t(parent.a.getApplicationContext(), k_b58);
         cfg.home = get_home();
     }
 
-    public device_endpoint_t(device_endpoints_t parent_, String name, ip4_endpoint_t ip4_endpoint) {
-        super(name, ip4_endpoint);
+    public device_endpoint_t(device_endpoints_t parent_, String name, String subhome, ip4_endpoint_t ip4_endpoint) {
+        super(name, subhome, ip4_endpoint);
         parent = parent_;
         hmi = null;
         cfg = new cfg_android_private_t(parent.a.getApplicationContext());
@@ -71,7 +71,7 @@ public final class device_endpoint_t extends wallet_connection_t { // implements
     }
 
     public device_endpoint_t(device_endpoints_t parent_, wallet_connection_t wallet_connection) {
-        super(wallet_connection.name_.value, wallet_connection.ip4_endpoint);
+        super(wallet_connection.name_.value, wallet_connection.subhome.value, wallet_connection.ip4_endpoint);
         parent = parent_;
         hmi = null;
         cfg = new cfg_android_private_t(parent.a.getApplicationContext());
@@ -194,18 +194,27 @@ public final class device_endpoint_t extends wallet_connection_t { // implements
             ts = new uint64_t(new Date().getTime());
             parent.save();
         }
+        if (parent.a.main != null) {
+            parent.a.main.refresh__worker();
+        }
+        if (parent.a.active_ac != null) {
+            if (parent.a.active_ac != parent.a.main) {
+                parent.a.active_ac.refresh__worker();
+            }
+        }
     }
 
     public ko set_ip4_endpoint(ip4_endpoint_t ip4_endpoint_) {
-        if (hmi != null) return new ko("KO 92001 Cannot change ip4_endpoint while HMI is running.");
+//        if (hmi != null) {
+//            return new ko("KO 92001 Cannot change ip4_endpoint while HMI is running.");
+//        }
+        log("set_ip4_endpoint " + ip4_endpoint_.to_string()); //--strip
         ip4_endpoint = ip4_endpoint_;
         return ok;
     }
 
-    public ko set_subhome(String subhome_) {
-        if (hmi != null) return new ko("KO 92002 Cannot change subhome while HMI is running.");
+    public void set_subhome(String subhome_) {
         subhome.value = subhome_;
-        return ok;
     }
 
     public boolean confirm_subhome(String subhome_) {

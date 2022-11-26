@@ -32,28 +32,32 @@ import static us.gov.io.types.blob_t.serid_t;                                   
 
 public class ip4_endpoint_t implements us.gov.io.seriable {
 
+    static void log(final String line) {                     //--strip
+        CFG.log_wallet_engine("ip4_endpoint_t: " + line);            //--strip
+    }                                                        //--strip
+
     public ip4_endpoint_t() {
         shost = new shost_t("127.0.0.1");
-        port = CFG.WALLET_PORT;
-        channel = us.CFG.CHANNEL;
+        port = new port_t(CFG.WALLET_PORT.value);
+        channel = new channel_t(us.CFG.CHANNEL.value);
     }
 
     public ip4_endpoint_t(shost_t host_, port_t port_, channel_t channel_) {
-        shost = host_;
-        port = port_;
-        channel = channel_;
+        shost = new shost_t(host_.value);
+        port = new port_t(port_.value);
+        channel = new channel_t(channel_.value);
     }
 
     public ip4_endpoint_t(host_t host_, port_t port_, channel_t channel_) {
         shost = us.gov.socket.client.ip4_decode(host_);
-        port = port_;
-        channel = channel_;
+        port = new port_t(port_.value);
+        channel = new channel_t(channel_.value);
     }
 
     public ip4_endpoint_t(ip4_endpoint_t other) {
-        shost = other.shost;
-        port = other.port;
-        channel = other.channel;
+        shost = new shost_t(other.shost.value);
+        port = new port_t(other.port.value);
+        channel = new channel_t(other.channel.value);
     }
 
     public boolean equals(ip4_endpoint_t other) {

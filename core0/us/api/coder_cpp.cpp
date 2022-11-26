@@ -438,15 +438,23 @@ bool c::gen_rpc_impl(const apifun& f, bool side_caller, ostream& os) const {
             os << pfx << "datagram* d_in;\n";
             os << pfx << "{\n";
             if (f.in.empty()) {
-                os << pfx << "    auto r = sendrecv(blob_writer_t::get_datagram(daemon.channel, protocol::" << f.service << ", 0), lasterror);\n";
+                os << pfx << "    auto r = sendrecv(write_datagram(daemon.channel, protocol::" << f.service << ", 0), lasterror);\n";
             }
             else {
+                if (f.in.is_seriable) {
+                    os << pfx << "    auto r = sendrecv(" << n_in.second << ".get_datagram(daemon.channel, protocol::" << f.service << ", 0), lasterror);\n";
+                }
+                else {
+                    os << pfx << "    auto r = sendrecv(write_datagram(daemon.channel, protocol::" << f.service << ", 0, " << n_in.second << "), lasterror);\n";
+                }
+/*
                 if (f.in.size() == 1) {
-                    os << pfx << "    auto r = sendrecv(blob_writer_t::get_datagram(daemon.channel, protocol::" << f.service << ", 0, " << n_in.second << "), lasterror);\n";
+                    os << pfx << "    auto r = sendrecv(write_datagram(daemon.channel, protocol::" << f.service << ", 0, " << n_in.second << "), lasterror);\n";
                 }
                 else {
                     os << pfx << "    auto r = sendrecv(" << n_in.second << ".get_datagram(daemon.channel, 0), lasterror);\n";
                 }
+*/
             }
             os << pfx << "    if (unlikely(is_ko(r.first))) {\n";
             os << pfx << "        assert(r.second == nullptr);\n";
@@ -461,7 +469,12 @@ bool c::gen_rpc_impl(const apifun& f, bool side_caller, ostream& os) const {
             os << pfx << "    delete d_in;\n";
             os << pfx << "    return r;\n";
             os << pfx << "}\n";
-            os << pfx << "auto r = blob_reader_t::readD(*d_in, " << n_out.second << ");\n";
+            if (f.out.is_seriable) {
+                os << pfx << "auto r = " << n_out.second << ".read(*d_in);\n";
+            }
+            else {
+                os << pfx << "auto r = read_datagram(*d_in, " << n_out.second << ");\n";
+            }
             os << pfx << "delete d_in;\n";
             os << pfx << "return r;\n";
         }
@@ -471,15 +484,24 @@ bool c::gen_rpc_impl(const apifun& f, bool side_caller, ostream& os) const {
                 seq = "seq";
             }
             if (f.in.empty()) {
-                os << pfx << "return send1(blob_writer_t::get_datagram(daemon.channel, protocol::" << f.service << ", " << seq << "));\n";
+                os << pfx << "return send1(write_datagram(daemon.channel, protocol::" << f.service << ", " << seq << "));\n";
             }
             else {
+                if (f.in.is_seriable) {
+                    os << pfx << "return send1(" << n_in.second << ".get_datagram(daemon.channel, protocol::" << f.service << ", " << seq << "));\n";
+                }
+                else {
+                    os << pfx << "return send1(write_datagram(daemon.channel, protocol::" << f.service << ", " << seq << ", " << n_in.second << "));\n";
+                }
+
+/*
                 if (f.in.size() == 1) {
-                    os << pfx << "return send1(blob_writer_t::get_datagram(daemon.channel, protocol::" << f.service << ", " << seq << ", " << n_in.second << "));\n";
+                    os << pfx << "return send1(write_datagram(daemon.channel, protocol::" << f.service << ", " << seq << ", " << n_in.second << "));\n";
                 }
                 else {
                     os << pfx << "return send1(" << n_in.second << ".get_datagram(daemon.channel, " << seq << "));\n";
                 }
+*/
             }
         }
     }, os);
@@ -495,15 +517,23 @@ bool c::gen_rpc_impl(const apifun& f, bool side_caller, ostream& os) const {
             seq = "seq";
         }
         if (f.out.empty()) {
-            os << pfx << "return send1(blob_writer_t::get_datagram(daemon.channel, protocol::" << f.service << "_response, " << seq << "));\n";
+            os << pfx << "return send1(write_datagram(daemon.channel, protocol::" << f.service << "_response, " << seq << "));\n";
         }
         else {
+            if (f.out.is_seriable) {
+                os << pfx << "return send1(" << n_out.second << ".get_datagram(daemon.channel, protocol::" << f.service << "_response, " << seq << "));\n";
+            }
+            else {
+                os << pfx << "return send1(write_datagram(daemon.channel, protocol::" << f.service << "_response, " << seq << ", " << n_out.second << "));\n";
+            }
+/*
             if (f.out.size() == 1) {
-                os << pfx << "return send1(blob_writer_t::get_datagram(daemon.channel, protocol::" << f.service << "_response, " << seq << ", " << n_out.second << "));\n";
+                os << pfx << "return send1(write_datagram(daemon.channel, protocol::" << f.service << "_response, " << seq << ", " << n_out.second << "));\n";
             }
             else {
                 os << pfx << "return send1(o_ans.get_datagram(daemon.channel, " << seq << "));\n";
             }
+*/
         }
     }, os);
 
@@ -541,16 +571,20 @@ void c::gen_service_router(const apifun& f, bool side_caller, ostream& os) const
 
 void c::gen_dto_from_blob(const apifun& f, const apifun::io_types_t& iotypes, ostream& os) const {
     string pfx = "    ";
-    string pfxb = "        ";
-    os << pfx << "ko from_blob(blob_reader_t& reader) override {\n";
+    os << pfx << "ko from_blob(blob_reader_t& reader) override;\n";
+}
+
+void c::gen_dto_from_blob_impl(const apifun& f, const apifun::io_types_t& iotypes, const string& classname, ostream& os) const {
+    string pfx = "    ";
+    os << "ko c::" << classname << "::from_blob(blob_reader_t& reader) {\n";
     for (auto& i: iotypes) {
-        os << pfxb << "{\n";
-        os << pfxb << "    auto r = reader.read(" << i.second << ");\n";
-        os << pfxb << "    if (unlikely(is_ko(r))) return r;\n";
-        os << pfxb << "}\n";
+        os << pfx << "{\n";
+        os << pfx << "    auto r = reader.read(" << i.second << ");\n";
+        os << pfx << "    if (unlikely(is_ko(r))) return r;\n";
+        os << pfx << "}\n";
     }
-    os << pfxb << "return ok;\n";
-    os << pfx << "}\n";
+    os << pfx << "return ok;\n";
+    os << "}\n";
     os << "\n";
 }
 
@@ -573,6 +607,15 @@ void c::gen_dto_in_constructor(const apifun& f, ostream& os) const {
     const apifun::io_types_t& iotypes = f.in;
     os << pfx << f.name << "_in_t(";
     gen_dto_in_constructor_args(f, true, os);
+    os << ");\n";
+}
+
+void c::gen_dto_in_constructor_impl(const apifun& f, const string& classname, ostream& os) const {
+    string pfx = "    ";
+    string pfxb = "        ";
+    const apifun::io_types_t& iotypes = f.in;
+    os << "c::" << classname << "::" << classname << '(';
+    gen_dto_in_constructor_args(f, true, os);
     os << "): ";
     for (auto& i: iotypes) {
         os << i.second << "(" << i.second << ")";
@@ -581,18 +624,23 @@ void c::gen_dto_in_constructor(const apifun& f, ostream& os) const {
         }
     }
     os << " {\n";
-    os << pfx << "}\n";
+    os << "}\n";
     os << "\n";
 }
 
 void c::gen_dto_blob_size(const apifun& f, const apifun::io_types_t& iotypes, ostream& os) const {
     string pfx = "    ";
+    os << pfx << "size_t blob_size() const override;\n";
+}
+
+void c::gen_dto_blob_size_impl(const apifun& f, const apifun::io_types_t& iotypes, const string& classname, ostream& os) const {
+    string pfx = "    ";
     string pfxb = "        ";
-    os << pfx << "size_t blob_size() const override {\n";
-    os << pfxb << "return ";
+    os << "size_t c::" << classname << "::blob_size() const {\n";
+    os << pfx << "return ";
     for (auto& i: iotypes) {
         if (&i != &*iotypes.begin()) {
-            os << pfxb << "    ";
+            os << pfxb;
         }
         os << "blob_writer_t::blob_size(" << i.second << ")";
         if (&i != &*iotypes.rbegin()) {
@@ -602,30 +650,49 @@ void c::gen_dto_blob_size(const apifun& f, const apifun::io_types_t& iotypes, os
             os << ";\n";
         }
     }
-    os << pfx << "}\n";
+    os << "}\n";
     os << "\n";
 }
 
 void c::gen_dto_to_blob(const apifun& f, const apifun::io_types_t& iotypes, ostream& os) const {
     string pfx = "    ";
-    string pfxb = "        ";
-    os << pfx << "void to_blob(blob_writer_t& writer) const override {\n";
+    os << pfx << "void to_blob(blob_writer_t&) const override;\n";
+}
+
+void c::gen_dto_to_blob_impl(const apifun& f, const apifun::io_types_t& iotypes, const string& classname, ostream& os) const {
+    string pfx = "    ";
+    os << "void c::" << classname << "::to_blob(blob_writer_t& writer) const {\n";
     for (auto& i: iotypes) {
-        os << pfxb << "writer.write(" << i.second << ");\n";
+        os << pfx << "writer.write(" << i.second << ");\n";
     }
-    os << pfx << "}\n";
+    os << "}\n";
     os << "\n";
 }
 
 void c::gen_dto_get_datagram(const apifun& f, const apifun::io_types_t& iotypes, const string& side_sfx, ostream& os) const {
     string pfx = "    ";
-    string pfxb = "        ";
-    os << pfx << "datagram* get_datagram(channel_t channel, seq_t seq) const {\n";
-    os << pfx << "  return b::get_datagram(channel, protocol::" << f.service << (side_sfx == "in" ? "" : "_response") << ", seq);\n";
-    os << pfx << "}\n";
+    os << pfx << "using b::get_datagram;\n";
+    os << pfx << "datagram* get_datagram(channel_t, seq_t) const;\n";
+    os << pfx << "static datagram* get_datagram(channel_t channel, seq_t seq, ";
+    for (auto& i: iotypes) {
+        os << "const " << get_type(i.first) << "& ";
+        if (&i != &*iotypes.rbegin()) {
+            os << ", ";
+        }
+    }
+    os << ");\n";
+}
+
+void c::gen_dto_get_datagram_impl(const apifun& f, const apifun::io_types_t& iotypes, const string& side_sfx, const string& cnme, ostream& os) const {
+    string pfx = "    ";
+
+
+    os << "datagram* c::" << cnme << "::get_datagram(channel_t channel, seq_t seq) const {\n";
+    os << pfx << "return b::get_datagram(channel, protocol::" << f.service << (side_sfx == "in" ? "" : "_response") << ", seq);\n";
+    os << "}\n";
     os << "\n";
 
-    os << pfx << "static datagram* get_datagram(channel_t channel, seq_t seq, ";
+    os << "datagram* c::" << cnme << "::get_datagram(channel_t channel, seq_t seq, ";
     for (auto& i: iotypes) {
         os << "const " << get_type(i.first) << "& " << i.second;
         if (&i != &*iotypes.rbegin()) {
@@ -633,7 +700,7 @@ void c::gen_dto_get_datagram(const apifun& f, const apifun::io_types_t& iotypes,
         }
     }
     os << ") {\n";
-    os << pfxb << f.name << "_" << side_sfx << "_t o(";
+    os << pfx << f.name << "_" << side_sfx << "_t o(";
     for (auto& i: iotypes) {
         os << i.second;
         if (&i != &*iotypes.rbegin()) {
@@ -641,17 +708,24 @@ void c::gen_dto_get_datagram(const apifun& f, const apifun::io_types_t& iotypes,
         }
     }
     os << ");\n";
-    os << pfxb << "return o.get_datagram(channel, seq);\n";
-    os << pfx << "}\n";
+    os << pfx << "return o.get_datagram(channel, seq);\n";
+    os << "}\n";
     os << "\n";
 }
 
 void c::gen_dto_in_dst_constructor(const apifun& f, ostream& os) const {
     string pfx = "    ";
-    string pfxb = "        ";
-    //const apifun::io_types_t& iotypes = f.in;
     os << pfx << f.name << "_in_dst_t() {}\n";
+}
+
+void c::gen_dto_in_dst_constructor_impl(const apifun& f, const string& classname, ostream& os) const {
+/*
+    string pfx = "    ";
+    string pfxb = "        ";
+    os << classname << "::" << classname << "() {\n";
+    os << "}\n";
     os << "\n";
+*/
 }
 
 void c::gen_dto_in_hdr(const apifun& f, bool side_caller, ostream& os) const {
@@ -666,10 +740,8 @@ void c::gen_dto_in_hdr(const apifun& f, bool side_caller, ostream& os) const {
 
     if (side_caller) {
         os << "/// " << f.name << " - IN\n";
-        os << "struct " << f.name << "_in_t " << final << ": blob_writer_t::writable {\n";
-        os << pfx << "using b = blob_writer_t::writable;\n";
-        os << "\n";
-
+        os << "struct " << f.name << "_in_t " << final << ": writable {\n";
+        os << pfx << "using b = writable;\n";
         gen_dto_in_constructor(f, os);
         gen_dto_blob_size(f, iotypes, os);
         gen_dto_to_blob(f, iotypes, os);
@@ -685,14 +757,10 @@ void c::gen_dto_in_hdr(const apifun& f, bool side_caller, ostream& os) const {
         os << "\n";
     }
     else {
-        os << "struct " << f.name << "_in_dst_t " << final << ": blob_reader_t::readable {\n";
-        os << pfx << "using b = blob_reader_t::readable;\n";
-        os << "\n";
-
+        os << "struct " << f.name << "_in_dst_t " << final << ": readable {\n";
+        os << pfx << "using b = readable;\n";
         gen_dto_in_dst_constructor(f, os);
-        os << '\n';
         gen_dto_from_blob(f, iotypes, os);
-
         //-----------------------------attributes
         for (auto& i: iotypes) {
             os << pfx << get_type(i.first) << " " << i.second << ";\n";
@@ -702,12 +770,54 @@ void c::gen_dto_in_hdr(const apifun& f, bool side_caller, ostream& os) const {
     }
 }
 
+void c::gen_dto_in_impl(const apifun& f, bool side_caller, ostream& os) const {
+    string pfx = "    ";
+    const apifun::io_types_t& iotypes = f.in;
+    if (iotypes.empty()) return;
+
+    if (iotypes.size() == 1) {
+        return;
+    }
+
+    string final = iotypes.extensible_dto ? "" : "final";
+
+    if (side_caller) {
+        os << "/// " << f.name << " - IN\n";
+        string classname = f.name + "_in_t";
+        gen_dto_in_constructor_impl(f, classname, os);
+        gen_dto_blob_size_impl(f, iotypes, classname, os);
+        gen_dto_to_blob_impl(f, iotypes, classname, os);
+        gen_dto_get_datagram_impl(f, iotypes, "in", classname, os);
+    }
+    else {
+        string classname = f.name + "_in_dst_t";
+        gen_dto_in_dst_constructor_impl(f, classname, os);
+        gen_dto_from_blob_impl(f, iotypes, classname, os);
+    }
+    os << "\n";
+}
+
 void c::gen_dto_out_constructor(const apifun& f, ostream& os) const {
     string pfx = "    ";
     string pfxb = "        ";
     const apifun::io_types_t& iotypes = f.out;
-    os << pfx << f.name << "_out_t() {}\n";
+    os << pfx << f.name << "_out_t();\n";
     os << pfx << f.name << "_out_t(";
+    for (auto& i: iotypes) {
+        os << "const " << get_type(i.first) << "& " << i.second;
+        if (&i != &*iotypes.rbegin()) {
+            os << ", ";
+        }
+    }
+    os << ");\n";
+}
+
+void c::gen_dto_out_constructor_impl(const apifun& f, const string& classname, ostream& os) const {
+    string pfx = "    ";
+    string pfxb = "        ";
+    const apifun::io_types_t& iotypes = f.out;
+    os << "c::" << classname << "::" << classname << "() {}\n";
+    os << "c::" << classname << "::" << classname << "(";
     for (auto& i: iotypes) {
         os << "const " << get_type(i.first) << "& " << i.second;
         if (&i != &*iotypes.rbegin()) {
@@ -721,8 +831,8 @@ void c::gen_dto_out_constructor(const apifun& f, ostream& os) const {
             os << ", ";
         }
     }
-    os << " {}\n";
-    os << "\n";
+    os << " {\n";
+    os << "}\n";
 }
 
 void c::gen_dto_out_dst_constructor(const apifun& f, ostream& os) const {
@@ -731,6 +841,9 @@ void c::gen_dto_out_dst_constructor(const apifun& f, ostream& os) const {
     //const apifun::io_types_t& iotypes = f.out;
     os << pfx << f.name << "_out_dst_t() {}\n";
     os << "\n";
+}
+
+void c::gen_dto_out_dst_constructor_impl(const apifun& f, const string&, ostream& os) const {
 }
 
 void c::gen_dto_out_hdr(const apifun& f, bool side_caller, ostream& os) const {
@@ -743,14 +856,12 @@ void c::gen_dto_out_hdr(const apifun& f, bool side_caller, ostream& os) const {
         return;
     }
     string final = iotypes.extensible_dto ? "" : "final";
-
     if (!side_caller) {
         os << "/// " << f.name << " - OUT\n";
+        string classname = f.name + "_out_t";
 
-        os << "struct " << f.name << "_out_t " << final << ": blob_writer_t::writable {\n";
-        os << pfx << "using b = blob_writer_t::writable;\n";
-        os << "\n";
-
+        os << "struct " << classname << ' ' << final << ": writable {\n";
+        os << pfx << "using b = writable;\n";
         gen_dto_out_constructor(f, os);
         gen_dto_blob_size(f, iotypes, os);
         gen_dto_to_blob(f, iotypes, os);
@@ -766,13 +877,10 @@ void c::gen_dto_out_hdr(const apifun& f, bool side_caller, ostream& os) const {
         os << "\n";
     }
     else {
-        os << "struct " << f.name << "_out_dst_t " << final << ": blob_reader_t::readable {\n";
-        os << pfx << "using b = blob_reader_t::readable;\n";
-        os << "\n";
-
+        os << "struct " << f.name << "_out_dst_t " << final << ": readable {\n";
+        os << pfx << "using b = readable;\n";
         gen_dto_out_dst_constructor(f, os);
         gen_dto_from_blob(f, iotypes, os);
-
         //-----------------------------attributes
         for (auto& i: iotypes) {
             os << pfx << get_type(i.first) << ' ' << i.second << ";\n";
@@ -780,6 +888,32 @@ void c::gen_dto_out_hdr(const apifun& f, bool side_caller, ostream& os) const {
         //-----------------------------
         os << "};\n";
         os << "\n";
+    }
+}
+
+void c::gen_dto_out_impl(const apifun& f, bool side_caller, ostream& os) const {
+    string pfx = "    ";
+    string pfxb = "        ";
+    const apifun::io_types_t& iotypes = f.out;
+    if (iotypes.empty()) return;
+
+    if (iotypes.size() == 1) {
+        return;
+    }
+    string final = iotypes.extensible_dto ? "" : "final";
+
+    if (!side_caller) {
+        os << "/// " << f.name << " - OUT\n";
+        string classname = f.name + "_out_t";
+        gen_dto_out_constructor_impl(f, classname, os);
+        gen_dto_blob_size_impl(f, iotypes, classname, os);
+        gen_dto_to_blob_impl(f, iotypes, classname, os);
+        gen_dto_get_datagram_impl(f, iotypes, "out", classname, os);
+    }
+    else {
+        string classname = f.name + "_out_dst_t";
+        gen_dto_out_dst_constructor_impl(f, classname, os);
+        gen_dto_from_blob_impl(f, iotypes, classname, os);
     }
 }
 
@@ -830,7 +964,12 @@ bool c::gen_service_handlers(const apifun& f, const string& scope, bool side_cal
             os << pfx << type_in << " " << name_in << ";\n";
         }
         os << pfx << "{\n";
-        os << pfx << "    auto r = blob_reader_t::readD(*d, " << (f.in.heap ? "*" : "") << name_in << ");\n";
+        if (f.in.is_seriable) {
+            os << pfx << "    auto r = (" << (f.in.heap ? "*" : "") << name_in << ").read(*d);\n";
+        }
+        else {
+            os << pfx << "    auto r = read_datagram(*d, " << (f.in.heap ? "*" : "") << name_in << ");\n";
+        }
         os << pfx << "    if (is_ko(r)) {\n";
         os << pfx << "        log(r);\n";
         os << pfx << "        delete d;\n";
@@ -890,12 +1029,25 @@ bool c::gen_service_handlers(const apifun& f, const string& scope, bool side_cal
     os << pfx << "}\n";
 
     if (f.is_sync()) {
+        if (f.out.empty()) {
+            os << pfx << "datagram* dout = write_datagram(daemon.channel, protocol::" << f.service << "_response, seq);\n";
+        }
+        else {
+            if (f.out.is_seriable) {
+                os << pfx << "datagram* dout = " << name_out << ".get_datagram(daemon.channel, protocol::" << f.service << "_response, seq);\n";
+            }
+            else {
+                os << pfx << "datagram* dout = write_datagram(daemon.channel, protocol::" << f.service << "_response, seq, " << name_out << ");\n";
+            }
+        }
+/*
         if (f.out.size() == 1) {
-            os << pfx << "datagram* dout = blob_writer_t::get_datagram(daemon.channel, protocol::" << f.service << "_response, seq, " << name_out << ");\n";
+            os << pfx << "datagram* dout = write_datagram(daemon.channel, protocol::" << f.service << "_response, seq, " << name_out << ");\n";
         }
         else {
             os << pfx << "datagram* dout = " << name_out << ".get_datagram(daemon.channel, seq);\n";
         }
+*/
         if (!f.in.pass_dgram) {
             os << pfx << "delete d;\n";
         }
@@ -929,7 +1081,13 @@ bool c::gen_service_handlers_response(const apifun& f, const string& scope, bool
         os << pfx << type_out << " " << name_out << ";\n";
     }
     os << pfx << "{\n";
-    os << pfx << "    auto r = blob_reader_t::readD(*d, " << (f.out.heap ? "*" : "") << name_out << ");\n";
+    if (f.out.is_seriable) {
+        os << pfx << "    auto r = (" << (f.out.heap ? "*" : "") << name_out << ").read(*d);\n";
+    }
+    else {
+        os << pfx << "    auto r = read_datagram(*d, " << (f.out.heap ? "*" : "") << name_out << ");\n";
+    }
+//    os << pfx << "    auto r = read_datagram(*d, " << (f.out.heap ? "*" : "") << name_out << ");\n";
     os << pfx << "    if (unlikely(is_ko(r))) {\n";
     os << pfx << "        log(r);\n";
     os << pfx << "        delete d;\n";

@@ -46,7 +46,7 @@ c::business_t() {
     name = "seller";
 }
 
-ko c::init(const string& r2rhome, us::wallet::trader::traders_t::protocol_factories_t& f) {
+ko c::init(const string& r2rhome, protocol_factories_t& f) {
     auto r = b::init(r2rhome, f);
     if (is_ko(r)) {
         return r;
@@ -204,7 +204,7 @@ std::pair<us::ko, us::wallet::trader::trader_protocol*> c::create_protocol(proto
     return create_protocol();
 }
 */
-
+/*
 std::pair<us::ko, us::wallet::trader::trader_protocol*> c::create_opposite_protocol(protocol_selection_t&& protocol_selection) {
     log("create_opposite_protocol", protocol_selection.first, protocol_selection.second);
     if (protocol_selection.first != c::protocol::name) {
@@ -219,6 +219,7 @@ std::pair<us::ko, us::wallet::trader::trader_protocol*> c::create_opposite_proto
     }
     return create_protocol();
 }
+*/
 
 std::pair<us::ko, us::wallet::trader::trader_protocol*> c::create_protocol() {
     auto a = new business_t::protocol(*this);
@@ -229,18 +230,6 @@ std::pair<us::ko, us::wallet::trader::trader_protocol*> c::create_protocol() {
 
 void c::list_protocols(ostream& os) const {
     os << c::protocol::name << " ask\n";
-}
-
-void c::invert(protocols_t& protocols) const {
-    for (auto& i: protocols) {
-        if (i.first != c::protocol::name) continue;
-        if (i.second == "ask") {
-            i.second = "bid";
-        }
-        else {
-            i.second = "ask";
-        }
-    }
 }
 
 void c::published_protocols(protocols_t& protocols, bool inverse) const {

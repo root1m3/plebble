@@ -21,6 +21,7 @@
 //===----------------------------------------------------------------------------
 //===-
 #include "business.h"
+#include "protocol.h"
 
 #define loglevel "trader/r2r/bid2ask"
 #define logclass "business_t"
@@ -35,40 +36,16 @@ c::business_t() {
 c::~business_t() {
 }
 
-/*
-c::workflow_factory_id_t c::workflow_factory_id() const {
-    return workflow_factory_id_t(1);
-}
-
-void c::register_factories(workflow_factories_t& workflow_factories) {
-    struct my_workflow_factory_t: workflow_factory_t {
-
-        my_workflow_factory_t(c* bz): bz(bz) {}
-
-        pair<ko, value_type*> create() const override {
-            auto x = new bid2ask::workflow_t();
-            x->init();
-            return make_pair(ok, x);
-        }
-
-        c* bz;
-    };
-    workflow_factories.register_factory(workflow_factory_id(), new my_workflow_factory_t(this));
-    assert(workflow_factories.find(workflow_factory_id()) != workflow_factories.end());
-}
-*/
-
-/*
-ko c::init(const string& r2rhome, us::wallet::trader::traders_t::protocol_factories_t& f) {
-    auto r = b::init(r2rhome, f);
-    if (is_ko(r)) {
-        return r;
+bool c::invert(protocol_selection_t& i) const {
+    if (i.first != protocol::name) return false;
+    if (i.second == "ask") {
+        i.second = "bid";
+        return true;
     }
-
-
-    
-
-    return ok;
+    if (i.second == "bid") {
+        i.second = "ask";
+        return true;
+    }
+    return false;
 }
-*/
 

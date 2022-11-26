@@ -80,34 +80,50 @@ public class blob_reader_t {
     }
 
     //------------------------------------------------------------------------------
-    public static abstract class readable implements readable_if {
+    public static class readable implements readable_if {
 
-        public serid_t serial_id() { return new serid_t((short)0); }
+        public readable() {
+            o = this;
+        }
+
+        public readable(readable_if o_) {
+            o = o_;
+        }
+
+        @Override public serid_t serial_id() {
+            if (o == this) return new serid_t((short)0);
+            return o.serial_id();
+        }
+
+        @Override public ko from_blob(blob_reader_t reader) {
+            if (o == this) return new ko("KO 78897 specialize from_blob w/o calling base class.");
+            return o.from_blob(reader);
+        }
 
         public ko read(final blob_t blob) {
             log("readable::read from blob " + blob.size());  //--strip
             blob_reader_t reader = new blob_reader_t(blob);
-            serid_t serid = serial_id();
+            serid_t serid = o.serial_id();
             if (serid.value != 0) {
                 ko r = reader.read_header(serid);
                 if (ko.is_ko(r)) {
                     return r;
                 }
             }
-            return reader.read(this);
+            return reader.read(o);
         }
 
         public ko read(final datagram d) {
             log("readable::read from datagram"); //--strip
             blob_reader_t reader = new blob_reader_t(d);
-            serid_t serid = serial_id();
+            serid_t serid = o.serial_id();
             if (serid.value != 0) {
                 ko r = reader.read_header(serid);
                 if (ko.is_ko(r)) {
                     return r;
                 }
             }
-            return reader.read(this);
+            return reader.read(o);
         }
 
         public ko read(final String blob_b58) {
@@ -130,7 +146,7 @@ public class blob_reader_t {
         public pair<ko, blob_header_t> read1(final blob_t blob) {
             pair<ko, blob_header_t> ret = new pair<ko, blob_header_t>(ok, null);
             blob_reader_t reader = new blob_reader_t(blob);
-            serid_t serid = serial_id();
+            serid_t serid = o.serial_id();
             if (serid.value != 0) {
                 ko r = reader.read_header(serid);
                 if (ko.is_ko(r)) {
@@ -138,7 +154,7 @@ public class blob_reader_t {
                     return ret;
                 }
             }
-            ret.first = reader.read(this);
+            ret.first = reader.read(o);
             ret.second = reader.header;
             return ret;
         }
@@ -198,6 +214,8 @@ public class blob_reader_t {
             }
             return ret;
         }
+
+        readable_if o;
     }
     //------------------------------------------------------------------------------
 
@@ -235,12 +253,12 @@ public class blob_reader_t {
         blob_reader_t reader = new blob_reader_t(d);
         return reader.read(o);
     }
-
+/*
     public static ko readD(final datagram d, readable o) {
         blob_reader_t reader = new blob_reader_t(d);
         return reader.read(o);
     }
-
+*/
     public static ko readD(final datagram d, bin_t o) {
         blob_reader_t reader = new blob_reader_t(d);
         return reader.read(o);
@@ -650,12 +668,13 @@ public class blob_reader_t {
             ko r = read(header.version);
             if (is_ko(r)) return r;
         }
+        log("blob version " + (int)header.version.value);  //--strip
         {
             ko r = read(header.serid);
             if (is_ko(r)) return r;
         }
         if (header.serid.value != serid.value) {
-            log(KO_60498.msg);  //--strip
+            log(KO_60498.msg + " expect " + (int)serid.value + " got " + (int)header.serid.value);  //--strip
             return KO_60498;
         }
         return ok;

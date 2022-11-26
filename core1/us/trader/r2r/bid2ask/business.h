@@ -59,12 +59,8 @@ namespace us::trader::r2r::bid2ask {
         ~business_t() override;
 
     public:
-//        workflow_factory_id_t workflow_factory_id() const;
 
-//        void register_factories(workflow_factories_t&, item_factories_t&) override;
-
-//    public:
-        //ko init(const string& r2rhome, us::wallet::trader::traders_t::protocol_factories_t&) override;
+        bool invert(protocol_selection_t&) const override;
 
     };
 

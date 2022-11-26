@@ -565,10 +565,9 @@ struct blobs_t: us::test::test_platform {
     struct wrapper_wallet_connection_t: wallet_connection_t {
         using b = wallet_connection_t;
 
-        wrapper_wallet_connection_t(): wallet_connection_t("nm1", ip4_endpoint_t((shost_t)"192.167.66.3", (port_t)18782, (channel_t)0)) {
+        wrapper_wallet_connection_t(): wallet_connection_t("nm1", "subhome_1", ip4_endpoint_t((shost_t)"192.167.66.3", (port_t)18782, (channel_t)0)) {
             ts = 52;
             addr = "addr_1";
-            subhome = "subhome_1";
             ssid = "ssid_1";
             
         }
@@ -610,8 +609,9 @@ struct blobs_t: us::test::test_platform {
     }
 
     void wrapper_test_wallet_connection2() {
-        string container_of_5_wrapper_wallet_connection_t_a49_blob = "24HGz9KDSkRWJvUzGCe2fJkngCb8v7XfmMMjnLtWXds1YaL5RtMcjTxoCZCGQKwsvCt7YJKRBDTq3k9aYoXzRvqMx4aModzMpjTqZduRBVbFbh9vyNsTC9jVLtER2Rod1WExpYC4My4ikxGMvrz7ZTtwDgoNAh9eTnPR1P8uqGLvErrNEXgDSbzHMEhgDv19Ckd9myzgXuDmRXMBxbr4p8obcwKGMDPR5ALCcdBvgWehGPqvhFZmXYwtrtedJ7zaJ7HB3AXLMtS2Fi9ZbeBc5orcBFycV7275nNcV1h";
         string container_of_5_wrapper_wallet_connection_t_a50_blob = "3JxT8NUbu3u9xYXNVCwQi1kqTuCJyiAQBc8h3kTvBTKVz9w898JiC1HAyB4eHaZiYQnjzAGCpWmATosNReVAeKATNz4MDdGEKUFcVANCpnu1V8Y2dHKFApuzxnKqJweYJ758hrRijLxKNtPkaKuW2r9b4HDHAtHHerUTaKsHDCBpAozpZ43taHWvtC8kBcGgVwonmT8FhoXCaiEsWWQJWkvStCtarrEbYAL9Q6jyVUDnLw3hDRa2JoFVdpZvwfa7mn1sKBrDUvnEFTRWKa2j1rVrhgiAHToYNQsW9bLCdVoQywCfYRNchKu25eKV1puU8kexK1uuf5bcp5qH6VgVFQQEQikydSeamY4621DnwUZiCF";
+/*
+        //string container_of_5_wrapper_wallet_connection_t_a49_blob = "24HGz9KDSkRWJvUzGCe2fJkngCb8v7XfmMMjnLtWXds1YaL5RtMcjTxoCZCGQKwsvCt7YJKRBDTq3k9aYoXzRvqMx4aModzMpjTqZduRBVbFbh9vyNsTC9jVLtER2Rod1WExpYC4My4ikxGMvrz7ZTtwDgoNAh9eTnPR1P8uqGLvErrNEXgDSbzHMEhgDv19Ckd9myzgXuDmRXMBxbr4p8obcwKGMDPR5ALCcdBvgWehGPqvhFZmXYwtrtedJ7zaJ7HB3AXLMtS2Fi9ZbeBc5orcBFycV7275nNcV1h";
         cout << "container_of_5_wrapper_wallet_connection_t_a49_blob=" << container_of_5_wrapper_wallet_connection_t_a49_blob << endl;
         cout << "container_of_5_wrapper_wallet_connection_t_a50_blob=" << container_of_5_wrapper_wallet_connection_t_a50_blob << endl;
         assert(container_of_5_wrapper_wallet_connection_t_a50_blob == container_of_5_wrapper_wallet_connection_a50_curblob);
@@ -626,7 +626,8 @@ struct blobs_t: us::test::test_platform {
         }
         assert(is_ok(r));
         assert(cw.size() == 5);
-
+*/
+        container_wc_t cw;
         assert(is_ok(cw.read(container_of_5_wrapper_wallet_connection_t_a50_blob)));
         assert(cw.size() == 5);
     }

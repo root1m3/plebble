@@ -53,8 +53,10 @@ namespace us::apitool::tex {
         bool gen_rpc_impl(const apifun&, bool side_caller, ostream&) const override { return false; }
         bool gen_local_impl(const apifun&, ostream&) const override { return false; }
         void gen_service_router(const apifun&, bool side_caller, ostream&) const override {}
-        void gen_dto_out_hdr(const apifun&, bool side_caller, ostream&) const override {}
         void gen_dto_in_hdr(const apifun&, bool side_caller, ostream&) const override {}
+        void gen_dto_in_impl(const apifun&, bool side_caller, ostream&) const override {}
+        void gen_dto_out_hdr(const apifun&, bool side_caller, ostream&) const override {}
+        void gen_dto_out_impl(const apifun&, bool side_caller, ostream&) const override {}
 
         void write_svcfish_entry(const svcfish_entry_t&, ostream&) const override;
     };

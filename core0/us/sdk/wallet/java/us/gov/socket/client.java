@@ -381,7 +381,9 @@ public abstract class client {
             ans = recv4x(ans.second, busyled);
             if (ko.is_ko(ans.first)) {
                 log(ans.first.msg); //--strip
-                assert ans.second == null;
+                if (ans.first != datagram.KO_0001) { //--strip
+                    assert ans.second == null; //--strip
+                } //--strip
                 break;
             }
             assert ans.second != null;

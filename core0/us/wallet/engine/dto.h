@@ -23,26 +23,46 @@
 #pragma once
 
 #include <us/gov/io/seriable.h>
-#include <us/gov/engine/track_status_t.h>
 
 #include <us/wallet/trader/bookmarks_t.h>
-#include <us/wallet/trader/endpoint_t.h>
+#include <us/wallet/trader/bootstrap/protocols_t.h>
+#include <us/wallet/engine/bookmark_index_t.h>
 
 #include "types.h"
 #include "protocol.h"
 
+namespace us::gov::engine {
+    struct track_status_t;
+}
+
+namespace us::wallet::trader {
+    struct protocol_selection_t;
+    struct endpoint_t;
+    struct bookmarks_t;
+    struct bookmark_t;
+}
+
 namespace us::wallet::engine {
 
     struct peer_t;
+    struct track_status_t;
+    //struct guest_index_hdr_t;
+    //struct guest_index_t;
+    struct bookmark_index_t;
 
     using blob_writer_t = gov::io::blob_writer_t;
     using blob_reader_t = gov::io::blob_reader_t;
 
     struct dto {
+        using writable = us::gov::io::writable;
+        using readable = us::gov::io::readable;
         using bookmarks_t = us::wallet::trader::bookmarks_t;
         using bookmark_t = us::wallet::trader::bookmark_t;
         using endpoint_t = us::wallet::trader::endpoint_t;
         using track_status_t = us::gov::engine::track_status_t;
+        using protocol_selection_t = us::wallet::trader::protocol_selection_t;
+        using protocols_t = us::wallet::trader::bootstrap::protocols_t;
+        using bookmark_index_t = us::wallet::engine::bookmark_index_t;
 
         #include <us/api/generated/wallet/c++/engine/cllr_dto-hdr>
         #include <us/api/generated/wallet/c++/engine/hdlr_dto-hdr>

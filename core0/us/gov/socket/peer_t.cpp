@@ -20,14 +20,18 @@
 //===-
 //===----------------------------------------------------------------------------
 //===-
-#include "peer_t.h"
 #include <us/gov/config.h>
+#include <us/gov/io/blob_reader_t.h>
+#include <us/gov/io/blob_writer_t.h>
+
 #include "daemon_t.h"
 #include "rpc_daemon_t.h"
+#include "peer_t.h"
 
 #define loglevel "gov/socket"
 #define logclass "peer_t"
 #include "logs.inc"
+#include "dto.inc"
 
 using namespace us::gov::socket;
 using c = us::gov::socket::peer_t;
@@ -236,7 +240,7 @@ void c::set_finished() {
             auto& rsn = get<2>(finished_reason);
             if (!rsn.empty()) {
                 log("reporting gov_socket_finished with reason", rsn.empty() ? "N/A" : rsn);
-                auto d = blob_writer_t::get_datagram(get<0>(finished_reason), protocol::socket_finished, 0, rsn);
+                auto d = write_datagram(get<0>(finished_reason), protocol::socket_finished, 0, rsn);
                 log("svc socket_finished goes for channel", d->decode_channel());
                 ko r = send1(d);
                 log(r == ok ? "success" : r);

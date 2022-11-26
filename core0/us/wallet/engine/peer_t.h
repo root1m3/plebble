@@ -43,11 +43,12 @@ namespace us::wallet::engine {
         using b = gov::relay::peer_t;
         using w = wallet::algorithm;
 
-        static const char* KO_10428;
+        //static const char* KO_10428;
 
         peer_t(daemon_t&, sock_t);
         ~peer_t() override;
 
+    public:
         ko verification_completed(pport_t, pin_t, request_data_t&) override;
         ko authorize(const pub_t&, pin_t, request_data_t&) override;
         bool process_work(datagram*) override;
@@ -60,12 +61,14 @@ namespace us::wallet::engine {
         svc_t translate_svc(svc_t svc0, bool inbound) const override;
         void verification_result(request_data_t&&) override {}
 
+/*
     public:
         void schedule_push(socket::datagram*);
         ko push_KO(ko msg);
         ko push_KO(const hash_t& tid, ko msg);
         ko push_OK(const string& msg);
         ko push_OK(const hash_t& tid, const string& msg);
+*/
 
     public: //engine
         #include <us/api/generated/wallet/c++/engine/cllr_override>
@@ -96,7 +99,7 @@ namespace us::wallet::engine {
     public:
         function<void(pport_t)> post_auth;
         function<void()> shutdown;
-        wallet::local_api* wallet_local_api{nullptr};
+        wallet::local_api* local_w{nullptr}; //devices: local wallet operated as owner;
     };
 
 }

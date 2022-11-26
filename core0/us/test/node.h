@@ -92,6 +92,7 @@ namespace us::test {
         uint16_t gport;
         uint16_t wport;
         string id;
+        string wallet_cli_subhome;
         govx_t* gov{nullptr};
         govx_t* gov_cli{nullptr};
         walletx_t* wallet{nullptr};

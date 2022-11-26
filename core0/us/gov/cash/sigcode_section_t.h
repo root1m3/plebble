@@ -27,7 +27,7 @@
 namespace us::gov::cash {
 
     struct sigcode_section_t final: io::seriable {
-
+ 
         struct side_t: vector<uint8_t> {
             void dump(const string& prefix, ostream&) const;
             void dump_line(ostream&) const;

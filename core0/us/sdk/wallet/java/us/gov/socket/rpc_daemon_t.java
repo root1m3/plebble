@@ -107,9 +107,11 @@ public abstract class rpc_daemon_t extends daemon0_t {
         log("rewrite"); //--strip
         if (r == rendezvous_t.KO_20190) {
             String x = peer_t.lasterror.get();
-            assert x != null;
-            log("rewrite returns lasterror: " + x); //--strip
-            return x;
+            if (x != null) {
+                log("rewrite returns lasterror: " + x); //--strip
+                return x;
+            }
+            return r.msg;
         }
         return super.rewrite(r);
     }

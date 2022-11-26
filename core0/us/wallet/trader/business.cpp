@@ -23,7 +23,7 @@
 #include "business.h"
 #include "trader_protocol.h"
 
-#define loglevel "wallet-trader"
+#define loglevel "wallet/trader"
 #define logclass "business"
 #include <us/gov/logs.inc>
 
@@ -33,14 +33,14 @@ using c = us::wallet::trader::business_t;
 const char* c::KO_50100 = "KO_50100 Invalid function.";
 
 c::business_t() {
+    log("created business_t at", this);
 }
 
 c::~business_t() {
+    log("destroyed business_t at", this);
 }
 
 ko c::init(const string& r2rhome_, protocol_factories_t& f) {
-    //assert(protocol_factories == nullptr);
-    //protocol_factories = &f;
     r2rhome = r2rhome_;
     if (r2rhome.empty()) {
         auto r = "KO 20102 Homebase variable is not set.";
@@ -78,8 +78,12 @@ void c::exec_help(const string& prefix, ostream& os) const {
     trader_protocol::exec_help(prefix, os);
 }
 
-ko c::exec(istream& is, traders_t& traders, wallet::local_api& w) {
-    return trader_protocol::exec(is, traders, w);
+ko c::exec(istream& is, wallet::local_api& w) {
+    return trader_protocol::exec(is, w);
+}
+
+void c::dump(const string& prefix, ostream& os) const {
+    os << prefix << name << '\n';
 }
 
 pair<c::protocol_selection_t, c::bookmark_info_t> c::bookmark_info() const {
@@ -87,9 +91,8 @@ pair<c::protocol_selection_t, c::bookmark_info_t> c::bookmark_info() const {
     protocols_t p;
     published_protocols(p, false);
     assert(!p.empty());
+    assert(p.size() == 1);
     r.first = *p.begin();
-//    r.first.first = p.begin()->first;
-//    r.first.second = p.begin()->second;
     r.second.label = name;
     r.second.ico = ico;
     return move(r);

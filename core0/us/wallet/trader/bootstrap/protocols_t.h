@@ -30,16 +30,17 @@
 
 namespace us::wallet::trader::bootstrap {
 
-//    struct protocols_t: us::gov::io::seriable_vector<pair<string, string>> {
     struct protocols_t: us::gov::io::seriable_vector<protocol_selection_t> {
-//        using item = pair<string, string>;
+        using b = us::gov::io::seriable_vector<protocol_selection_t>;
         using item = protocol_selection_t;
-//        using b = vector<item>;
+
+        using b::seriable_vector;
 
         static protocols_t filter_common(protocols_t, protocols_t);
         void dump(ostream&) const;
+        void uniq();
 
     };
 
 }
-
+    

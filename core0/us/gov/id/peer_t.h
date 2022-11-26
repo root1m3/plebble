@@ -26,6 +26,7 @@
 
 #include <us/gov/config.h>
 #include <us/gov/crypto/types.h>
+#include <us/gov/id/peer_t.h>
 #include <us/gov/crypto/symmetric_encryption.h>
 #include <us/gov/socket/peer_t.h>
 
@@ -135,6 +136,8 @@ namespace us::gov::id {
         #endif
 
         virtual void verification_result(request_data_t&&) = 0;
+        static bool am_I_older(version_fingerprint_t peer);
+        static bool am_I_older(version_fingerprint_t me, version_fingerprint_t peer);
 
     public:
         stage_t stage_peer{anonymous};

@@ -20,10 +20,14 @@
 //===-
 //===----------------------------------------------------------------------------
 //===-
-#include "personality_t.h"
-#include <us/gov/crypto/base58.h>
 #include <cassert>
 #include <sstream>
+
+#include <us/gov/crypto/base58.h>
+#include <us/gov/io/blob_reader_t.h>
+#include <us/gov/io/blob_writer_t.h>
+
+#include "personality_t.h"
 
 #define loglevel "wallet/trader/personality"
 #define logclass "personality_t"

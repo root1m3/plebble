@@ -52,7 +52,10 @@ track_t c::register_transfer(const cash_t& amount, const hash_t& coin, const tra
         lock_guard<mutex> lock(mx);
         emplace(track, txlog_item_t(t1, true, trade_id));
     }
-    if (w) w->daemon.pm.schedule_push(w->get_push_datagram(trade_id, local_api::push_txlog), w->device_filter);
+    if (w) {
+        log("pushing push_txlog1");
+        w->schedule_push(w->get_push_datagram(trade_id, local_api::push_txlog));
+    }
     return track;
 }
 
@@ -86,7 +89,8 @@ ko c::register_transfer(const blob_t& blob, const trade_id_t& trade_id, blob_t& 
         i = emplace(track, txlog_item_t(t1, false, trade_id)).first;
     }
     assert(w != nullptr);
-    w->daemon.pm.schedule_push(w->get_push_datagram(trade_id, local_api::push_txlog), w->device_filter);
+    log("pushing push_txlog2");
+    w->schedule_push(w->get_push_datagram(trade_id, local_api::push_txlog));
     {
         auto r = w->refresh_data();
         if (is_ko(r)) {
@@ -124,7 +128,8 @@ ko c::register_transfer(const blob_t& blob, const trade_id_t& trade_id, blob_t& 
         lock_guard<mutex> lock(mx);
         i->second.set_inv(inv);
     }
-    w->daemon.pm.schedule_push(w->get_push_datagram(trade_id, local_api::push_txlog), w->device_filter);
+    log("pushing push_txlog3");
+    w->schedule_push(w->get_push_datagram(trade_id, local_api::push_txlog));
     return ok;
 }
 
@@ -157,8 +162,6 @@ ko c::register_invoice(const blob_t& blob) {
         }
         affected = r.second.to_string("  ");
     }
-//    track_t inv_track = w().txlog.store_recv_invoice(r.second.to_string(), track_status_t(inv->ts, us::gov::engine::evt_wait_signature, "Confirm payment.", tder->id), inv);
-
     trade_id_t tid;
     {
         lock_guard<mutex> lock(mx);
@@ -173,7 +176,8 @@ ko c::register_invoice(const blob_t& blob) {
         i->second.io_summary += "\ninvoice:\n" + affected;
         tid = i->second.trade_id;
     }
-    w->daemon.pm.schedule_push(w->get_push_datagram(tid, local_api::push_txlog), w->device_filter);
+    log("pushing push_txlog4");
+    w->schedule_push(w->get_push_datagram(tid, local_api::push_txlog));
     return ok;
 }
 
@@ -224,7 +228,8 @@ ko c::pay_inv(track_t track, blob_t& blob) {
         w.write(track);
         w.write(*tx); //tx->write(response_blob);
     }
-    w->daemon.pm.schedule_push(w->get_push_datagram(trade_id, local_api::push_txlog), w->device_filter);
+    log("pushing push_txlog5");
+    w->schedule_push(w->get_push_datagram(trade_id, local_api::push_txlog));
     return ok;
 }
 
@@ -289,7 +294,8 @@ ko c::register_tx(const blob_t& blob) {
         i->second.gov_evt_status_info = gov_track_status.info;
         tid = i->second.trade_id;
     }
-    w->daemon.pm.schedule_push(w->get_push_datagram(tid, local_api::push_txlog), w->device_filter);
+    log("pushing push_txlog6");
+    w->schedule_push(w->get_push_datagram(tid, local_api::push_txlog));
     return ok;
 }
 
@@ -333,7 +339,8 @@ ko c::cancel(const track_t& track) {
             i->second.wallet_evt_status = wevt_cancelled;
         }
     }
-    w->daemon.pm.schedule_push(w->get_push_datagram(trade_id, local_api::push_txlog), w->device_filter);
+    log("pushing push_txlog7");
+    w->schedule_push(w->get_push_datagram(trade_id, local_api::push_txlog));
     return ok;
 }
 
@@ -388,11 +395,15 @@ void c::on_tx_tracking_status(const gov_track_status_t& status) {
             i.second.on_tx_tracking_status(status, notify);
         }
     }
-    if (!notify.empty()) w->daemon.pm.schedule_push(w->get_push_datagrams(notify, local_api::push_txlog), w->device_filter);
+    if (!notify.empty()) {
+        log("pushing push_txlog8");
+        w->schedule_push(w->get_push_datagrams(notify, local_api::push_txlog));
+    }
 }
 
 void c::show(const trade_id_t& trade_id) const {
-    w->daemon.pm.schedule_push(w->get_push_datagram(trade_id, local_api::push_txlog), w->device_filter);
+    log("pushing push_txlog9");
+    w->schedule_push(w->get_push_datagram(trade_id, local_api::push_txlog));
 }
 
 void index_t::dump(const string& prefix, ostream& os) const {

@@ -33,6 +33,7 @@
 #define loglevel "test/net"
 #define logclass "main"
 #include <us/gov/logs.inc>
+#include <us/gov/socket/dto.inc>
 
 #include "../assert.inc"
 
@@ -363,13 +364,13 @@ struct tqsend: us::test::test_platform {
         for (int i = 0; i < 50; ++i) {
             if (i > 20) check(cl.sendref.load() > 0, true);
             cout << "cl.sendref.load()=" << cl.sendref.load() << endl;
-            qsend.send(blob_writer_t::get_datagram(0, 1, 0, string("0123456789 123456789 123456789")), &cl, pri);
+            qsend.send(write_datagram(0, 1, 0, string("0123456789 123456789 123456789")), &cl, pri);
         }
         this_thread::sleep_for(1ms);
         for (int i = 50; i < 100; ++i) {
             if (i > 70) check(cl.sendref.load() > 0, true);
             cout << "cl.sendref.load()=" << cl.sendref.load() << endl;
-            qsend.send(io::blob_writer_t::get_datagram(0, 1, 0, string("0123456789 123456789 123456789")), &cl, pri);
+            qsend.send(write_datagram(0, 1, 0, string("0123456789 123456789 123456789")), &cl, pri);
         }
         check(cl.sendref.load() > 0, true);
         this_thread::sleep_for(1s);
@@ -388,7 +389,7 @@ struct tqsend: us::test::test_platform {
         {
             queue_t qsend;
             for (int i = 0; i < 10; ++i) {
-                qsend.send(io::blob_writer_t::get_datagram(0, 1, 0, string("")), &cl, 0);
+                qsend.send(write_datagram(0, 1, 0, string("")), &cl, 0);
             }
             check(cl.sendref.load(), 10);
         }
@@ -401,7 +402,7 @@ struct tqsend: us::test::test_platform {
         queue_t qsend;
         socket_daemon_t socket_daemon;
         cli cl(socket_daemon); // Sender
-        qsend.send(io::blob_writer_t::get_datagram(0, 1, 0, string("")), &cl, 0);
+        qsend.send(write_datagram(0, 1, 0, string("")), &cl, 0);
         check(qsend.size() == 1, true);
         auto i = qsend.top();
         assert (i != 0);
@@ -416,7 +417,7 @@ struct tqsend: us::test::test_platform {
         check(cl.sendref.load() == 0, true);
         cout << "send 100" << endl;
         for (int i = 0; i < 100; ++i) {
-            qsend.send(io::blob_writer_t::get_datagram(0, i, 0, string("")), &cl, 0);
+            qsend.send(write_datagram(0, i, 0, string("")), &cl, 0);
         }
         check(qsend.size() == 100, true);
         check(cl.sendref.load() == 100, true);
@@ -430,7 +431,7 @@ struct tqsend: us::test::test_platform {
         check(cl.sendref.load() == 0, true);
         cout << "send 100 inverted" << endl;
         for (int i = 99; i >= 0; --i) {
-            qsend.send(io::blob_writer_t::get_datagram(0, i, 0, string("")), &cl, 6);
+            qsend.send(write_datagram(0, i, 0, string("")), &cl, 6);
         }
         check(qsend.size() == 100,true);
         check(cl.sendref.load() == 100,true);

@@ -22,20 +22,28 @@
 //===-
 #pragma once
 
-#include <us/gov/likely.h>
-
-#include "blob_writer_t.h"
-#include "blob_reader_t.h"
+#include "writable.h"
+#include "readable.h"
+//#include "blob_reader_t.h"
+//#include "blob_writer_t.h"
 #include "types.h"
 
 namespace us::gov::io {
 
-    struct seriable: blob_reader_t::readable, blob_writer_t::writable {
+    struct blob_writer_t;
+    struct blob_reader_t;
+
+    struct seriable: readable, writable {
         using blob_writer_t = us::gov::io::blob_writer_t;
         using blob_reader_t = us::gov::io::blob_reader_t;
+        using serid_t = readable::serid_t;
 
-        using blob_writer_t::writable::serial_id;
+        using writable::serial_id;
     };
+
+    static_assert(std::is_convertible<seriable*, writable*>::value, "KO 74822");
+    static_assert(std::is_convertible<seriable*, readable*>::value, "KO 74823");
+
 
 }
 

@@ -56,6 +56,7 @@ namespace us::test {
             void wait();
             void wait_no_clear();
             void wait_no_clear_(unique_lock<mutex>&);
+            int remaining(uint16_t code) const;
             void decrement(uint16_t code);
             void increase(uint16_t code);
             void increment(uint16_t code) { return increase(code); }

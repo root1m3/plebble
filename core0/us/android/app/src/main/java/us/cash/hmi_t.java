@@ -45,9 +45,9 @@ import static us.gov.io.types.*;                                                
 import static us.gov.socket.types.*;                                                           // *
 import static us.stdint.*;                                                                     // *
 import static us.tuple.*;                                                                      // *
-import us.wallet.engine.ip4_endpoint_t;                                                  // hash_t
 import java.io.InputStreamReader;                                                              // InputStreamReader
 import java.io.IOException;                                                                    // IOException
+import us.wallet.engine.ip4_endpoint_t;                                                        // ip4_endpoint_t
 import static us.ko.is_ko;                                                                     // is_ko
 import java.security.KeyPair;                                                                  // KeyPair
 import us.ko;                                                                                  // ko
@@ -60,6 +60,8 @@ import java.nio.charset.StandardCharsets;                                       
 import java.lang.StringBuilder;                                                                // StringBuilder
 import us.string;                                                                              // string
 import java.io.UnsupportedEncodingException;                                                   // UnsupportedEncodingException
+import java.time.Instant;
+import java.time.Duration;
 
 public class hmi_t extends us.wallet.cli.hmi {
 
@@ -619,7 +621,37 @@ public class hmi_t extends us.wallet.cli.hmi {
     @Override public void upgrade_software() {
         log("Peer is signaling the existence of a upgrade_software. Calling check4updates."); //--strip
         log("rpc_daemon.api_v.value " + rpc_daemon.api_v.value); //--strip
-        sw_updates.check4updates__worker();
+
+        if (sw_updates == null) {
+            log("sw_updates is null"); //--strip
+            return;
+        }
+        if (!online) {
+            log("signal upgrade_software ignored bcs offline"); //--strip
+            return;
+        }
+        if (sw_updates.user_selected_remind_me_later != null) {
+            Duration d = Duration.between(sw_updates.user_selected_remind_me_later, Instant.now());
+            Duration d2 = Duration.ofHours(8);
+            if (d.compareTo(d2) == -1) {
+                log("ignoring updates warning for 8 hours. User choice."); //--strip
+                return;
+            }
+        }
+
+        Thread thread = new Thread(new Runnable() {
+            @Override public void run() {
+                try {
+                    Thread.sleep(10000);
+                }
+                catch(Exception e) {
+                }
+                if (sw_updates != null) {
+                    sw_updates.check4updates__worker();
+                }
+            }
+        });
+        thread.start();
 
 /*
         sw_updates_t sw_updates = new sw_updates_t(a, this, get_cfg(), cfg_pub);
@@ -653,7 +685,6 @@ public class hmi_t extends us.wallet.cli.hmi {
     public datagram_dispatcher_t dispatcher = null;
     boolean lookingup = false;
     hash_t wallet_address = null;
-    //public String subhome = "";
     us.gov.io.types.vector_tuple_hash_host_port seeds;
     public ip4_endpoint_t ip4_endpoint = null;
     node_pairing manual_mode_ui = null;

@@ -87,8 +87,11 @@ namespace us::test {
         static int testseq;
         ostream& out;
         network& n;
-        static int wait_from_seq;
+
+    public:
         static bool enable_wait;
+        static int wait_time;
+        static int wait_from_seq;
 
         void abort_tests();
         //void on_network_stop() { abort_test(); }

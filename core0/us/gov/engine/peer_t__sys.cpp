@@ -27,6 +27,7 @@
 #define loglevel "gov/engine"
 #define logclass "peer_t__sys"
 #include "logs.inc"
+#include <us/gov/socket/dto.inc>
 
 using namespace us::gov::engine;
 using c = us::gov::engine::peer_t;

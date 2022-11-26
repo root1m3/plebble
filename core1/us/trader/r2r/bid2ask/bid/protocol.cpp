@@ -170,7 +170,7 @@ ko c::exec_online(peer_t& peer, const string& cmd0, ch_t& ch) {
         ostringstream msg;
         msg << product << ' ' << amount;
         auto blob = blob_writer_t::make_blob(msg.str());
-        return peer.call_trading_msg(peer_t::trading_msg_in_t(tid(), svc_select_product, blob));
+        return tder->call_trading_msg(peer, svc_select_product, blob);
     }
     if (cmd == "inv_pay") {
         string msg;

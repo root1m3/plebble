@@ -108,7 +108,7 @@ void c::add_node(const string& name, node* n) {
     if (empty()) {
         genesis_node = n;
     }
-    emplace(name, n);
+    assert(emplace(name, n).second);
 }
 
 void c::start() {

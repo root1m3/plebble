@@ -21,8 +21,8 @@
 //===----------------------------------------------------------------------------
 //===-
 #pragma once
-#include <us/gov/io/seriable_vector.h>
 #include "input_t.h"
+#include <us/gov/io/seriable_vector.h>
 
 namespace us::gov::cash::tx {
 

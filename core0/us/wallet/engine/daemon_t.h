@@ -23,18 +23,22 @@
 #pragma once
 #include <chrono>
 #include <utility>
+#include <map>
+
 #include <us/gov/config.h>
 #include <us/gov/cli/rpc_daemon_t.h>
 #include <us/gov/relay/pushman.h>
 #include <us/gov/engine/daemon_t.h>
 #include <us/gov/engine/track_status_t.h>
 
-#include <us/wallet/trader/traders_t.h>
+#include <us/wallet/trader/trades_t.h>
+//#include <us/wallet/trader/bootstrap/protocols_t.h>
 
 #include "users_t.h"
 #include "devices_t.h"
 #include "types.h"
 #include "svcfish_t.h"
+#include "bookmark_index_t.h"
 
 namespace us::wallet::wallet {
     struct local_api;
@@ -58,6 +62,7 @@ namespace us::wallet::engine {
         using dispatcher_t = us::gov::datagram::dispatcher_t;
         using pushman = us::gov::relay::pushman;
         using track_status_t = us::gov::engine::daemon_t::ev_track_t::status_t;
+        using trades_t = us::wallet::trader::trades_t;
 
         static const char* KO_20193, *KO_20197;
 
@@ -66,6 +71,8 @@ namespace us::wallet::engine {
         virtual ~daemon_t() override;
 
     public:
+        using protocols_t = us::wallet::trader::bootstrap::protocols_t;
+
         socket::client* create_client(sock_t sock) override;
         const keys_t& get_keys() const override { return id; }
         ko authorize_device(const pub_t&, pin_t pin, request_data_t&);
@@ -90,8 +97,11 @@ namespace us::wallet::engine {
         ko wait_auth();
         void configure_gov_rpc_daemon();
         string wallet_home(const string& subhome) const;
+        string wallet_template_home(const string& templatename) const;
         bool has_home(const string& subhome) const;
         void on_tx_tracking_status(const track_status_t&);
+        void hook_new_wallet(const string& subhome, const string& wallet_template);
+        void hook_new_wallet__worker(const string& subhome, const string& wallet_template);
 
         ko lookup_wallet(const hash_t& addr, hostport_t&);
         #ifdef CFG_TOPOLOGY_RING
@@ -108,21 +118,22 @@ namespace us::wallet::engine {
         using gov_rpc_daemon_t = gov::cli::rpc_daemon_t;
         using gov_dto = gov_rpc_daemon_t::peer_type;
 
-        string home;
-        users_t users;
-        gov_rpc_daemon_t gov_rpc_daemon;
-        pushman pm;
-        devices_t devices;
-        trader::traders_t traders;
-
+    public:
         static svcfish_t svcfish;
 
-    public:
         keys id;
         string downloads_dir;
         condition_variable cv;
         mutex mx;
         hash_t trusted_address; /// automatic updates
+        string home;
+        bookmark_index2_t bookmark_index;
+        devices_t devices;
+        trades_t trades;
+        users_t users;
+        pushman pm;
+        gov_rpc_daemon_t gov_rpc_daemon;
+        wallet::local_api* root_wallet;
     };
 
 }

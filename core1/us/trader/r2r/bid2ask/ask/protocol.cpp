@@ -271,7 +271,7 @@ ko c::select(peer_t& peer, const hash_t& product, int volume, bool superuser, ch
     blob_writer_t writer(blob, blob_writer_t::blob_size(msg.str()));
     writer.write(msg.str());
     logdump("basket> ", basket);
-    return peer.call_trading_msg(peer_t::trading_msg_in_t(tid(), svc_select_product_ans, blob));
+    return tder->call_trading_msg(peer, svc_select_product_ans, blob);
 }
 
 void c::dump(ostream& os) const {

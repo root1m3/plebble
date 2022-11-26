@@ -42,7 +42,7 @@ endif
 
 RPATH:=-Wl,-rpath,../test -Wl,-rpath,../wallet -Wl,-rpath,../gov
 
-USTESTX:=##str3##-test
+USTESTX:=##str3##test-c0
 
 all: ${USTESTX}
 

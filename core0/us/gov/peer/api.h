@@ -34,6 +34,9 @@ namespace us::gov::peer {
 
     #ifdef has_us_gov_peer_api
         struct dto {
+            using readable = us::gov::io::readable;
+            using writable = us::gov::io::writable;
+
             #include <us/api/generated/gov/c++/peer/cllr_dto-hdr>
             #include <us/api/generated/gov/c++/peer/hdlr_dto-hdr>
         };

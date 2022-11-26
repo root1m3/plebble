@@ -20,16 +20,21 @@
 //===-
 //===----------------------------------------------------------------------------
 //===-
-#include "peer_t.h"
-#include <us/gov/engine/protocol.h>
+#include "api.h"
 #include <us/gov/traders/app.h>
+#include <us/gov/io/blob_reader_t.h>
+#include <us/gov/io/blob_writer_t.h>
+
+#include "protocol.h"
 #include "daemon_t.h"
 #include "db_t.h"
 #include "types.h"
+#include "peer_t.h"
 
 #define loglevel "gov/engine"
 #define logclass "peer_t__traders"
 #include "logs.inc"
+#include <us/gov/socket/dto.inc>
 
 using namespace us::gov::engine;
 using c = us::gov::engine::peer_t;

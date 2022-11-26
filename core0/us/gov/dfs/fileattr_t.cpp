@@ -20,8 +20,11 @@
 //===-
 //===----------------------------------------------------------------------------
 //===-
-#include "fileattr_t.h"
 #include <us/gov/io/cfg0.h>
+#include <us/gov/io/blob_reader_t.h>
+#include <us/gov/io/blob_writer_t.h>
+
+#include "fileattr_t.h"
 
 #define loglevel "gov/dfs"
 #define logclass "fileattr_t"

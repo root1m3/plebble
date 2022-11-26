@@ -20,6 +20,9 @@
 //===-
 //===----------------------------------------------------------------------------
 //===-
+#include <us/gov/io/blob_reader_t.h>
+#include <us/gov/io/blob_writer_t.h>
+
 #include "track_status_t.h"
 
 #define loglevel "gov/engine"

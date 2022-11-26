@@ -67,23 +67,23 @@ void c::workflow_t::exec_help(const string& prefix, ostream& os) {
     receipt_t::exec_help(prefix, os);
 }
 
-ko c::workflow_t::exec(istream& is, traders_t& traders, wallet::wallet::local_api& w) {
+ko c::workflow_t::exec(istream& is, wallet::wallet::local_api& w) {
     string cmd;
     is >> cmd;
     if (cmd == "info") {
-        return traders.push_OK("I can't find any particularly interesting info.", w);
+        return w.push_OK("I can't find any particularly interesting info.");
     }
     if (cmd == catalogue_t::name) {
-        return catalogue_t::exec(is, traders, w);
+        return catalogue_t::exec(is, w);
     }
     if (cmd == invoice_t::name) {
-        return invoice_t::exec(is, traders, w);
+        return invoice_t::exec(is, w);
     }
     if (cmd == payment_t::name) {
-        return payment_t::exec(is, traders, w);
+        return payment_t::exec(is, w);
     }
     if (cmd == receipt_t::name) {
-        return receipt_t::exec(is, traders, w);
+        return receipt_t::exec(is, w);
     }
     return "KO 20908 Invalid command";
 }

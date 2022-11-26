@@ -91,6 +91,51 @@ c::track_t c::init_transfer(node& sender, node& rcpt) {
             ++seq;
         }
     );
+/*
+        rcpt.wallet_cli_dis->expected_code.emplace(us::wallet::trader::trader_t::push_data, 1);
+        rcpt.wallet_cli_dis->expected_code.check.emplace(us::wallet::trader::trader_t::push_data,
+            [&](const hash_t& tid, uint16_t code, const vector<uint8_t>& blob) {
+                string payload;
+                assert(is_ok(blob_reader_t::parse(blob, payload)));
+                //static int seq = 0;
+                //cout << "seq " << seq << endl;
+                Check_s_contains(payload, "initiator N");
+                Check_s_contains(payload, "trade_state 1 Transfer funds to peer.");
+                Check_s_contains(payload, "state online");
+
+
+/ *
+                if (seq == 0 && payload.find("state online") != string::npos) {
+                    w2.wallet_cli_dis->expected_code.decrement(us::wallet::trader::trader_t::push_data);
+                    ++seq;
+                }
+                if (seq == 0) {
+                    Check_s_contains(payload, "state connected");
+                    Check_s_contains(payload, "protocol not set");
+                }
+                if (seq == 1) {
+                    Check_s_contains(payload, "state online");
+                    if (payload.find("protocol not set") != string::npos) {
+                        w2.wallet_cli_dis->expected_code.increment(us::wallet::trader::trader_t::push_data);
+                    }
+                    else if (payload.find("protocol not set") != string::npos) {
+                        seq = 2;
+                    }
+                }
+                if (seq == 2) {
+                    Check_s_contains(payload, "protocol w2w w");
+                }
+                if (seq >= 3) {
+                    cout << "EXTRA DATA arrived. REVIEW why" << endl;
+                    Fail();
+                }
+* /
+                //Fail();
+                //++seq;
+                
+            }
+        );
+*/
 
     auto r = sender.wallet_cli->rpc_daemon->get_peer().call_exec_trade(us::wallet::cli::rpc_peer_t::exec_trade_in_t(trade_id, "transfer 100 gas"));
     if (is_ko(r)) {
@@ -304,7 +349,7 @@ void c::test_10(node& w1, node& w2) {
         assert(w1.wallet_cli_dis != nullptr);
         assert(w2.wallet_cli_dis != nullptr);
         w2.wallet_cli_dis->expected_code.emplace(us::wallet::trader::trader_t::push_trade, 1);
-        w2.wallet_cli_dis->expected_code.emplace(us::wallet::trader::trader_t::push_data, 3);
+        w2.wallet_cli_dis->expected_code.emplace(us::wallet::trader::trader_t::push_data, 2);
         w2.wallet_cli_dis->expected_code.check.emplace(us::wallet::trader::trader_t::push_data,
             [&](const hash_t& tid, uint16_t code, const vector<uint8_t>& blob) {
                 string payload;

@@ -162,7 +162,22 @@ Production releases. beta
 Production releases. alpha
 --------------------------
 
-alpha-51 -
+alpha-52 - 
+    * fix regression. reviewed wallet access authorization process.
+    * Shell RPC-Client (c++, java) "--custodial" option allows selection of a remote custodial wallet by its id.
+    * Brands are able to produce wallet templates for new guest(custodial) wallets, with multiple option wallet-type choices for the user (onboarding users under a role).
+    * c++ code generator produces separate implementation files for dto's.
+    * interfaces readable and writable are been file-split from former blob_reader/writer.
+    * fixed template discrimination. It couldn't work out well the difference between seriable objects with and without header for the various objects: those inheriting from seriable and the rest.
+    * implemented bookmark_index api in the java sdk.
+    * android. accomodated the concept of bookmark_index in the bookmarks view. "Find peers by wanted role. e.g. patients look for doctors; doctors look for patients; buyers look for sellers, ...
+    * Refactor of the traders_t structure (the place where the different trades are managed by the wallet engine). Allows trading between different custodial wallets allocated in the same NC-Wallet.
+    Interface versions:
+       = protocol API. gov: 8; wallet: 9
+       = blob serialization (us::gov::io::blob_reader_t::current_version): 10
+       + wallet plugins (us::wallet::trader::business_t::interface_version): 10 -> 11
+
+alpha-51 - alpha-51_4-eb3eea 2022-11-04_21-42-40 vhash 4-eb3eea <- R e80801d54ba1815ba81ce76009502b171ec9dfb8 alpha-51 dbg-0 logs-0 counters-0 connlog-0 fcgi-0
     * android. hotfix alpha-51_7477d2+.5d5b3c (upstream git 90cfc9c21043e1eaebcb9ba0c84db2f449db9181) deployed only to PlayStore. app Crashes on install-from-scratch (Note: this use case wasnt tested!). The app tried to open settings before main activity was created. 
     * removed old api gov::id::peer_challenge_response. superseded by peer_challenge2_response
 

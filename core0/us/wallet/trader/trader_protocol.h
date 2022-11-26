@@ -39,12 +39,12 @@
 
 #include "params_t.h"
 #include "protocol_selection_t.h"
-//#include "business.h"
 #include "chat_t.h"
 #include "ch_t.h"
 
 namespace us::wallet::engine {
     struct peer_t;
+    struct daemon_t;
 }
 
 namespace us::wallet::trader {
@@ -79,10 +79,10 @@ namespace us::wallet::trader {
         using peer_t = us::wallet::engine::peer_t;
         using trader_t = us::wallet::trader::trader_t;
         using ch_t = trader::ch_t;
-        //using business_t = us::wallet::trader::business_t;
         using blob_reader_t = us::gov::io::blob_reader_t;
         using blob_writer_t = us::gov::io::blob_writer_t;
         using protocol_selection_t = us::wallet::trader::protocol_selection_t;
+        using daemon_t = us::wallet::engine::daemon_t;
 
         static const char *WP_29101, *KO_29100; //WP=WayPoint
 
@@ -114,7 +114,7 @@ namespace us::wallet::trader {
         static void twocol(const string& prefix, const string_view& left, const string_view& right, const string_view& r2, ostream&);
         static void exec_help(const string& prefix, ostream&);
         static trader_protocol* from_stream(istream&);
-        static ko exec(istream&, traders_t&, wallet::local_api&);
+        static ko exec(istream&, wallet::local_api&);
 
     public:
         trader_protocol(business_t&);
@@ -174,6 +174,8 @@ namespace us::wallet::trader {
         string get_lang() const;
         static ko hold_remote_params(blob_t&&);
         static remote_params_t* remote_params_on_hold;
+        daemon_t& daemon();
+        const daemon_t& daemon() const;
 
     public:
         virtual void judge(const string& lang); //requires lock mx_user_state

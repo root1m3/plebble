@@ -21,20 +21,23 @@
 //===----------------------------------------------------------------------------
 //===-
 #include "hmi.h"
-#include <us/gov/io/cfg.h>
-#include <us/gov/cli/hmi.h>
+
+#include <us/gov/config.h>
+#include <us/gov/vcs.h>
 #include <us/gov/crypto/base58.h>
+#include <us/gov/cash/sigcode_t.h>
 #include <us/gov/io/cfg1.h>
 #include <us/gov/io/seriable.h>
-#include <us/gov/cash/sigcode_t.h>
-#include <us/gov/vcs.h>
-#include <us/gov/config.h>
+#include <us/gov/cli/hmi.h>
 
 #include <us/wallet/engine/daemon_t.h>
 #include <us/wallet/engine/wallet_connection_t.h>
 #include <us/wallet/engine/ip4_endpoint_t.h>
+#include <us/wallet/engine/bookmark_index_t.h>
+
 #include <us/wallet/wallet/algorithm.h>
 #include <us/wallet/wallet/local_api.h>
+
 #include <us/wallet/trader/trader_t.h>
 #include <us/wallet/trader/traders_t.h>
 #include <us/wallet/trader/trader_protocol.h>
@@ -1390,7 +1393,7 @@ void c::help(const params& p, ostream& os) { //moved
         fmt::twocol(ind____, "-pin <PIN number>", "Connect using PIN.", tostr(p.pin), os);
         fmt::twocol(ind____, "-c <channel>", "System channel", tostr(p.channel), os);
         fmt::twocol(ind____, "-B <connection_blob>", "User the given connection blob to connect to a wallet backend", "", os);
-        fmt::twocol(ind____, "--custodial_wallet_id <string>", "(rpc) Select custodial wallet, or '-' for non-custodial", p.subhome.empty() ? "'-'" : p.subhome, os);
+        fmt::twocol(ind____, "--custodial <string>", "(rpc) Select custodial wallet, or '-' for non-custodial.", p.subhome.empty() ? "'-'" : p.subhome, os);
         #if CFG_FCGI == 1
             fmt::twocol(ind____, "-fcgi", "Behave as a fast-cgi program. requires -d", tostr(p.fcgi ? "yes" : "no"), os);
         #endif
@@ -1464,6 +1467,7 @@ void c::help(const params& p, ostream& os) { //moved
         fmt::twocol(ind____, "encrypt \"<message>\" <sender_private_key> <recipient_public_key>", "Encrypts message", os);
         fmt::twocol(ind____, "decrypt \"<b58>\" <sender_public_key> <recipient_private_key>", "Decrypts message", os);
         fmt::twocol(ind____, "hash add <hash1> <hash2>", "Results in RIPEMD160(hash1, hash2).", os);
+        fmt::twocol(ind____, "encode <file>", "Prints the content of a file in Base58 encoding.", os);
     }
     os << '\n';
     if (p.advanced) {
@@ -1476,9 +1480,13 @@ void c::help(const params& p, ostream& os) { //moved
         fmt::twocol(ind____, "list_devices", "Prints the list of recognized devices, together with the list of recently unathorized attempts log", os);
         fmt::twocol(ind____, "net_info", "Prints contextual information and wallet type (root/guest)", os);
         os << '\n';
-        fmt::twocol(ind, "Engine connections:", "----------", os);
-        fmt::twocol(ind____, "make_wallet_connection <ip4addr> <port> <channel> <name>", "Build a connection blob.", os);
-        fmt::twocol(ind____, "decode_wallet_connection <blob>", "Decode the given connection blob", os);
+        fmt::twocol(ind, "Configuration files manipulation:", "----------", os);
+        fmt::twocol(ind____, "make_wallet_connection <ip4addr> <port> <channel> <name> <subhome>", "Build a connection blob.", os);
+        fmt::twocol(ind____, "decode_wallet_connection <blob_b58>", "Decode the given connection blob", os);
+        fmt::twocol(ind____, "wallet_connections_add <wallet_connections_file> <wallet_connection-blob-b58>", "Append wc into container.", os);
+        fmt::twocol(ind____, "decode_wallet_connections [-f <wallet_connections_file> | <b58>]", "Decode the given connections file or encoded blob", os);
+        fmt::twocol(ind____, "protocols_add <protocols_file> <protocol> <role>", "Append protocol_selection into container.", os);
+        fmt::twocol(ind____, "decode_protocols [-f <protocols_file> | <b58>]", "Decode the given protocols file or encoded blob", os);
         os << '\n';
         fmt::twocol(ind, "Public storage (on-chain):", "----------", os);
         os << ind << "  key-value:\n";
@@ -1504,13 +1512,20 @@ void c::help(const params& p, ostream& os) { //moved
             fmt::twocol(ind____, "nodes deny <address> <node-master key>", "Reject node", os);
             os << '\n';
         #endif
-        fmt::twocol(ind, "Law/Compilance:", "----------", os);
-        fmt::twocol(ind____, "compilance_report <jurisdiction> <date-from> <date-to>", "Produces a private report including personal, financial and ownership data that voluntarily could be submitted to regulators", os);
+
+//        fmt::twocol(ind, "Law/Compilance:", "----------", os);
+//        fmt::twocol(ind____, "compilance_report <jurisdiction> <date-from> <date-to>", "Produces a private report including personal, financial and ownership data that voluntarily could be submitted to regulators", os);
         fmt::twocol(ind, "Trader:", "----------", os);
         fmt::twocol(ind____, "trade <command>", "Access to trading functions", os);
         us::wallet::trader::traders_t::help(ind____ + "    ", os);
         fmt::twocol(ind____, "create_bookmark <title> <icofile|-> \"[<channel>] <address>[.subhome]\" <protocol|-> <role|-> [<output-file>]", "Display bookmark blob on screen, or to specified file.", os);
-        fmt::twocol(ind____, "decode_bookmark [-f <filename> | <blob_b58>]", "Decode bookmark blob (from file or encoded) and shows its content on screen.", os);
+        fmt::twocol(ind____, "decode_bookmark [-f <filename> | <blob_b58>]", "Decode bookmark_t blob (from file or encoded) and shows its content on screen.", os);
+        fmt::twocol(ind____, "create_protocol_list ", "Display protocols_t blob on screen, or to specified file", os);
+        fmt::twocol(ind____, "decode_protocol_list [-f <filename> | <blob_b58>]", "Decode protocols_t blob (from file or encoded) and shows its content on screen.", os);
+        fmt::twocol(ind____, "r2r_index [-f <file>] [-e]", "Obtain interesting bookmarks. Optionally save it to file or print encoded.", os);
+        fmt::twocol(ind____, "r2r_index_hdr ", "Print protocol_selections available in the r2r_index.", os);
+
+
         os << '\n';
         fmt::twocol(ind, "Daemon control/monitoring:", "----------", os);
         fmt::twocol(ind____, "s", "Show socket connections", os);
@@ -1773,8 +1788,21 @@ ko c::exec_online1(const string& cmd, shell_args& args) {
             }
             screen::lock_t lock(scr, interactive);
             lock.os << "written file " << outf << '\n';
-
         }
+        return ok;
+    }
+    if (command == "encode") {
+        string file = args.next<string>();
+        blob_t blob;
+        {
+            auto r = us::gov::io::read_file_(file, blob);
+            if (is_ko(r)) {
+                return r;
+            }
+        }
+        auto s = us::gov::crypto::b58::encode(blob);
+        screen::lock_t lock(scr, interactive);
+        lock.os << s << '\n';
         return ok;
     }
     if (command == "patch_os") {
@@ -1797,8 +1825,9 @@ ko c::exec_online1(const string& cmd, shell_args& args) {
                 return r;
             }
         }
+        auto s = us::gov::crypto::b58::encode(o_out.blob_ev);
         screen::lock_t lock(scr, interactive);
-        lock.os << us::gov::crypto::b58::encode(o_out.blob_ev) << '\n';
+        lock.os << s << '\n';
         lock.os << "job " << o_out.job << '\n';
         return ok;
     }
@@ -1897,7 +1926,8 @@ ko c::exec_online1(const string& cmd, shell_args& args) {
         port_t port = args.next<port_t>();
         channel_t chan = args.next<channel_t>();
         string name = args.next<string>();
-        wallet_connection_t wc(name, ip4_endpoint_t(ip4, port, chan));
+        string subhome = args.next<string>();
+        wallet_connection_t wc(name, subhome, ip4_endpoint_t(ip4, port, chan));
         blob_t blob;
         wc.write(blob);
         auto ans = us::gov::crypto::b58::encode(blob);          
@@ -1913,10 +1943,150 @@ ko c::exec_online1(const string& cmd, shell_args& args) {
         if (is_ko(r)) {
             return r;
         }
-        else {
-            screen::lock_t lock(scr, interactive);
-            wc.dump(lock.os);
+        screen::lock_t lock(scr, interactive);
+        wc.dump("", lock.os);
+        return ok;
+    }
+    if (command == "decode_wallet_connections") {
+        using wallet_connection_t = us::wallet::engine::wallet_connection_t;
+        using wallet_connections_t = us::wallet::engine::wallet_connections_t;
+        string enc = args.next<string>();
+        us::wallet::engine::wallet_connections_t wcs;
+        if (enc == "-f") {
+            string file = args.next<string>();
+            ko r = wcs.load(file);
+            if (is_ko(r)) {
+                return r;
+            }
         }
+        else {
+            ko r = wcs.read(enc);
+            if (is_ko(r)) {
+                return r;
+            }
+        }
+        screen::lock_t lock(scr, interactive);
+        wcs.dump(lock.os);
+        return ok;
+    }
+    if (command == "wallet_connections_add") {
+        using wallet_connection_t = us::wallet::engine::wallet_connection_t;
+        using wallet_connections_t = us::wallet::engine::wallet_connections_t;
+        string file = args.next<string>();
+        string b58 = args.next<string>();
+        us::wallet::engine::wallet_connections_t wcs;
+        wcs.load(file);
+        us::wallet::engine::wallet_connection_t wc;
+        ko r = wc.read(b58);
+        if (is_ko(r)) {
+            return r;
+        }
+        wcs.emplace_back(wc);
+        wcs.save(file);
+        screen::lock_t lock(scr, interactive);
+        lock.os << "added.\n";
+        return ok;
+    }
+    if (command == "decode_protocols") {
+        using protocol_selection_t = us::wallet::trader::protocol_selection_t;
+        using protocols_t = us::wallet::trader::bootstrap::protocols_t;
+        string enc = args.next<string>();
+        protocols_t protocols;
+        if (enc == "-f") {
+            string file = args.next<string>();
+            ko r = protocols.load(file);
+            if (is_ko(r)) {
+                return r;
+            }
+        }
+        else {
+            ko r = protocols.read(enc);
+            if (is_ko(r)) {
+                return r;
+            }
+        }
+        screen::lock_t lock(scr, interactive);
+        protocols.dump(lock.os);
+        return ok;
+    }
+    if (command == "protocols_add") {
+        using protocol_selection_t = us::wallet::trader::protocol_selection_t;
+        using protocols_t = us::wallet::trader::bootstrap::protocols_t;
+        string file = args.next<string>();
+        string protocol = args.next<string>();
+        string role = args.next<string>();
+        protocol_selection_t protocol_selection(protocol, role);
+        if (!protocol_selection.is_set()) {
+            auto r = "KO 67764 Invalid input.";
+            log(r);
+            return r;
+        }
+        protocols_t protocols;
+        protocols.load(file);
+        protocols.emplace_back(protocol_selection);
+        protocols.uniq();
+        protocols.save(file);
+        screen::lock_t lock(scr, interactive);
+        lock.os << "added.\n";
+        return ok;
+    }
+/*(
+    if (command == "decode_bookmark_index") {
+        using bookmark_index_t = us::wallet::engine::bookmark_index_t;
+        string enc = args.next<string>();
+        bookmark_index_t bookmark_index;
+        if (enc == "-f") {
+            string file = args.next<string>();
+            ko r = bookmark_index.load(file);
+            if (is_ko(r)) {
+                return r;
+            }
+        }
+        else {
+            ko r = bookmark_index.read(enc);
+            if (is_ko(r)) {
+                return r;
+            }
+        }
+        screen::lock_t lock(scr, interactive);
+        bookmark_index.dump(lock.os);
+        return ok;
+    }
+*/
+    if (command == "r2r_index") {
+        using bookmark_index_t = us::wallet::engine::bookmark_index_t;
+        bookmark_index_t bookmark_index;
+        auto r = rpc_daemon->get_peer().call_r2r_all_index(bookmark_index);
+        if (is_ko(r)) {
+            return r;
+        }
+        auto arg = args.next<string>();
+        if (arg == "-f") {
+            auto file = args.next<string>();
+            bookmark_index.save(file);
+            screen::lock_t lock(scr, interactive);
+            lock.os << "r2r index saved to " << file;
+            return ok;
+        }
+        if (arg == "-e") {
+            auto enc = bookmark_index.encode();
+            screen::lock_t lock(scr, interactive);
+            lock.os << enc << '\n';
+            return ok;
+        }
+        screen::lock_t lock(scr, interactive);
+        bookmark_index.dump(lock.os);
+        return ok;
+    }
+    if (command == "r2r_index_hdr") {
+        using protocols_t = us::wallet::trader::bootstrap::protocols_t;
+        protocols_t protocols;
+        ko r = rpc_daemon->get_peer().call_r2r_index_hdr(protocols);
+        if (is_ko(r)) {
+            return r;
+        }
+        screen::lock_t lock(scr, interactive);
+        protocols.dump(lock.os);
         return ok;
     }
     if (command == "timeseries") {
@@ -2103,6 +2273,65 @@ ko c::exec_online1(const string& cmd, shell_args& args) {
         }
         screen::lock_t lock(scr, interactive);
         bms.dump("", lock.os);
+        return ok;
+    }
+    if (command == "create_protocols") {
+        using protocols_t = us::wallet::trader::bootstrap::protocols_t;
+        using protocol_selection_t = us::wallet::trader::protocol_selection_t;
+        using us::wallet::trader::bookmark_t;
+        auto protocol = args.next<string>();
+        auto role = args.next<string>();
+        auto ofile = args.next<string>();
+        if (protocol == "-") {
+            if (role != "-") {
+                auto r = "KO 82037 role should be -";
+                log(r);
+                return r;
+            }
+        }
+        if (role == "-") {
+            if (protocol != "-") {
+                auto r = "KO 82038 protocol should be -";
+                log(r);
+                return r;
+            }
+        }
+        protocols_t p;
+        p.emplace_back(protocol_selection_t(protocol, role));
+        if (ofile.empty()) {
+            auto s = p.encode();
+            screen::lock_t lock(scr, interactive);
+            lock.os << s << '\n';
+            return ok;
+        }
+        auto r = p.save(ofile);
+        if (is_ko(r)) {
+            return r;
+        }
+        screen::lock_t lock(scr, interactive);
+        lock.os << "protocols structure has been writen to file " << ofile << '\n';
+        return ok;
+    }
+    if (command == "decode_protocols") {
+        using protocols_t = us::wallet::trader::bootstrap::protocols_t;
+        using protocol_selection_t = us::wallet::trader::protocol_selection_t;
+        auto s = args.next<string>();
+        protocols_t p;
+        if (s == "-f") {
+            auto file = args.next<string>();
+            auto r = p.load(file);
+            if (is_ko(r)) {
+                return r;
+            }
+        }
+        else {
+            auto r = p.read(s);
+            if (is_ko(r)) {
+                return r;
+            }
+        }
+        screen::lock_t lock(scr, interactive);
+        p.dump(lock.os);
         return ok;
     }
     if (command == "gw") {

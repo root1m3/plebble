@@ -20,16 +20,34 @@
 //===-
 //===----------------------------------------------------------------------------
 //===-
-#include "rpc_peer_t.h"
+#include "local_deltas_t.h"
+#include "api.h"
+#include <us/gov/cash/accounts_t.h>
+//#include <us/gov/io/blob_writer_t.h>
+
 #include "types.h"
 #include "svcfish_t.h"
 #include "rpc_daemon_t.h"
 #include "net_daemon_t.h"
 #include "daemon_t.h"
+#include "track_status_t.h"
+#include "rpc_peer_t.h"
 
 #define loglevel "gov/engine"
 #define logclass "rpc_peer_t"
 #include "logs.inc"
+#include <us/gov/socket/dto.inc>
+
+namespace {
+    using t = us::gov::engine::local_deltas_t;
+    template<> datagram* write_datagram(channel_t channel, svc_t svc, seq_t seq, const t& o) {
+        return o.get_datagram(channel, svc, seq);
+    }
+
+    template<> ko read_datagram(const datagram& d, t& o) {
+        return o.read(d);
+    }
+}
 
 using namespace us::gov::engine;
 using c = us::gov::engine::rpc_peer_t;

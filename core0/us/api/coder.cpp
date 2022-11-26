@@ -257,17 +257,40 @@ void c::gen_dto_hdr(const api_t& a, bool side_caller, ostream& os) const {
     }
 }
 
+void c::gen_dto_impl(const api_t& a, bool side_caller, ostream& os) const {
+    a.info(line_comment(), os);
+    os << '\n';
+    for (auto& i: a) {
+        gen_dto_in_impl(i, side_caller, os);
+        gen_dto_out_impl(i, side_caller, os);
+    }
+}
+
 void c::gen_dto(const api_t& a, bool side_caller) const {
-    ostringstream fn;
-    write_file_prefix(a, fn);
-    sides_prefix(side_caller, fn);
-    fn << "dto-hdr";
-    string file = fn.str();
-    feedback();
-    ofstream os(file);
-    a.warn_h(line_comment(), os);
-    gen_dto_hdr(a, side_caller, os);
-    a.warn_f(line_comment(), os);
+    {
+        ostringstream fn;
+        write_file_prefix(a, fn);
+        sides_prefix(side_caller, fn);
+        fn << "dto-hdr";
+        string file = fn.str();
+        feedback();
+        ofstream os(file);
+        a.warn_h(line_comment(), os);
+        gen_dto_hdr(a, side_caller, os);
+        a.warn_f(line_comment(), os);
+    }
+    {
+        ostringstream fn;
+        write_file_prefix(a, fn);
+        sides_prefix(side_caller, fn);
+        fn << "dto-impl";
+        string file = fn.str();
+        feedback();
+        ofstream os(file);
+        a.warn_h(line_comment(), os);
+        gen_dto_impl(a, side_caller, os);
+        a.warn_f(line_comment(), os);
+    }
 }
 
 void c::gen_dto(const api_t& a) const {

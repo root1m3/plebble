@@ -45,7 +45,7 @@ c::~business_t() {
     log("destroyed games bz", home);
 }
 
-ko c::init(const string& r2rhome, us::wallet::trader::traders_t::protocol_factories_t& f) {
+ko c::init(const string& r2rhome, protocol_factories_t& f) {
     name = "games";
     auto r = b::init(r2rhome, f);
     if (is_ko(r)) {
@@ -79,7 +79,7 @@ std::pair<ko, us::wallet::trader::trader_protocol*> c::create_protocol(protocol_
     return create_protocol();
 }
 */
-
+/*
 std::pair<ko, us::wallet::trader::trader_protocol*> c::create_opposite_protocol(protocol_selection_t&& protocol_selection) {
     log("create_opposite_protocol", protocol_selection.first, protocol_selection.second);
     if (protocol_selection.first != protocol::name) {
@@ -95,7 +95,7 @@ std::pair<ko, us::wallet::trader::trader_protocol*> c::create_opposite_protocol(
     }
     return create_protocol();
 }
-
+*/
 std::pair<ko, us::wallet::trader::trader_protocol*> c::create_protocol() {
     log("protocol instatiation");
     auto p = new business_t::protocol(*this);
@@ -108,7 +108,10 @@ void c::list_protocols(ostream& os) const {
     os << c::protocol::name << " player\n";
 }
 
-void c::invert(protocols_t&) const { //games is symmetric
+bool c::invert(protocol_selection_t& i) const {  //symmetric role
+    if (i.first != protocol::name) return false;
+    if (i.second == "player") return true;
+    return false;
 }
 
 void c::published_protocols(protocols_t& protocols, bool inverse) const {
@@ -119,7 +122,7 @@ void c::exec_help(const string& prefix , ostream& os) const {
     protocol::exec_help(prefix, os);
 }
 
-ko c::exec(istream& is, traders_t& traders, wallet_local_api& w) {
-    return protocol::exec(is, traders, w);
+ko c::exec(istream& is, wallet_local_api& w) {
+    return protocol::exec(is, w);
 }
 

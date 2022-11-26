@@ -1,0 +1,45 @@
+#!/bin/bash
+#===-                           P L E B B L E
+#===-                         https://plebble.us
+#===-
+#===-              Copyright (C) 2017-2022 root1m3@plebble.us
+#===-
+#===-                      GNU GENERAL PUBLIC LICENSE
+#===-                       Version 3, 29 June 2007
+#===-
+#===-    This program is free software: you can redistribute it and/or modify
+#===-    it under the terms of the GPLv3 License as published by the Free
+#===-    Software Foundation.
+#===-
+#===-    This program is distributed in the hope that it will be useful,
+#===-    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#===-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+#===-
+#===-    You should have received a copy of the General Public License
+#===-    along with this program, see LICENCE file.
+#===-    see https://www.gnu.org/licenses
+#===-
+#===----------------------------------------------------------------------------
+#===-
+
+cat << EOF
+* pick blob                     e.g.    blobs/linkbox_alpha-52_6-f4c3cd.tzst
+* ssh over to test bde node.            scp linkbox_alpha-52_6-f4c3cd.tzst linkbox:/root/
+                                        ssh linkbox
+* rm pinned file                        rm /var/linkbox/installed_blob__pinned
+* cleanup wallet                        gov@linkbox-web3:~/.linkbox/wallet
+    unpair and purge all guest wallets
+                                        wallet list_devices
+                                        For each guest wallet: [pubkey d9iENydwToPv1pHqrw2k6eiLeGbdVc6NfVBZBxz2xqYT] [home 2QX7LhWMFWnVDMqbsN1CdqBAjXNt] [name guest first seen device]
+                                            wallet unpair d9iENydwToPv1pHqrw2k6eiLeGbdVc6NfVBZBxz2xqYT
+                                            rm guest/2QX7LhWMFWnVDMqbsN1CdqBAjXNt -r
+    bookmark_index                      rm bookmark_index
+
+* install blob                          install_blob --blob linkbox_alpha-52_6-f4c3cd.tzst 
+* run rpc-test
+  install app                           https://linkbox.katlastechnology.io
+EOF
+
+echo "Complete tasks manually. Then enter yes
+read a
+exit 0

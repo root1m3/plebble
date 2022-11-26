@@ -93,7 +93,11 @@ public class bookmarks_t extends TreeMap<String, bookmark_t> implements us.gov.i
     }
 
     public void dump(String pfx, PrintStream os) {
-        os.println(pfx + "[TODO]");
+        int n = 0;
+        for (Map.Entry<String, bookmark_t> entry : entrySet()) {
+            os.print(pfx + ++n + ": '" + entry.getKey() + "': ");
+            entry.getValue().dump("", os);
+        }
     }
 
 }

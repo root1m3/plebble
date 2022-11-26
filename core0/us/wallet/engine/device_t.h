@@ -35,10 +35,9 @@ namespace us { namespace wallet { namespace engine {
         device_t(const string& subhome, const string& name): name(name), subhome(subhome) {}
         device_t(const device_t& other): pub(other.pub), name(other.name), subhome(other.subhome) {}
 
+    public:
         void to_stream(ostream&) const;
         static pair<ko, device_t> from_streamX(istream&);
-        //static pair<bool, device_t> from_stream_prev(istream&);
-        //static pair<bool, device_t> from_stream_v1(istream&);
         void dump(ostream&) const;
         pin_t decode_pin() const;
         void encode_pin(pin_t);

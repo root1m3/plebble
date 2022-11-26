@@ -51,6 +51,9 @@ namespace us::trader::r2r::bid2ask {
         using basket_t = us::trader::workflow::consumer::basket_t;
         using business_t = us::wallet::trader::workflow::business_t;
 
+        static constexpr const char* name{"bid2ask"};
+
+    public:
         protocol(business_t&);
         ~protocol() override;
 

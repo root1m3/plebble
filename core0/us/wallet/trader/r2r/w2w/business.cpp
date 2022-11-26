@@ -89,7 +89,7 @@ void c::register_factories(workflow_factories_t& workflow_factories) {
 }
 */
 
-ko c::init(const string& r2rhome, us::wallet::trader::traders_t::protocol_factories_t& f) {
+ko c::init(const string& r2rhome, protocol_factories_t& f) {
     name = "bank";
     auto r = b::init(r2rhome, f);
     if (is_ko(r)) {
@@ -124,6 +124,7 @@ std::pair<ko, us::wallet::trader::trader_protocol*> c::create_protocol() {
 }
 */
 
+/*
 std::pair<ko, us::wallet::trader::trader_protocol*> c::create_opposite_protocol(protocol_selection_t&& protocol_selection) {
     if (protocol_selection.first == "w2w") {
         return create_protocol();
@@ -132,6 +133,7 @@ std::pair<ko, us::wallet::trader::trader_protocol*> c::create_opposite_protocol(
     log(r);
     return make_pair(r, nullptr);
 }
+*/
 
 std::pair<ko, us::wallet::trader::trader_protocol*> c::create_protocol() {
     log("protocol instatiation");
@@ -145,7 +147,10 @@ void c::list_protocols(ostream& os) const {
     os << c::protocol::name << " w\n";
 }
 
-void c::invert(protocols_t&) const { //w2w is symmetric
+bool c::invert(protocol_selection_t& i) const {  //symmetric role
+    if (i.first != protocol::name) return false;
+    if (i.second == "w") return true;
+    return false;
 }
 
 void c::published_protocols(protocols_t& protocols, bool inverse) const {
@@ -156,7 +161,7 @@ void c::exec_help(const string& prefix , ostream& os) const {
     protocol::exec_help(prefix, os);
 }
 
-ko c::exec(istream& is, traders_t& traders, wallet::local_api& w) {
-    return protocol::exec(is, traders, w);
+ko c::exec(istream& is, wallet::local_api& w) {
+    return protocol::exec(is, w);
 }
 

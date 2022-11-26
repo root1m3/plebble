@@ -31,6 +31,7 @@
 #define loglevel "wallet/engine"
 #define logclass "rpc_peer_t"
 #include <us/gov/logs.inc>
+#include <us/gov/socket/dto.inc>
 
 using namespace us::wallet::engine;
 using c = us::wallet::engine::rpc_peer_t;

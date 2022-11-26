@@ -26,47 +26,27 @@
 #include <tuple>
 #include <string>
 #include <string_view>
+#include <type_traits>
 
-#include "blob_reader_t.h"
-#include "cfg0.h"
+#include "writable.h"
+//#include "cfg0.h"
 #include "types.h"
 
 namespace us::gov::io {
 
+    struct blob_writer_t;
+
     struct blob_writer_t {
-
-        using version_t = blob_reader_t::version_t;
-        using serid_t = blob_reader_t::serid_t;
-        using blob_header_t = blob_reader_t::blob_header_t;
-
-        //---------------------------------------------------
-        struct writable {
-        public:
-            virtual ~writable() {}
-
-        public:
-            virtual size_t blob_size() const = 0;
-            virtual void to_blob(blob_writer_t&) const = 0;
-            virtual serid_t serial_id() const { return 0; }
-
-        public:
-            size_t tlv_size() const;
-            void write(blob_t&) const;
-            datagram* get_datagram(channel_t, svc_t svc, seq_t seq) const;
-            void write(string& encoded) const;
-            string encode() const;
-            ko save(const string& filename) const;
-        };
-        //---------------------------------------------------
+        using writable = us::gov::io::writable;
+        using version_t = writable::version_t;
+        using serid_t = writable::serid_t;
+        using blob_header_t = writable::blob_header_t;
 
     public:
         blob_writer_t(blob_t& blob, const size_t& sz);
-
-    private:
         blob_writer_t(datagram& datagram);
 
     public:
-        constexpr static size_t header_size() { return sizeof(version_t) + sizeof(serid_t); }
         void write_header(const serid_t&);
 
         static string add_header(blob_header_t&&, const string& blobb58);
@@ -120,18 +100,20 @@ namespace us::gov::io {
 
         static size_t blob_size(const char* s);
         void write(const char* s);
-
+/*
         static datagram* get_datagram(channel_t, svc_t svc, seq_t seq);
-        static datagram* get_datagram(channel_t, svc_t svc, seq_t seq, const blob_t&);
 
         template<typename t>
         static datagram* get_datagram(channel_t channel, svc_t svc, seq_t seq, const t& o) {
+            static_assert(!std::is_convertible<t*, writable*>::value, "KO 77897 template specialization for writable should have been instantiated instead.");
+            static_assert(!std::is_convertible<t*, blob_t*>::value, "KO 77898 template specialization for blob_b should have been instantiated instead.");
+
             auto d = new datagram(channel, svc, seq, blob_size(o));
             blob_writer_t w(*d);
             w.write(o);
             return d;
         }
-
+*/
         static blob_t make_blob(const string& payload);
 
         //-------------------------
@@ -236,9 +218,8 @@ namespace us::gov::io {
         uint8_t* cur;
     };
 
-    template<> inline datagram* blob_writer_t::get_datagram(channel_t channel, svc_t svc, seq_t seq, const blob_writer_t::writable& o) {
-        return o.get_datagram(channel, svc, seq);
-    }
+//    template<> datagram* blob_writer_t::get_datagram(channel_t, svc_t, seq_t, const blob_t&);
+//    template<> datagram* blob_writer_t::get_datagram(channel_t, svc_t, seq_t, const writable&);
 
     template<> constexpr size_t blob_writer_t::blob_size(const bool&) { return sizeof(uint8_t); }
     template<> void blob_writer_t::write(const bool&);

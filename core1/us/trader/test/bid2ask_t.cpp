@@ -157,7 +157,7 @@ void c::test_0_1(node& bid, node& ask) {
                 Check_s_contains(payload, "peer_protocols 2");
                 Check_s_contains(payload, "initiator Y");
                 Check_s_contains(payload, "protocol not set");
-                Check_s_contains(payload, "rf N");
+//                Check_s_contains(payload, "rf N");
             }
             else if (seq == 1) {
                 Check_s_contains(payload, "state gone_offline");
@@ -196,7 +196,7 @@ void c::test_0_1(node& bid, node& ask) {
                 Check_s_contains(payload, "peer_protocols 2");
                 Check_s_contains(payload, "initiator N");
                 Check_s_contains(payload, "protocol not set");
-                Check_s_contains(payload, "rf N");
+//                Check_s_contains(payload, "rf N");
             }
             else if (seq == 1) {
                 Check_s_contains(payload, "state offline");
@@ -212,7 +212,7 @@ void c::test_0_1(node& bid, node& ask) {
                 Check_s_contains(payload, "peer_personality anonymous");
                 Check_s_contains(payload, "peer_protocols 2");
                 Check_s_contains(payload, "protocol not set");
-                Check_s_contains(payload, "rf N");
+//                Check_s_contains(payload, "rf N");
             }
             else {
                 assert(false);
@@ -530,7 +530,7 @@ void c::test_10(node& bid, node& ask) {
             Check_s_contains(payload, "remote__wf_pay N");
             Check_s_contains(payload, "remote__wf_rcpt N");
             Check_s_contains(payload, "basket ");
-            Check_s_contains(payload, "rf N");
+//            Check_s_contains(payload, "rf N");
             if (seq == 0) {
                 Check_s_contains(payload, "peer_personality zzqCyAiEUz9mrw6EX1Rdehmovpv");
                 Check_s_contains(payload, "peer_moniker Impact Shopping");
@@ -608,7 +608,7 @@ void c::test_10(node& bid, node& ask) {
             Check_s_contains(payload, "remote__wf_rcpt N");
             Check_s_contains(payload, "remote__wf_rcpt_mode recv");
             Check_s_contains(payload, "basket ");
-            Check_s_contains(payload, "rf N");
+//            Check_s_contains(payload, "rf N");
             Check_s_contains(payload, "remote__wf_cat Y");
             Check_s_contains(payload, "remote__wf_cat_expiry 1");
             Check_s_contains(payload, "remote__wf_cat_mode recv");
@@ -825,7 +825,7 @@ void c::test_14(node& bid, node& ask) {
                 Check_s_contains(payload, "remote__wf_pay N");
                 Check_s_contains(payload, "remote__wf_rcpt N");
                 Check_s_contains(payload, "basket ");
-                Check_s_contains(payload, "rf N");
+//                Check_s_contains(payload, "rf N");
                 Check_s_contains(payload, "remote__basket_serial 0");
             }
             if (seq == 1) {
@@ -987,7 +987,7 @@ void c::test_15(node& bid, node& ask) {
                 Check_s_contains(payload, "remote__wf_inv N");
                 Check_s_contains(payload, "remote__wf_pay N");
                 Check_s_contains(payload, "remote__wf_rcpt N");
-                Check_s_contains(payload, "rf N");
+//                Check_s_contains(payload, "rf N");
                 Check_s_contains(payload, "basket ");
                 Check_s_contains(payload, "local__basket_serial 2");
                 Check_s_contains(payload, "remote__basket_serial 1");
@@ -1154,7 +1154,7 @@ void c::test_16(node& bid, node& ask) {
                 Check_s_contains(payload, "remote__wf_inv N");
                 Check_s_contains(payload, "remote__wf_pay N");
                 Check_s_contains(payload, "remote__wf_rcpt N");
-                Check_s_contains(payload, "rf N");
+//                Check_s_contains(payload, "rf N");
                 Check_s_contains(payload, "basket ");
                 Check_s_contains(payload, "local__basket_serial 3");
                 Check_s_contains(payload, "remote__basket_serial 2");
@@ -1257,7 +1257,7 @@ void c::test_17(node& bid, node& ask) {
                     bid.wallet_cli_dis->expected_code.decrement(us::wallet::trader::trader_t::push_data);
                 }
                 else {
-                    Check_s_contains(payload, "rf N");
+//                    Check_s_contains(payload, "rf N");
                     Check_s_contains(payload, "local__wf_inv N");
                     Check_s_contains(payload, "local__wf_inv_mode recv");
                     Check_s_contains(payload, "remote__wf_inv Y");
@@ -1303,7 +1303,7 @@ void c::test_17(node& bid, node& ask) {
             static int seq =0;
             assert(tid==bid.wallet_cli->cur);
             assert(tid==trade_id);
-            Check_s_contains(payload, "rf N");
+//            Check_s_contains(payload, "rf N");
             if (seq == 0) {
                 Check_s_contains(payload, "remote__wf_inv N");
                 Check_s_contains(payload, "remote__wf_inv_mode recv");
@@ -1617,7 +1617,7 @@ void c::test_19(node& bid, node& ask) {
             Check_s_contains(payload, "remote__wf_cat_ts 1");
             Check_s_contains(payload, "remote__wf_inv Y");
             Check_s_contains(payload, "remote__wf_inv_ts 1");
-            Check_s_contains(payload, "rf N");
+//            Check_s_contains(payload, "rf N");
             Check_s_contains(payload, "basket ");
             if (seq == 0) {
                 Check_s_contains(payload, "local__basket_serial 4");
@@ -1860,7 +1860,7 @@ void c::check_data_fields(node& n) {
     Check_entry_exists(n, "state");
     Check_entry_exists(n, "peer_personality");
     Check_entry_exists(n, "online_age");
-    Check_entry_exists(n, "rf");
+//    Check_entry_exists(n, "rf");
     Check_entry_exists(n, "basket");
     Check_entry_exists(n, "personality_sk");
     Check_entry_exists(n, "homemode");

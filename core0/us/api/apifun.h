@@ -61,6 +61,7 @@ namespace us::apitool {
             bool async_handler{false}; //default responses are handled with rendezvous
             bool heap{false}; //handler. false: by ref; true: by ptr
             bool extensible_dto{false};
+            bool is_seriable{true};
         };
 
         void collect_in_specs(map<string, vector<pair<string, string>>>&) const;

@@ -23,14 +23,17 @@
 #include "local_delta.h"
 #include "app.h"
 
+#include <us/gov/types.h>
+
 #define loglevel "gov/engine/auth"
 #define logclass "local_delta"
 #include <us/gov/engine/logs.inc>
 
 using namespace us::gov::engine;
 using c = us::gov::engine::auth::local_delta;
+using us::ko;
 
-appid_t c::app_id() const {
+us::appid_t c::app_id() const {
     return app::id();
 }
 

@@ -194,14 +194,16 @@ bool c::sets(const string& key, const string& value) {
     return true;
 }
 
-bool c::underrides(const string& key, const string& value) {
+template<> bool c::underride(const string& key, const string& value) {
     assert(!key.empty());
     log("underride kv", key, hide_skvalue(key, value));
     auto i = find(key);
     if (i == end()) {
+        log("added kv entry", key, hide_skvalue(key, value));
         emplace(key, value);
         return true;
     }
+    log("kv entry exists. ignoring.");
     return false;
 }
 

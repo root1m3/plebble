@@ -474,6 +474,9 @@ pair<ko, datagram*> c::recv6(busyled_t& busyled) {
         if (r.second->completed()) {
             r = decrypt0(r.second);
             if (unlikely(is_ko(r.first))) {
+                if (r.first != datagram::KO_0001) { //--strip
+                    assert(r.second == nullptr); //--strip
+                } //--strip
                 return r;
             }
             assert(daemon.api_v != 0); //top peer instance must set api_v

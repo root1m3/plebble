@@ -38,6 +38,9 @@ namespace us::gov::socket {
     #ifdef has_us_gov_socket_api
 
         struct dto {
+            using readable = us::gov::io::readable;
+            using writable = us::gov::io::writable;
+
             #include <us/api/generated/gov/c++/socket/cllr_dto-hdr>
             #include <us/api/generated/gov/c++/socket/hdlr_dto-hdr>
         };

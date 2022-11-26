@@ -20,13 +20,18 @@
 //===-
 //===----------------------------------------------------------------------------
 //===-
-#include "peer_t.h"
+#include <us/gov/config.h>
+#include <us/gov/io/cfg0.h>
+#include <us/gov/socket/datagram.h>
+
 #include "daemon_t.h"
 #include "protocol.h"
+#include "peer_t.h"
 
 #define loglevel "gov/dfs"
 #define logclass "peer_t"
 #include "logs.inc"
+#include "dto.inc"
 
 using namespace us::gov::dfs;
 using c = us::gov::dfs::peer_t;

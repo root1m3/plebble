@@ -32,7 +32,7 @@
 #include <us/gov/socket/busyled_t.h>
 #include <us/gov/cli/hmi0.h>
 
-#include <us/wallet/wallet/local_api.h>
+//#include <us/wallet/wallet/local_api.h>
 #include <us/wallet/trader/chat_t.h>
 #include <us/wallet/trader/bookmarks_t.h>
 #include <us/wallet/trader/trader_t.h>

@@ -35,6 +35,9 @@ namespace us::gov::dfs {
     #ifdef has_us_gov_dfs_api
 
         struct dto {
+            using readable = us::gov::io::readable;
+            using writable = us::gov::io::writable;
+
             #include <us/api/generated/gov/c++/dfs/hdlr_dto-hdr>
             #include <us/api/generated/gov/c++/dfs/cllr_dto-hdr>
         };

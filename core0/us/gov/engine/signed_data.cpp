@@ -20,10 +20,14 @@
 //===-
 //===----------------------------------------------------------------------------
 //===-
-#include "signed_data.h"
-#include <us/gov/crypto/base58.h>
 #include <cassert>
 #include <sstream>
+
+#include <us/gov/crypto/base58.h>
+#include <us/gov/io/blob_reader_t.h>
+#include <us/gov/io/blob_writer_t.h>
+
+#include "signed_data.h"
 
 #define loglevel "gov/engine"
 #define logclass "signed_data"

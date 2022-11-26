@@ -65,3 +65,15 @@ c c::filter_common(protocols_t a, protocols_t b) {
     return ans;
 }
 
+void c::uniq() {
+    set<protocol_selection_t> x;
+    for (auto &i: *this) {
+        x.emplace(i);        
+    }
+    clear();
+    reserve(x.size());
+    for (auto& i: x) {
+        emplace_back(i);
+    }
+}
+

@@ -213,14 +213,14 @@ void c::exec_help(const string& prefix , ostream& os) {
     os << prefix << "info\n";
 }
 
-ko c::exec(istream& is, traders_t& traders, wallet_local_api& w) {
+ko c::exec(istream& is, wallet_local_api& w) {
     string cmd;
     is >> cmd;
     if (cmd == "info") {
-        return traders.push_OK("info TBD.", w);
+        return w.push_OK("info TBD.");
     }
     if (cmd == "basic") {
-        return b::exec(is, traders, w);
+        return b::exec(is, w);
     }
     auto r = "KO 10918 Invalid command";
     log(r);

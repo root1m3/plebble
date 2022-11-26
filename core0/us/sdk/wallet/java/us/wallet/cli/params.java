@@ -130,7 +130,7 @@ public class params {
             else if (command.equals("-dd")) {
                 downloads_dir = args.next_string();
             }
-            else if (command.equals("--custodial_wallet_id")) {
+            else if (command.equals("--custodial")) {
                 subhome = args.next_string();
             }
             else if (!command.isEmpty()) {
@@ -187,6 +187,12 @@ public class params {
         os.println(pfx + "  wallet daemon at: " + walletd_host.value + ":" + walletd_port.value);
         os.println(pfx + "  connect_for_recv  " + rpc__connect_for_recv);
         os.println(pfx + "  stop_on_disconnection  " + rpc__stop_on_disconnection);
+        if (subhome.isEmpty()) {
+            os.println(pfx + "  remote wallet is non-custodial.");
+        }
+        else {
+            os.println(pfx + "  remote wallet is custodial. id: " + subhome);
+        }
     }
 
     public void connecting_to(PrintStream os) {

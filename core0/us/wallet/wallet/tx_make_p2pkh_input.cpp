@@ -20,6 +20,9 @@
 //===-
 //===----------------------------------------------------------------------------
 //===-
+#include <us/gov/io/blob_writer_t.h>
+#include <us/gov/io/blob_reader_t.h>
+
 #include "tx_make_p2pkh_input.h"
 #include "types.h"
 

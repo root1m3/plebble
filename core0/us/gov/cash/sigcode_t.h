@@ -30,7 +30,7 @@ namespace us::gov::cash {
 
     struct sigcode_t final: vector<sigcode_section_t>, io::seriable {
         using b = vector<sigcode_section_t>;
-
+ 
         sigcode_t() {}
         sigcode_t(const sigcode_t& other): b(other), ts(other.ts) {}
         sigcode_t& operator = (const sigcode_t& other) {

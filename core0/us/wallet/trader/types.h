@@ -37,5 +37,7 @@ namespace us::wallet::trader {
     using namespace us;
     using namespace us::gov;
 
+    using route_t = uint64_t;
+
 }
 

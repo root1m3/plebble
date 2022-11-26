@@ -33,6 +33,7 @@
 #include <us/wallet/wallet/tx_make_p2pkh_input.h>
 #include <us/wallet/trader/bookmarks_t.h>
 #include <us/wallet/trader/traders_t.h>
+#include <us/wallet/trader/businesses_t.h>
 
 #include "types.h"
 
@@ -703,9 +704,9 @@ ko c::handle_file(hash_t&& digest, vector<uint8_t>& content) {
 
 ko c::handle_exec(string&& cmd0) {
     log("exec", cmd0, "local_api is", this);
-    auto r = daemon.traders.exec(cmd0, *this);
+    auto r = exec(cmd0);
     if (is_ko(r)) {
-        daemon.pm.push_KO(r, device_filter);
+        push_KO(r);
     }
     return ok;
 }
@@ -976,7 +977,8 @@ ko c::handle_track_relay(track_relay_in_dst_t&& o_in, track_status_t& track_stat
 ko c::handle_list_protocols(string& data) {
     log("list_protocols");
     ostringstream os;
-    daemon.traders.api_list_protocols(os);
+    businesses.api_list_protocols(os);
+//    daemon.traders.api_list_protocols(os);
     data = os.str();
     log("list_protocols response:", data);
     return ok;
@@ -996,8 +998,7 @@ ko c::handle_trade(trade_in_dst_t&& o_in, hash_t& tid) {
             return r;
         }
     }
-    log("initiate new trade", qr.to_string());
-    auto r = daemon.traders.initiate(o_in.parent_trade, o_in.datasubdir, move(qr), *this);
+    auto r = businesses.initiate(o_in.parent_trade, o_in.datasubdir, move(qr));
     if (is_ko(r.first)) {
         return r.first;
     }
@@ -1005,10 +1006,11 @@ ko c::handle_trade(trade_in_dst_t&& o_in, hash_t& tid) {
     return ok;
 }
 
+
 ko c::handle_list_trades(string& data) {
-    log("list_trades subhomeh", subhomeh);
+    log("list_trades");
     ostringstream os;
-    daemon.traders.list_trades(subhomeh, os);
+    traders.list_trades(os);
     data = os.str();
     return ok;
 }
@@ -1016,7 +1018,7 @@ ko c::handle_list_trades(string& data) {
 ko c::handle_kill_trade(hash_t&& tid, string& data) {
     log("kill_trade");
     data = "killing trade in background...";
-    return daemon.traders.exec(tid, "kill", *this);
+    return traders.exec(tid, "kill");
 }
 
 ko c::handle_exec_trade(exec_trade_in_dst_t&& o_in) {
@@ -1025,12 +1027,16 @@ ko c::handle_exec_trade(exec_trade_in_dst_t&& o_in) {
     ///     hash_t tid;
     ///     string cmd;
 
-    return daemon.traders.exec(o_in.tid, o_in.cmd, *this);
+    return traders.exec(o_in.tid, o_in.cmd);
+    //lf.exec_help(prefix + "loc ", os); //--add_help_items
+    //w.businesses.exec_help(prefix, os); //--api_list
+
 }
 
 ko c::handle_qr(bookmarks_t& bookmarks) {
     log("qr");
-    daemon.traders.published_bookmarks(*this, bookmarks);
+    published_bookmarks(bookmarks);
+//    daemon.traders.published_bookmarks(*this, bookmarks);
     return ok;
 }
 
@@ -1041,12 +1047,12 @@ ko c::handle_bookmark_add(bookmark_add_in_dst_t&& o_in, string& ans) {
     ///     bookmark_t bookmark;
 
     ans = "OK";
-    return daemon.traders.bookmarks.add(o_in.name, move(o_in.bookmark));
+    return bookmarks.add(o_in.name, move(o_in.bookmark));
 }
 
 ko c::handle_bookmark_delete(string&& key, string& ans) {
     log("bookmark_delete");
-    auto r = daemon.traders.bookmarks.remove(key);
+    auto r = bookmarks.remove(key);
     if (is_ko(r)) {
         ans = r;
         return r;
@@ -1055,14 +1061,14 @@ ko c::handle_bookmark_delete(string&& key, string& ans) {
     return r;
 }
 
-ko c::handle_bookmark_list(bookmarks_t& bookmarks) {
+ko c::handle_bookmark_list(bookmarks_t& ans_bookmarks) {
     log("bookmark_list");
     ostringstream os;
-    os << daemon.traders.bookmarks.home << '/' << "brand_bookmarks";
-    bookmarks.load(os.str());
+    os << daemon.home << "/trader/" << "brand_bookmarks";
+    ans_bookmarks.load(os.str());
     {
-        lock_guard<mutex> lock(daemon.traders.bookmarks_mx);
-        bookmarks += daemon.traders.bookmarks;
+        lock_guard<mutex> lock(bookmarks.mx);
+        ans_bookmarks += bookmarks;
     }
     return ok;
 }
@@ -1183,6 +1189,21 @@ ko c::handle_timeseries_add(timeseries_add_in_dst_t&& o_in, string& ans) {
     os << "Event registered as " << now << '.' << o_in.addr << '\n';
     ans = os.str();
     return ok;
+}
+
+ko c::handle_r2r_index_hdr(protocols_t& protocols) {
+    log("r2r_index_hdr");
+    return businesses.handle_r2r_index_hdr(protocols);
+}
+
+ko c::handle_r2r_bookmarks(protocol_selection_t&& protocol_selection, bookmarks_t& bookmarks) {
+    log("r2r_bookmarks");
+    return businesses.handle_r2r_bookmarks(move(protocol_selection), bookmarks);
+}
+
+ko c::handle_r2r_index(bookmark_index_t& bookmark_index) {
+    log("r2r_index");
+    return businesses.handle_r2r_index(bookmark_index);
 }
 
 //-/----------------apitool - End of API implementation.

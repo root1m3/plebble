@@ -32,10 +32,12 @@
 #include <us/wallet/wallet/algorithm.h>
 #include <us/wallet/trader/bookmarks_t.h>
 #include <us/wallet/wallet/local_api.h>
+#include <us/wallet/engine/bookmark_index_t.h>
 
 #define loglevel "wallet/engine"
 #define logclass "peer_t__wallet"
 #include <us/gov/logs.inc>
+#include <us/gov/socket/dto.inc>
 
 using namespace us::wallet::engine;
 using c = us::wallet::engine::peer_t;
@@ -45,13 +47,15 @@ using c = us::wallet::engine::peer_t;
 bool c::process_work__wallet(datagram* d) {
     log("process_work__wallet");
     using namespace protocol;
-    assert(wallet_local_api != nullptr);
+    assert(is_role_device());
+    assert(local_w != nullptr);
     switch(d->service) {
         #include <us/api/generated/wallet/c++/wallet/hdlr_svc-router>
     }
     return false;
 }
 
-#define delegate (*wallet_local_api)
+//using delegate = *local_w;
+#define delegate (*local_w)
 #include <us/api/generated/wallet/c++/wallet/hdlr_svc_handler-impl>
 

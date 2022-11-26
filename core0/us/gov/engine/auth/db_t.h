@@ -36,6 +36,7 @@ namespace us::gov::engine::auth {
     struct maskcoord_t;
 
     struct db_t final: io::seriable {
+
         db_t(nodes_t& nodes, mutex& mxnodes, nodes_t& hall, mutex& mxhall);
 
         peer_t::stage_t get_stage(const hash_t&) const;

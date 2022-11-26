@@ -20,9 +20,13 @@
 //===-
 //===----------------------------------------------------------------------------
 //===-
-#include "locking_program_input_t.h"
 #include <us/gov/crypto/base58.h>
+#include <us/gov/io/blob_reader_t.h>
+#include <us/gov/io/blob_writer_t.h>
+
 #include "types.h"
+
+#include "locking_program_input_t.h"
 
 #define loglevel "gov/cash"
 #define logclass "locking_program_input_t"

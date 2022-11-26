@@ -26,19 +26,15 @@
 #include <us/gov/socket/busyled_t.h>
 
 namespace us::gov::socket {
-
     struct datagram;
     struct client;
     struct daemon_t;
-
 }
 
 namespace us::gov::socket::multipeer {
 
     struct server0 {
-
         virtual void receive_and_process(client*) = 0;
-
     };
 
     struct server: bgtask, server0 {

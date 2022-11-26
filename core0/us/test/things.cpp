@@ -41,6 +41,7 @@
 #include <us/wallet/trader/endpoint_t.h>
 #include <us/wallet/trader/bookmarks_t.h>
 #include <us/wallet/trader/personality/proof_t.h>
+#include <us/wallet/trader/libs_t.h>
 
 #include "test_platform.h"
 
@@ -1432,6 +1433,88 @@ struct things_t: us::test::test_platform {
 
     }
 
+    void test_older_version_algorithm(version_fingerprint_t me, version_fingerprint_t peer, bool ev) {
+        auto r = us::gov::id::peer_t::am_I_older(me, peer);
+        assert(r == ev);
+    }
+    // [0-86)
+    // [86-119)
+    // [119-256)
+    void test_older_version_algorithm() {
+        version_fingerprint_t me;
+        version_fingerprint_t peer;
+        test_older_version_algorithm(0, 0, false);
+        test_older_version_algorithm(0, 1, true);
+        test_older_version_algorithm(0, 85, true);
+        test_older_version_algorithm(0, 86, true);
+        test_older_version_algorithm(0, 87, true);
+        test_older_version_algorithm(0, 118, true);
+        test_older_version_algorithm(0, 119, false);
+        test_older_version_algorithm(0, 120, false);
+
+        test_older_version_algorithm(1, 0, false);
+        test_older_version_algorithm(1, 1, false);
+        test_older_version_algorithm(1, 85, true);
+        test_older_version_algorithm(1, 86, true);
+        test_older_version_algorithm(1, 87, true);
+        test_older_version_algorithm(1, 118, true);
+        test_older_version_algorithm(1, 119, false);
+        test_older_version_algorithm(1, 120, false);
+        
+        test_older_version_algorithm(85, 0, false);
+        test_older_version_algorithm(85, 1, false);
+        test_older_version_algorithm(85, 85, false);
+        test_older_version_algorithm(85, 86, true);
+        test_older_version_algorithm(85, 87, true);
+        test_older_version_algorithm(85, 118, true);
+        test_older_version_algorithm(85, 119, false);
+        test_older_version_algorithm(85, 120, false);
+        test_older_version_algorithm(85, 254, false);
+        test_older_version_algorithm(85, 255, false);
+
+        test_older_version_algorithm(86, 0, false);
+        test_older_version_algorithm(86, 1, false);
+        test_older_version_algorithm(86, 85, false);
+        test_older_version_algorithm(86, 86, false);
+        test_older_version_algorithm(86, 87, true);
+        test_older_version_algorithm(86, 118, true);
+        test_older_version_algorithm(86, 119, true);
+        test_older_version_algorithm(86, 120, true);
+        test_older_version_algorithm(86, 254, true);
+        test_older_version_algorithm(86, 255, true);
+
+        test_older_version_algorithm(118, 0, false);
+        test_older_version_algorithm(118, 1, false);
+        test_older_version_algorithm(118, 85, false);
+        test_older_version_algorithm(118, 86, false);
+        test_older_version_algorithm(118, 87, false);
+        test_older_version_algorithm(118, 118, false);
+        test_older_version_algorithm(118, 119, true);
+        test_older_version_algorithm(118, 120, true);
+        test_older_version_algorithm(118, 254, true);
+        test_older_version_algorithm(118, 255, true);
+
+        test_older_version_algorithm(119, 0, true);
+        test_older_version_algorithm(119, 1, true);
+        test_older_version_algorithm(119, 85, true);
+        test_older_version_algorithm(119, 86, false);
+        test_older_version_algorithm(119, 87, false);
+        test_older_version_algorithm(119, 118, false);
+        test_older_version_algorithm(119, 119, false);
+        test_older_version_algorithm(119, 120, true);
+        test_older_version_algorithm(119, 254, true);
+        test_older_version_algorithm(119, 255, true);
+
+        test_older_version_algorithm(0, 1, true);
+        test_older_version_algorithm(1, 0, false);
+        test_older_version_algorithm(1, 255, false);
+        test_older_version_algorithm(1, 254, false);
+        test_older_version_algorithm(10, 254, false);
+
+    //cout << "==========================" << endl;
+    //assert(false);
+    }
+
     void test_ripemd160() {
         hash_t z(0);
         assert(z.is_zero());
@@ -1477,6 +1560,41 @@ struct things_t: us::test::test_platform {
         delete i21;
     }
 
+    void test_extract_protocol_selection(const string& filename) {
+        using libs_t = us::wallet::trader::libs_t;
+        auto r = libs_t::extract_protocol_selection(filename);
+        assert(!r.is_set());
+    }
+
+    void test_extract_protocol_selection(const string& filename, protocol_selection_t&& expect) {
+        tee(filename, expect.to_string2());
+        using libs_t = us::wallet::trader::libs_t;
+        auto r = libs_t::extract_protocol_selection(filename);
+        tee("got:", r.to_string2(), "expected:", expect.to_string2());
+        assert(r.is_set() == expect.is_set());
+        assert(r == expect);
+    }
+
+    void test_extract_protocol_selection() {
+        test_extract_protocol_selection("");
+        test_extract_protocol_selection("so");
+        test_extract_protocol_selection(".so");
+        test_extract_protocol_selection(".so.so");
+        test_extract_protocol_selection("--");
+        test_extract_protocol_selection("--.so");
+        test_extract_protocol_selection("- -.so");
+        test_extract_protocol_selection(" - -.so");
+        test_extract_protocol_selection(" - -");
+        test_extract_protocol_selection(" --");
+        test_extract_protocol_selection("lib--.");
+        test_extract_protocol_selection("lib--.so");
+        test_extract_protocol_selection("lib-p-.so");
+        test_extract_protocol_selection("lib-p-r.so", protocol_selection_t("p", "r"));
+        test_extract_protocol_selection("libp-r.so");
+        test_extract_protocol_selection("libxxxtrader-protocol-role.so", protocol_selection_t("protocol", "role"));
+//assert(false);
+    }
+
     void self_test() {
         cout << "pointers (classic/fat)" << endl;
         test_pointers();
@@ -1502,10 +1620,14 @@ struct things_t: us::test::test_platform {
         test_trader_personality();
         cout << "trader::bootstrap" << endl;
         test_trade_bootstrap();
+        cout << "older_version_algorithm" << endl;
+        test_older_version_algorithm();
     //cout << "================================= OK ================================" << endl;
     //assert(false);
         cout << "chat" << endl;
         test_chat();
+        cout << "extract_protocol_selection" << endl;
+        test_extract_protocol_selection();
         
     }
 

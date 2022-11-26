@@ -32,14 +32,19 @@ fi
 . ./.cbs/config
 
 function help {
-    echo "$0 [-b] [--local-build] [--flags <flags10>] [--brand <brand|all] <cmd>"
-    echo " clear_ccache"
-    echo " run"
-    echo ""
-    echo "*stop <job>"
+    cat << EOF
+$0 [-b] [--local-build] [--flags <flags10>] [--brand <brand|all] <cmd>
+--yes              Don't ask questions, assume yes.
+--stop-on-blobs
+clear_ccache
+run
+
+*stop <job>
+EOF
     exit 0
 }
 
+ley yes=0
 let bg=0
 let local_build=0
 brand=all
@@ -62,6 +67,11 @@ while [[ true ]]; do
         continue
     elif [[ "_$opt" == "_--flags" ]]; then
         flags10="$1"
+        shift
+        continue
+    elif [[ "_$opt" == "_--yes" ]]; then
+        let yes=1
+        echo "auto answering yes to questions"
         shift
         continue
     else
@@ -98,7 +108,11 @@ function run_cbs_init {
     echo "flags_compile_job=$flags_compile_job"
     echo "Make sure you have your signing password ready."
     echo "Sure? yes or CTRL-C"
-    read ryes
+    if [[ $yes -eq 1 ]]; then
+        echo "auto-answering yes"
+    else
+        read ryes
+    fi
 }
 
 sep="-------------------------------------------------------------------------------"
@@ -161,9 +175,25 @@ function run_cbs {
     find blobs -type f
     date
     echo "Blobs are ready at directory blobs/"
+
+    let test_blob=0
+    echo "Test blob ?"
+    if [[ $yes -eq 1 ]]; then
+        echo "auto-answering yes"
+    else
+        read ryes
+    fi
+    if [[ $test_blob -eq 1 ]]; then
+        bin/85_test_blob
+    fi
+
     echo "deploy to distribution nodes (Brand Distribution End) ?"
-    echo "CTRL-C to end here. Otherwise upload blobs to BDEs"
-    read a
+    echo "CTRL-C to end here. Otherwise start upload blobs to BDEs"
+    if [[ $yes -eq 1 ]]; then
+        echo "auto-answering yes"
+    else
+        read ryes
+    fi
     bin/80_deploy_blobs build_jobs_distr
     if [[ $? -ne 0 ]]; then
         exit 1
@@ -176,14 +206,22 @@ function run_cbs {
     echo "Next step: command them to update (using centralized governance here until we can program brains for it)"
     echo "ush install_blob"
     echo "yes?"
-    read x
+    if [[ $yes -eq 1 ]]; then
+        echo "auto-answering yes"
+    else
+        read ryes
+    fi
     ush -yes install_blob
     if [[ $? -ne 0 ]]; then
         exit 1
     fi
     echo "Next step: execute postupgrade scripts."
     echo "yes?"
-    read x
+    if [[ $yes -eq 1 ]]; then
+        echo "auto-answering yes"
+    else
+        read ryes
+    fi
     bin/99_postupgrade run
     if [[ $? -ne 0 ]]; then
         exit 1
@@ -283,7 +321,7 @@ echo "build in background: $bg"
 echo "cmd $cmd"
 
 if [[ "_$cmd" == "_" ]]; then
-    help]
+    help
     exit 0
 fi
 

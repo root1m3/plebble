@@ -38,6 +38,7 @@
 #include <us/wallet/engine/peer_t.h>
 #include <us/wallet/engine/daemon_t.h>
 #include <us/wallet/wallet/local_api.h>
+#include <us/wallet/trader/businesses_t.h>
 
 #include "traders_t.h"
 #include "chat_t.h"
@@ -64,6 +65,13 @@ void c::olog(const Args&... args) const {
     #define log(...) log_("tid", this->id, __FILE__, __LINE__, __VA_ARGS__)
 #endif
 
+namespace {
+    void fill_random(uint64_t& x) {
+        mt19937_64 rng(random_device{}());
+        *reinterpret_cast<mt19937::result_type*>(&x) = rng();
+    }
+}
+
 c::trader_t(traders_t& parent, engine::daemon_t& demon, const hash_t& parent_tid, const string& datasubdir): b(demon), parent(parent), bootstrapper(nullptr), datasubdir(datasubdir), parent_tid(parent_tid) {
     log("constructor", "TRACE 8c");
     ts_creation = duration_cast<nanoseconds>(system_clock::now().time_since_epoch()).count();
@@ -71,6 +79,7 @@ c::trader_t(traders_t& parent, engine::daemon_t& demon, const hash_t& parent_tid
     my_personality = parent.personality;
     my_challenge = personality_t::gen_challenge();
     log("my_challenge", my_challenge);
+    fill_random(route); //serves to the other end to identify this trader (to solve the potential dicotomy of finding two traders working the same trade-id (e.g. trade between 2 custodial wallets managed by the same engine)
 }
 
 c::~trader_t() {
@@ -95,35 +104,51 @@ ko c::permission_bootstrap(const peerid_t& peerid) const {
     return ok;
 }
 
-ko c::boot(size_t utid, wallet::local_api& wallet) {
+pair<ko, hash_t> c::boot(const hash_t& tid, wallet::local_api& w) {
     log("boot 0", "TRACE 8c");
+    ts_activity.store(duration_cast<nanoseconds>(system_clock::now().time_since_epoch()).count());
     delete bootstrapper;
     bootstrapper = nullptr;
-    load_state(utid);
+    load_state(tid);
     assert(id.is_not_zero());
-    if (utid != traders_t::get_utid(id, wallet)) {
-        auto r = "KO 87997 utid doesn't match.";
+    if (tid != id) {
+        auto r = "KO 87997 tid doesn't match.";
         log(r);
-        return r;
+        return make_pair(r, hash_t(0));
     }
-    init(id, remote_endpoint, wallet);
+    init(id, remote_endpoint, w);
     olog("boot from state read from disk.");
-    return ok;
+    log("boot returned tid", tid);
+    return make_pair(ok, tid);
 }
 
 pair<ko, hash_t> c::boot(const peerid_t& peerid, bootstrapper_t* bs) {
     log("boot 1", "TRACE 8c", bs);
     ts_activity.store(duration_cast<nanoseconds>(system_clock::now().time_since_epoch()).count());
-    auto r = permission_bootstrap(peerid);
-    if (is_ko(r)) {
-        return make_pair(r, hash_t(0));
+    {    
+        auto r = permission_bootstrap(peerid);
+        if (is_ko(r)) {
+            return make_pair(r, hash_t(0));
+        }
     }
     delete bootstrapper;
     bootstrapper = bs;
     bootstrapped_by = peerid;
     assert(bootstrapped_by.is_not_zero());
     log("bootstraper", bs, "start");
-    return bootstrapper->start(*this);
+    auto r = bootstrapper->start(*this);
+    log("boot returned tid", r.second, "route", route);
+    return r;
+}
+
+void c::load_my_protocols() {
+    my_protocols.clear();
+    auto file = w->home + "/protocols";
+    if (us::gov::io::cfg0::file_exists(file)) {
+        auto r = my_protocols.load(file);
+        if (is_ko(r)) {
+        }
+    }
 }
 
 void c::init(const hash_t& tid, const endpoint_t& rep, wallet::local_api& wallet) {
@@ -140,6 +165,8 @@ void c::init(const hash_t& tid, const endpoint_t& rep, wallet::local_api& wallet
         log("datasubdir was empty.", "Now is", datasubdir);
     }
     id = tid;
+    load_my_protocols();
+
     if (need_init()) { //olog decides
         #if CFG_LOGS == 1
             ostringstream os;
@@ -170,6 +197,11 @@ void c::on_stop() {
     if (p != nullptr) p->on_finish();
 }
 
+pair<ko, hash_t> c::initiate(qr_t&& qr) {
+    log("initiate");
+    return w->businesses.initiate(id, datasubdir, move(qr));
+}
+
 const endpoint_t& c::local_endpoint() const {
     assert(w != nullptr);
     return w->local_endpoint;
@@ -177,18 +209,23 @@ const endpoint_t& c::local_endpoint() const {
 
 pair<ko, hostport_t> c::resolve_ip_address(const hash_t& pkh) const {
     pair<ko, hostport_t> ret;
-    ret.first = parent.daemon.lookup_wallet(pkh, ret.second);
+    ret.first = daemon.lookup_wallet(pkh, ret.second);
     return move(ret);
 }
 
 void c::online(peer_t& peer) {
     log("online", "TRACE 8c");
     b::online(peer);
+    //log("peer.local_w", peer.local_w, "w", w);
+    //assert(peer.local_w == w);
+
+/*
     if (peer.wallet_local_api == nullptr) {
-        log("storing wallet_local_api in peer");
+        log("storing wallet_local_api in peer", w);
         peer.wallet_local_api = w;
     }
     assert(peer.wallet_local_api == w);
+*/
     if (bootstrapper == nullptr) {
         return;
     }
@@ -209,12 +246,12 @@ int c::set_personality(const string& sk, const string& moniker) {
     return my_personality.reset_if_distinct(sk, moniker);
 }
 
-ko c::set_protocol(protocol* p_, ch_t& ch) {
+ko c::set_protocol(trader_protocol* p_, ch_t& ch) {
     lock_guard<mutex> lock(mx);
     return set_protocol_(p_, ch);
 }
 
-ko c::set_protocol_(protocol* p_, ch_t& ch) { //sh params changed (local, remote)
+ko c::set_protocol_(trader_protocol* p_, ch_t& ch) { //sh params changed (local, remote)
     log("set_protocol", p_, ch.to_string());
     if (unlikely(p_ == p)) {
         return ok;
@@ -234,7 +271,7 @@ ko c::set_protocol_(protocol* p_, ch_t& ch) { //sh params changed (local, remote
         }
     }
     else {
-        my_personality = parent.personality;
+        my_personality = parent.personality; //TODO: personality shouldn't be reseted when changing protocol
         ch.shared_params_changed = true;
     }
     p = p_;
@@ -291,7 +328,7 @@ ko c::update_peer(peer_t& peer, ch_t&& ch) const {
             svc = svc_personality;
         }
         log("sending over svc", svc);
-        auto r = peer.call_trading_msg(peer_t::trading_msg_in_t(id, svc, blob));
+        auto r = call_trading_msg(peer, svc, blob);
         if (is_ko(r)) {
             log(r);
         }
@@ -408,9 +445,15 @@ ko c::deliver(endpoint_t&& endpoint, protocols_t&& protocols, challenge_t&& chal
 }
 
 ko c::deliver(protocol_selection_t&& protocol_selection, params_t&& params, ch_t& ch) {
-    log("deliver protocol_selection, params;", "prot/role:", protocol_selection.first, protocol_selection.second, "; params sz", params.size());
-    auto p = parent.create_protocol(move(protocol_selection), move(params));
-    if (p.first != ok) {
+    log("deliver remote_protocol_selection, params;", "prot/role:", protocol_selection.to_string2(), "; params sz", params.size());
+    {
+        auto r = w->businesses.invert(protocol_selection);
+        if (is_ko(r)) {
+            return r;
+        }
+    }
+    auto p = w->businesses.create_protocol(move(protocol_selection), move(params));
+    if (is_ko(p.first)) {
         log(p.first);
         assert(p.second == nullptr);
         reset();
@@ -423,9 +466,9 @@ ko c::deliver(protocol_selection_t&& protocol_selection, params_t&& params, ch_t
     return ok;
 }
 
-ko c::deliver(challenge_t&& challenge, protocol_selection_t&& protocol_selection, params_t&& params, ch_t& ch) {
-    log("deliver endpoint, challenge, protocol_selection, params");
-    auto r = deliver(move(protocol_selection), move(params), ch);
+ko c::deliver(challenge_t&& challenge, protocol_selection_t&& remote_protocol_selection, params_t&& params, ch_t& ch) {
+    log("deliver endpoint, challenge, remote_protocol_selection, params");
+    auto r = deliver(move(remote_protocol_selection), move(params), ch);
     if (is_ko(r)) {
         return r;
     }
@@ -531,11 +574,11 @@ ko c::trading_msg_trader(peer_t& peer, svc_t svc, blob_t&& blob) {
         case svc_roles_request: {
             log("Received protocols request.");
             protocols_t p;
-            parent.published_protocols(p, false);
+            w->businesses.published_protocols(p, false);
             log("Sending over requested protocols");
             blob_t payload;
             p.write(payload);
-            return peer.call_trading_msg(peer_t::trading_msg_in_t(id, svc_roles, payload));
+            return call_trading_msg(peer, svc_roles, payload);
         }
         case svc_roles: {
             log("Received peer protocols.");
@@ -560,11 +603,11 @@ ko c::trading_msg_trader(peer_t& peer, svc_t svc, blob_t&& blob) {
         case svc_qr_request: {
             log("Received qr request.");
             bookmarks_t bm;
-            parent.published_bookmarks(*w, bm);
+            w->published_bookmarks(bm);
             log("Sending over requested qr");
             blob_t payload;
             bm.write(payload);
-            return peer.call_trading_msg(peer_t::trading_msg_in_t(id, svc_qr, payload));
+            return call_trading_msg(peer, svc_qr, payload);
         }
         case svc_qr: {
             log("Received qr.");
@@ -660,7 +703,7 @@ ko c::trading_msg_trader(peer_t& peer, svc_t svc, blob_t&& blob) {
         }
         case svc_ping: {
             log("Received svc_ping", "Sending svc_pong.");
-            return peer.call_trading_msg(peer_t::trading_msg_in_t(id, svc_pong, blob_t()));
+            return call_trading_msg(peer, svc_pong, blob_t());
         }
         case svc_pong: {
             ts_t ts_recv_pong = duration_cast<nanoseconds>(system_clock::now().time_since_epoch()).count();
@@ -695,24 +738,26 @@ bool c::resume_chat(peer_t& peer) {
 }
 
 void c::schedule_push(uint16_t code, const string& lang) const {
-    assert(w != nullptr);
-    parent.schedule_push(get_push_datagram(code, lang), *w);
+    parent.parent.schedule_push(get_push_datagram(code, lang));
 }
+
 
 void c::schedule_push(datagram* d) const {
-    assert(w != nullptr);
-    parent.schedule_push(d, *w);
+    parent.parent.schedule_push(d);
 }
 
+/*
 void c::funs_t::exec_help(const string& prefix, ostream& os) const {
     for (auto& i: *this) {
        os << prefix << i;
     }
 }
+*/
 
 datagram* c::get_push_datagram(uint16_t pc, const string& lang) const {
     auto blob = push_payload(pc, lang);
-    auto d = peer_t::push_in_t(id, pc, blob).get_datagram(parent.daemon.channel, 0);
+    auto d = peer_t::push_in_t(id, pc, blob).get_datagram(daemon.channel, 0);
+    assert(d != nullptr);
     log("get_push_datagram", pc, "blob sz", blob.size(), "dgram sz", d->size());
     return d;
 }
@@ -731,7 +776,6 @@ blob_t c::push_payload(uint16_t pc, const string& lang) const {
         break;
         case push_data: {
             log("pushing data");
-            //ostringstream doc;
             write_data(lang, blob);
         }
         break;
@@ -742,12 +786,12 @@ blob_t c::push_payload(uint16_t pc, const string& lang) const {
         break;
         case push_bookmarks: {
             log("pushing bookmarks");
-            parent.bookmarks.write(blob);
+            w->bookmarks.write(blob);
         }
         break;
         case push_roles_mine: {
             log("pushing roles mine");
-            protocols_t my_protocols = parent.published_protocols(false);
+            protocols_t my_protocols = w->businesses.published_protocols(false);
             my_protocols.write(blob);
         }
         break;
@@ -759,8 +803,6 @@ blob_t c::push_payload(uint16_t pc, const string& lang) const {
         break;
         case push_roles: {
             log("pushing roles");
-            protocols_t my_protocols = parent.published_protocols(true);
-            //parent.invert(my_protocols);
             protocols_t p;
             {
                 lock_guard<mutex> lock(mx);
@@ -772,7 +814,7 @@ blob_t c::push_payload(uint16_t pc, const string& lang) const {
         case push_qr_mine: {
             log("pushing qr mine");
             bookmarks_t bm;
-            parent.published_bookmarks(*w, bm);
+            w->published_bookmarks(bm);
             bm.write(blob);
         }
         break;
@@ -798,6 +840,7 @@ blob_t c::push_payload(uint16_t pc, const string& lang) const {
             blob = blob_writer_t::make_blob(os.str());
         }
         break;
+/*
         case push_local_functions: {
             log("pushing local functions");
             ostringstream os;
@@ -811,6 +854,7 @@ blob_t c::push_payload(uint16_t pc, const string& lang) const {
             rf.dump(os);
             blob = blob_writer_t::make_blob(os.str());
         }
+*/
         break;
     }
     return move(blob);
@@ -884,20 +928,19 @@ void c::show_data_(const string& lang, ostream& os) const {
         os << "protocol " << p->get_name() << ' ' << p->rolestr() << '\n';
         p->data(lang, os);
     }
-    os << "rf " << (rf.empty() ? 'N' : 'Y') << '\n';
+//    os << "rf " << (rf.empty() ? 'N' : 'Y') << '\n';
 }
 
 void c::write_data(const string& lang, blob_t& blob) const {
     ostringstream os;
     show_data(lang, os);
     string sd = os.str();
-
     #if CFG_LOGS == 1
     {
         data_t data;
         data.from(sd);
-        log("dataInfo", "called from:");
-        log_stacktrace();
+        //log("dataInfo", "called from:");
+        //log_stacktrace();
         auto diff = data.get_diff(prev_data);
         logdump("datadiff> ", diff);
         {
@@ -1008,7 +1051,7 @@ ko c::send_msg(peer_t& peer, const chat_t::entry& msg) {
     blob_t blob;
     msg.write(blob);
     log("sending chat msg");
-    auto r = peer.call_trading_msg(peer_t::trading_msg_in_t(id, svc_chat_msg, blob));
+    auto r = call_trading_msg(peer, svc_chat_msg, blob);
     schedule_push(push_chat, peer.get_lang());
     return r;
 }
@@ -1091,14 +1134,16 @@ ko c::exec_offline(const string& cmd0, ch_t& ch) {
             ch.always_update_devices_();
             return ok;
         }
+/*
         if (cmd == "lf") {
-            schedule_push(push_local_functions, lang);
+            parent.schedule_push(push_local_functions, lang);
             return ok;
         }
         if (cmd == "rf") {
-            schedule_push(push_remote_functions, lang);
+            parent.schedule_push(push_remote_functions, lang);
             return ok;
         }
+*/
     }
     if (cmd == "copybm") {
         int i = -1;
@@ -1170,13 +1215,11 @@ void c::dispose() {
 }
 
 ko c::push_KO(ko msg) const {
-    assert(w != nullptr);
-    return parent.push_KO(id, msg, *w);
+    return parent.parent.push_KO(id, msg);
 }
 
 ko c::push_OK(const string& msg) const {
-    assert(w != nullptr);
-    return parent.push_OK(id, msg, *w);
+    return parent.parent.push_OK(id, msg);
 }
 
 void c::saybye(peer_t& peer) {
@@ -1187,7 +1230,7 @@ void c::saybye(peer_t& peer) {
         blob_writer_t w(blob, blob_writer_t::blob_size(msg));
         w.write(msg);
     }
-    peer.call_trading_msg(peer_t::trading_msg_in_t(id, traders_t::svc_kill_trade, blob));
+    call_trading_msg(peer, traders_t::svc_kill_trade, blob);
 }
 
 void c::die(const string& rson) {
@@ -1218,14 +1261,14 @@ ko c::create_bookmark(const string& name, string&& icofile, string&& label) {
     blob_t blob;
     us::gov::io::read_file_(icofile, blob);
     bookmark_t b(move(remote_qr()), bookmark_info_t(move(label), move(blob)));
-    lock_guard<mutex>(parent.bookmarks_mx);
-    return parent.bookmarks.add(name, move(b));
+    lock_guard<mutex>(w->bookmarks.mx);
+    return w->bookmarks.add(name, move(b));
 }
 
 ko c::create_bookmark(const string& name, const bookmark_t& bm) {
     bookmark_t b(bm);
-    lock_guard<mutex>(parent.bookmarks_mx);
-    return parent.bookmarks.add(name, move(b));
+    lock_guard<mutex>(w->bookmarks.mx);
+    return w->bookmarks.add(name, move(b));
 }
 
 protocol_selection_t c::opposite_protocol_selection() const {
@@ -1246,21 +1289,21 @@ ko c::exec_online(peer_t& peer, const string& cmd0, ch_t& ch) {
         string cmd;
         is >> cmd;
         if (cmd == "roles") {
-            auto r = peer.call_trading_msg(peer_t::trading_msg_in_t(id, svc_roles_request, blob_t()));
+            auto r = call_trading_msg(peer, svc_roles_request, blob_t());
             if (is_ko(r)) {
                 return move(r);
             }
             return push_OK("roles requested.");
         }
         if (cmd == "qrs") {
-            auto r = peer.call_trading_msg(peer_t::trading_msg_in_t(id, svc_qr_request, blob_t()));
+            auto r = call_trading_msg(peer, svc_qr_request, blob_t());
             if (is_ko(r)) {
                 return move(r);
             }
             return push_OK("qrs requested.");
         }
         if (cmd == "rf") {
-            auto r = peer.call_trading_msg(peer_t::trading_msg_in_t(id, svc_functions_request, blob_t()));
+            auto r = call_trading_msg(peer, svc_functions_request, blob_t());
             if (is_ko(r)) {
                 return move(r);
             }
@@ -1276,9 +1319,17 @@ ko c::exec_online(peer_t& peer, const string& cmd0, ch_t& ch) {
         if (is.fail()) {
             auto r = "KO 40935 Invalid protocol or role.";
             olog(r);
-            return move(r);
+            return r;
         }
-        auto r = bootstrapper->dialogue_b.initiate(peer, protocol_selection_t(move(prot), move(role)), ch);
+        protocol_selection_t inverted_protocol_selection(move(prot), move(role));
+        {
+            auto r = w->businesses.invert(inverted_protocol_selection);
+            if (is_ko(r)) {
+                olog(r);
+                return r;
+            }
+        }
+        auto r = bootstrapper->dialogue_b.initiate(peer, move(inverted_protocol_selection), ch);
         if (is_ko(r)) {
             return move(r);
         }
@@ -1290,7 +1341,7 @@ ko c::exec_online(peer_t& peer, const string& cmd0, ch_t& ch) {
         if (is_ko(r)) {
             return r;
         }
-        return peer.call_trading_msg(peer_t::trading_msg_in_t(id, svc_end_protocol, blob_t()));
+        return call_trading_msg(peer, svc_end_protocol, blob_t());
     }
     if (cmd == "send") {
         string cmd;
@@ -1388,8 +1439,8 @@ ko c::exec_online(peer_t& peer, const string& cmd0, ch_t& ch) {
     if (cmd == "kill") {
         log("saybye");
         saybye(peer);
-        assert(peer.wallet_local_api != nullptr);
-        parent.kill(traders_t::get_utid(id, *peer.wallet_local_api), "API function kill_trade");
+        //assert(peer.local_w != nullptr);
+        parent.kill(id, "API function kill_trade");
         return ok;
     }
     if (cmd == "make_bookmark" || cmd == "makebm") {
@@ -1444,18 +1495,20 @@ void c::ping(peer_t& peer, function<void(uint64_t)> handler) {
 void c::ping(peer_t& peer) {
     ts_sent_ping = duration_cast<nanoseconds>(system_clock::now().time_since_epoch()).count();
     log("ping peer ts", ts_sent_ping);
-    peer.call_trading_msg(peer_t::trading_msg_in_t(id, svc_ping, blob_t()));
+    call_trading_msg(peer, svc_ping, blob_t());
 }
 
 void c::reset_ping() {
     pong_handler = [](uint64_t){};
 }
 
+/*
 void c::funs_t::dump(ostream& os) const {
     for (auto& i: *this) {
         os << i << '\n';
     }
 }
+*/
 
 void c::help(const string& ind, ostream& os) const {
     using fmt = trader_protocol;
@@ -1489,8 +1542,8 @@ void c::help(const string& ind, ostream& os) const {
         fmt::twocol(ind3, "log", "Log content", os);
         fmt::twocol(ind3, "chat", "Dialogue history", os);
         fmt::twocol(ind3, "bookmarks", "Endpoints worth to remember.", os);
-        fmt::twocol(ind3, "lf", "List local functions", os);
-        fmt::twocol(ind3, "rf", "List remote functions", os);
+//        fmt::twocol(ind3, "lf", "List local functions", os);
+//        fmt::twocol(ind3, "rf", "List remote functions", os);
     }
     fmt::twocol(ind2, "makebm <local_name> <ico_file|-> <label> ", "Create a bookmark with this endpoint.", os);
     fmt::twocol(ind2, "copybm <#ordinal>", "Copy bookmark from peer. (see 'qrs peer' command)", os);
@@ -1501,8 +1554,8 @@ void c::help(const string& ind, ostream& os) const {
     fmt::twocol(ind2, "reset", "Send RESET signal", os);
     fmt::twocol(ind2, "reload", "Send RELOAD signal", os);
     fmt::twocol(ind2, "kill", "Archive this trade", os);
-    fmt::twocol(ind2, "lf <name> <args>|help", "Execute local function", os);
-    fmt::twocol(ind2, "rf <name> <args>|help", "Execute remote function", os);
+//    fmt::twocol(ind2, "lf <name> <args>|help", "Execute local function", os);
+//    fmt::twocol(ind2, "rf <name> <args>|help", "Execute remote function", os);
     fmt::twocol(ind2, "msg <text>", "Send message to peer [chat]", os);
     fmt::twocol(ind2, "trade", "Go back to trading shell", os);
     fmt::twocol(ind2, "wallet", "Go back to wallet shell", os);
@@ -1544,8 +1597,8 @@ size_t c::blob_size() const {
         blob_writer_t::blob_size(datasubdir) +
         blob_writer_t::blob_size(endpoint_pkh) +
         blob_writer_t::blob_size(remote_endpoint) +
-        blob_writer_t::blob_size(rf) +
-        blob_writer_t::blob_size(p, parent.protocol_factories) +
+        //blob_writer_t::blob_size(rf) +
+        blob_writer_t::blob_size(p, w->businesses.protocol_factories) +
         blob_writer_t::blob_size(ts_activity.load());
     log("blob_size", sz);
     return sz;
@@ -1570,10 +1623,10 @@ void c::to_blob(blob_writer_t& writer) const {
     log("endpoint_pkh");
     writer.write(endpoint_pkh);
     writer.write(remote_endpoint);
-    log("rf");
-    writer.write(rf);
+    //log("rf");
+    //writer.write(rf);
     log("protocol");
-    writer.write(p, parent.protocol_factories);
+    writer.write(p, w->businesses.protocol_factories);
     log("ts_activity");
     writer.write(ts_activity.load());
 }
@@ -1664,14 +1717,16 @@ ko c::from_blob(blob_reader_t& reader) {
             return r;
         }
     }
+/*
     {
         auto r = reader.read(rf);
         if (is_ko(r)) {
             return r;
         }
     }
+*/
     {
-        auto r = reader.read(p, parent.protocol_factories);
+        auto r = reader.read(p, w->businesses.protocol_factories);
         if (is_ko(r)) {
             return r;
         }
@@ -1690,15 +1745,15 @@ ko c::from_blob(blob_reader_t& reader) {
     return ok;
 }
 
-pair<string, string> c::sername(size_t utid) const {
+pair<string, string> c::sername() const {
     ostringstream os;
-    os << parent.home << "/state/" << utid;
+    os << parent.home << "/" << id << "/state";
     return make_pair(os.str(), "state");
 }
 
-void c::load_state(size_t utid) {
-    log("load_state", sername(utid).first);
-    auto n = sername(utid);
+void c::load_state(const hash_t& tid) {
+    log("load_state", tid);
+    auto n = sername();
     lock_guard<mutex> lock(mx);
     auto r = load(n.first + '/' + n.second);
     if (is_ko(r)) {
@@ -1715,8 +1770,8 @@ void c::save_state() const {
     if (id.is_zero()) {
         return;
     }
-    log("save_state", sername(traders_t::get_utid(id, *w)).first);
-    auto n = sername(traders_t::get_utid(id, *w));
+    auto n = sername();
+    log("save_state", n.first);
     us::gov::io::cfg0::ensure_dir(n.first);
     lock_guard<mutex> lock(mx);
     auto r = save(n.first + '/' + n.second + "_off");
@@ -1724,4 +1779,11 @@ void c::save_state() const {
         log("active trades could not be saved", n.first , n.second);
     }
 }
+
+ko c::call_trading_msg(peer_t& peer, const uint16_t& svc, const blob_t& payload) const {
+    log("call_trading_msg. route", route, "svc", svc);
+    assert(route > 0);
+    return peer.call_trading_msg2(peer_t::trading_msg2_in_t(route, id, svc, payload));
+}
+
 

@@ -21,6 +21,8 @@
 //===----------------------------------------------------------------------------
 //===-
 #include "endpoint_t.h"
+#include <us/gov/io/blob_reader_t.h>
+#include <us/gov/io/blob_writer_t.h>
 
 #include <sstream>
 #include <chrono>

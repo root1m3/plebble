@@ -113,7 +113,7 @@ import android.net.wifi.WifiManager;                                            
 import android.view.Window;                                                                    // Window
 import android.view.WindowManager;                                                             // WindowManager
 import org.xmlpull.v1.XmlPullParser;                                                           // XmlPullParser
-
+import us.wallet.engine.bookmark_index_t; 
 //import android.content.BroadcastReceiver;                                                      // BroadcastReceiver
 
 public final class main_activity extends activity {
@@ -124,7 +124,8 @@ public final class main_activity extends activity {
 
     public main_activity() {
         if (CFG.default_view_bookmarks == 1) {
-            _nodes_mode_all = false;
+            _nodes_mode_tab = 1;
+//            _nodes_mode_all = false;
         }
     }
 /*
@@ -198,6 +199,8 @@ public final class main_activity extends activity {
         Menu nav_menu = navigation.getMenu();
         updateavailable = nav_menu.findItem(R.id.nav_updateavailable);
         if (updateavailable != null) {
+            updateavailable.setVisible(false);
+/*
             if (a.hmi().sw_updates != null) {
                 if (a.hmi().sw_updates.is_updateavailable) {
                     updateavailable.setVisible(true);
@@ -209,6 +212,7 @@ public final class main_activity extends activity {
             else {
                 updateavailable.setVisible(false);
             }
+*/
         }
         boolean showiot = true;
         //release builds (which don't incluce lines marked '--strip' ) doesn't show the experimental IoT menu.
@@ -238,8 +242,12 @@ public final class main_activity extends activity {
 
     public void show_remote_bookmarks(final hash_t tid, final bookmarks_t bm) {
         log("remote_bookmarks"); //--strip
-        _nodes_mode_custom = bm;
+
+
         _nodes_mode_custom_tid = tid;
+        _nodes_mode_custom = bm;
+        _nodes_mode_tab = 1;
+
         Intent intent = new Intent(main_activity.this, nodes.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NO_HISTORY);
         startActivity(intent);
@@ -429,9 +437,16 @@ public final class main_activity extends activity {
     //smart_card_reader reader;
     private MenuItem updateavailable;
 
-    public boolean _nodes_mode_all = true;
-    public bookmarks_t _nodes_mode_custom = null;
+    public int _nodes_mode_tab = 0;
+
     public hash_t _nodes_mode_custom_tid = null;
+    public bookmarks_t _nodes_mode_custom = null;
+
+
+//    public boolean _nodes_mode_all = true;
+//    public bookmarks_t _nodes_mode_custom = null;
+//    public hash_t _nodes_mode_custom_tid = null;
+//    public bookmark_index_t _nodes_mode_index = null;
 
 }
 

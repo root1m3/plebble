@@ -23,10 +23,16 @@
 #pragma once
 #include <chrono>
 #include <string>
+
 #include <us/gov/crypto/ripemd160.h>
 #include <us/gov/crypto/ec.h>
 #include <us/gov/io/seriable.h>
 #include <us/gov/types.h>
+
+namespace us::gov::io {
+    struct blob_writer_t;
+    struct blob_reader_t;
+}
 
 namespace us::gov::socket {
     struct datagram;
@@ -68,9 +74,10 @@ namespace us::gov::engine {
         virtual uint64_t uniq() const = 0; // { return ts; }
 
     public:
-        using serid_t = blob_reader_t::serid_t;
+        using serid_t = readable::serid_t;
         static constexpr serid_t serid{'E'};
         serid_t serial_id() const override { return serid; }
+
         size_t blob_size() const override;
         void to_blob(blob_writer_t&) const override;
         ko from_blob(blob_reader_t&) override;
@@ -82,9 +89,9 @@ namespace us::gov::engine {
     };
 
 }
-
+/*
 namespace us::gov::io {
     template<> inline ko blob_reader_t::readD(const us::gov::socket::datagram& d, us::gov::engine::evidence& o) { return o.read(d); }
     template<> inline datagram* blob_writer_t::get_datagram(channel_t channel, svc_t svc, seq_t seq, const us::gov::engine::evidence& o) { return o.get_datagram(channel, svc, seq); }
 }
-
+*/

@@ -85,7 +85,7 @@ namespace us::wallet::trader::workflow {
             return make_pair(r, doc);
         }
 
-        static ko exec(istream& is, traders_t& traders, wallet::local_api& w) {
+        static ko exec(istream& is, wallet::local_api& w) {
             string cmd;
             is >> cmd;
             if (cmd == "create") {
@@ -115,7 +115,7 @@ namespace us::wallet::trader::workflow {
                     os << "file saved as " << o.output_file << '\n';
                 }
                 delete doc;
-                return traders.push_OK(hash_t(0), os.str(), w);
+                return w.push_OK(hash_t(0), os.str());
             }
             if (cmd == "read") {
                 string filename;
@@ -133,7 +133,7 @@ namespace us::wallet::trader::workflow {
                 ostringstream os;
                 doc->write_pretty(os);
                 delete doc;
-                return traders.push_OK(hash_t(0), os.str(), w);
+                return w.push_OK(hash_t(0), os.str());
             }
             return "KO 66952 Invalid command";
         }

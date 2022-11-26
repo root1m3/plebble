@@ -40,6 +40,7 @@ import us.stdint.*;                                                             
 import java.io.InputStream;                                                                    // InputStream
 import java.io.InputStreamReader;                                                              // InputStreamReader
 import java.io.IOException;                                                                    // IOException
+import us.wallet.engine.ip4_endpoint_t;                                                        // ip4_endpoint_t
 import static us.ko.is_ko;                                                                     // is_ko
 import org.json.JSONArray;                                                                     // JSONArray
 import org.json.JSONException;                                                                 // JSONException
@@ -49,11 +50,11 @@ import static us.ko.ok;                                                         
 import java.io.OutputStream;                                                                   // OutputStream
 import java.io.OutputStreamWriter;                                                             // OutputStreamWriter
 import us.pair;                                                                                // pair
-import us.string;                                                                              // string
-import us.wallet.engine.wallet_connection_t;
-import us.wallet.engine.ip4_endpoint_t;
 import us.gov.io.types.blob_t.serid_t;                                                         // serid_t
+import us.string;                                                                              // string
 import static us.gov.io.types.blob_t.version_t;                                                // version_t
+import us.wallet.engine.wallet_connections_t;                                                  // wallet_connections_t
+import us.wallet.engine.wallet_connection_t;                                                   // wallet_connection_t
 
 public final class device_endpoints_t extends ArrayList<device_endpoint_t> implements us.gov.io.seriable {
 
@@ -67,40 +68,36 @@ public final class device_endpoints_t extends ArrayList<device_endpoint_t> imple
         a = a_;
     }
 
-    device_endpoint_t defdep() {
-        if (CFG.default_wallet_connection.isEmpty()) {
-            return null;
+    int add_default_wallet_connection2() {
+        if (CFG.default_wallet_connections.isEmpty()) {
+            return -1;
         }
-        blob_t blob = new blob_t(base58.decode(CFG.default_wallet_connection));
+        blob_t blob = new blob_t(base58.decode(CFG.default_wallet_connections));
         if (blob.value == null) {
             log("default connection blob is null"); //--strip
-            return null;
+            return -1;
         }
-        wallet_connection_t wallet_connection = new wallet_connection_t();
+        wallet_connections_t wallet_connections = new wallet_connections_t();
         blob_reader_t reader = new blob_reader_t(blob);
-        ko r = reader.read(wallet_connection);
+        ko r = reader.read(wallet_connections);
         if (is_ko(r)) {
             log(r.msg); //--strip
-            return null;
+            return -1;
         }
-        return new device_endpoint_t(this, wallet_connection);
+        log("adding default device_endpoints "); //--strip
+        for (wallet_connection_t entry: wallet_connections) {
+            add(new device_endpoint_t(this, entry));
+        }
+        if (isEmpty()) {
+            return -1; //off if multiple templates
+        }
+        if (size() > 1) {
+            return -1; //off if multiple templates
+        }
+        return 0; //connect slot 0 if only 1 template
     }    
 
-    int add_default_wallet_connection2() throws Exception {
-        int on = -1;
-        device_endpoint_t dd = defdep();
-        if (dd == null) {
-            return on;
-        }
-        log("adding default device_endpoint " + dd.cfg.home); //--strip
-        add(dd);
-        if (dd.hmi_req_on) {
-            on = 0; //index
-        }
-        return on;
-    }
-
-    int add_default_wallet_connection() throws Exception {
+    int add_default_wallet_connection() {
         int on = add_default_wallet_connection2();
         if (isEmpty()) {
             log("No valid default connection found."); //--strip
@@ -109,14 +106,14 @@ public final class device_endpoints_t extends ArrayList<device_endpoint_t> imple
         }
         return on;
     }
-
+/*
     public void add_default_wallet_connection_off() {
         device_endpoint_t dd = defdep();
         if (dd == null) return;
         dd.hmi_req_on = false;
         add(dd);
     }
-
+*/
     public int init() throws Exception {
 /*
         {
@@ -140,7 +137,12 @@ public final class device_endpoints_t extends ArrayList<device_endpoint_t> imple
         if (isEmpty()) {
             log("load returned empty set"); //--strip
             int on = add_default_wallet_connection();
-            set_cur(0);
+            if (on > -1) {
+                set_cur(on);
+            }
+            else {
+                set_cur(0);
+            }
             return on;
         }
         if (is_ko(r.first)) {
@@ -191,7 +193,7 @@ public final class device_endpoints_t extends ArrayList<device_endpoint_t> imple
     public ko copy_device_endpoint(int ndx) {
         log("copy_endpoint " + ndx); //--strip
         device_endpoint_t dep = get(ndx);
-        device_endpoint_t copy = new device_endpoint_t(this, "Copy of " + dep.name_.value, dep.ip4_endpoint);
+        device_endpoint_t copy = new device_endpoint_t(this, "Copy of " + dep.name_.value, "", dep.ip4_endpoint);
         add(copy);
         log("save"); //--strip
         save();
@@ -240,21 +242,27 @@ public final class device_endpoints_t extends ArrayList<device_endpoint_t> imple
 */
 
     public void poweron(app a, int pos, final pin_t pin, app.progress_t progress) {
+        log("poweron pos " + pos); //--strip
         set_cur(pos);
+        log("============== cur.ip4_endpoint.to_string()= " + cur.ip4_endpoint.to_string()); //--strip
 //        device_endpoint_t dep = get(pos);
         cur.poweron(a, pin, progress);
         save();
         //return dep.hmi;
     }
 
-    public void poweroff(app a, int pos, app.progress_t progress) {
-        set_cur(pos);
+    public void poweroff(app a, int pos, boolean save_, app.progress_t progress) {
+//        set_cur(pos);
+        device_endpoint_t dep = get(pos);
+        dep.poweroff(progress);
+        assert dep.hmi == null; //--strip
 
 //        device_endpoint_t dep = get(pos);
 //        assert dep != null; //--strip
-        cur.poweroff(progress);
-        assert cur.hmi == null; //--strip
-        save();
+//        cur.poweroff(progress);
+        if (save_) {
+            save();
+        }
     }
 
     void write(blob_t blob) {
@@ -282,6 +290,18 @@ public final class device_endpoints_t extends ArrayList<device_endpoint_t> imple
                     return -1;
                 }
         });
+        int newindex = -1;
+        for (device_endpoint_t d: this) {
+            ++newindex;
+            if (d == cur) {
+                break;
+            }
+        }
+        if (newindex >= size()) { //--strip
+            log("KO 78688 Unexpected. newindex " + newindex + " sz " + size()); //--strip
+        }  //--strip
+        assert newindex < size(); //--strip
+        cur_index.value = newindex;
         blob_t blob = new blob_t();
         write(blob);
         return cfg_android_private_t.write_file(a.getApplicationContext(), "", device_endpoints_file, blob.value);
@@ -335,73 +355,6 @@ public final class device_endpoints_t extends ArrayList<device_endpoint_t> imple
         return new pair<ko, Integer>(ok, new Integer(pwr));
     }
 
-/*
-    pair<ko, Integer> load_prev() {
-        log("load_prev"); //--strip
-        int pwr = -1;
-        try {
-            pair<ko, JSONObject> root = read_settings_json();
-            if (is_ko(root.first)) {
-                log(root.first.msg); //--strip
-                return new pair<ko, Integer>(root.first, null);
-            }
-            clear();
-            JSONArray data = root.second.getJSONArray("data");
-            log("data.length()=" + data.length()); //--strip
-            for (int i = 0; i < data.length(); i++) {
-                JSONObject o = data.getJSONObject(i);
-                if (o == null) continue;
-                //IP
-                //port
-                //Name
-                //channel
-                //ts
-                String k_b58 = null;
-                string nm = new string("");
-                string addr = new string("");
-                string ssid = new string("");
-                String x = null;
-                int power = 0;
-                int p = 0;
-                int ch = 0;
-                uint64_t ts = new uint64_t(0);
-                k_b58 = o.getString("k");
-                addr.value = o.getString("addr");
-                x = o.getString("ip");
-                p = o.getInt("port");
-                nm.value = o.getString("name");
-                power = o.getInt("power");
-                ch = o.getInt("channel");
-                ts.value = o.getLong("ts");
-                ssid.value = o.getString("ssid");
-                log("loaded new device_endpoint_t " + nm.value); //--strip
-                device_endpoint_t d = new device_endpoint_t(this, k_b58, new wallet_connection_t(ts, addr, nm, ssid, new ip4_endpoint_t(new shost_t(x), new port_t(p), new channel_t(ch))));
-                add(d);
-                if (power == 1) {
-                    d.hmi_req_on = true;
-                    pwr = size() - 1;
-                    log("power is ON on pos " + pwr); //--strip
-                }
-            }
-            int ndx = root.second.getInt("global");
-            log("NDX=" + ndx); //--strip
-            set_cur(ndx);
-        }
-        catch (JSONException e) {
-            ko r = new ko("KO 68857 Exception");
-            log(r.msg); //--strip
-            return new pair<ko, Integer>(r, null);
-        }
-        catch (Exception e) {
-            ko r = new ko("KO 68858 Exception");
-            log(r.msg + " " + e.getMessage()); //--strip
-            return new pair<ko, Integer>(r, null);
-        }
-        log("loaded - ok"); //--strip
-        return new pair<ko, Integer>(ok, new Integer(pwr));
-    }
-*/
-
     public ko set_name(String name) {
         cur.name_.value = name;
         return save();
@@ -412,7 +365,6 @@ public final class device_endpoints_t extends ArrayList<device_endpoint_t> imple
         return save();
     }
 
-//    @Override public serid_t serial_id() { return serid_t.no_header; }
     public static serid_t my_serid_id = new serid_t((short)'X');
 
     @Override public serid_t serial_id() { return my_serid_id; }

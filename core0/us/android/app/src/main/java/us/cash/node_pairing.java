@@ -58,9 +58,11 @@ import android.view.inputmethod.InputMethodManager;                             
 import android.text.InputType;                                                                 // InputType
 import android.content.Intent;                                                                 // Intent
 import java.io.IOException;                                                                    // IOException
+import us.wallet.engine.ip4_endpoint_t;                                                        // ip4_endpoint_t
 import org.json.JSONArray;                                                                     // JSONArray
 import org.json.JSONException;                                                                 // JSONException
 import org.json.JSONObject;                                                                    // JSONObject
+import android.text.method.KeyListener;                                                        // KeyListener
 import java.security.KeyPair;                                                                  // KeyPair
 import us.ko;                                                                                  // ko
 import android.view.LayoutInflater;                                                            // LayoutInflater
@@ -96,8 +98,6 @@ import android.util.TypedValue;                                                 
 import us.gov.io.types.vector_tuple_hash_host_port;                                            // vector_tuple_hash_host_port
 import android.view.ViewGroup;                                                                 // ViewGroup
 import android.view.View;                                                                      // View
-import us.wallet.engine.ip4_endpoint_t;                                                  // hash_t
-import android.text.method.KeyListener;
 
 public final class node_pairing extends activity {
 
@@ -429,11 +429,17 @@ public final class node_pairing extends activity {
 
         save_subhome.setOnClickListener(new View.OnClickListener() {
             @Override public void onClick(View view) {
-                dep.subhome.value = subhome.getText().toString();
+                String x = subhome.getText().toString();
+                if (x.equals("[Non-Custodial]")) {
+                    x = "";
+                }
+                dep.subhome.value = x;
                 a.device_endpoints.save();
                 save_subhome.setVisibility(View.GONE);
             }
         });
+
+        subhome_key_listener = subhome.getKeyListener();
 
     }
 
@@ -536,6 +542,7 @@ public final class node_pairing extends activity {
         }
     }
 
+/*
     void confirmed_subhome(String sbhome) {
         a.assert_ui_thread(); //--strip
         state.subhome = sbhome;
@@ -547,15 +554,18 @@ public final class node_pairing extends activity {
             toast("Custodial wallet " + sbhome);
         }
     }
+*/
 
     public void confirmed_subhome__worker(String subhome) {
         log("confirmed_subhome__worker " + subhome); //--strip
+        dep.set_subhome(subhome);
+        a.device_endpoints.save();
         runOnUiThread(new Runnable() {
             @Override public void run() {
-                confirmed_subhome(subhome);
+                refresh_subhome_widgets();
+                refresh_mode_widgets();
             }
         });
-
     }
 
     void update_hmi(boolean set_manual) {
@@ -737,7 +747,7 @@ public final class node_pairing extends activity {
     }
 
     void set_status_led(ColorDrawable led_state, String msg) { //0 red 1 amber 2 green -1 unchanged
-        log("Status: " + msg); //--strip
+        log("set_status_led: " + msg); //--strip
         if (led_state == leds_t.led_red) {
             connection_status_lo.setEndIconDrawable(redled);
         }
@@ -796,7 +806,7 @@ public final class node_pairing extends activity {
                 });
             }
         };
-        a.HMI_power_off(conf_index, progress);
+        a.HMI_power_off(conf_index, true, progress);
         Timer timer = new Timer();
         timer.schedule(new TimerTask() {
           @Override public void run() {
@@ -812,15 +822,14 @@ public final class node_pairing extends activity {
     }
 
     void test_task() {
-        log("test_task"); //--strip
+        log("test_task " + state.ip4_endpoint.to_string()); //--strip
         a.assert_worker_thread(); //--strip
         if (state.ip4_endpoint == null) {
             log("wrong ip4_endpoint from widgets"); //--strip
             test_result_worker(new ko("KO 60954 Wrong input"));
             return;
         }
-        log("ip4_endpoint from state " + state.ip4_endpoint.to_string() + " PIN>0 " + (state.pin.value > 0 ? "yes" : "no"));  //--strip
-        ko ans = ok;
+        log("ip4_endpoint from state " + state.ip4_endpoint.to_string() + " PIN > 0 " + (state.pin.value > 0 ? "yes" : "no"));  //--strip
         try {
             app.progress_t progress = new app.progress_t() {
                 @Override public void on_progress(final String report) {
@@ -831,18 +840,18 @@ public final class node_pairing extends activity {
                     });
                 }
             };
-            log("Connecting to " + state.ip4_endpoint.to_string() + " using PIN>0 " + (state.pin.value > 0 ? "yes" : "no") + " subhome " + state.subhome); //--strip
+            log("Connecting to " + state.ip4_endpoint.to_string() + " using PIN > 0 " + (state.pin.value > 0 ? "yes" : "no") + " subhome " + state.subhome); //--strip
             if (dep.hmi != null) {
-                a.HMI_power_off__worker(conf_index, progress);
+                a.HMI_power_off__worker(conf_index, false, progress);
             }
-            ans = dep.set_ip4_endpoint(state.ip4_endpoint);
-            ans = dep.set_subhome(state.subhome);
+            log("Connecting to " + state.ip4_endpoint.to_string() + " using PIN > 0 " + (state.pin.value > 0 ? "yes" : "no") + " subhome " + state.subhome); //--strip
+            dep.set_ip4_endpoint(state.ip4_endpoint);
+            dep.set_subhome(state.subhome);
             a.device_endpoints.save();
             a.HMI_power_on__worker(conf_index, state.pin, progress);
 
             update_hmi(true);
 
-            log("hmi ans " + (is_ok(ans) ? "ok" : ans.msg)); //--strip
             Timer timer = new Timer();
             timer.schedule(new TimerTask() {
               @Override public void run() {
@@ -855,16 +864,21 @@ public final class node_pairing extends activity {
         }
         catch (Exception e) {
             log("Exception " + e.getMessage()); //--strip
-            if (ans == ok) ans = new ko("KO 60394 " + e.toString());
-            error_manager.manage(e, ans.msg);
-            log(ans.msg + " " + e.toString()); //--strip
+            //if (ans == ok) ans = new ko("KO 60394 " + e.toString());
+            //error_manager.manage(e, ans.msg);
+            log(e.toString()); //--strip
         }
-        log("WP 5874 " + ko.as_string(ans)); //--strip
+        log("WP 58749 "); //--strip
     }
 
     void do_test(final pin_t pin) {
+        log ("do_test " + pin.value); //--strip
         ip4_endpoint_t ep = ip4_endpoint_from_widgets();
+        log ("ip4_endpoint_t from widgets " + ep.to_string()); //--strip
         String sbhome = subhome.getText().toString();
+        if (sbhome.equals("[Non-Custodial]")) {
+            sbhome = "";
+        }
         log("do_test" + pin.value + " subhome " + sbhome); //--strip
         state.start_testing(ep, pin, sbhome);
         refresh();
@@ -910,6 +924,11 @@ public final class node_pairing extends activity {
         log("test_result_ui"); //--strip
         a.assert_ui_thread(); //--strip
         state.end_testing(report);
+        if (report == ok) {
+            log("========saving ip4_ep " + state.ip4_endpoint.to_string()); //--strip
+            dep.ip4_endpoint = state.ip4_endpoint;
+            a.device_endpoints.save();
+        }
         refresh();
     }
 
@@ -1049,20 +1068,29 @@ public final class node_pairing extends activity {
 
     void refresh_subhome_widgets() {
         String subhometxt = subhome.getText().toString();
-        log("subhome.getText()='" + subhometxt + "'"); //--strip
+        log("subhome.getText() = '" + subhometxt + "'"); //--strip
 
         subhome.removeTextChangedListener(subhome_TextWatcher);
-        subhome.setText(dep.subhome.value);
+        if (dep.subhome.value.isEmpty()) {
+            subhome.setText("[Non-Custodial]");
+            subhome.setTextColor(darkgreen);
+        }
+        else {
+            subhome.setText(dep.subhome.value);
+            subhome.setTextColor(orange);
+        }
         save_subhome.setVisibility(View.GONE);
         subhome.setTextIsSelectable(true);
         if (dep.hmi == null) { //only allow taking input in power-off mode.
-            if (subhome.getKeyListener() == null && subhome_key_listener != null) { //restore original keylistener and allow input
+            if (subhome_key_listener != null) { //restore original keylistener and allow input
                 subhome.setKeyListener(subhome_key_listener);
                 subhome.addTextChangedListener(subhome_TextWatcher);
             }
+            else {
+                toast("KO 78699 look at this");
+            }
         }
         else {
-            subhome_key_listener = subhome.getKeyListener();
             subhome.setKeyListener(null);
         }
     }

@@ -57,19 +57,38 @@ public class blob_writer_t {
     }
 
     //------------------------------------------------------------------------------
-    public static abstract class writable implements writable_if {
+    public static class writable implements writable_if {
 
-        public serid_t serial_id() {
-            return new serid_t((short)0);
+        public writable() {
+            o = this;
+        }
+
+        public writable(writable_if o_) {
+            o = o_;
+        }
+
+        @Override public serid_t serial_id() {
+            if (o == this) return new serid_t((short)0);
+            return o.serial_id();
+        }
+
+        @Override public int blob_size() {
+            if (o == this) return 0;
+            return o.blob_size();
+        }
+
+        @Override public void to_blob(blob_writer_t writer) {
+            if (o == this) return;
+            o.to_blob(writer);
         }
 
         public int tlv_size() {
-            return (serial_id().value != 0 ? blob_writer_t.header_size() : 0) + blob_size();
+            return (o.serial_id().value != 0 ? blob_writer_t.header_size() : 0) + blob_size();
         }
 
         void write(blob_t blob) {
             log("writable::write to blob"); //--strip
-            serid_t serid = serial_id();
+            serid_t serid = o.serial_id();
             int sz = (serid.value != 0 ? blob_writer_t.header_size() : 0) + blob_size();
             if (sz == 0) {
                 blob.clear();
@@ -85,7 +104,7 @@ public class blob_writer_t {
 
         public datagram get_datagram(final channel_t channel, final svc_t svc, final seq_t seq) {
             log("writable::get_datagram svc" + svc.value); //--strip
-            serid_t serid = serial_id();
+            serid_t serid = o.serial_id();
             int sz = (serid.value != 0 ? blob_writer_t.header_size() : 0) + blob_size();
             datagram d = new datagram(channel, svc, seq, sz);
             blob_writer_t w = new blob_writer_t(d);
@@ -95,7 +114,7 @@ public class blob_writer_t {
             if (serid.value != 0) {
                 w.write_header(serid);
             }
-            w.write(this);
+            w.write(o);
             assert w.cur == d.bytes.length;
             return d;
         }
@@ -115,6 +134,8 @@ public class blob_writer_t {
             return us.gov.io.cfg0.write_file_(blob.value, filename);
         }
 
+        writable_if o;
+
     }
     //------------------------------------------------------------------------------
 
@@ -133,7 +154,6 @@ public class blob_writer_t {
         o.to_blob(w);
         assert w.cur == blob.value.length;
     }
-
 
     public blob_writer_t(blob_t blob, int sz) {
         this.blob = blob;
@@ -276,9 +296,9 @@ public class blob_writer_t {
         return sizet_size(o.value.length()) + o.value.length();
     }
 
-    //public void write(final string o) {
-    //    write(o.value);
-    //}
+    public void write(final string o) {
+        write(o.value);
+    }
 
     public static int blob_size(final byte[] o) {
         return sizet_size(o.length) + o.length;
@@ -355,7 +375,6 @@ public class blob_writer_t {
         write(o.first);
         write(o.second);
     }
-
 
     public static int blob_size(final vector_hash o) {
         int sz = sizet_size(o.size());
@@ -455,7 +474,6 @@ public class blob_writer_t {
     public static datagram get_datagram(final channel_t channel, final svc_t svc, final seq_t seq) {
         return new datagram(channel, svc, seq, 0);
     }
-
 
     public static <T> datagram get_datagram(final channel_t channel, final svc_t svc, final seq_t seq, final writable_if o) {
         datagram d = new datagram(channel, svc, seq, blob_size(o));

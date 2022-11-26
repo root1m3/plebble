@@ -20,8 +20,11 @@
 //===-
 //===----------------------------------------------------------------------------
 //===-
-#include "sigcode_section_t.h"
+#include <us/gov/io/blob_reader_t.h>
+#include <us/gov/io/blob_writer_t.h>
+
 #include "types.h"
+#include "sigcode_section_t.h"
 
 #define loglevel "cash"
 #define logclass "sigcode_section"

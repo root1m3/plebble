@@ -20,8 +20,12 @@
 //===-
 //===----------------------------------------------------------------------------
 //===-
-#include "protocol_selection_t.h"
 #include <cstring>
+
+#include <us/gov/io/blob_reader_t.h>
+#include <us/gov/io/blob_writer_t.h>
+
+#include "protocol_selection_t.h"
 
 #define loglevel "wallet/trader"
 #define logclass "protocol_selection_t"
@@ -60,15 +64,19 @@ bool c::operator < (const c& other) const {
 }
 
 size_t c::blob_size() const {
-    return blob_writer_t::blob_size(first) + blob_writer_t::blob_size(second);
+    auto sz = blob_writer_t::blob_size(first) + blob_writer_t::blob_size(second);
+    log("blob_size", sz);
+    return sz;
 }
 
 void c::to_blob(blob_writer_t& writer) const {
+    log("to_blob", "cur", (uint64_t)(writer.cur - writer.blob.data()));
     writer.write(first);
     writer.write(second);
 }
 
 ko c::from_blob(blob_reader_t& reader) {
+    log("from_blob", "cur", (uint64_t)(reader.cur - reader.blob.data()));
     {
         auto r = reader.read(first);
         if (is_ko(r)) {
@@ -82,6 +90,10 @@ ko c::from_blob(blob_reader_t& reader) {
         }
     }
     return ok;
+}
+
+void c::api_list_protocols(ostream& os) const {
+    os << first << ' ' << second << '\n';
 }
 
 void c::dump(const string& prefix, ostream&) const {

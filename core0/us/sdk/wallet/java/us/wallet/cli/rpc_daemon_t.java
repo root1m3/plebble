@@ -50,7 +50,6 @@ public class rpc_daemon_t extends us.wallet.engine.rpc_daemon_t implements us.go
         this.shostport = shostport;
         this.role = role;
         this.subhome = subhome;
-        this.parent = parent;
         this.parent = null;
         log("constructor"); //--strip
     }

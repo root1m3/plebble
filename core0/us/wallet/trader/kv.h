@@ -72,12 +72,11 @@ namespace us::wallet::trader {
         bool unset(const string& key);
 
         template<typename t>
-        bool underride(const string& key, const t& value) {
+        bool underride(const string& key, const t& value) {  //only writes if key doesnt exist, leaving untouched the existing content otherwise. Returns true if entry was created.
             ostringstream os;
             os << value;
-            return underrides(key, os.str());
+            return underride(key, os.str());
         }
-        bool underrides(const string& key, const string& value); //only writes if key doesnt exist, leaving untouched the existing content otherwise. Returns true if entry was created.
 
         string get(const string&, const string& def) const;
 
@@ -94,6 +93,8 @@ namespace us::wallet::trader {
         void saveX(const string& file) const;
 
     };
+
+    template<> bool kv::underride(const string& key, const string& value); //only writes if key doesnt exist, leaving untouched the existing content otherwise. Returns true if entry was created.
 
 }
 

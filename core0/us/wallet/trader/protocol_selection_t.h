@@ -40,9 +40,14 @@ namespace us::wallet::trader {
         protocol_selection_t(const protocol_selection_t&);
 
         protocol_selection_t& operator = (const protocol_selection_t&);
+        inline bool operator == (const protocol_selection_t& other) const { return first == other.first && second == other.second; }
+        inline bool operator != (const protocol_selection_t& other) const { return first != other.first || second != other.second; }
         bool operator < (const protocol_selection_t& other) const;
 
         void dump(const string& prefix, ostream&) const;
+        bool is_set() const { return !first.empty() && !second.empty(); }
+
+        void api_list_protocols(ostream&) const;
 
     public: //serialization blob
         size_t blob_size() const override;

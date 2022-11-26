@@ -107,6 +107,9 @@ namespace us::wallet::trader {
 
         template<typename... Args> void olog(const Args&... args) const;
 
+    public:
+        engine::daemon_t& daemon;
+
     private:
         state_t state{state_off};
         condition_variable cv;
@@ -124,7 +127,6 @@ namespace us::wallet::trader {
     private:
         peer_t* cli{nullptr};
         mutable mutex mx;
-        engine::daemon_t& daemon;
         
         queue<string> cmdq;
         mutable mutex mx_cmdq;

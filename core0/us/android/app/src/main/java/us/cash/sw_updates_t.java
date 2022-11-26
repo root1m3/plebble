@@ -48,8 +48,13 @@ import java.util.Timer;                                                         
 import java.util.TimerTask;                                                                    // TimerTask
 import android.widget.Toast;                                                                   // Toast
 import android.net.Uri;                                                                        // Uri
+import java.time.Instant;
+import java.time.Duration;
 
 public class sw_updates_t {
+
+    static ko KO_60599 = new ko("KO 60599 Permissions problem.");
+
 
     private static void log(final String line) {  //--strip
         CFG.log_android("sw_updates: " + line);   //--strip
@@ -77,7 +82,7 @@ public class sw_updates_t {
 //        query_newapk_hash(); //setup_curapk();
         log("swversion " + us.vcs.version_name); //--strip
         //log("curapk '" + curapk + "'"); //--strip
-        log("is_updateavailable " + is_updateavailable); //--strip
+        //log("is_updateavailable " + is_updateavailable); //--strip
     }
 
     //public String get_curapk() {
@@ -91,7 +96,7 @@ public class sw_updates_t {
 
     void clean_update() {
 //        cfg_private.delete_file("newapk_name");
-        is_updateavailable = false;
+        //is_updateavailable = false;
         cfg_private.delete_file("newapk_content");
 //        cfg_private.delete_file("newapk_by");
 //        log("deleted files newapk, newapk_by, newapk_content"); //--strip
@@ -196,7 +201,7 @@ public class sw_updates_t {
     ko download_apk() {
         log("download_apk"); //--strip
         a.assert_worker_thread(); //--strip
-        is_updateavailable = false;
+        //is_updateavailable = false;
         if (!verify_permissions(PERMISSIONS_STORAGE)) {
             if (a.main != null) {
                 a.main.runOnUiThread(new Runnable() {
@@ -205,9 +210,8 @@ public class sw_updates_t {
                     }
                 });
             }
-            ko r = new ko("KO 60599 Permissions problem");
-            log(r.msg); //--strip
-            return r;
+            log(KO_60599.msg); //--strip
+            return KO_60599;
         }
         if (!cfg_public.is_external_storage_writable()) {
             ko r = new ko("KO 78695 External storage is not writable");
@@ -261,9 +265,10 @@ public class sw_updates_t {
         }
         if (o_out.vcsname.value.equals(apkfilename.value)) {
             log("Same version."); //--strip
-            is_updateavailable = false;
-            return ok;
+            //is_updateavailable = false;
+            return new ko("KO 78868 No newer update blob.");
         }
+
         if (o_out.bin_pkg.value == null) {
             ko r = new ko("KO 10993 file is null.");
             log(r.msg); //--strip
@@ -299,33 +304,31 @@ public class sw_updates_t {
             }
         }
         */
-        log("updating var"); //--strip
-        is_updateavailable = true;
+//        log("updating var"); //--strip
+//        is_updateavailable = true;
         return ok;
     }
 
     void check(boolean informok) {
         a.assert_worker_thread(); //--strip
-
-        if (CFG.appstore_edition == 1) {
-            is_updateavailable = true;
-        }
-        else {
-            download_apk();
-        }
-
+        log("check"); //--strip
         a.main.runOnUiThread(new Runnable() {
             @Override public void run() {
+                ask_install();
+/*
                 if (is_updateavailable) {
-                    ask_install();
                 }
                 else {
                     if (informok) {
                         toast(a.getResources().getString(R.string.systemisuptodate));
                     }
                 }
+*/
             }
         });
+
+//        if (a.main == null) return;
+
     }
 
 /*
@@ -367,18 +370,23 @@ public class sw_updates_t {
     }
 
     public void ask_install() {
+        log("ask_install"); //--strip
         a.assert_ui_thread(); //--strip
+        if (a.active_ac == null) {
+            log("active_ac is null"); //--strip
+            return;
+        }
         String[] options = {"Install now.", "Remind me later."};
         final sw_updates_t i = this;
         new AlertDialog.Builder(a.active_ac).setTitle("An update of the app " + CFG.app_name + " is ready to install...")
             .setItems(options, new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
+                @Override public void onClick(DialogInterface dialog, int which) {
                     switch(which) {
                         case 0:
                             i.do_inst_ask_permission(a.active_ac);
                             break;
                         case 1:
+                            user_selected_remind_me_later = Instant.now();
                             break;
                     }
                 }
@@ -386,18 +394,27 @@ public class sw_updates_t {
             .setIcon(android.R.drawable.ic_dialog_alert).show();
     }
 
-    public void do_inst_local(activity ac) {
+    public ko do_inst_local(activity ac) {
         log("do_inst_local"); //--strip
         a.assert_ui_thread(); //--strip
 
+        {
+            ko r = download_apk();
+            if (is_ko(r)) { //retry in 
+                return r;
+            }
+        }
+
         if (!need_install_local_apk()) {
-            Toast.makeText(ac, a.getResources().getString(R.string.noupgradepackages), 6000).show();
-            return;
+            ac.toast(a.getResources().getString(R.string.noupgradepackages));
+            //Toast.makeText(ac, a.getResources().getString(R.string.noupgradepackages), 6000).show();
+            return new ko("KO 59588 apk not in disk");
         }
         File f = cfg_public.public_file("newapk_content");
         if (f == null) {
-            log("KO 30029 newapk_content doesn't open. " + curapk); //--strip
-            return;
+            ko r = new ko("KO 30029 newapk_content doesn't open.");
+            log(r.msg + " " + curapk); //--strip
+            return r;
         }
         log("Installing file length=" + f.length() + " bytes. " + f.getAbsolutePath()); //--strip
         try {
@@ -408,9 +425,10 @@ public class sw_updates_t {
         }
         catch (Exception e) {
             log("KO 60508 Ex. " + e.getMessage()); //--strip
-            error_manager.manage(e,"KO 60508");
+            error_manager.manage(e, "KO 60508");
         }
         log("Intent started"); //--strip
+        return ok;
     }
 
     public void do_inst_ask_permission(activity ac) {
@@ -425,14 +443,29 @@ public class sw_updates_t {
             }
             return;
         }
-        if (a.getPackageManager().canRequestPackageInstalls()) {
-            do_inst_local(ac);
-        }
-        else {
-            log("B");  //--strip
-            Intent i = new Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES).setData(Uri.parse(String.format("package:%s", a.getPackageName())));
-            ac.startActivityForResult(i, activity.INSTALL_PACKAGES_REQUESTCODE);
-            return;
+        int n = 5;
+        while (true) {
+            if (--n == 0) break;
+            if (a.getPackageManager().canRequestPackageInstalls()) {
+                ko r = do_inst_local(ac);
+                if (r != KO_60599) { //retry in 
+                    break;
+                }
+            }
+            else {
+                log("B");  //--strip
+                Intent i = new Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES).setData(Uri.parse(String.format("package:%s", a.getPackageName())));
+                ac.startActivityForResult(i, activity.INSTALL_PACKAGES_REQUESTCODE);
+                return;
+            }
+
+            try {
+                Thread.sleep(5000);
+            }
+            catch(InterruptedException e) {
+            }
+            log("Probl with permissions. Trying again in 5 secs"); //--strip
+            continue;                
         }
     }
 
@@ -447,8 +480,10 @@ public class sw_updates_t {
         thread.start();
     }
     void check4updates__worker() {
+        log("check4updates__worker"); //--strip
+        new Exception().printStackTrace();
         a.assert_worker_thread(); //--strip
-        //keep the calling thread (work dispatcher) unloaded
+        //keep the calling thread (work dispatcher) fast
         Thread thread = new Thread(new Runnable() {
             @Override public void run() {
                 check(true);
@@ -463,14 +498,16 @@ public class sw_updates_t {
         String[] options;
 
 //        boolean blob_available = need_install_local_apk()
+/*
         if (is_updateavailable) {
             String[] opt = {a.getResources().getString(R.string.checkforupdates), a.getResources().getString(R.string.installupdates), a.getResources().getString(R.string.cancel)};
             options = opt;
         }
         else {
-            String[] opt = {a.getResources().getString(R.string.checkforupdates), a.getResources().getString(R.string.cancel)};
-            options = opt;
-        }
+*/
+        String[] opt = {a.getResources().getString(R.string.checkforupdates), a.getResources().getString(R.string.cancel)};
+        options = opt;
+//        }
         final sw_updates_t i = this;
         new AlertDialog.Builder(ac).setTitle(a.getResources().getString(R.string.appupdates))
             .setItems(options, new DialogInterface.OnClickListener() {
@@ -483,13 +520,18 @@ public class sw_updates_t {
                         case 1:
                             i.forget_curapk();
                             break;
-*/  
                         case 1:
                             if (is_updateavailable) {
-                                i.do_inst_ask_permission(ac);
+                                ko r = i.do_inst_ask_permission(ac);
+                                if (is_ko(r)) {
+                                    if (a.main != null) {
+                                        a.main.toast(r.msg);
+                                    }
+                                }
                                 break;
                             }
                         case 2:
+*/  
                     }
                 }
             })
@@ -505,7 +547,7 @@ public class sw_updates_t {
     private boolean sw_updates_is_updateavailable = false;
 */
 
-    public boolean is_updateavailable = false;
+//    public boolean is_updateavailable = false;
 
 
     String curapk = "";
@@ -513,5 +555,6 @@ public class sw_updates_t {
     hmi_t hmi;
     cfg_android_private_t cfg_private;
     cfg_android_public_t cfg_public;
+    Instant user_selected_remind_me_later = null;
 }
 

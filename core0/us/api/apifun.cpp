@@ -128,6 +128,10 @@ bool c::io_types_t::from_stream(istream& is) {
             extensible_dto = true;
             continue;
         }
+        if (mne == "[notser]") {
+            is_seriable = false;
+            continue;
+        }
         string argname;
         l >> argname;
         if (!mne.empty() && !argname.empty()) {
@@ -137,6 +141,32 @@ bool c::io_types_t::from_stream(istream& is) {
             return false;
         }
     }
+    if (size() == 1) {
+        if (is_seriable) {
+            is_seriable = false;
+            auto mne = begin()->first;
+            if (mne.size() > 2) {
+                if (mne.substr(mne.size() - 2, 2) == "_t") {
+                    if (mne != "hash_t") {
+                        is_seriable = true;
+                    }
+                }
+            }
+        }
+/*
+        if (is_seriable) {
+            cout << "seriable mne = " << begin()->first << endl;
+        }
+        else {
+            cout << "not seriable mne = " << begin()->first << endl;
+        }
+*/
+    }
+/*
+    else {
+            cout << "seriable dto = " << size() << " args" << endl;
+    }
+*/
     return true;
 }
 

@@ -172,7 +172,7 @@ ko c::exec_offline(const string& cmd0, ch_t& ch) {
                 name = it->first;
                 bm = it->second;
             }
-            pair<ko, hash_t> child_trade = tder->parent.initiate(tder->id, tder->datasubdir, move(bm.qr), *tder->w);
+            pair<ko, hash_t> child_trade = tder->initiate(move(bm.qr));
             if (is_ko(child_trade.first)) return child_trade.first;
             {
                 ostringstream os;

@@ -22,8 +22,6 @@
 //===-
 #pragma once
 
-#include <us/gov/crypto/ripemd160.h>
-#include <us/gov/crypto/ec.h>
 #include <utility>
 #include <thread>
 #include <vector>
@@ -37,11 +35,17 @@
 #include <us/gov/config.h>
 #include <us/gov/bgtask.h>
 #include <us/gov/io/seriable.h>
+#include <us/gov/crypto/ripemd160.h>
+#include <us/gov/crypto/ec.h>
 
+#include "types.h"
 #include "trader_protocol.h"
-
 #include "chat_t.h"
 #include "endpoint_t.h"
+#include "protocol_selection_t.h"
+#include "conman.h"
+#include "kv.h"
+#include "data_t.h"
 #include "bootstrap/bootstrapper_t.h"
 #include "bootstrap/handshake_t.h"
 #include "bootstrap/dialogue_a_t.h"
@@ -50,10 +54,6 @@
 #include "bootstrap/protocols_t.h"
 #include "personality/personality_t.h"
 #include "personality/proof_t.h"
-#include "protocol_selection_t.h"
-#include "conman.h"
-#include "kv.h"
-#include "data_t.h"
 
 namespace us::wallet::engine {
     struct peer_t;
@@ -85,7 +85,7 @@ namespace us::wallet::trader {
     public:
         ko permission_bootstrap(const peerid_t& peer) const;
         pair<ko, hash_t> boot(const peerid_t&, bootstrapper_t*);
-        ko boot(size_t utid, wallet::local_api&);
+        pair<ko, hash_t> boot(const hash_t& tid, wallet::local_api&);
         void init(const hash_t& tid, const endpoint_t&, wallet::local_api&);
 
     public:
@@ -113,8 +113,6 @@ namespace us::wallet::trader {
         ko deliver(endpoint_t&&, protocols_t&&, challenge_t&&, personality_proof_t&&, ch_t&);
         ko deliver(endpoint_t&&, challenge_t&&, personality_proof_t&&, params_t&&, ch_t&);
         void write_personality_proof(ostream&) const;
-        ko set_protocol(protocol*, ch_t&);
-        ko set_protocol_(protocol*, ch_t&);
         void file_reloadx(const string& fqn);
         void update_activity();
         ko exec_trader_(client&, const string& cmd, istream&);
@@ -136,9 +134,9 @@ namespace us::wallet::trader {
         void to_blob(blob_writer_t&) const override;
         ko from_blob(blob_reader_t&) override;
         serid_t serial_id() const override { return 'T'; }
-        pair<string, string> sername(size_t utid) const;
+        pair<string, string> sername() const;
         void save_state() const;
-        void load_state(size_t utid);
+        void load_state(const hash_t& tid);
         
     public:
         enum push_code_t: uint16_t { //communications node-HMI
@@ -156,8 +154,8 @@ namespace us::wallet::trader {
             push_chat,
             push_bookmarks,
             push_help,
-            push_local_functions,
-            push_remote_functions,
+            //push_local_functions,
+            //push_remote_functions,
 
             push_end
         };
@@ -220,12 +218,17 @@ namespace us::wallet::trader {
         qr_t remote_qr() const;
         ko create_bookmark(const string& name, string&& icofile, string&& label);
         ko create_bookmark(const string& name, const bookmark_t&);
+        void load_my_protocols();
+        ko push_KO(ko) const;
+        ko push_OK(const string& msg) const;
 
+/*
         struct funs_t: us::gov::io::seriable_set<string> {
             funs_t() {}
             void dump(ostream&) const;
             void exec_help(const string& prefix, ostream&) const;
         };
+*/
 
         template<typename... Args> void olog(const Args&... args) const;
 
@@ -234,15 +237,14 @@ namespace us::wallet::trader {
         void schedule_push(datagram*) const;
         void schedule_push(uint16_t code, const string& lang) const;
         blob_t push_payload(uint16_t pc, const string& lang) const;
-        datagram* get_push_datagram(uint16_t pc, const string& lang) const;
-        ko push_KO(ko) const;
-        ko push_OK(const string& msg) const;
+        [[nodiscard]] datagram* get_push_datagram(uint16_t pc, const string& lang) const;
 
     public:
         hash_t id;
         hash_t parent_tid;
         personality_t my_personality;
         personality_proof_t::raw_t peer_personality;
+        protocols_t my_protocols;
         protocols_t peer_protocols;
         bookmarks_t peer_qrs;
         ts_t ts_creation;
@@ -255,15 +257,28 @@ namespace us::wallet::trader {
 
     private:
         hash_t endpoint_pkh;
-        funs_t rf; //remote functions
-        protocol* p{nullptr};
+        //funs_t rf; //remote functions
+
+        trader_protocol* p{nullptr};
+
         atomic<uint64_t> ts_activity;
 
     public:
+        //pair<ko, trader_protocol*> create_opposite_protocol(protocol_selection_t&&);
+        pair<ko, hash_t> initiate(qr_t&&);
+        //pair<ko, trader_protocol*> create_protocol(protocol_selection_t&&, params_t&& remote_params);
+        ko set_protocol(trader_protocol*, ch_t&);
+        ko set_protocol_(trader_protocol*, ch_t&);
+
+        ko call_trading_msg(peer_t& peer, const uint16_t& code, const blob_t& payload) const;
+
+    public:
         wallet::local_api* w{nullptr};
-        traders_t& parent;
+
+        traders_t& parent; //following pointer could lead to priviledge scalation in custodial wallets
         mutable mutex mx;
 
+    public:
         #if CFG_LOGS == 1
             mutable data_t prev_data;
         #endif
@@ -272,7 +287,7 @@ namespace us::wallet::trader {
         int peer_mutations{0};
         function<void(uint64_t)> pong_handler = [](uint64_t){};
         ts_t ts_sent_ping{0};
-
+        route_t route;
     };
 
 }

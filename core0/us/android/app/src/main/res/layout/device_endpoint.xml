@@ -4,28 +4,43 @@
     android:layout_height="wrap_content"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:background="#FFFFFF"
-    android:orientation="horizontal">
+    android:paddingStart="8dp"
+    android:paddingEnd="8dp"
+    android:orientation="vertical"
+    >
 
-    <Switch
-        android:id="@+id/poweron"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Power"
-        android:layout_marginStart="16dp"
-        android:layout_marginTop="32dp"
-        android:theme="@style/switch_theme"
-        />
-
-    <Button
-        android:id="@+id/hmibutton"
+    <TextView
+        android:id="@+id/label"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:layout_marginBottom="8dp"
-        android:layout_marginLeft="8dp"
-        android:layout_marginRight="8dp"
-        android:text=""
-    />
+        android:text="Remote wallet connections:"
+        android:textSize="24dp"
+         />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="#FFFFFF"
+        android:orientation="horizontal"
+        android:gravity="right|center_vertical"
+        android:layout_marginBottom="10dp"
+        >
+
+        <Switch
+            android:id="@+id/poweron"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Power"
+            android:theme="@style/switch_theme"
+            />
+
+        <ImageButton
+            android:id="@+id/hmibutton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@raw/gear"
+        />
+    </LinearLayout>
 
 </LinearLayout>
 

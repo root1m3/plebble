@@ -21,6 +21,8 @@
 //===----------------------------------------------------------------------------
 //===-
 #pragma once
+#include <type_traits>
+
 #ifdef DEBUG
    struct assert_is_root_namespace;
    static_assert(std::is_same<assert_is_root_namespace, ::assert_is_root_namespace>::value, "Not root namespace. Check includes.");

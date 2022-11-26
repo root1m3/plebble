@@ -34,8 +34,9 @@ import us.pair;                                                                 
 import java.io.PrintStream;                                                                    // PrintStream
 import java.util.Scanner;                                                                      // Scanner
 import static us.gov.io.types.blob_t.serid_t;                                                  // serid_t
+import java.lang.Comparable;
 
-public class protocol_selection_t extends pair<String, String> implements us.gov.io.seriable {
+public class protocol_selection_t extends pair<String, String> implements us.gov.io.seriable, Comparable<protocol_selection_t> {
 
     static void log(final String line) {                         //--strip
        CFG.log_wallet_trader("protocol_selection_t: " + line);   //--strip
@@ -56,8 +57,31 @@ public class protocol_selection_t extends pair<String, String> implements us.gov
         this.second = new String(other.second);
     }
 
-    static void to_stream(String o, OutputStream os0) {
-        PrintStream os = new PrintStream(os0);
+    @Override public int compareTo(protocol_selection_t other) {
+        int x = this.first.compareTo(other.first);
+        if (x != 0) {
+            return x;
+        }
+        return this.second.compareTo(other.second);
+    }
+
+    static void to_streamX(String o, PrintStream os) {
+        if (o.isEmpty()) {
+            os.print("- ");
+        }
+        else {
+            os.print(o + ' ');
+        }
+    }
+
+    public void to_streamX(PrintStream os) {
+        to_streamX(first, os);
+        to_streamX(second, os);
+    }
+
+/*
+    void to_streamX(PrintStream os) {
+        //PrintStream os = new PrintStream(os0);
         try {
             if (o.isEmpty()) {
                 os.print('-');
@@ -68,9 +92,9 @@ public class protocol_selection_t extends pair<String, String> implements us.gov
             os.print(' ');
         }
         catch(Exception e) {
-
         }
     }
+*/
 
     static pair<ko, String> from_scanner_string(Scanner sc) {
         pair<ko, String> r = new pair<ko, String>();
@@ -88,6 +112,10 @@ public class protocol_selection_t extends pair<String, String> implements us.gov
 
     public String to_string() {
         return first + ' ' + second;
+    }
+
+    public String to_string2() {
+        return first + '-' + second;
     }
 
     public ko from_stream(InputStream is) {

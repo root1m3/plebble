@@ -256,7 +256,7 @@ CFG.sdk_logs = true; //--strip
 
 //        hmi = null;
         int pwr = create_device_endpoints();
-        if (a.device_endpoints == null) {
+        if (device_endpoints == null) {
             log("KO 55061"); //--strip
             abort("device_endpoints failure");
             return;
@@ -264,15 +264,23 @@ CFG.sdk_logs = true; //--strip
         log("pwr = " + pwr); //--strip
         if (pwr != -1) {
             log("powering ON pos " + pwr); //--strip
+            log(" endpoint: " + device_endpoints.get(0).ip4_endpoint.to_string()); //--strip
             HMI_power_on(pwr, new pin_t(0), null);
         }
         else {
             log("none device endpoints were powered on."); //--strip
-            launch_connections();
+            Timer timer = new Timer();
+            timer.schedule(new TimerTask() {
+              @Override public void run() {
+                runOnUiThread(new Runnable() {
+                    @Override public void run() { 
+                        log("launch_connections"); //--strip
+                        launch_connections();
+                    }
+                });
+              }
+            }, 3000);
         }
-//        else {
-//            hmi = a.device_endpoints.cur.hmi;
-//        }
     }
 
     void test_hmi() {
@@ -310,10 +318,11 @@ CFG.sdk_logs = true; //--strip
 
     public int create_device_endpoints() { // returns the index to poweron, -1 for none
         log("create_device_endpoints"); //--strip
-        if (device_endpoints != null) {
-            log("Already created"); //--strip
-            return -1;
-        }
+        assert device_endpoints == null; //--strip
+//        if (device_endpoints != null) {
+//            log("Already created"); //--strip
+//            return -1;
+//        }
         try {
             device_endpoints = new device_endpoints_t(this);
             return device_endpoints.init();
@@ -949,17 +958,18 @@ CFG.sdk_logs = true; //--strip
             progress.on_progress("Cannot power on other endpoint while " + device_endpoints.cur.name_ + " is already powereded ON.");
             return;
         }
+        log("********************* pos " + pos); //--strip
         device_endpoints.poweron(this, pos, pin, progress);
         if (has_hmi()) {
             dispatchid = hmi().dispatcher.connect_sink(this);
         }
     }
 
-    public void HMI_power_off__worker(progress_t progress) {
-        HMI_power_off__worker(device_endpoints.cur_index.value, progress);
+    public void HMI_power_off__worker(boolean save_, progress_t progress) {
+        HMI_power_off__worker(device_endpoints.cur_index.value, save_, progress);
     }
 
-    public void HMI_power_off__worker(final int pos, final progress_t progress) {
+    public void HMI_power_off__worker(final int pos, boolean save_, final progress_t progress) {
         assert_worker_thread();  //--strip
         log("HMI_power_off__worker"); //--strip
         if (!has_hmi()) {
@@ -971,7 +981,7 @@ CFG.sdk_logs = true; //--strip
             dispatchid = -1;
         }
         log("set leds off"); //--strip
-        device_endpoints.poweroff(this, pos, progress);
+        device_endpoints.poweroff(this, pos, save_, progress);
         set_walletd_leds_off();
         set_govd_leds_off();
 //        hmi = null;
@@ -997,21 +1007,21 @@ CFG.sdk_logs = true; //--strip
         thread.start();
     }
 
-    public void HMI_power_off(final int pos, final progress_t progress) {
+    public void HMI_power_off(final int pos, final boolean save_, final progress_t progress) {
         a.assert_ui_thread(); //--strip
         Thread thread = new Thread(new Runnable() {
             @Override public void run() {
-                HMI_power_off__worker(pos, progress);
+                HMI_power_off__worker(pos, save_, progress);
             }
         });
         thread.start();
     }
 
-    public void HMI_power_off(final progress_t progress) {
+    public void HMI_power_off(final boolean save_, final progress_t progress) {
         a.assert_ui_thread(); //--strip
         Thread thread = new Thread(new Runnable() {
             @Override public void run() {
-                HMI_power_off__worker(progress);
+                HMI_power_off__worker(save_, progress);
             }
         });
         thread.start();
@@ -1135,7 +1145,7 @@ CFG.sdk_logs = true; //--strip
             HMI_power_on(new pin_t(0), progress);
             return;
         }
-        HMI_power_off(progress);
+        HMI_power_off(true, progress);
     }
 
 

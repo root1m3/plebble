@@ -52,6 +52,9 @@ namespace us::gov::id {
     #ifdef has_us_gov_id_api
 
         struct dto {
+            using readable = us::gov::io::readable;
+            using writable = us::gov::io::writable;
+
             #include <us/api/generated/gov/c++/id/cllr_dto-hdr>
             #include <us/api/generated/gov/c++/id/hdlr_dto-hdr>
         };

@@ -85,7 +85,7 @@ namespace us::trader::r2r::games {
         ko exec_offline(const string& cmd, ch_t&) override;
         ko exec_online(peer_t&, const string& cmd, ch_t&) override;
         static void exec_help(const string& prefix, ostream&);
-        static ko exec(istream&, traders_t&, wallet_local_api&);
+        static ko exec(istream&, wallet_local_api&);
         uint32_t trade_state_() const;
         //void judge(const string& lang) override;
 

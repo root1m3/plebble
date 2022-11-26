@@ -21,18 +21,24 @@
 //===----------------------------------------------------------------------------
 //===-
 #pragma once
-#include <us/gov/io/blob_writer_t.h>
-#include <us/gov/io/blob_reader_t.h>
-#include <us/gov/cash/accounts_t.h>
-#include <us/gov/cash/addresses_t.h>
-#include <us/gov/engine/protocol.h>
-#include <us/gov/engine/local_deltas_t.h>
-#include <us/gov/engine/track_status_t.h>
 #include <us/gov/types.h>
+//#include <us/gov/cash/accounts_t.h>
+#include <us/gov/cash/addresses_t.h>
+#include <us/gov/io/seriable.h>
+
+#include "protocol.h"
+//#include "local_deltas_t.h"
+//#include "track_status_t.h"
+
+namespace us::gov::cash {
+    struct accounts_t;
+}
 
 namespace us::gov::engine {
 
     struct peer_t;
+    struct local_deltas_t;
+    struct track_status_t;
 
     using blob_writer_t = io::blob_writer_t;
     using blob_reader_t = io::blob_reader_t;
@@ -41,6 +47,8 @@ namespace us::gov::engine {
         using blob_t = io::blob_t;
         using accounts_t = cash::accounts_t;
         using addresses_t = cash::addresses_t;
+        using readable = us::gov::io::readable;
+        using writable = us::gov::io::writable;
 
         #include <us/api/generated/gov/c++/engine/hdlr_dto-hdr>
         #include <us/api/generated/gov/c++/engine/cllr_dto-hdr>

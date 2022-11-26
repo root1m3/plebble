@@ -55,6 +55,7 @@
 #define loglevel "gov/engine"
 #define logclass "daemon_t"
 #include "logs.inc"
+#include <us/gov/socket/dto.inc>
 
 using namespace us::gov::engine;
 using c = us::gov::engine::daemon_t;
@@ -797,7 +798,7 @@ ko c::process_evidence2(evidence* ev) {
 
 int c::call_query_block(const hash_t& hash) {
     log("query_block", hash);
-    return peerd.clique_send(2, 0, blob_writer_t::get_datagram(peerd.channel, protocol::engine_query_block, 0, hash));
+    return peerd.clique_send(2, 0, write_datagram(peerd.channel, protocol::engine_query_block, 0, hash));
 }
 
 namespace {
@@ -1028,7 +1029,6 @@ void c::update_dfs_index() {
 
 void c::report_random_node() {
     using namespace chrono;
-//    peer::peer_t* p = peerd.grid.pick_one();
     peer::peer_t* p = peerd.clique.pick_one();
     if (p == nullptr) return;
     if (!p->is_role_peer()) {
@@ -1278,7 +1278,6 @@ ko c::load_db(const blob_t& blob) {
     if (is_ko(r.first)) {
         return r.first;
     }
-    //assert(r.second.first.version == io::blob_reader_t::current_version);
     assert(r.second.first.serid == db_t::serid);
     replace_db(r.second.second, o);
     return ok;
@@ -1334,6 +1333,10 @@ void c::fsinfo(const string& home, bool dot, ostream& os) {
 
 void c::upgrade_software() {
     log("Peer is signaling the existence of a software upgrade.");
+    // what is the blob? -> look for it in the ledger
+    //do we have the file? update_dfs_index
+    //install_blob
+
 }
 
 #if CFG_COUNTERS == 1

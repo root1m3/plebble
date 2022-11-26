@@ -38,11 +38,6 @@
 
 #include "protocol.h"
 
-//namespace us::wallet::trader {
-    //struct traders_t;
-    //struct trader_protocol;
-//}
-
 namespace us::wallet::trader::r2r::w2w {
 
     using namespace us::gov;
@@ -62,18 +57,16 @@ namespace us::wallet::trader::r2r::w2w {
         void register_factories(protocol_factories_t&) override;
 
     public:
-        ko init(const string& r2rhome, us::wallet::trader::traders_t::protocol_factories_t&) override;
+        ko init(const string& r2rhome, protocol_factories_t&) override;
 
     public:
         string homedir() const override;
         pair<ko, trader::trader_protocol*> create_protocol() override;
-        pair<ko, trader::trader_protocol*> create_opposite_protocol(protocol_selection_t&&) override;
         void list_protocols(ostream&) const override; //human format
-        void invert(protocols_t&) const override;
+        bool invert(protocol_selection_t&) const override;
         void published_protocols(protocols_t&, bool inverse) const override;
         void exec_help(const string& prefix, ostream&) const override;
-        ko exec(istream&, traders_t&, wallet::local_api&) override;
-
+        ko exec(istream&, wallet::local_api&) override;
 
     };
 

@@ -383,3 +383,24 @@ s ans
 -
 -
 
+r2r_index_hdr
+-
+sync
+protocols_t protocols
+-
+-
+
+r2r_bookmarks
+protocol_selection_t protocol_selection
+sync
+bookmarks_t bookmarks
+-
+-
+
+r2r_index
+-
+sync
+bookmark_index_t bookmark_index
+-
+-
+

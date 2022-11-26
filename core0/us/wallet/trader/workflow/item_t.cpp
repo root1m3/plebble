@@ -235,7 +235,7 @@ ko c::send_to(trader_t& tder, peer_t& peer) const {
     }
     blob_t blob;
     write(blob);
-    return peer.call_trading_msg(peer_t::trading_msg_in_t(tder.id, workflow::trader_protocol::svc_workflow_item, blob));
+    return tder.call_trading_msg(peer, workflow::trader_protocol::svc_workflow_item, blob);
 }
 
 ko c::send_request_to(trader_t& tder, peer_t& peer) const {
@@ -250,7 +250,7 @@ ko c::send_request_to(trader_t& tder, peer_t& peer) const {
         blob_writer_t w(blob, blob_writer_t::blob_size(name));
         w.write(name);
     }
-    return peer.call_trading_msg(peer_t::trading_msg_in_t(tder.id, workflow::trader_protocol::svc_workflow_item_request, blob));
+    return tder.call_trading_msg(peer, workflow::trader_protocol::svc_workflow_item_request, blob);
 }
 
 bool c::sig_reset(ostream& os) {

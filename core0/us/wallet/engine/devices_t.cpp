@@ -140,12 +140,15 @@ void c::save_() const {
 
 ko c::authorize(const pub_t& p, pin_t pin, request_data_t& request_data) {
     log("authorization request for device", p, "using pin", pin, "request_data", request_data);
+    io::cfg0::trim(request_data);
     lock_guard<mutex> lock(mx);
     attempts.purge();
     auto i = find(p.hash());
     if (i != end()) {
         log("found in lookup table", p, "authorized!");
         attempts.purge(p);
+        log("ignoring input subhome overriden by authtable", request_data, "->", i->second.subhome); 
+/*
         if (!request_data.empty()) { // empty: ok if other subhome is returned; non-empty: ko if other subhome is returned.
             if (i->second.subhome != request_data) {
                 auto r = "KO 78916 Intended subhome doesn't match the authorized subhome.";
@@ -154,7 +157,13 @@ ko c::authorize(const pub_t& p, pin_t pin, request_data_t& request_data) {
                 return r;
             }
         }
-        request_data = i->second.subhome;
+*/
+//        if (i->second.subhome.empty()) {
+//            return ok; //requested subhome
+//        }
+        if (!i->second.subhome.empty()) { //sysop can access any subhome 
+            request_data = i->second.subhome; //inform assigned subhome for guests
+        }
         return ok;
     }
     log("not found in pairing table", p);
@@ -162,18 +171,28 @@ ko c::authorize(const pub_t& p, pin_t pin, request_data_t& request_data) {
     if (j != prepaired.end()) {
         log("found prepaired device");
         string subhome = j->second.subhome;
-        if (subhome == "auto") { // Sysop has authorized to create a new guest wallet if user use this pin.
+        if (subhome == "auto") { // Sysop has authorized to let user choose wallet ["new", empty, non-empty] if user use this pin.
+            //if (request_data == "new") {
+            ostringstream newuserdir;
+            newuserdir << p.hash();
+            subhome = newuserdir.str();
+            log("new custodial wallet is requested. new=", request_data);
+//            }
+//            subhome = request_data; // User's choice
+/*
             if (request_data.empty()) {
                 ostringstream os;
                 os << p.hash();
                 subhome = os.str();
-                log("auto subhome", subhome); //User choose root wallet; no way, he goes to a new custodial wallet
+                log("auto subhome", subhome); //User chose root wallet; no way, he goes to a new custodial wallet
             }
             else {
                 subhome = request_data; // User's choice
             }
+*/
         }
         //using subhome given by sysop
+/*
         if (!request_data.empty()) { // User didn't shut up.
             if (subhome != request_data) { // User wants to use certain wallet but other different was given.
                 auto r = "KO 78916 Intended subhome doesn't match the authorized subhome.";
@@ -181,6 +200,7 @@ ko c::authorize(const pub_t& p, pin_t pin, request_data_t& request_data) {
                 return r;
             }
         }
+*/
         request_data = subhome; //whatever user asks the right wallet is given.
         auto r = device_pair_(p, subhome, j->second.name, false);
         if (is_ko(r)) {
@@ -197,14 +217,11 @@ ko c::authorize(const pub_t& p, pin_t pin, request_data_t& request_data) {
         return ok;
     }
     log("Device not found in prepairing table.", p); //It's a new device
-    if (authorize_and_create_guest_wallet) {
-        if (request_data == "new") {
-            ostringstream newuserdir;
-            newuserdir << p.hash();
-            request_data = newuserdir.str();
-            log("new custodial wallet is requested", request_data);
-        }
-        log("Suggesting a new wallet at ", request_data);
+    if (!request_data.empty() && authorize_and_create_guest_wallet && request_data == "new") {
+        ostringstream newuserdir;
+        newuserdir << p.hash();
+        request_data = newuserdir.str();
+        log("new custodial wallet is requested. new=", request_data);
         auto r = device_pair_(p, request_data, "guest first seen device");
         if (is_ko(r)) {
             log(r, p, request_data);
@@ -226,20 +243,11 @@ pair<ko, pin_t> c::device_prepair_(pin_t pin, string subhome, string name) {
     log("device_prepair_ pin:", pin, "subhome:", subhome, "name:", name);
     io::cfg0::trim(subhome);
     io::cfg0::trim(name);
-    if (subhome == "-") subhome = "";
+    auto r = valid_subhome(subhome);
+    if (is_ko(r)) {
+        return make_pair(r, 0);
+    }
     if (name.empty()) name = device_t::default_name;
-    bool isok = true;
-    if (!subhome.empty()) {
-        if (subhome[0] == '/') {
-            return make_pair("KO 20192 Invalid subhome. Must be a relative path", 0);
-        }
-        string subhome1 = io::cfg0::rewrite_path(subhome);
-        isok = subhome1 == subhome;
-    }
-    if (!isok) {
-        log("KO 70181 subhome contains invalid characters.", subhome, "!=", io::cfg0::rewrite_path(subhome));
-        return make_pair("KO 70181 subhome contains invalid characters.", 0);
-    }
     if (pin == 0 && !allow_pin0) {
         log("KO 40390 Invalid pin");
         return make_pair("KO 40390 pin 0 is not allowed.", 0);
@@ -272,27 +280,36 @@ pair<ko, pin_t> c::device_prepair_(pin_t pin, string subhome, string name) {
     return make_pair(ok, pin);
 }
 
-ko c::device_pair_(const pub_t& pub, string subhome, string name, bool dosave) {
-    log("device_pair_", pub, subhome, name, dosave);
-    io::cfg0::trim(subhome);
-    io::cfg0::trim(name);
+ko c::valid_subhome(string subhome) const {
     if (subhome == "-") subhome = "";
-    if (name.empty()) name = device_t::default_name;
-    bool isok = true;
-    if (!subhome.empty()) {
-        if (subhome[0] == '/') {
-            auto r = "KO 40392 Invalid subhome.";
-            log(r);
-            return r;
-        }
-        string subhome1 = io::cfg0::rewrite_path(subhome);
-        isok = subhome1 == subhome;
+    if (subhome.empty()) {
+        return ok;
     }
-    if (!isok) {
+    if (subhome[0] == '/') {
+        auto r = "KO 40392 Invalid subhome.";
+        log(r);
+        return r;
+    }
+    string subhome1 = io::cfg0::rewrite_path(subhome);
+    if (subhome1 != subhome) {
         ko r = "KO 70182 subhome contains invalid characters";
         log(r, subhome, "!=", io::cfg0::rewrite_path(subhome));
         return r;
     }
+    return ok;
+}
+
+ko c::device_pair_(const pub_t& pub, string subhome, string name, bool dosave) {
+    log("device_pair_", pub, subhome, name, dosave);
+    io::cfg0::trim(subhome);
+    {
+        auto r = valid_subhome(subhome);
+        if (is_ko(r)) {
+            return r;
+        }
+    }
+    io::cfg0::trim(name);
+    if (name.empty()) name = device_t::default_name;
     auto r = emplace(pub.hash(), device_t(pub, subhome, name));
     if (!r.second) {
         r.first->second.name = name; //rename - resubhome

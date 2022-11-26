@@ -32,6 +32,7 @@
 #include <tuple>
 #include <functional>
 #include <utility>
+#include <type_traits>
 
 #include <us/gov/config.h>
 #include <us/gov/likely.h>
@@ -41,63 +42,39 @@
 
 #include "factory.h"
 #include "types.h"
-
-#ifdef DEBUG
-   struct assert_is_root_namespace;
-   static_assert(std::is_same<assert_is_root_namespace, ::assert_is_root_namespace>::value, "Not root namespace. Check includes.");
-#endif
+#include "readable.h"
 
 namespace us::gov::io {
 
     using namespace us::gov;
 
-    struct blob_reader_t {
-        using version_t = uint8_t;
-        using serid_t = uint8_t;
+    struct blob_reader_t;
+
+     struct blob_reader_t {
+        using readable = us::gov::io::readable;
+        using version_t = readable::version_t;
+        using serid_t = readable::serid_t;
+        using blob_header_t = readable::blob_header_t;
 
         static constexpr version_t current_version{CFG_BLOB_VERSION};
         static constexpr uint64_t max_sizet_containers{numeric_limits<uint16_t>::max()};
 
         static const char* KO_67217, *KO_60498, *KO_75643;
 
-        struct blob_header_t {
-            version_t version;
-            serid_t serid;
-        };
-
-        //---------------------------------------------------
-        struct readable {
-            virtual ~readable() {}
-
-        public:
-            virtual ko from_blob(blob_reader_t&) = 0;
-            virtual serid_t serial_id() const { return 0; }
-
-        public:
-            ko read(const blob_t&);
-            ko read(const datagram&);
-            ko read(const string& blob_b58);
-            ko load(const string& filename);
-            pair<ko, blob_header_t> read1(const blob_t&);
-            pair<ko, blob_header_t> read1(const string& blob_b58);
-            pair<ko, pair<blob_header_t, hash_t>> read2(const blob_t&);
-            pair<ko, pair<blob_header_t, hash_t>> read2(const string& blob_b58);
-            pair<ko, blob_header_t> load1(const string& filename);
-            pair<ko, pair<blob_header_t, hash_t>> load2(const string& filename);
-            pair<ko, blob_t> load3(const string& filename);
-            static pair<ko, readable*> load(const string& filename, function<readable*(const serid_t&)>);
-
-        };
-        //---------------------------------------------------
-
         blob_reader_t(const blob_t&);
         blob_reader_t(const datagram&);
 
+/*
+        static ko readD(const datagram& d, readable& o) { return o.read(d); }
+
         template<typename t>
         static ko readD(const datagram& d, t& o) {
+            static_assert(!std::is_convertible<t*, readable*>::value, "KO 77888 template specialization for readable should have been instantiated instead.");
+            
             blob_reader_t reader(d);
             return reader.read(o);
         }
+*/
 
         ko read_sizet(uint64_t&);
 
@@ -357,8 +334,8 @@ namespace us::gov::io {
 
     };
 
-    template<> inline ko blob_reader_t::readD(const datagram& d, blob_reader_t::readable& o) { return o.read(d); }
-    template<> ko blob_reader_t::readD(const datagram&, blob_t&);
+//    template<> ko blob_reader_t::readD(const datagram&, readable&);
+//    template<> ko blob_reader_t::readD(const datagram&, blob_t&);
 
     template<> ko blob_reader_t::read(bool&);
     template<> ko blob_reader_t::read(uint64_t&);

@@ -56,11 +56,13 @@ namespace us::apitool::java {
         void gen_impl(const apifun&, bool side_caller, function<void(const apifun& f, const string& pfx, bool side_caller, ostream&)> implementation, ostream&) const;
         bool gen_local_impl(const apifun&, ostream&) const override;
         void gen_service_router(const apifun&, bool side_caller, ostream&) const override;
-        void gen_dto_out_hdr(const apifun&, bool side_caller, ostream&) const override;
         void gen_dto_in_hdr(const apifun&, bool side_caller, ostream&) const override;
+        void gen_dto_in_impl(const apifun&, bool side_caller, ostream&) const override {}
         void gen_dto_in_dst_constructor(const apifun&, ostream&) const;
         void gen_dto_in_constructor(const apifun&, ostream&) const;
         void gen_dto_in_constructor_args(const apifun&, bool names, ostream&) const;
+        void gen_dto_out_hdr(const apifun&, bool side_caller, ostream&) const override;
+        void gen_dto_out_impl(const apifun&, bool side_caller, ostream&) const override {}
         void gen_dto_out_constructor(const apifun&, ostream&) const;
         void gen_dto_out_dst_constructor(const apifun&, ostream&) const;
         void gen_dto_blob_size(const apifun&, const apifun::io_types_t&, ostream&) const;

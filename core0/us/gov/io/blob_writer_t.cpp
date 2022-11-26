@@ -20,10 +20,13 @@
 //===-
 //===----------------------------------------------------------------------------
 //===-
-#include "blob_writer_t.h"
 #include <cstring>
+
 #include <us/gov/crypto/base58.h>
 #include <us/gov/socket/types.h>
+
+#include "blob_reader_t.h"
+#include "blob_writer_t.h"
 
 #define loglevel "gov/io"
 #define logclass "blob_writer_t"
@@ -229,11 +232,12 @@ void c::write_header(const serid_t& serid) {
     write(serid);
 }
 
+/*
 datagram* c::get_datagram(channel_t channel, svc_t svc, seq_t seq) {
     return new datagram(channel, svc, seq, 0);
 }
 
-
+template<>
 datagram* c::get_datagram(channel_t channel, svc_t svc, seq_t seq, const blob_t& blob) {
     log("get_datagram from blob", svc, seq, blob.size());
     auto d = new datagram(channel, svc, seq, blob.size());
@@ -241,6 +245,12 @@ datagram* c::get_datagram(channel_t channel, svc_t svc, seq_t seq, const blob_t&
     return d;
 }
 
+template<>
+datagram* c::get_datagram(channel_t channel, svc_t svc, seq_t seq, const blob_writer_t::writable& o) {
+    log("get_datagram writable");
+    return o.get_datagram(channel, svc, seq);
+}
+*/
 
 blob_t c::make_blob(const string& payload) {
     log("blob from string");
@@ -248,65 +258,6 @@ blob_t c::make_blob(const string& payload) {
     blob_writer_t w(blob, blob_size(payload));
     w.write(payload);
     return move(blob);
-}
-
-//--writable------------------------------
-
-size_t c::writable::tlv_size() const {
-    return (serial_id() != 0 ? header_size() : 0) + blob_size();
-}
-
-void c::writable::write(blob_t& blob) const {
-    log("writable::write to blob");
-    auto serid = serial_id();
-    auto sz = (serid != 0 ? header_size() : 0) + blob_size();
-    if (sz == 0) {
-        blob.clear();
-        return;
-    }
-    blob_writer_t w(blob, sz);
-    if (serid != 0) {
-        w.write_header(serid);
-    }
-    to_blob(w);
-    assert(w.cur == blob.data() + sz);
-}
-
-void c::writable::write(string& b58) const {
-    log("writable::write to encoded string");
-    blob_t blob;
-    write(blob);
-    b58 = crypto::b58::encode(blob);
-}
-
-string c::writable::encode() const {
-    string s;
-    write(s);
-    return move(s);
-}
-
-ko c::writable::save(const string& filename) const {
-    log("writable::save", filename);
-    blob_t blob;
-    write(blob);
-    return io::write_file_(blob, filename);
-}
-
-datagram* c::writable::get_datagram(channel_t channel, svc_t svc, seq_t seq) const {
-    log("writable::get_datagram svc", svc);
-    auto serid = serial_id();
-    auto sz = (serid != 0 ? header_size() : 0) + blob_size();
-    auto d = new datagram(channel, svc, seq, sz);
-    blob_writer_t w(*d);
-    if (sz == 0) {
-        return d;
-    }
-    if (serid != 0) {
-        w.write_header(serid);
-    }
-    w.write(*this);
-    assert(w.cur == d->data() + d->size());
-    return d;
 }
 
 string c::add_header(blob_header_t&& h, const string& blob0) {

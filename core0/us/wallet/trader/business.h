@@ -21,8 +21,6 @@
 //===----------------------------------------------------------------------------
 //===-
 #pragma once
-#include "traders_t.h"
-extern int foo(us::wallet::trader::traders_t::protocol_factories_t&);
 
 #include <string>
 #include <iostream>
@@ -32,12 +30,12 @@ extern int foo(us::wallet::trader::traders_t::protocol_factories_t&);
 
 #include <us/gov/config.h>
 #include <us/gov/types.h>
+#include <us/gov/io/factory.h>
 #include <us/gov/relay/pushman.h>
 #include <us/gov/cash/tx_t.h>
 #include <us/gov/crypto/ripemd160.h>
 
-#include <us/wallet/wallet/local_api.h>
-
+#include "trader_protocol.h"
 #include "protocol_selection_t.h"
 #include "bookmarks_t.h"
 #include "bootstrap/protocols_t.h"
@@ -57,7 +55,7 @@ namespace us::wallet::trader {
     struct traders_t;
 
     struct business_t {
-        using pushman = us::gov::relay::pushman;
+        using pushman_t = us::gov::relay::pushman;
         using wallet_local_api = us::wallet::wallet::local_api;
         using trader_protocol = trader::trader_protocol;
         using protocol_selection_t = trader::protocol_selection_t;
@@ -70,7 +68,7 @@ namespace us::wallet::trader {
 
         static const char* KO_50100; //exec ignored
 
-        static constexpr int interface_version{10};
+        static constexpr int interface_version{11};
 
     public:
         business_t();
@@ -84,14 +82,20 @@ namespace us::wallet::trader {
     public:
         virtual string homedir() const = 0;
         virtual std::pair<ko, trader_protocol*> create_protocol() = 0;
-        virtual std::pair<ko, trader_protocol*> create_opposite_protocol(protocol_selection_t&& protocol_selection) = 0;
         virtual void list_protocols(ostream&) const = 0; //human format
-        virtual void invert(protocols_t&) const = 0;
+        virtual bool invert(protocol_selection_t&) const = 0;
+
         virtual void published_protocols(protocols_t&, bool inverse) const = 0;
         virtual void exec_help(const string& prefix, ostream&) const;
-        virtual ko exec(istream&, traders_t&, wallet::local_api&);
+        virtual ko exec(istream&, wallet_local_api&);
         pair<protocol_selection_t, bookmark_info_t> bookmark_info() const;
         protocol_selection_t protocol_selection() const;
+        void dump(const string& prefix, ostream&) const;
+
+    public:
+        using factories_t = us::gov::io::factories_t<business_t>;
+        using factory_t = us::gov::io::factory_t<business_t>;
+        using factory_id_t = protocol_selection_t;
 
     public:
         blob_t ico;
@@ -101,8 +105,5 @@ namespace us::wallet::trader {
     };
 
 }
-
-typedef us::wallet::trader::business_t* business_create_t(int ifversion);
-typedef void business_destroy_t(us::wallet::trader::business_t*);
 
 

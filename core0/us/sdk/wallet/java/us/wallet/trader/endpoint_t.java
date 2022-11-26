@@ -264,6 +264,16 @@ public class endpoint_t implements Comparable<endpoint_t>, us.gov.io.seriable {
         }
     }
 
+    public void to_streamX(PrintStream os) {
+        if (chan.value != 0) os.print(chan.value + ' ');
+        os.print(pkh.encode());
+        if (!wloc.isEmpty()) {
+            os.print(".");
+            os.print(wloc);
+        }
+        os.print(" ");
+    }
+
     public void to_stream(OutputStream os0) {
         PrintStream os = new PrintStream(os0);
         try {

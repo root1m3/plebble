@@ -86,7 +86,14 @@ bool c::process_work(datagram* d) {
         return true; //don't report back, disconnection happens elsewhere.
     }
     if (is_role_peer()) { //work from other remote wallet
-        if (d->service != protocol::r2r_trading_msg) {
+        bool go{false};
+        switch (d->service) {
+            case protocol::r2r_trading_msg2:
+            case protocol::r2r_trading_msg:
+                go = true;
+                break;
+        }
+        if (!go) {
             log("remote wallet sent non-trading message", d->service);
             disconnect_hilarious(d); //peer trying to access private wallet functions.
             return true;
@@ -113,8 +120,9 @@ ko c::authorize(const pub_t& p, pin_t pin, request_data_t& request_data) { // re
     auto& demon = static_cast<daemon_t&>(daemon);
     if (is_role_peer() || is_role_sysop()) {
         log("role peer or sysop", "authorized", is_role_peer(), is_role_sysop());
-        string subhome_trading = ""; //the wallet I want to use to handle trades. Empty = root non-custodial wallet
-        wallet_local_api = demon.users.get_wallet(subhome_trading);
+        //string subhome_trading = ""; //the wallet I want to use to handle trades. Empty = root non-custodial wallet
+        //device__w = demon.users.get_wallet(subhome_trading);
+        //dev_local_w = nullptr; //we need trading handshake before knowing our local wallet
         return ok;
     }
     if (!is_role_device()) {
@@ -136,8 +144,8 @@ ko c::authorize(const pub_t& p, pin_t pin, request_data_t& request_data) { // re
             return r;
         }
     }
-    wallet_local_api = demon.users.get_wallet(request_data);
-    log("device authorized. subhome", request_data, "wallet local_api", wallet_local_api);
+    local_w = demon.users.get_wallet(request_data);
+    log("device authorized. subhome", request_data, "local_w", local_w);
     return ok;
 }
 
@@ -198,25 +206,27 @@ ko c::verification_completed(pport_t rpport, pin_t pin, request_data_t& request_
     return r;
 }
 
+/*
 void c::schedule_push(socket::datagram* d) {
-    return static_cast<daemon_t&>(daemon).pm.schedule_push(d, wallet_local_api->device_filter);
+    return static_cast<daemon_t&>(daemon).pm.schedule_push(d, local_w->device_filter);
 }
 
 ko c::push_KO(ko msg) {
-    return static_cast<daemon_t&>(daemon).pm.push_KO(msg, wallet_local_api->device_filter);
+    return static_cast<daemon_t&>(daemon).pm.push_KO(msg, local_w->device_filter);
 }
 
 ko c::push_KO(const hash_t& tid, ko msg) {
-    return static_cast<daemon_t&>(daemon).pm.push_KO(tid, msg, wallet_local_api->device_filter);
+    return static_cast<daemon_t&>(daemon).pm.push_KO(tid, msg, local_w->device_filter);
 }
 
 ko c::push_OK(const string& msg) {
-    return static_cast<daemon_t&>(daemon).pm.push_OK(msg, wallet_local_api->device_filter);
+    return static_cast<daemon_t&>(daemon).pm.push_OK(msg, local_w->device_filter);
 }
 
 ko c::push_OK(const hash_t& tid, const string& msg) {
-    return static_cast<daemon_t&>(daemon).pm.push_OK(tid, msg, wallet_local_api->device_filter);
+    return static_cast<daemon_t&>(daemon).pm.push_OK(tid, msg, local_w->device_filter);
 }
+*/
 
 svc_t c::translate_svc(svc_t svc0, bool inbound) const {
     svc_t svc;

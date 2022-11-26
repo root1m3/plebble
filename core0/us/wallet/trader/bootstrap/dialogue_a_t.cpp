@@ -29,6 +29,7 @@
 #include <us/wallet/engine/peer_t.h>
 #include <us/wallet/trader/trader_t.h>
 #include <us/wallet/trader/traders_t.h>
+#include <us/wallet/trader/businesses_t.h>
 #include <us/wallet/wallet/local_api.h>
 
 #include "a_t.h"
@@ -77,17 +78,17 @@ ko c::initiate(peer_t& peer, const string& wloc) { //exec by initiator
     {
         {
         lock_guard<mutex> lock(parent.trader->mx);
-        a1_t o(parent.trader->w->local_endpoint, wloc, parent.trader->parent.published_protocols(false), parent.trader->my_challenge);
+        a1_t o(parent.trader->w->local_endpoint, wloc, parent.trader->w->businesses.published_protocols(false), parent.trader->my_challenge);
         o.write(blob);
         }
     }
     log("sending over a1. sz ", blob.size());
-    return peer.call_trading_msg(peer_t::trading_msg_in_t(parent.trader->id, trader_t::svc_handshake_a1, blob));
+    return parent.trader->call_trading_msg(peer, trader_t::svc_handshake_a1, blob);
 }
 
 ko c::handshake(peer_t& peer, a1_t&& o) { /// exec by follower  / does push_data
     log("dialogue_a_t::handshake_1");
-    if (!parent.trader->parent.daemon.has_home(o.wloc)) {
+    if (!parent.trader->daemon.has_home(o.wloc)) {
         auto r = "KO 80795 Invalid wallet.";
         log(r);
         return r;
@@ -109,7 +110,7 @@ ko c::handshake(peer_t& peer, a1_t&& o) { /// exec by follower  / does push_data
     ++state->seq;
     //peer.tder = parent.trader;
     lock.unlock();
-    auto w = parent.trader->parent.daemon.users.get_wallet(o.wloc);
+    auto w = parent.trader->daemon.users.get_wallet(o.wloc);
     parent.trader->init(parent.trade_id, o.endpoint, *w);
     parent.trader->online(peer);
     ch_t ch(0);
@@ -203,7 +204,7 @@ ko c::update_peer(peer_t& peer, ch_t&& ch) {
         a3_t x(parent.trader->my_personality.gen_proof(parent.trader->peer_challenge));
         blob_t blob;
         x.write(blob);
-        return peer.call_trading_msg(peer_t::trading_msg_in_t(parent.trader->id, trader_t::svc_handshake_a3, blob));
+        return parent.trader->call_trading_msg(peer, trader_t::svc_handshake_a3, blob);
     }
     if (ch.need_update_devices()) {
         log("push_data");
@@ -221,10 +222,10 @@ ko c::update_peer2(peer_t& peer, ch_t&& ch) {
         lock_guard<mutex> lock(parent.trader->mx);
         auto proof = parent.trader->my_personality.gen_proof(parent.trader->peer_challenge);
         assert(parent.trader->w != nullptr);
-        a2_t x(parent.trader->w->local_endpoint, parent.trader->parent.published_protocols(false), move(proof), parent.trader->my_challenge);
+        a2_t x(parent.trader->w->local_endpoint, parent.trader->w->businesses.published_protocols(false), move(proof), parent.trader->my_challenge);
         blob_t blob;
         x.write(blob);
-        return peer.call_trading_msg(peer_t::trading_msg_in_t(parent.trader->id, trader_t::svc_handshake_a2, blob));
+        return parent.trader->call_trading_msg(peer, trader_t::svc_handshake_a2, blob);
     }
     if (ch.need_update_devices()) {
         log("push_data");

@@ -34,6 +34,7 @@
 #include <us/gov/crypto/base58.h>
 #include <us/gov/crypto/ripemd160.h>
 
+#include <us/wallet/wallet/local_api.h>
 #include <us/wallet/trader/trader_t.h>
 #include <us/wallet/trader/traders_t.h>
 #include <us/wallet/trader/business.h>
@@ -135,7 +136,8 @@ ko c::on_attach(trader_t& tder_, ch_t& ch) {
 
 void c::schedule_push(uint16_t code) const {
     assert(tder->w != nullptr);
-    tder->parent.schedule_push(get_push_datagram(code), *tder->w);
+    tder->schedule_push(get_push_datagram(code));
+//    tder->parent.schedule_push(get_push_datagram(code), *tder->w);
 }
 
 void c::data(const string& lang, ostream& os) const {
@@ -419,19 +421,16 @@ ko c::exec_offline(const string& cmd0, ch_t& ch) {
         log("show", cmd);
         if (cmd == "logo") {
             log("OK the logo will be pushed");
-            //ch.no_need_to_update_devices();
             schedule_push(push_logo);
             return ok;
         }
         if (cmd == "ico") {
             log("OK the ico will be pushed");
-            //ch.no_need_to_update_devices();
             schedule_push(push_ico);
             return ok;
         }
         if (cmd == "params") {
             log("OK the logo will be pushed");
-            //ch.no_need_to_update_devices();
             schedule_push(push_params);
             return ok;
         }
@@ -464,21 +463,19 @@ ko c::exec_online(peer_t& peer, const string& cmd0, ch_t& ch) {
         is >> cmd;
         if (cmd == "logo") {
             olog("exec", cmd0, cmd);
-            auto r = peer.call_trading_msg(peer_t::trading_msg_in_t(tid(), svc_logo_request, blob_t()));
+            auto r = tder->call_trading_msg(peer, svc_logo_request, blob_t());
             if (is_ko(r)) {
                 return move(r);
             }
-            //ch.no_need_to_update_devices();
-            return tder->parent.push_OK(tid(), "Logo requested...", *tder->w);
+            return tder->push_OK("Logo requested...");
         }
         if (cmd == "ico") {
             olog("exec", cmd0, cmd);
-            auto r = peer.call_trading_msg(peer_t::trading_msg_in_t(tid(), svc_ico_request, blob_t()));
+            auto r = tder->call_trading_msg(peer, svc_ico_request, blob_t());
             if (is_ko(r)) {
                 return move(r);
             }
-            //ch.no_need_to_update_devices();
-            return tder->parent.push_OK(tid(), "Icon requested...", *tder->w);
+            return tder->push_OK("Icon requested...");
         }
     }
     if (cmd == "send") {
@@ -492,7 +489,7 @@ ko c::exec_online(peer_t& peer, const string& cmd0, ch_t& ch) {
             if (mute == "mute") {
                 return ok;
             }
-            return tder->parent.push_OK(tid(), "Sent shared_params.", *tder->w);
+            return tder->push_OK("Sent shared_params.");
         }
     }
     auto r = WP_29101;
@@ -568,7 +565,7 @@ ko c::trading_msg(peer_t& peer, svc_t svc, blob_t&& blob) {
         }
         case svc_ico_request: {
             log("svc_ico_request. Sending ico.");
-            return peer.call_trading_msg(peer_t::trading_msg_in_t(tid(), svc_ico, business.ico));
+            return tder->call_trading_msg(peer, svc_ico, business.ico);
         }
         case svc_logo_request: {
             string fn = phome + "/logo.png";
@@ -578,7 +575,7 @@ ko c::trading_msg(peer_t& peer, svc_t svc, blob_t&& blob) {
             if (is_ko(r)) {
                 return r;
             }
-            return peer.call_trading_msg(peer_t::trading_msg_in_t(tid(), svc_logo, v));
+            return tder->call_trading_msg(peer, svc_logo, v);
         }
         case svc_params: {
             log("Received svc_params.");
@@ -612,7 +609,7 @@ ko c::update_peer_(peer_t& peer, ch_t&& ch) const {
         w.write(_local_params.shared);
     }
     log("send_shared_params");
-    return peer.call_trading_msg(peer_t::trading_msg_in_t(tid(), svc_params, blob));
+    return tder->call_trading_msg(peer, svc_params, blob);
 }
 
 ko c::on_remote(const personality::proof_t::raw_t& x, ch_t& ch) {
@@ -683,8 +680,16 @@ ko c::on_svc_params_(blob_reader_t& reader, ch_t& ch) {
     return on_remote_(rp, ch);
 }
 
+c::daemon_t& c::daemon() {
+    return tder->daemon;
+}
+
+const c::daemon_t& c::daemon() const {
+    return tder->daemon;
+}
+
 datagram* c::get_push_datagram(uint16_t pc) const {
-    return peer_t::push_in_t(tder->id, pc, push_payload(pc)).get_datagram(tder->parent.daemon.channel, 0);
+    return peer_t::push_in_t(tder->id, pc, push_payload(pc)).get_datagram(daemon().channel, 0);
 }
 
 blob_t c::push_payload(uint16_t pc) const {
@@ -726,11 +731,11 @@ void c::exec_help(const string& prefix , ostream& os) {
     os << prefix << "info\n";
 }
 
-ko c::exec(istream& is, traders_t& traders, wallet::local_api& w) {
+ko c::exec(istream& is, wallet::local_api& w) {
     string cmd;
     is >> cmd;
     if (cmd == "info") {
-        return traders.push_OK("I can't figure this out.", w);
+        return w.push_OK("I can't figure this out.");
     }
     auto r = "KO 10918 Invalid command";
     log(r);

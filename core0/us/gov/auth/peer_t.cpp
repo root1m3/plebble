@@ -26,6 +26,7 @@
 #define loglevel "gov/auth"
 #define logclass "peer_t"
 #include "logs.inc"
+#include <us/gov/socket/dto.inc>
 
 using namespace us::gov::auth;
 using c = us::gov::auth::peer_t;

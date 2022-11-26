@@ -37,6 +37,7 @@ import static us.ko.is_ko;                                                      
 import java.security.KeyPair;                                                                  // KeyPair
 import us.ko;                                                                                  // ko
 import static us.ko.ok;                                                                        // ok
+import java.io.PrintStream;                                                                    // PrintStream
 import static us.gov.io.types.blob_t.serid_t;                                                  // serid_t
 import us.string;                                                                              // string
 
@@ -56,24 +57,24 @@ public class wallet_connection_t implements us.gov.io.seriable {
         ts = new uint64_t(0);
     }
 
-    public wallet_connection_t(String nm, ip4_endpoint_t ep) {
+    public wallet_connection_t(String nm, String subhome_, ip4_endpoint_t ep) {
         log("constructor 3 "); //--strip
         name_ = new string(nm);
         ssid = new string("");
         addr = new string("");
-        subhome = new string("");
+        subhome = new string(subhome_);
         ip4_endpoint = new ip4_endpoint_t(ep);
         ts = new uint64_t(0);
     }
 
     public wallet_connection_t(uint64_t ts_, string addr_, string subhome_, string nm, string ssid_, ip4_endpoint_t ep) {
         log("constructor 2 "); //--strip
-        name_ = nm;
-        ssid = ssid_;
-        addr = addr_;
-        subhome = subhome_;
-        ip4_endpoint = ep;
-        ts = ts_;
+        name_ = new string(nm.value);
+        ssid = new string(ssid_.value);
+        addr = new string(addr_.value);
+        subhome = new string(subhome_.value);
+        ip4_endpoint = new ip4_endpoint_t(ep);
+        ts = new uint64_t(ts_.value);
     }
 
     private wallet_connection_t(wallet_connection_t other) {
@@ -113,9 +114,17 @@ public class wallet_connection_t implements us.gov.io.seriable {
         assert w.cur == blob.value.length;
     }
 
+    public void dump(PrintStream os) {
+        os.println("name " + name_.value);
+        os.println("ssid " + ssid.value);
+        os.println("addr " + addr.value);
+        os.println("subhome " + subhome.value);
+        os.println(ip4_endpoint.to_string());
+    }
+
     public void log_blob() {                                                               //--strip
         log("en-uk entry:");                                                               //--strip
-        wallet_connection_t wc = new wallet_connection_t(name_.value, ip4_endpoint);             //--strip
+        wallet_connection_t wc = new wallet_connection_t(name_.value, subhome.value, ip4_endpoint);             //--strip
         blob_t blob = new blob_t();                                                        //--strip
         wc.write(blob);                                                                    //--strip
         String b = us.gov.crypto.base58.encode(blob.value);                                //--strip

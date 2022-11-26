@@ -27,6 +27,7 @@
 #define loglevel "gov/peer"
 #define logclass "rpc_peer_t"
 #include "logs.inc"
+#include <us/gov/socket/dto.inc>
 
 using namespace us::gov::peer;
 using c = us::gov::peer::rpc_peer_t;

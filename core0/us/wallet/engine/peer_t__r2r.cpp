@@ -33,11 +33,12 @@
 #define loglevel "wallet/engine"
 #define logclass "peer_t__pairing"
 #include <us/gov/logs.inc>
+#include <us/gov/socket/dto.inc>
 
 using namespace us::wallet::engine;
 using c = us::wallet::engine::peer_t;
 
-const char* c::KO_10428 = "KO 10428 Traders unavailale.";
+//const char* c::KO_10428 = "KO 10428 Traders unavailale.";
 
 #include <us/api/generated/wallet/c++/r2r/cllr_rpc-impl>
 
@@ -59,9 +60,15 @@ ko c::handle_trading_msg(seq_t seq, trading_msg_in_dst_t&& o_in) {
     ///     hash_t tid;
     ///     uint16_t code;
     ///     vector<uint8_t> payload;
-
-    log("trading message arrived for trade", o_in.tid, "code", o_in.code);
-    return static_cast<daemon_t&>(daemon).traders.trading_msg(*this, o_in.code, o_in.tid, move(o_in.payload));
+assert(false);
+    trading_msg2_in_dst_t o_in2;
+    o_in2.route = 0;
+    o_in2.tid = move(o_in.tid);
+    o_in2.code = o_in.code;
+    o_in2.payload = move(o_in.payload);
+    return handle_trading_msg2(seq, move(o_in2));
+    //log("trading message arrived for trade", o_in.tid, "code", o_in.code);
+    //return static_cast<daemon_t&>(daemon).trades.trading_msg(*this, o_in.code, o_in.tid, move(o_in.payload));
 /*
     if (is_ko(r)) {
         log("unable to process trading msg, disconnecting peer.", r);
@@ -70,7 +77,21 @@ ko c::handle_trading_msg(seq_t seq, trading_msg_in_dst_t&& o_in) {
     }
     return ok;
 */
+return "KO 77887";
 }
+
+ko c::handle_trading_msg2(seq_t seq, trading_msg2_in_dst_t&& o_in) {
+    log("trading_msg2", seq);
+    /// in:
+    ///     uint64_t route;
+    ///     hash_t tid;
+    ///     uint16_t code;
+    ///     vector<uint8_t> payload;
+
+    log("trading message arrived for trade", o_in.tid, "code", o_in.code, "route", o_in.route);
+    return static_cast<daemon_t&>(daemon).trades.trading_msg(*this, o_in.route, o_in.tid, o_in.code, move(o_in.payload));
+}
+
 
 //-/----------------apitool - End of API implementation.
 

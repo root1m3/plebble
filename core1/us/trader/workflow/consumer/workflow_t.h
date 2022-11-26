@@ -103,7 +103,7 @@ namespace us::trader::workflow::consumer {
         }
 
         static void exec_help(const string& prefix, ostream&);
-        static ko exec(istream&, traders_t&, wallet::wallet::local_api&);
+        static ko exec(istream&, wallet::wallet::local_api&);
 
     public:
         static constexpr item_factory_id_t cat_factory_id{1};

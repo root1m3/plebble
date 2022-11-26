@@ -85,9 +85,9 @@ str91=""                #frontend bz about
 str92=1                 #FOSS
 str93="https://example.com" #Origin landing page
 str94=1                 #default node view; 0-nodes 1-bookmarks
-str95="" #default wallet_connection blob b58
+str95="" #default wallet_connections blob b58
 str96=""       #Guest Custodial wallets host URL
 str97=8        #api_v gov
-str98=9       #api_v wallet
-str99=4        #monotonic version fingerprint
+str98=10       #api_v wallet
+str99=6        #monotonic version fingerprint
 

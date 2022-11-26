@@ -31,6 +31,7 @@
 #define loglevel "wallet/engine"
 #define logclass "peer_t__pairing"
 #include <us/gov/logs.inc>
+#include <us/gov/socket/dto.inc>
 
 using namespace us::wallet::engine;
 using c = us::wallet::engine::peer_t;
@@ -38,16 +39,16 @@ using c = us::wallet::engine::peer_t;
 #include <us/api/generated/wallet/c++/pairing/cllr_rpc-impl>
 
 bool c::process_work__pairing(datagram* d) {
+    assert(is_role_device());
     using namespace protocol;
-    assert(wallet_local_api != nullptr);
-    bool root_wallet = wallet_local_api->subhome.empty();
-    if (!root_wallet) {
+    assert(local_w != nullptr);
+    bool is_root_wallet = local_w->subhome.empty();
+    if (!is_root_wallet) {
         auto r = "KO 51152 Custodial wallet. Ignoring pairing svc.";
         log(r, d->service);
         delete d;
         return true;
     }
-
     switch(d->service) {
         #include <us/api/generated/wallet/c++/pairing/hdlr_svc-router>
     }

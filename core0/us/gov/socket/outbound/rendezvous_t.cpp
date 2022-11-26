@@ -20,12 +20,15 @@
 //===-
 //===----------------------------------------------------------------------------
 //===-
-#include "rendezvous_t.h"
 #include <us/gov/likely.h>
 #include <us/gov/socket/peer_t.h>
 #include <us/gov/socket/datagram.h>
 #include <us/gov/socket/protocol.h>
 #include <us/gov/socket/outbound/caller_daemon_t.h>
+#include <us/gov/io/blob_reader_t.h>
+#include <us/gov/io/blob_writer_t.h>
+
+#include "rendezvous_t.h"
 
 #define loglevel "gov/socket"
 #define logclass "rendezvous_t"

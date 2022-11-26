@@ -26,8 +26,10 @@
 #include <us/gov/socket/datagram.h>
 
 #include <us/wallet/engine/peer_t.h>
+#include <us/wallet/wallet/local_api.h>
 #include <us/wallet/trader/trader_t.h>
 #include <us/wallet/trader/traders_t.h>
+#include <us/wallet/trader/businesses_t.h>
 
 #include "b_t.h"
 
@@ -60,7 +62,7 @@ void c::reset() {
     state = nullptr;
 }
 
-ko c::initiate(peer_t& peer, protocol_selection_t&& protocol_selection, ch_t& ch) {
+ko c::initiate(peer_t& peer, protocol_selection_t&& local_protocol_selection, ch_t& ch) {
     log("dialogue_b_t::initiate", &parent);
     unique_lock<mutex> lock(mx);
     if (state != nullptr) {
@@ -68,8 +70,8 @@ ko c::initiate(peer_t& peer, protocol_selection_t&& protocol_selection, ch_t& ch
         reset();
     }
     state = new state_t();
-    auto p = parent.trader->parent.create_opposite_protocol(protocol_selection_t(protocol_selection));
-    if (p.first != ok) {
+    auto p = parent.trader->w->businesses.create_protocol(protocol_selection_t(local_protocol_selection));
+    if (is_ko(p.first)) {
         log(p.first);
         assert(p.second == nullptr);
         reset();
@@ -84,10 +86,10 @@ ko c::initiate(peer_t& peer, protocol_selection_t&& protocol_selection, ch_t& ch
     blob_t blob;
     {
         lock_guard<mutex> lock(parent.trader->mx);
-        b1_t x(protocol_selection, parent.trader->shared_params());
+        b1_t x(local_protocol_selection, parent.trader->shared_params());
         x.write(blob);
     }
-    return peer.call_trading_msg(peer_t::trading_msg_in_t(parent.trader->id, trader_t::svc_handshake_b1, blob));
+    return parent.trader->call_trading_msg(peer, trader_t::svc_handshake_b1, blob);
 }
 
 ko c::handshake(peer_t& peer, b1_t&& o) {
@@ -102,7 +104,7 @@ ko c::handshake(peer_t& peer, b1_t&& o) {
     lock.unlock();
     ch_t ch(0);
     {
-        auto r = parent.trader->deliver(move(o.protocol_selection), move(o.params), ch);
+        auto r = parent.trader->deliver(move(o.protocol_selection), move(o.params), ch); //remote protocol_selection
         if (is_ko(r)) {
             reset();
             return r;
@@ -210,6 +212,6 @@ ko c::update_peer(peer_t& peer, ch_t&& ch, bool b) {
     if (svc == 0) {
         return ok;
     }
-    return peer.call_trading_msg(peer_t::trading_msg_in_t(parent.trader->id, svc, blob));
+    return parent.trader->call_trading_msg(peer, svc, blob);
 }
 

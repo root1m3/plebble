@@ -36,6 +36,7 @@
 #define logclass "peer_t__engine"
 #include <us/gov/logs.inc>
 #include <us/gov/vcs.h>
+#include <us/gov/socket/dto.inc>
 
 using namespace us::wallet::engine;
 using c = us::wallet::engine::peer_t;
@@ -94,7 +95,7 @@ ko c::handle_sync(string& data) {
 ko c::handle_reload_file(string&& filename, string& ans) {
     log("reload_file");
     auto& demon = static_cast<daemon_t&>(daemon);
-    demon.traders.reload_file(filename);
+    demon.trades.reload_file(filename);
     ans = "ok.";
     return ok;
 }
@@ -305,6 +306,28 @@ ko c::handle_conf(conf_in_dst_t&& o_in, string& ans) {
 
     auto& demon = static_cast<daemon_t&>(daemon);
     return demon.handle_conf(o_in.key, o_in.value, ans);
+}
+
+ko c::handle_r2r_all_index_hdr(protocols_t& protocols) {
+    log("r2r_all_index_hdr");
+    auto& demon = static_cast<daemon_t&>(daemon);
+    demon.bookmark_index.protocols(protocols);
+    return ok;
+}
+
+ko c::handle_r2r_all_bookmarks(protocol_selection_t&& protocol_selection, bookmarks_t& bookmarks) {
+    log("r2r_all_bookmarks");
+    auto& demon = static_cast<daemon_t&>(daemon);
+    demon.bookmark_index.fill_bookmarks(protocol_selection, bookmarks);
+    return ok;
+}
+
+ko c::handle_r2r_all_index(bookmark_index_t& bookmark_index) {
+    log("r2r_all_index");
+    auto& demon = static_cast<daemon_t&>(daemon);
+    lock_guard<mutex> lock(demon.bookmark_index.mx);
+    bookmark_index = demon.bookmark_index;
+    return ok;
 }
 
 //-/----------------apitool - End of API implementation.

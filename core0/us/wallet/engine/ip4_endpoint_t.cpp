@@ -29,6 +29,8 @@
 #include <us/gov/socket/client.h>
 #include <us/gov/io/cfg.h>
 #include <us/gov/io/cfg0.h>
+#include <us/gov/io/blob_writer_t.h>
+#include <us/gov/io/blob_reader_t.h>
 #include <us/gov/socket/datagram.h>
 
 #define loglevel "wallet/engine"

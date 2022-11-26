@@ -1,5 +1,5 @@
 process gov
-version 7
+version 8
 service function
 ------- --------
       1 socket_error
@@ -8,45 +8,44 @@ service function
       4 socket_finished
       5 id_request
       6 id_peer_challenge
-      7 id_challenge_response
-      8 id_challenge2_response
-      9 id_verification_result
-     10 auth_f1
-     11 peer_f1
-     12 relay_push
-     13 dfs_file_request
-     14 dfs_file_request_response
-     15 engine_local_deltas
-     16 engine_vote_tip
-     17 engine_query_block
-     18 engine_query_block_response
-     19 engine_sysop
-     20 engine_sysop_response
-     21 engine_track
-     22 engine_track_response
-     23 engine_ev
-     24 engine_ev_track
-     25 engine_ev_track_response
-     26 engine_harvest
-     27 engine_harvest_rollback
-     28 cash_fetch_accounts
-     29 cash_fetch_accounts_response
-     30 cash_share_file
-     31 cash_share_file_response
-     32 cash_search_kv
-     33 cash_search_kv_response
-     34 cash_file_hash
-     35 cash_file_hash_response
-     36 cash_file_content
-     37 cash_file_content_response
-     38 engine_auth_nodes
-     39 engine_auth_nodes_response
-     40 engine_auth_lookup_node
-     41 engine_auth_lookup_node_response
-     42 traders_wallets
-     43 traders_wallets_response
-     44 traders_lookup_wallet
-     45 traders_lookup_wallet_response
-     46 traders_random_wallet
-     47 traders_random_wallet_response
-     48 sys_f1
+      7 id_challenge2_response
+      8 id_verification_result
+      9 auth_f1
+     10 peer_f1
+     11 relay_push
+     12 dfs_file_request
+     13 dfs_file_request_response
+     14 engine_local_deltas
+     15 engine_vote_tip
+     16 engine_query_block
+     17 engine_query_block_response
+     18 engine_sysop
+     19 engine_sysop_response
+     20 engine_track
+     21 engine_track_response
+     22 engine_ev
+     23 engine_ev_track
+     24 engine_ev_track_response
+     25 engine_harvest
+     26 engine_harvest_rollback
+     27 cash_fetch_accounts
+     28 cash_fetch_accounts_response
+     29 cash_share_file
+     30 cash_share_file_response
+     31 cash_search_kv
+     32 cash_search_kv_response
+     33 cash_file_hash
+     34 cash_file_hash_response
+     35 cash_file_content
+     36 cash_file_content_response
+     37 engine_auth_nodes
+     38 engine_auth_nodes_response
+     39 engine_auth_lookup_node
+     40 engine_auth_lookup_node_response
+     41 traders_wallets
+     42 traders_wallets_response
+     43 traders_lookup_wallet
+     44 traders_lookup_wallet_response
+     45 traders_random_wallet
+     46 traders_random_wallet_response
+     47 sys_f1

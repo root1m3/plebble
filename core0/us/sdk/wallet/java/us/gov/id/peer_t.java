@@ -764,6 +764,30 @@ public ko initiate_dialogue(final role_t role, final pport_t pport, final pin_t 
         log("triggered upgrade_software signal!"); //--strip
     }
 
+    public static boolean am_I_older(version_fingerprint_t peer) { // [0-86) [86-119) [119-256)
+        log("am_I_older? me " + CFG.MONOTONIC_VERSION_FINGERPRINT.value + " peer " + peer.value); //--strip
+        if (peer.value == CFG.MONOTONIC_VERSION_FINGERPRINT.value) {
+            log("peer has the same sw version"); //--strip
+            return false;
+        }
+        if (CFG.MONOTONIC_VERSION_FINGERPRINT.value < (short) 86) {
+            log("I am in [0-86)"); //--strip
+            if (peer.value < (short) 119) {
+                return CFG.MONOTONIC_VERSION_FINGERPRINT.value < peer.value;
+            }
+            return false;
+        }
+        if (CFG.MONOTONIC_VERSION_FINGERPRINT.value < (short) 119) {
+            log("I am in [86-119)"); //--strip
+            return CFG.MONOTONIC_VERSION_FINGERPRINT.value < peer.value;
+        }
+        log("I am in [119-256)"); //--strip
+        if (peer.value < (short) 86) { //peer is ahead of me
+            return true;
+        }
+        return CFG.MONOTONIC_VERSION_FINGERPRINT.value < peer.value;
+    }
+
     public ko verification_completed(final pport_t rpport, final pin_t pin, request_data_t request_data) {
         if (!verification_is_fine()) {
             log("verification_not_fine"); //--strip
@@ -771,21 +795,10 @@ public ko initiate_dialogue(final role_t role, final pport_t pport, final pin_t 
             log(r.msg); //--strip
             return r;
         }
-        version_fingerprint_t pv = handshakes.peer.parse_version_fingerprint();
-        if (CFG.MONOTONIC_VERSION_FINGERPRINT.value == 0) {
-            if (pv.value > 10) {
-                return ok; // peer is older
-            }
-           //I'm older
+        if (am_I_older(handshakes.peer.parse_version_fingerprint())) {
+            log("I am older. me " + CFG.MONOTONIC_VERSION_FINGERPRINT.value); //--strip
+            upgrade_software(); //triger automatic updates check
         }
-        else {
-            if (pv.value <= CFG.MONOTONIC_VERSION_FINGERPRINT.value) {
-                // peer is older or same
-                return ok;
-            }
-           //I'm older
-        }
-        upgrade_software();
         return ok;
     }
 

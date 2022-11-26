@@ -157,7 +157,7 @@ public class activity extends AppCompatActivity implements NavigationView.OnNavi
         a.set_foreground_activity(this, false);
     }
 
-    public void stop_hmi() {
+    public void stop_hmi(final boolean save_) {
         app.progress_t progress = new app.progress_t() {
             @Override public void on_progress(final String report) {
                 runOnUiThread(new Runnable() {
@@ -167,7 +167,7 @@ public class activity extends AppCompatActivity implements NavigationView.OnNavi
                 });
             }
         };
-        a.HMI_power_off(a.device_endpoints.cur_index.value, progress);
+        a.HMI_power_off(a.device_endpoints.cur_index.value, save_, progress);
         Timer timer = new Timer();
         timer.schedule(new TimerTask() {
           @Override public void run() {
@@ -219,7 +219,18 @@ public class activity extends AppCompatActivity implements NavigationView.OnNavi
 
     public void refresh() {
         log("refresh"); //--strip
+        a.assert_ui_thread(); //--strip
         set_menu(menuid());
+    }
+
+    public void refresh__worker() {
+        log("refresh"); //--strip
+        a.assert_worker_thread(); //--strip
+        runOnUiThread(new Runnable() {
+            @Override public void run() {
+                refresh();
+            }
+        });
     }
 
     void locale_init() {
@@ -337,14 +348,17 @@ public class activity extends AppCompatActivity implements NavigationView.OnNavi
 */
 
                 case R.id.nav_language:
+                    log("nav_language"); //--strip
                     launch_language();
                     break;
 
                 case R.id.nav_testleds:
+                    log("nav_testleds"); //--strip
                     activity.a.led_test();
                     break;
 
                 case R.id.nav_exit:
+                    log("nav_exit"); //--strip
                     finishAffinity();
                     break;
                     //android.os.Process.killProcess(android.os.Process.myPid());
@@ -387,7 +401,7 @@ public class activity extends AppCompatActivity implements NavigationView.OnNavi
                     break;
 
                 case R.id.nav_stophmi:
-                    stop_hmi();
+                    stop_hmi(true);
                     break;
 
                 case R.id.nav_exit:
@@ -428,18 +442,16 @@ public class activity extends AppCompatActivity implements NavigationView.OnNavi
 
     void toast(final String s) {
         log("Toast:" + s); //--strip
-        runOnUiThread(new Thread(new Runnable() {
-            @Override public void run() {
-                Toast.makeText(getApplicationContext(), s, 6000).show();
-            }
-        }));
+        app.assert_ui_thread(); //--strip
+        Toast.makeText(getApplicationContext(), s, 6000).show();
     }
 
     void toast__worker(final String msg) {
         log("Toast__worker:" + msg); //--strip
+        app.assert_worker_thread(); //--strip
         runOnUiThread(new Runnable() {
             @Override public void run() {
-                Toast.makeText(activity.this, msg, 6000).show();
+                toast(msg);
             }
         });
     }
@@ -574,7 +586,7 @@ public class activity extends AppCompatActivity implements NavigationView.OnNavi
 
     public void report_ko(final ko r) {
         log("report_ko " + r.msg); //--strip
-        Toast.makeText(this, r.msg, Toast.LENGTH_LONG).show();
+        Toast.makeText(this, a.has_hmi() ? a.hmi().rewrite(r) : r.msg, Toast.LENGTH_LONG).show();
     }
 
     public void report_ko__worker(final ko r) {

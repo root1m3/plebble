@@ -32,6 +32,7 @@ import static us.gov.socket.types.*;                                            
 import static us.ko.*;                                                                         // *
 import static us.stdint.*;                                                                     // *
 import static us.tuple.*;                                                                      // *
+import us.wallet.engine.ip4_endpoint_t;                                                        // ip4_endpoint_t
 import java.security.KeyPair;                                                                  // KeyPair
 import us.ko;                                                                                  // ko
 import static us.ko.ok;                                                                        // ok
@@ -40,7 +41,6 @@ import us.pair;                                                                 
 import java.security.PublicKey;                                                                // PublicKey
 import java.util.Random;                                                                       // Random
 import java.io.UnsupportedEncodingException;                                                   // UnsupportedEncodingException
-import us.wallet.engine.ip4_endpoint_t;                                                  // hash_t
 
 public class gov_client_t extends us.gov.cli.rpc_daemon_t {
 

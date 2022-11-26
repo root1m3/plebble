@@ -1043,7 +1043,7 @@ public class hmi {
             twocol(ind, "RPC to wallet-daemon (" + us.CFG.PLATFORM + "-wallet) parameters:", "", os);
             twocol(ind____, "-whost <address>", "walletd address", tostr(p.walletd_host.value), os);
             twocol(ind____, "-wp <port>", "walletd port", tostr(p.walletd_port.value), os);
-            twocol(ind____, "--custodial_wallet_id <string>", "(rpc) Select custodial wallet, or '-' for non-custodial", p.subhome.isEmpty() ? "'-'" : p.subhome, os);
+            twocol(ind____, "--custodial <string>", "(rpc) Select custodial wallet, or '-' for non-custodial.", p.subhome.isEmpty() ? "'-'" : p.subhome, os);
         }
         os.println();
         os.println("Commands:");

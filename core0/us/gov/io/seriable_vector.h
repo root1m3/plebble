@@ -21,10 +21,17 @@
 //===----------------------------------------------------------------------------
 //===-
 #pragma once
-#include "seriable.h"
 #include <vector>
+#include <string>
+#include <type_traits>
+
+#include "seriable.h"
+#include "blob_reader_t.h"
+#include "blob_writer_t.h"
 
 namespace us::gov::io {
+
+    using namespace std;
 
     template<typename t>
     struct seriable_vector: vector<t>, virtual seriable {
@@ -34,6 +41,8 @@ namespace us::gov::io {
         inline void to_blob(blob_writer_t& writer) const override { writer.write(static_cast<const vector<t>&>(*this)); }
         inline ko from_blob(blob_reader_t& reader) override { return reader.read(static_cast<vector<t>&>(*this)); }
     };
+
+    static_assert(std::is_convertible<seriable_vector<string>*, io::writable*>::value, "KO 43822");
 
 }
 

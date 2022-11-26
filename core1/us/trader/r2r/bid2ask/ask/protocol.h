@@ -46,8 +46,6 @@ namespace us::trader::r2r::bid2ask::ask {
         using business_t = us::trader::r2r::bid2ask::ask::business_t;
         using tx_t = us::gov::cash::tx_t;
 
-        static constexpr const char* name{"bid2ask"};
-
     public:
         protocol(business_t&);
         ~protocol() override;

@@ -116,6 +116,14 @@ public class bookmark_t extends bookmark_info_t implements us.gov.io.seriable {
         return label;
     }
 
+    @Override public void dump(String pfx, PrintStream os) {
+        os.print(pfx);
+        os.print("qr: \"");
+        qr.to_streamX(os);
+        os.print("\" ");
+        super.dump("", os);
+    }
+
     public qr_t qr;
 }
 

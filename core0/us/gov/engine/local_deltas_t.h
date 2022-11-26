@@ -55,7 +55,6 @@ namespace us::gov::engine {
         void dumpX(ostream&) const;
 
     public:
-        using serid_t = blob_reader_t::serid_t;
         static constexpr serid_t serid{'L'};
         serid_t serial_id() const override { return serid; }
         size_t blob_size() const override;
@@ -67,9 +66,9 @@ namespace us::gov::engine {
     };
 
 }
-
-namespace us { namespace gov { namespace io {
+/*
+namespace us::gov::io {
     template<> inline ko blob_reader_t::readD(const us::gov::socket::datagram& d, us::gov::engine::local_deltas_t& o) { return o.read(d); }
     template<> inline datagram* blob_writer_t::get_datagram(channel_t channel, svc_t svc, seq_t seq, const us::gov::engine::local_deltas_t& o) { return o.get_datagram(channel, svc, seq); }
-}}}
-
+}
+*/

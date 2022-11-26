@@ -29,7 +29,6 @@
 #include <set>
 
 #include <us/gov/types.h>
-#include <us/gov/io/seriable.h>
 #include <us/gov/io/seriable_map.h>
 #include <us/gov/crypto/hash.h>
 #include <us/gov/crypto/types.h>
@@ -87,9 +86,10 @@ namespace us::gov::engine {
     using base = diff;
 
 }
-
+/*
 namespace us::gov::io {
     template<> inline ko blob_reader_t::readD(const us::gov::socket::datagram& d, us::gov::engine::diff& o) { return o.read(d); }
     template<> inline datagram* blob_writer_t::get_datagram(channel_t channel, svc_t svc, seq_t seq, const us::gov::engine::diff& o) { return o.get_datagram(channel, svc, seq); }
 }
+*/
 

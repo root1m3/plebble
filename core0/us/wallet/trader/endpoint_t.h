@@ -60,7 +60,7 @@ namespace us::wallet::trader {
         ko from_string(const string&);
 
     public: //serialization blob
-        using serid_t = blob_reader_t::serid_t;
+        //using serid_t = blob_reader_t::serid_t;
         size_t blob_size() const override;
         void to_blob(blob_writer_t&) const override;
         ko from_blob(blob_reader_t&) override;
@@ -72,9 +72,10 @@ namespace us::wallet::trader {
     };
 
 }
-
+/*
 namespace us::gov::io {
     template<> inline ko blob_reader_t::readD(const us::gov::socket::datagram& d, us::wallet::trader::endpoint_t& o) { return o.read(d); }
     template<> inline datagram* blob_writer_t::get_datagram(channel_t channel, svc_t svc, seq_t seq, const us::wallet::trader::endpoint_t& o) { return o.get_datagram(channel, svc, seq); }
 }
+*/
 

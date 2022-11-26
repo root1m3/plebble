@@ -72,7 +72,6 @@ namespace us::trader::r2r::bid2ask::bid {
         const char* rolestr() const override;
         const char* peer_rolestr() const override;
         const char* get_name() const override;
-        static constexpr auto name{"bid2ask"};
         string authorize_invoice(const string& txb58) const;
         chat_t::entry AI_chat(const chat_t&, peer_t&) override;
         payment_t* create_payment(const tx_t&, const string& msg) const;

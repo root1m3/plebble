@@ -74,8 +74,6 @@ constexpr size_t c::size_channel;
 constexpr size_t c::size_size;
 constexpr size_t c::size_service;
 
-//uint16_t c::system_channel{CFG_CHANNEL};
-
 const char* c::KO_0001 = "KO 0001 channel mismatch.";
 const char* c::KO_0002 = "KO 0002 too big.";
 const char* c::KO_0003 = "KO 0003 too small.";
@@ -136,6 +134,7 @@ const char* c::KO_20293 = "KO 20293 Invalid size.";
 #endif
 
 c::datagram(channel_t channel, uint16_t mode)  {
+    log("constructor");
     switch(mode) {
         case 0: {  //used in encryption
             resize(h);
@@ -163,6 +162,7 @@ c::datagram(channel_t channel, uint16_t mode)  {
 }
 
 c::datagram(channel_t channel, svc_t service, seq_t sequence, uint32_t payload_sz): service(service) {
+    log("constructor 2");
     resize(h + payload_sz);
     encode_channel(channel);
     encode_size(h + payload_sz);
@@ -181,6 +181,7 @@ c::datagram(channel_t channel, svc_t service, seq_t sequence, uint32_t payload_s
 }
 
 c::datagram(const c& other): service(other.service), dend(other.dend) {
+    log("constructor 3");
     resize(other.size());
     memcpy(data(), other.data(), other.size());
     #ifdef FIND_DGRAM_LEAKS
@@ -194,6 +195,7 @@ c::datagram(const c& other): service(other.service), dend(other.dend) {
 }
 
 c::~datagram() {
+    log("destructor");
     #ifdef FIND_DGRAM_LEAKS
         {
         auto y = x.find(this);

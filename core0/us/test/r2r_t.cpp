@@ -36,7 +36,7 @@
 //////Enable wait between steps when debugging failures or extending the tests.
 //////If disabled tests go fast but failures can be originated on previous steps to those reported
 //#define ENABLE_WAIT
-#define WAIT_TIME 1
+//#define WAIT_TIME 1
 ////////////////////////////////////
 
 using c = us::test::r2r_t;
@@ -44,6 +44,7 @@ using namespace std;
 
 int c::wait_from_seq{0};
 bool c::enable_wait{false};
+int c::wait_time{1};
 bool c::test_restart_wallet{true};
 
 namespace {
@@ -89,11 +90,9 @@ void c::wait() {
     if (!enable_wait) return;
     if (testseq < wait_from_seq) return;
     out << "seq " << testseq << sw1;
-    uint64_t wt = WAIT_TIME;
-    out << "wait " << wt /*.count()*/ << 's' << endl;
-    //this_thread::sleep_for(WAIT_TIME);
-//    cv_abort.wait_for(WAIT_TIME);
-    wait(WAIT_TIME);
+    uint64_t wt = wait_time;
+    out << "wait " << wt << 's' << endl;
+    wait(wait_time);
 }
 
 void c::wait(uint64_t secs) {
@@ -153,7 +152,6 @@ void c::curtest_cont(node& n1, node& n2, const string& title, const char*file, i
     n2.wallet_cli_dis->expected_code.reftest = f;
 
     ++testseq;
-
 }
 
 us::ko c::curtest(node& n1, node& n2, const string& title, const char*file, int line) {
@@ -305,7 +303,7 @@ void c::test_trade_start_dialog_a(node& bid, node& ask, hash_t& trade_id, int n1
             Check_s_contains(payload, "peer_moniker anonymous");
             Check_s_contains(payload, "initiator Y");
             Check_s_contains(payload, "protocol not set");
-            Check_s_contains(payload, "rf N");
+            //Check_s_contains(payload, "rf N");
             if (seq == 0) {
                 if (payload.find("state online") != string::npos) {
                     seq++;
@@ -387,7 +385,7 @@ void c::test_trade_start_dialog_a(node& bid, node& ask, hash_t& trade_id, int n1
                 Check_s_contains(payload, "online_age 00:00:0");
                 Check_s_contains(payload, "local_endpoint ");
                 Check_s_contains(payload, "initiator N");
-                Check_s_contains(payload, "rf N");
+//                Check_s_contains(payload, "rf N");
                 {
                     ostringstream os;
                     os << "remote_endpoint 123 " << bid.wallet_pkh;
@@ -451,15 +449,18 @@ void c::test_trade_start_dialog_b(node& bid, node& ask, hash_t& trade_id, int nu
             static int seq = 0;
             cout << "seq " << seq << endl;
             if (seq == 0) {
+                tee("proc_sec_0");
                 if (payload.find("state online") != string::npos) { //possible data coming before
                     ++seq;
                     bid.wallet_cli_dis->expected_code.decrement(us::wallet::trader::trader_t::push_data);
+                    tee("decrement push_data0");
                 }
                 else {
                     Check_s_contains(payload, "state offline");
                 }
             }
             if (seq == 1) {
+                tee("proc_sec_1");
                 Check_s_contains(payload, "created 1");
                 Check_s_contains(payload, "activity 1");
                 Check_s_contains(payload, "/123/wallet/trader/log/trade_");
@@ -485,7 +486,7 @@ void c::test_trade_start_dialog_b(node& bid, node& ask, hash_t& trade_id, int nu
                 Check_s_contains(payload, "personality_sk ");
                 Check_s_contains(payload, "basket ");
                 Check_s_contains(payload, "chat_script 0");
-                Check_s_contains(payload, "rf N");
+//                Check_s_contains(payload, "rf N");
                 Check_s_contains(payload, "peer_personality 11111111111111111111");
                 Check_s_contains(payload, "peer_moniker anonymous");
                 Check_s_contains(payload, "pphome");
@@ -495,6 +496,7 @@ void c::test_trade_start_dialog_b(node& bid, node& ask, hash_t& trade_id, int nu
                 if (payload.find("remote__doctypes_consumer ") != string::npos) { //possible data coming before
                     ++seq;
                     bid.wallet_cli_dis->expected_code.decrement(us::wallet::trader::trader_t::push_data);
+                    tee("decrement push_data1");
                 }
                 else {
                     Check_s_not_contains(payload, "remote__doctypes_consumer ");
@@ -506,6 +508,7 @@ void c::test_trade_start_dialog_b(node& bid, node& ask, hash_t& trade_id, int nu
                 }
             }
             if (seq == 2) {
+                tee("proc_sec_2");
                 Check_s_contains(payload, "peer_personality zzqCyAiEUz9mrw6EX1Rdehmovpv");
                 Check_s_contains(payload, "peer_moniker Impact Shopping");
                 Check_s_contains(payload, "pphome");
@@ -577,7 +580,7 @@ void c::test_trade_start_dialog_b(node& bid, node& ask, hash_t& trade_id, int nu
                 Check_s_contains(payload, "personality_sk ********");
                 Check_s_contains(payload, "personality_moniker Impact Shopping");
                 Check_s_contains(payload, "basket ");
-                Check_s_contains(payload, "rf N");
+//                Check_s_contains(payload, "rf N");
 
                 Check_s_contains(payload, "local__basket_serial 0");
                 Check_s_contains(payload, "local__doctypes_consumer 291 ");
@@ -677,7 +680,7 @@ void c::test_restartw(node& w1, node& w2) {
     w2.wallet_cli_dis->expected_code.enabled = true;
     w2.wallet_cli_dis->expected_code.zero_arrivals_is_good = true;
 
-    w1.wallet->daemon->traders.dump("traders w1> ", cout);
+    w1.wallet->daemon->root_wallet->traders.dump("traders w1> ", cout);
     cout << endl;
 //    w2.wallet->daemon->traders.dump("traders w2> ", cout);
 //    cout << endl;

@@ -20,8 +20,11 @@
 //===-
 //===----------------------------------------------------------------------------
 //===-
-#include "apps_t.h"
+#include <us/gov/io/blob_reader_t.h>
+#include <us/gov/io/blob_writer_t.h>
+
 #include "app.h"
+#include "apps_t.h"
 
 #define loglevel "gov/engine"
 #define logclass "apps_t"

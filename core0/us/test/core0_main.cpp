@@ -828,6 +828,8 @@ struct network_c0: network {
     network_c0(const string& homedir, const string& logdir, const string& vardir, ostream& os): b(homedir, logdir, vardir, "test-c0_r2r_stage1", os) {
         add_node("bank1", new node_bank("bank1", homedir, logdir, vardir, 22072, 22073));
         add_node("bank2", new node_bank("bank2", homedir, logdir, vardir, 22172, 22173));
+        //rbegin()->second->wallet_cli_subhome = "new";
+
     }
 
     ~network_c0() {
@@ -1052,6 +1054,8 @@ void help(ostream& os) {
 }
 
 int core0_main(int argc, char** argv) {
+us::test::r2r_t::test_restart_wallet = false;
+
 
     us::gov::io::shell_args args(argc, argv);
 
@@ -1158,6 +1162,8 @@ int core0_main(int argc, char** argv) {
     us::gov::cli::hmi::process_cleanup();
     us::wallet::cli::hmi::process_cleanup();
     tee("TEST SUCCEED");
+
+    cerr << "WARNING: setting test_restart_wallet as default. TODO: REMOVE 1st line core_0_main " << endl;
 
     return 0;
 }

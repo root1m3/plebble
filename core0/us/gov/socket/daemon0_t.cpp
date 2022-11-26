@@ -20,15 +20,19 @@
 //===-
 //===----------------------------------------------------------------------------
 //===-
-#include "daemon0_t.h"
 #include <fcntl.h>
 
+#include <us/gov/io/blob_writer_t.h>
+#include <us/gov/io/blob_reader_t.h>
+
+#include "daemon0_t.h"
 #include "outbound/caller_daemon_t.h"
 #include "types.h"
 
 #define loglevel "gov/socket"
 #define logclass "daemon0_t"
 #include "logs.inc"
+#include <us/gov/socket/dto.inc>
 
 using namespace us::gov::socket;
 using c = us::gov::socket::daemon0_t;
@@ -67,7 +71,7 @@ void c::process_ko_work(peer_t& peer, channel_t channel, seq_t seq, ko r) {
     log("process_ko_work", r);
     string e = rewrite(r);
     log("process_ko_work (rewrite)", e);
-    peer.send1(blob_writer_t::get_datagram(channel, protocol::socket_error, seq, e));
+    peer.send1(write_datagram(channel, protocol::socket_error, seq, e));
 }
 
 void c::dump(const string& prefix, ostream& os) const {

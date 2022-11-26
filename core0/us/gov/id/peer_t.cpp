@@ -20,16 +20,20 @@
 //===-
 //===----------------------------------------------------------------------------
 //===-
-#include "peer_t.h"
 #include <sstream>
 #include <fstream>
+
 #include <us/gov/config.h>
 #include <us/gov/likely.h>
 #include <us/gov/vcs.h>
 #include <us/gov/socket/datagram.h>
 #include <us/gov/crypto/base58.h>
+#include <us/gov/io/blob_reader_t.h>
+#include <us/gov/io/blob_writer_t.h>
+
 #include "protocol.h"
 #include "daemon_t.h"
+#include "peer_t.h"
 
 #ifndef HAVE_CFG
     #error need config.h
@@ -38,6 +42,7 @@
 #define loglevel "gov/id"
 #define logclass "peer_t"
 #include "logs.inc"
+#include <us/gov/socket/dto.inc>
 
 using namespace us::gov::id;
 using c = us::gov::id::peer_t;
@@ -63,7 +68,7 @@ ko c::connect(const hostport_t& hostport, pport_t pport, pin_t pin, role_t asrol
     log("connect_as", client::endpoint(hostport), "role", rolestr[asrole], "pport", pport, "pin", pin, "block", block);
     auto r = b::connect0(hostport, block);
     if (likely(r == ok)) {
-        log("initiating dialogue as role '", asrole, "' pport", pport, "pin", pin, "req_data", request_data);
+        log("initiating dialogue as role '", +asrole, "' pport", pport, "pin", pin, "req_data", request_data);
         initiate_dialogue(asrole, pport, pin, request_data);
     }
     log("result", r == ok ? "ok" : r);
@@ -84,6 +89,59 @@ void c::upgrade_software() {
     log("triggered upgrade_software signal!");
 }
 
+bool c::am_I_older(version_fingerprint_t me, version_fingerprint_t peer) {
+    // [0-86)
+    // [86-119)
+    // [119-256)
+    if (likely(peer == me)) {
+        log("peer has the same sw version");
+        return false;
+    }
+    if (me < 86) {
+        //I am in [0-86)
+        if (peer < 119) {
+            return me < peer;
+        }
+        return false;
+    }
+    if (me < 119) {
+        //I am in [86-119)
+        return me < peer;
+    }
+    //I am in [119-256)
+    if (peer < 86) { //peer is ahead of me
+        return true;
+    }
+    return me < peer;
+}
+
+bool c::am_I_older(version_fingerprint_t peer) {
+    constexpr static version_fingerprint_t me{CFG_MONOTONIC_VERSION_FINGERPRINT};
+    // [0-86)
+    // [86-119)
+    // [119-256)
+    if (likely(peer == me)) {
+        log("peer has the same sw version");
+        return false;
+    }
+    if constexpr (me < 86) {
+        //I am in [0-86)
+        if (peer < 119) {
+            return me < peer;
+        }
+        return false;
+    }
+    if constexpr (me < 119) {
+        //I am in [86-119)
+        return me < peer;
+    }
+    //I am in [119-256)
+    if (peer < 86) { //peer is ahead of me
+        return true;
+    }
+    return me < peer;
+}
+
 ko c::verification_completed(pport_t, pin_t, request_data_t&) {
     if (unlikely(!verification_is_fine())) {
         #if CFG_COUNTERS == 1
@@ -97,24 +155,12 @@ ko c::verification_completed(pport_t, pin_t, request_data_t&) {
     #if CFG_COUNTERS == 1
         ++counters.successful_verifications;
     #endif
-    version_fingerprint_t pv = handshakes->peer->parse_version_fingerprint();
-    if (unlikely(CFG_MONOTONIC_VERSION_FINGERPRINT) == 0) {
-        if (pv > 10) {
-            return ok; // peer is older
-        }
-       //I'm older
+    if (am_I_older(handshakes->peer->parse_version_fingerprint())) {
+        #if CFG_COUNTERS == 1
+            ++counters.signals_upgrade_software;
+        #endif
+        upgrade_software(); //triger automatic updates check
     }
-    else {
-        if (pv <= CFG_MONOTONIC_VERSION_FINGERPRINT) {
-            // peer is older or same
-            return ok;
-        }
-       //I'm older
-    }
-    #if CFG_COUNTERS == 1
-        ++counters.signals_upgrade_software;
-    #endif
-    upgrade_software(); //triger automatic updates check
     return ok;
 }
 

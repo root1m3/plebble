@@ -34,6 +34,9 @@ namespace us::gov::auth {
     #ifdef has_us_gov_auth_api
 
         struct dto {
+            using readable = us::gov::io::readable;
+            using writable = us::gov::io::writable;
+
             #include <us/api/generated/gov/c++/auth/cllr_dto-hdr>
             #include <us/api/generated/gov/c++/auth/hdlr_dto-hdr>
         };

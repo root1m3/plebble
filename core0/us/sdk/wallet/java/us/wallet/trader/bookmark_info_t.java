@@ -123,6 +123,13 @@ public class bookmark_info_t implements us.gov.io.seriable  {
         return label + " [" + (ico == null ? 0 : ico.length) + " ico bytes]";
     }
 
+    public void dump(String pfx, PrintStream os) {
+        os.print(pfx);
+        os.print("label: \"" + label + "\" ");
+        os.println("icon: [" + (ico == null ? 0 : ico.length) + " bytes]");
+    }
+
+
     public String label = "";
     public byte[] ico = null;
 }

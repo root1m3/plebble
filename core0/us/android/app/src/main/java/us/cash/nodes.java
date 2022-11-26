@@ -70,6 +70,11 @@ import android.widget.Toast;                                                    
 import androidx.appcompat.widget.Toolbar;                                                      // Toolbar
 import android.view.ViewGroup;                                                                 // ViewGroup
 import android.view.View;                                                                      // View
+//import us.wallet.engine.bookmark_index_t;
+import com.google.android.material.tabs.TabLayout; 
+import java.util.TreeMap;
+import us.wallet.trader.protocol_selection_t;
+import us.wallet.trader.bootstrap.protocols_t;
 
 public final class nodes extends activity implements datagram_dispatcher_t.handler_t {
 
@@ -153,17 +158,24 @@ public final class nodes extends activity implements datagram_dispatcher_t.handl
         return o;
     }
 
+    boolean tabs_listener_disabled = false;
+
     @RequiresApi(api = Build.VERSION_CODES.O)
     @Override protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         set_content_layout(R.layout.activity_world);
-        mode = (Switch) findViewById(R.id.mode);
-        mode_cap = (TextView) findViewById(R.id.mode_cap);
-        bookmarks = new ArrayList<pair<String, bookmark_t>>();
-        world = new ArrayList<pair<String, bookmark_t>>();
+        //mode = (Switch) findViewById(R.id.mode);
+        //mode_cap = (TextView) findViewById(R.id.mode_cap);
+        tabs = findViewById(R.id.tabs);
+//        tabs.selectTab(tabs.get(a.main._nodes_mode_tab), true);
+
+//        tabs.addTab(tabs.newTab().setText("Doctor"));
+
+        //bookmarks = new ArrayList<pair<String, bookmark_t>>();
+        //world = new ArrayList<pair<String, bookmark_t>>();
         lv = (no_scroll_list_view) findViewById(R.id.listviewX);
         assert lv != null;
-        adapter = new adapter_t(this, bookmarks);
+        adapter = new adapter_t(this, new ArrayList<pair<String, bookmark_t>>());
         lv.setAdapter(adapter);
         lv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override public void onItemClick(AdapterView parentView, View childView, int position, long id) {
@@ -172,11 +184,15 @@ public final class nodes extends activity implements datagram_dispatcher_t.handl
                     item_click2(bookmarks.get(position), position);
                     return;
                 }
-                if (a.main._nodes_mode_all) {
+                if (a.main._nodes_mode_tab == 0 ) {
                     item_click(world.get(position));
+                    return;
+                }
+                if (a.main._nodes_mode_tab == 1 ) {
+                    item_click1(bookmarks.get(position));
                 }
                 else {
-                    item_click1(bookmarks.get(position));
+                    item_click1(r2r_bookmarks.get(position));
                 }
             }
         });
@@ -185,7 +201,9 @@ public final class nodes extends activity implements datagram_dispatcher_t.handl
                 if (a.main._nodes_mode_custom != null) {
                     return true;
                 }
-                if (!a.main._nodes_mode_all) return true;
+                if (a.main._nodes_mode_tab != 0 ) {
+                    return true;
+                }
                 final EditText input = new EditText(parentView.getContext());
                 input.setOnFocusChangeListener(new OnFocusChangeListener() {
                         @Override public void onFocusChange(View v, boolean hasFocus) {
@@ -228,11 +246,13 @@ public final class nodes extends activity implements datagram_dispatcher_t.handl
         toolbar_button refresh_btn = findViewById(R.id.refresh);
         refresh_btn.setOnClickListener(new View.OnClickListener() {
             @Override public void onClick(View view) {
-                refresh();
+                reload(true);
             }
         });
         refresh_btn.setVisibility(View.VISIBLE);
 
+
+/*
         mode.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 log("TOUCHED ROLE VIEW"); //--strip
@@ -247,7 +267,51 @@ public final class nodes extends activity implements datagram_dispatcher_t.handl
                 refresh();
             }
         });
+*/
+
+        tabs.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
+            @Override public void onTabSelected(TabLayout.Tab tab) {
+                if (tabs_listener_disabled) return;
+                a.main._nodes_mode_tab = tab.getPosition();
+                protocol_selection = (protocol_selection_t) tab.getTag();
+                log("tab selected. position " + a.main._nodes_mode_tab); //--strip
+                reload(false);
+//                refresh();
+            }
+
+            @Override public void onTabUnselected(TabLayout.Tab tab) {
+                log("tab unselected. position " + tab.getPosition()); //--strip
+                if (tabs_listener_disabled) return;
+                adapter.clear();
+            }
+
+            @Override public void onTabReselected(TabLayout.Tab tab) {
+                log("tab reselected. position " + tab.getPosition()); //--strip
+                if (tabs_listener_disabled) return;
+                reload(true); //--strip
+            }
+
+
+        });
+
+
+//        load_index();
+
+/*
+        //---------------------
+        Thread th = new Thread(new Runnable() {
+            @Override public void run() {
+                load_protocols__worker();
+            }
+        });
+
+        th.start();
+*/
+        reload(true);
     }
+
+
+//    bookmark_index_t index = null;
 
     @Override public void onPause() {
         super.onPause();
@@ -349,19 +413,52 @@ public final class nodes extends activity implements datagram_dispatcher_t.handl
     @Override public void on_push(hash_t target_tid, uint16_t code, byte[] payload) {
     }
 
+    int redraw_prev_content = -1;
+
     void redraw() {
-        log("redraw"); //--strip
+        log("redraw tab=" + a.main._nodes_mode_tab); //--strip
+        if (a.main._nodes_mode_custom == null && redraw_prev_content == a.main._nodes_mode_tab) {
+            log("redraw aborted prev=" + redraw_prev_content + " cur " + a.main._nodes_mode_tab); //--strip
+            return;
+        }
         adapter.clear();
         if (a.main._nodes_mode_custom != null) {
+            if (bookmarks == null) {
+                log("bookmarks is null"); //--strip
+                return;
+            }
             adapter.addAll(bookmarks);
             return;
         }
-        if (a.main._nodes_mode_all) {
+        if (a.main._nodes_mode_tab == 0) {
+            if (world == null) {
+                log("world is null"); //--strip
+                return;
+            }
             adapter.addAll(world);
+            log("redraw prev=" + redraw_prev_content + " cur " + a.main._nodes_mode_tab); //--strip
+            redraw_prev_content = a.main._nodes_mode_tab;
+            return;
         }
-        else {
+        if (a.main._nodes_mode_tab == 1) {
+            if (bookmarks == null) {
+                log("bookmarks is null"); //--strip
+                return;
+            }
             adapter.addAll(bookmarks);
+            log("redraw prev=" + redraw_prev_content + " cur " + a.main._nodes_mode_tab); //--strip
+            redraw_prev_content = a.main._nodes_mode_tab;
+            return;
         }
+        //bookmarks_t bm = (bookmarks_t)tabs.getTabAt(a.main._nodes_mode_tab).getTag();
+        if (r2r_bookmarks == null) {
+            log("r2r_bookmarks is null"); //--strip
+            return;
+        }
+        adapter.addAll(r2r_bookmarks);
+        log("redraw prev=" + redraw_prev_content + " cur " + a.main._nodes_mode_tab); //--strip
+        redraw_prev_content = a.main._nodes_mode_tab;
+
     }
 
     void load_remote() {
@@ -371,7 +468,117 @@ public final class nodes extends activity implements datagram_dispatcher_t.handl
         set_busy(false);
     }
 
+    void on_protocols() {
+        a.assert_ui_thread(); //--strip
+        refresh();
+    }
+
+    void on_r2r_bookmarks__worker(final bookmarks_t bookmarks) {
+        a.assert_worker_thread(); //--strip
+        log("on_r2r_bookmarks__worker " + bookmarks.size()); //--strip
+        r2r_bookmarks = convert(bookmarks);
+        if (a.main._nodes_mode_tab >= 2) {
+            redraw_prev_content = -1;
+        }
+
+        runOnUiThread(new Runnable() {
+            @Override public void run() {
+                redraw();
+            }
+        });
+    }
+
+    void load_r2r_bookmarks__worker() {
+        //assert protocol_selection != null; //--strip
+        log("load_r2r_bookmarks__worker protocol_selection=" + protocol_selection.to_string()); //--strip
+//        TabLayout.Tab tab = tabs.getTabAt(tabs.getSelectedTabPosition());
+        bookmarks_t bm = new bookmarks_t();
+        ko r = a.hmi().rpc_peer.call_r2r_bookmarks(protocol_selection, bm);
+        log("returned from rpc call"); //--strip
+        if (is_ko(r)) {
+            report_ko__worker(r);
+            return;
+        }
+        on_r2r_bookmarks__worker(bm);
+    }
+
+    protocol_selection_t cur_protocol_selection = null;
+
+    void load_r2r_bookmarks() { //(bookmarks_t bm
+        a.assert_ui_thread(); //--strip
+        if (protocols == null) return;
+        if (cur_protocol_selection == protocol_selection) {
+            return;
+        }
+        cur_protocol_selection = protocol_selection;
+        log("load_r2r_bookmarks"); //--strip
+        set_busy(true);
+        Thread thread1 = new Thread(new Runnable() {
+            @Override public void run() {
+                load_r2r_bookmarks__worker();
+                set_busy__worker(false);
+            }
+        });
+        thread1.start();
+    }
+
+    void on_protocols__worker(final protocols_t protocols_) {
+        a.assert_worker_thread(); //--strip
+        log("on_protocols__worker. sz=" + protocols_); //--strip
+        protocols = protocols_;
+        runOnUiThread(new Runnable() {
+            @Override public void run() {
+                on_protocols();
+            }
+        });
+
+        r2r_bookmarks = null;
+        if (a.main._nodes_mode_tab == 0) { 
+        }
+        else if (a.main._nodes_mode_tab == 1) { 
+        }
+        else {
+            load_r2r_bookmarks__worker();
+        }
+    }
+
+    void load_protocols__worker() {
+        a.assert_worker_thread(); //--strip
+        log("load_protocols__worker"); //--strip
+        protocols_t protocols_ = new protocols_t();
+        ko r = a.hmi().rpc_peer.call_r2r_index_hdr(protocols_);
+        if (is_ko(r)) {
+            set_busy__worker(false);
+            report_ko__worker(r);
+            return;
+        }
+        on_protocols__worker(protocols_);
+    }
+
+
+    void load_protocols() { //(bookmarks_t bm
+        a.assert_ui_thread(); //--strip
+        if (protocols != null) {
+            redraw();
+            return;
+        }
+        log("load_protocols"); //--strip
+        set_busy(true);
+        Thread thread1 = new Thread(new Runnable() {
+            @Override public void run() {
+                load_protocols__worker();
+                set_busy__worker(false);
+            }
+        });
+        thread1.start();
+    }
+
     void load_bookmarks() {
+        if (bookmarks != null) {
+            redraw();
+            return;
+        }
+        log("load_bookmarks 0args"); //--strip
         set_busy(true);
         Thread thread1 = new Thread(new Runnable() {
             @Override public void run() {
@@ -380,7 +587,6 @@ public final class nodes extends activity implements datagram_dispatcher_t.handl
                 ko r = a.hmi().rpc_peer.call_bookmark_list(bm);
                 if (is_ko(r)) {
                     set_busy__worker(false);
-                    log(r.msg); //--strip
                     report_ko__worker(r);
                     return;
                 }
@@ -392,7 +598,33 @@ public final class nodes extends activity implements datagram_dispatcher_t.handl
         thread1.start();
     }
 
+/*
+    void load_r2r_bookmarks() {
+        set_busy(true);
+        Thread thread1 = new Thread(new Runnable() {
+            @Override public void run() {
+                log("load_r2rindex-run"); //--strip
+                bookmark_index_t bm = new bookmark_index_t();
+                ko r = a.hmi().rpc_peer.call_r2r_bookmarks(protocol_selection, bm);
+                if (is_ko(r)) {
+                    set_busy__worker(false);
+                    log(r.msg); //--strip
+                    report_ko__worker(r);
+                    return;
+                }
+                //bookmarks = convert(bm);
+                log("OK " + bookmarks.size()); //--strip
+                set_busy__worker(false);
+            }
+        });
+        thread1.start();
+    }
+*/
     void load_world() {
+        if (world != null) {
+            redraw();
+            return;
+        }
         set_busy(true);
         Thread thread1 = new Thread(new Runnable() {
             @Override public void run() {
@@ -407,7 +639,6 @@ public final class nodes extends activity implements datagram_dispatcher_t.handl
                 ko r = a.hmi().rpc_peer.call_world(vh);
                 if (is_ko(r)) {
                     set_busy__worker(false);
-                    log(r.msg); //--strip
                     return;
                 }
                 world = convert(vh);
@@ -418,12 +649,9 @@ public final class nodes extends activity implements datagram_dispatcher_t.handl
         thread1.start();
     }
 
-    int _busy = 0;
-
     void set_busy__worker(boolean b) {
         runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
+            @Override public void run() {
                 set_busy(b);
             }
         });
@@ -434,6 +662,7 @@ public final class nodes extends activity implements datagram_dispatcher_t.handl
             ++_busy;
             if (_busy == 1) {
                 log("busy=1"); //--strip
+                adapter.clear();
             }
             return;
         }
@@ -444,6 +673,62 @@ public final class nodes extends activity implements datagram_dispatcher_t.handl
         }
     }
 
+    public static class role_metadata_t {
+        public role_metadata_t(String title_) {
+            title = title_;
+        }
+        String title;
+        //int res;
+    };
+
+/*
+    public static class roles_metadata_t extends TreeMap<protocol_selection_t, role_metadata_t> {
+        roles_metadata_t() {
+            put(new protocol_selection_t("pat2slt", "slt"), new role_metadata_t("Doctor"));
+            put(new protocol_selection_t("pat2slt", "pat"), new role_metadata_t("Patient"));
+//            emplace(new protocol_selection_t("pat2slt", "slt"), new role_metadata_t("Sports Club"));
+//            emplace(new protocol_selection_t("pat2slt", "pat"), new role_metadata_t("Fan"));
+        }
+
+        String get_title(final protocol_selection_t protocol_selection) {
+            // Get the value associated with a given key in a TreeMap
+            role_metadata_t data = get(protocol_selection);
+            if (data == null) {
+                return protocol_selection.to_string();
+            }
+            return data.title;
+        }
+    };
+
+    static roles_metadata_t roles_metadata = new roles_metadata_t();
+*/
+
+    void retab() {
+        log("retab"); //--strip
+        if (protocols == null) {
+            tabs_listener_disabled = true;
+            while (tabs.getTabCount() > 2) {
+                tabs.removeTabAt(tabs.getTabCount() - 1);
+            }
+            tabs_listener_disabled = false;
+            log("null protocols"); //--strip
+            return;
+        }
+        if (tabs.getTabCount() > 2) {
+            return;
+        }
+        log("retab " + protocols.size()); //--strip
+        tabs_listener_disabled = true;
+        for (protocol_selection_t i: protocols) {
+//            bookmarks_t value = entry.getValue();
+            TabLayout.Tab tab = tabs.newTab().setText(i.to_string());
+            tab.setIcon(R.raw.r2rtab);
+            tab.setTag(i);
+            tabs.addTab(tab);
+        }
+        tabs_listener_disabled = false;
+    }
+
     @Override public void refresh() {
         a.assert_ui_thread(); //--strip
         if (!a.has_hmi()) {
@@ -452,38 +737,92 @@ public final class nodes extends activity implements datagram_dispatcher_t.handl
             return;
         }
         super.refresh();
-        log("refresh. a.main._nodes_mode_all=" + a.main._nodes_mode_all); //--strip
         if (a.main._nodes_mode_custom != null) {
             toolbar.setTitle("Listing remote bookmarks");
-            mode.setVisibility(View.GONE);
-            mode_cap.setVisibility(View.GONE);
+            tabs.setVisibility(View.GONE);
             load_remote();
             return;
         }
-        mode.setVisibility(View.VISIBLE);
-        mode_cap.setVisibility(View.VISIBLE);
-        if (a.main._nodes_mode_all) {
+        retab();
+        if (a.main._nodes_mode_tab >= tabs.getTabCount()) {
+            if (CFG.default_view_bookmarks == 1) {
+                a.main._nodes_mode_tab = 1;
+            }
+            else {
+                a.main._nodes_mode_tab = 0;
+            }
+            log("reset tab to " + a.main._nodes_mode_tab); //--strip
+        } 
+        log("select tab " + a.main._nodes_mode_tab); //--strip
+        tabs_listener_disabled = true;
+        tabs.selectTab(tabs.getTabAt(a.main._nodes_mode_tab), true);
+        tabs_listener_disabled = false;
+        log("switch " + a.main._nodes_mode_tab); //--strip
+
+        if (a.main._nodes_mode_tab == 0) { 
             toolbar.setTitle(R.string.world);
-            mode.setChecked(false);
-            mode_cap.setText("Listing all world. turn for listing my bookmarks.");
-            load_world();
+//            mode.setChecked(false);
+//            mode_cap.setText("Listing all world. turn for listing my bookmarks.");
+            return;
         }
-        else {
+        if (a.main._nodes_mode_tab == 1) { 
             toolbar.setTitle(R.string.label_bookmarks);
-            mode.setChecked(true);
-            mode_cap.setText("Listing my bookmarks. turn for listing all world.");
-            load_bookmarks();
+//            mode.setChecked(true);
+//            mode_cap.setText("Listing my bookmarks. turn for listing all world.");
+            return;
         }
+        log("refresh r2r tab " + tabs.getSelectedTabPosition()); //--strip
+        TabLayout.Tab tab = tabs.getTabAt(tabs.getSelectedTabPosition());
+        toolbar.setTitle(tab.getText());
+        if (r2r_bookmarks == null) {
+
+        }
+
+//        mode.setChecked(true);
+//        mode_cap.setText("Listing my bookmarks. turn for listing all world.");
+        tabs.setVisibility(View.VISIBLE);
+    }
+
+
+    void reload(boolean force) {
+        a.assert_ui_thread(); //--strip
+        log("reload force=" + force + " tab=" + a.main._nodes_mode_tab); //--strip
+        if (force) {
+            protocols = null;
+            redraw_prev_content = -1;
+        }
+        load_protocols();
+        if (a.main._nodes_mode_tab == 0) { 
+            if (force) world = null;
+            load_world();
+            return;
+        }
+        if (a.main._nodes_mode_tab == 1) { 
+            if (force) bookmarks = null;
+            load_bookmarks();
+            return;
+        }
+        load_r2r_bookmarks();
+        //redraw();
+//        TabLayout.Tab tab = tabs.getTabAt(tabs.getSelectedTabPosition());
+//        load_bookmarks2((bookmarks_t)tab.getTag());
     }
 
     no_scroll_list_view lv;
 
     ArrayList<pair<String, bookmark_t>> world = null;
     ArrayList<pair<String, bookmark_t>> bookmarks = null;
+    ArrayList<pair<String, bookmark_t>> r2r_bookmarks = null;
+    protocol_selection_t protocol_selection = null;
+
+    protocols_t protocols = null;
+
+
     adapter_t adapter = null;
     int dispatchid;
-    private Switch mode;
-    private TextView mode_cap;
-
+    //private Switch mode;
+    //private TextView mode_cap;
+    TabLayout tabs;
+    int _busy = 0;
 }
 

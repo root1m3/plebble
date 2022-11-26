@@ -22,11 +22,11 @@
 //===-
 #pragma once
 #include <unordered_map>
-
-#include <us/gov/types.h>
-#include <us/gov/io/seriable_map.h>
+#include <type_traits>
 
 #include "account_t.h"
+#include <us/gov/types.h>
+#include <us/gov/io/seriable_map.h>
 
 namespace us::gov::cash {
 
@@ -74,5 +74,14 @@ namespace us::gov::cash {
 
     };
 
+    static_assert(std::is_convertible<accounts_t*, io::blob_writer_t::writable*>::value, "KO 73822");
+
 }
+
+/*
+namespace us::gov::io {
+    template<> inline ko blob_reader_t::readD(const us::gov::socket::datagram& d, us::gov::cash::accounts_t& o) { return o.read(d); }
+    template<> inline datagram* blob_writer_t::get_datagram(channel_t channel, svc_t svc, seq_t seq, const us::gov::cash::accounts_t& o) { return o.get_datagram(channel, svc, seq); }
+}
+*/
 

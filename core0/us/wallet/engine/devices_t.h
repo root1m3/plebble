@@ -69,6 +69,7 @@ namespace us::wallet::engine {
         inline const string& get_home() const { return home; }
         inline bool is_enabled__authorize_and_create_guest_wallet() const { return authorize_and_create_guest_wallet; }
         ko handle_conf(const string& key, const string& value, string& ans);
+        ko valid_subhome(string subhome) const;
 
     private:
         ko load_();

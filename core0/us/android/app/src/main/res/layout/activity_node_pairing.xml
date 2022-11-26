@@ -133,7 +133,6 @@
                     android:layout_height="wrap_content"
                     android:text="save"
                     />
-
             </LinearLayout>
 
             <com.google.android.material.textfield.TextInputLayout

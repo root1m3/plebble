@@ -47,7 +47,7 @@ c::wallet_connection_t(): name_("default wallet") {
     log("constructor 1 ");
 }
 
-c::wallet_connection_t(const string& nm, const ip4_endpoint_t& ep): name_(nm), ip4_endpoint(ep) {
+c::wallet_connection_t(const string& nm, const string& subhome, const ip4_endpoint_t& ep): name_(nm), subhome(subhome), ip4_endpoint(ep) {
     log("constructor 3 ");
 }
 
@@ -60,12 +60,12 @@ c::wallet_connection_t(const wallet_connection_t& other): name_(other.name_), ss
     log("copy constructor");
 }
 
-void c::dump(ostream& os) const {
-    os << "name " << name_ << '\n';
-    os << "ssid " << ssid << '\n';
-    os << "addr " << addr << '\n';
-    os << "subhome " << subhome << '\n';
-    os << ip4_endpoint.to_string() << '\n';
+void c::dump(const string& pfx, ostream& os) const {
+    os << pfx << "name " << name_ << '\n';
+    os << pfx << "ssid " << ssid << '\n';
+    os << pfx << "addr " << addr << '\n';
+    os << pfx << "subhome " << subhome << '\n';
+    os << pfx << ip4_endpoint.to_string() << '\n';
 }
 
 c c::copy() const {
@@ -81,7 +81,7 @@ c c::copy() const {
 
 string c::log_string() const {
     log("en-uk entry:");
-    wallet_connection_t wc(name_, ip4_endpoint);
+    wallet_connection_t wc(name_, subhome, ip4_endpoint);
     auto r = wc.encode();
     log(string("str95=\"") + r + "\" #default wallet_connection blob b58");
     return r;
@@ -167,5 +167,12 @@ ko c::from_blob(blob_reader_t& reader) {
 //cout << "Read ts " << ts << endl;
     log("read wallet connection named", name_);
     return ok;
+}
+
+void us::wallet::engine::wallet_connections_t::dump(ostream& os) const {
+    for (auto& i: *this) {
+        os << "wallet_connection:\n";
+        i.dump("    ", os);
+    }
 }
 

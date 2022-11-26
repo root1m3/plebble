@@ -1,0 +1,70 @@
+#!/bin/bash
+#===-                           P L E B B L E
+#===-                         https://plebble.us
+#===-
+#===-              Copyright (C) 2017-2022 root1m3@plebble.us
+#===-
+#===-                      GNU GENERAL PUBLIC LICENSE
+#===-                       Version 3, 29 June 2007
+#===-
+#===-    This program is free software: you can redistribute it and/or modify
+#===-    it under the terms of the GPLv3 License as published by the Free
+#===-    Software Foundation.
+#===-
+#===-    This program is distributed in the hope that it will be useful,
+#===-    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#===-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+#===-
+#===-    You should have received a copy of the General Public License
+#===-    along with this program, see LICENCE file.
+#===-    see https://www.gnu.org/licenses
+#===-
+#===----------------------------------------------------------------------------
+#===-
+
+brand=linkbox
+cmd=$1
+shift
+function new_wallet {
+    template=$1
+    tgtdir=$2
+    sk=$3
+    name="Dr. Anonymous Doctor"
+    if [[ ! -d $template ]]; then
+        echo "KO 86753 missing dir template/$template"
+        exit 1
+    fi
+    mkdir -p $tgtdir
+    cp $template/* $tgtdir/ -R
+    r=$?
+    if [[ $r -ne 0 ]]; then
+        pwd
+        echo "KO 67588 copy failed: cp $template/* $tgtdir/ -R"
+    fi
+    if [[ -d $tgtdir/trader ]]; then
+        f=`find $tgtdir/trader -name "params_private.in"`
+        for file in $f; do
+            nfn=`echo "$tgtdir/params_private.in" |  sed "s~params_private\.in\$~params_private~"`
+            mv $file $nfn
+            sed -i "s/##personality_sk##/${sk}/" $nfn
+        done
+
+        f=`find $tgtdir/trader -name "name.in"`
+        for file in $f; do
+            nfn=`echo "$tgtdir/name.in" |  sed "s~name\.in\$~name~"`
+            mv $file $nfn
+            sed -i "s/##name##/${name}/" $nfn
+        done
+    fi
+    echo "$template $tgtdir $r" >> /var/log/${brand}/hook_new_wallet
+    exit $r
+}
+
+if [[ "_$cmd" == "_new_wallet" ]]; then
+    template=$1
+    tgtdir=$2
+    sk=$3
+    new_wallet $template $tgtdir $sk
+fi
+echo "KO 86752 invalid cmd $cmd"
+exit 1
