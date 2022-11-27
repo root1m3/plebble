@@ -47,9 +47,9 @@ import android.view.View;                                                       
 
 public class workflow_view extends LinearLayout {
 
-    static void log(final String s) { //--strip
-        System.out.println("workflow_view: " + s); //--strip
-    } //--strip
+    static void log(final String s) {                       //--strip
+        System.out.println("workflow_view: " + s);          //--strip
+    }                                                       //--strip
 
     public workflow_view(Context context, AttributeSet attrs) {
         super(context, attrs);
@@ -89,6 +89,9 @@ public class workflow_view extends LinearLayout {
         removeAllViews();
         for (int i = 0; i < order.length; ++i) {
             pair<workflow_item_t, workflow_item_t> n = wf.get(order[i]);
+            if (n == null) {
+                continue;
+            }
             workflow_item_view iv = (workflow_item_view) inflater.inflate(R.layout.workflow_item, null);
             iv.init(rf, n, click_handler);
             addView(iv);

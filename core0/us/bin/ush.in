@@ -395,6 +395,7 @@ find $cmddir -maxdepth 1 -type f | sed "s#$cmddir/##g" | sort | xargs
 echo "--"
 echo "  ans"
 echo ""
+echo "using_ssh: $mynode_ip $mynode_sshport"
 echo "Copyright (C) ##str59##"
 exit 1
 

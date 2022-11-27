@@ -50,57 +50,109 @@ scp="scp -i ${grootkey}"
 
 #set -x
 
-for blob in `find blobs/ -type f -name "*.tzst"`; do
-    echo "------------------------------------------------------------------------------------"
-    echo "------------------------------------------------------------------------------------"
-    echo "blob: $blob"
-    echo "------------------------------------------------------------------------------------"
-    echo "------------------------------------------------------------------------------------"
-    bname=$(basename $blob)
-    brand=`echo "$bname" | tr '_' ' ' | awk '{ print $1 }'`
-    branch=`echo "$bname" | tr '_' ' ' | awk '{ print $2 }'`
-    hash=`echo "$bname" | tr '_' ' ' | awk '{ print $3 }'`
-    flags=`echo "$bname" | tr '_' ' ' | awk '{ print $4 }'`
-    echo ""
-    echo "brand $brand branch $branch hash $hash flags $flags"
-    if [ -f ./.cbs/config_$brand ]; then
-        . ./.cbs/config_$brand
-    else
-        echo "KO 70694 Missing .cbs/config_$brand file"
-        exit 1
-    fi
-    node=$distr_node_pkh
-    echo "node $node"
-    ush -pkh nick $node > /tmp/usho
-    r=$?
-    cat /tmp/usho
-    if [[ $r -ne 0 ]]; then
-        exit 1
-    fi
-    ip=`cat /tmp/usho | grep "^reachable_addr" | awk '{ print $NF }'`
-    port=`cat /tmp/usho | grep "^reachable_ssh_port" | awk '{ print $NF }'`
-    rm /tmp/usho
-    if [[ $oub -eq 0 ]]; then
-        $ssh -p$port $ip "mkdir -p /var/$brand/blob; mkdir -p /var/$brand/blob_prev; touch /var/$brand/blob/mvbug.tzst; mv /var/$brand/blob/*.tzst /var/$brand/blob_prev/; rm /var/$brand/blob_prev/mvbug.tzst"
-        if [[ $? -ne 0 ]]; then
+function up_blobs {
+    for blob in `find blobs/ -type f -name "*.tzst"`; do
+        echo "------------------------------------------------------------------------------------"
+        echo "------------------------------------------------------------------------------------"
+        echo "blob: $blob"
+        echo "------------------------------------------------------------------------------------"
+        echo "------------------------------------------------------------------------------------"
+        bname=$(basename $blob)
+        brand=`echo "$bname" | tr '_' ' ' | awk '{ print $1 }'`
+        branch=`echo "$bname" | tr '_' ' ' | awk '{ print $2 }'`
+        hash=`echo "$bname" | tr '_' ' ' | awk '{ print $3 }'`
+        flags=`echo "$bname" | tr '_' ' ' | awk '{ print $4 }'`
+        if [[ ! -f $blob.partid ]]; then
+            echo "KO 78699 $blob.partid not found."
             exit 1
         fi
-        $scp -P$port $blob $ip:/var/$brand/blob/
-        if [[ $? -ne 0 ]]; then
-            echo "KO 55031"
+        partid=`cat $blob.partid`
+        echo ""
+        echo "brand $brand branch $branch hash $hash flags $flags partid $partid"
+        if [[ -f ./.cbs/config_$brand ]]; then
+            . ./.cbs/config_$brand
+        else
+            echo "KO 70694 Missing .cbs/config_$brand file"
             exit 1
         fi
-    fi
+        dir=$(dirname $blob)
+        part=`cat $blob.partid`
+        node=$distr_node_pkh
+        echo "node $node"
+        ush -pkh nick $node > /tmp/usho
+        r=$?
+        cat /tmp/usho
+        if [[ $r -ne 0 ]]; then
+            exit 1
+        fi
+        ip=`cat /tmp/usho | grep "^reachable_addr" | awk '{ print $NF }'`
+        port=`cat /tmp/usho | grep "^reachable_ssh_port" | awk '{ print $NF }'`
+        rm /tmp/usho
+        if [[ $oub -eq 0 ]]; then
+        $ssh -p $port gov@$ip bin/up_blobs ${brand}
+            if [[ $? -ne 0 ]]; then
+                echo "KO 88791 cannot ssh to BDN brand $brand"
+                exit 1
+            fi
+        fi
 
-    brandcode="$str40"
-    $ssh -p $port gov@$ip bin/up_blobs ${brand} ${brandcode}
-    if [[ $? -ne 0 ]]; then
-        echo "KO 88791 cannot ssh to BDN brand $brand"
-        exit 1
-    fi
-done
+    done
+}
 
-#set +x
+function scp_blobs {
+    for blob in `find blobs/ -type f -name "*.tzst"`; do
+        echo "------------------------------------------------------------------------------------"
+        echo "------------------------------------------------------------------------------------"
+        echo "blob: $blob"
+        echo "------------------------------------------------------------------------------------"
+        echo "------------------------------------------------------------------------------------"
+        bname=$(basename $blob)
+        brand=`echo "$bname" | tr '_' ' ' | awk '{ print $1 }'`
+        branch=`echo "$bname" | tr '_' ' ' | awk '{ print $2 }'`
+        hash=`echo "$bname" | tr '_' ' ' | awk '{ print $3 }'`
+        flags=`echo "$bname" | tr '_' ' ' | awk '{ print $4 }'`
+        if [[ ! -f $blob.partid ]]; then
+            echo "KO 78699 $blob.partid not found."
+            exit 1
+        fi
+        partid=`cat $blob.partid`
+        echo ""
+        echo "brand $brand branch $branch hash $hash flags $flags partid $partid"
+        if [[ -f ./.cbs/config_$brand ]]; then
+            . ./.cbs/config_$brand
+        else
+            echo "KO 70694 Missing .cbs/config_$brand file"
+            exit 1
+        fi
+        dir=$(dirname $blob)
+        part=`cat $blob.partid`
+        node=$distr_node_pkh
+        echo "node $node"
+        ush -pkh nick $node > /tmp/usho
+        r=$?
+        cat /tmp/usho
+        if [[ $r -ne 0 ]]; then
+            exit 1
+        fi
+        ip=`cat /tmp/usho | grep "^reachable_addr" | awk '{ print $NF }'`
+        port=`cat /tmp/usho | grep "^reachable_ssh_port" | awk '{ print $NF }'`
+        rm /tmp/usho
+        if [[ $oub -eq 0 ]]; then
+            $ssh -p$port $ip "mkdir -p /var/$brand/blob; mkdir -p /var/$brand/blob_prev; touch /var/$brand/blob/mvbug.tzst; mv /var/$brand/blob/*.tzst /var/$brand/blob_prev/; rm /var/$brand/blob_prev/mvbug.tzst; echo "$partid" > /var/$brand/blob/partid"
+            if [[ $? -ne 0 ]]; then
+                exit 1
+            fi
+            $scp -P$port $blob $ip:/var/$brand/blob/
+            if [[ $? -ne 0 ]]; then
+                echo "KO 55031"
+                exit 1
+            fi
+        fi
+    done
+}
+
+scp_blobs
+#up_blobs
 
 echo "Blobs have been delivered to BDPs, and they have uploaded the blob to blockchain."
 echo "Next step:"

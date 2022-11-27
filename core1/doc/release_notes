@@ -162,6 +162,10 @@ Production releases. beta
 Production releases. alpha
 --------------------------
 
+alpha-52-hotfix - 
+    * new wallet hook run in a separate thread produced a race condition. protocols_t could not be loaded because the worker thread could not finish before it was needed.
+    * Added brand HQ bookmark
+
 alpha-52 - 
     * fix regression. reviewed wallet access authorization process.
     * Shell RPC-Client (c++, java) "--custodial" option allows selection of a remote custodial wallet by its id.

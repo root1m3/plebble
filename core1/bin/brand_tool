@@ -23,9 +23,12 @@
 #===-
 
 function help {
-    echo "$0 new <brand_seed_dir>      Create a New brand. If the brand is not new it will ask before rewriting parts."
-    echo "$0 gen_strset <brand_seed_dir>"
-    echo "$0 upload_bde_setup <brand_seed_dir>"
+    cat << EOF
+$0 new <brand_seed_dir>      Create a New brand. If the brand is not new it will ask before rewriting parts.
+$0 gen_strset <brand_seed_dir>
+$0 upload_bde_setup <brand_seed_dir>
+$0 gen_bookmarks <brand_seed_dir>
+EOF
 }
 
 cmd=$1
@@ -219,6 +222,33 @@ function gen_govk {
     fi
 }
 
+function walletsk {
+    if [[ ! -z ${node_wallet_k} ]]; then
+        return
+    fi
+    node_wallet_k=`cat ${brandkeyroot}/walletk`
+    if [[ $? -ne 0 ]]; then
+        echo "KO 45824 cannot retrieve node_wallet_k from ${brandkeyroot}/walletk"
+        exit 1
+    fi
+    if [[ -z ${node_wallet_k} ]]; then
+        echo "KO 45926 cannot load ${brandkeyroot}/walletk."
+        exit 1
+    fi
+}
+
+function walletaddr {
+    if [[ ! -z ${node_wallet_addr} ]]; then
+        return
+    fi
+    walletsk
+    node_wallet_addr=`${us}-wallet priv_key ${node_wallet_k} | grep "^addr " | awk '{ print $2 }'`
+    if [[ $? -ne 0 ]]; then
+        echo "KO 75823 cannot generate addr from node_wallet_k"
+        exit 1
+    fi
+}
+
 function gen_walletk {
     echo "gen_walletk"
     if [[ ! -f ${brandkeyroot}/walletk ]]; then
@@ -233,21 +263,9 @@ function gen_walletk {
         fi
         echo "${node_wallet_k}" > ${brandkeyroot}/walletk
     else
-        node_wallet_k=`cat ${brandkeyroot}/walletk`
-        if [[ $? -ne 0 ]]; then
-            echo "KO 45824 cannot retrieve node_wallet_k from ${brandkeyroot}/walletk"
-            exit 1
-        fi
-        if [[ -z ${node_wallet_k} ]]; then
-            echo "KO 45926 cannot load ${brandkeyroot}/govk."
-            exit 1
-        fi
+        walletsk
     fi
-    node_wallet_addr=`${us}-wallet priv_key ${node_wallet_k} | grep "^addr " | awk '{ print $2 }'`
-    if [[ $? -ne 0 ]]; then
-        echo "KO 75823 cannot generate addr from node_wallet_k"
-        exit 1
-    fi
+    walletaddr
 }
 
 function gen_settings {
@@ -282,8 +300,10 @@ function gen_bookmarks {
     if [[ -z ${trade_bookmark_protocol_selection} ]]; then
         trade_bookmark_protocol_selection="- - "
     fi
+    walletaddr
     subhome=""
     #subhome=".subhome"
+    echo "$us-wallet create_bookmark \"${trade_bookmark_label}\" ${brand_seed_dir}/icoapp.png \"${trade_bookmark_chan}${node_wallet_addr}${subhome}\" ${trade_bookmark_protocol_selection} ${brand_dir}/bookmarks"
     $us-wallet create_bookmark "${trade_bookmark_label}" ${brand_seed_dir}/icoapp.png "${trade_bookmark_chan}${node_wallet_addr}${subhome}" ${trade_bookmark_protocol_selection} ${brand_dir}/bookmarks
     if [[ ! -f ${brand_dir}/bookmarks ]]; then
         echo "KO 91028 bookmarks hasn't been created"
@@ -955,6 +975,10 @@ if [[ "_$cmd" == "_gen_strset" ]]; then
 fi
 if [[ "_$cmd" == "_upload_bde_setup" ]]; then
     upload_bde_setup
+    exit 0
+fi
+if [[ "_$cmd" == "_gen_bookmarks" ]]; then
+    gen_bookmarks
     exit 0
 fi
 

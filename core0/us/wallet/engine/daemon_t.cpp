@@ -300,9 +300,9 @@ socket::client* c::create_client(sock_t sock) {
 }
 
 void c::hook_new_wallet__worker(const string& subhome, const string& wallet_template) {
-    #if CFG_LOGS == 1
-        log_start("hooks", "new_wallet");
-    #endif
+//    #if CFG_LOGS == 1
+//        log_start("hooks", "new_wallet");
+//    #endif
     struct w_t  {
         w_t(daemon_t& d, const string& subhome): d(d) {
             w = d.users.get_wallet(subhome);
@@ -339,8 +339,11 @@ void c::hook_new_wallet(const string& subhome, const string& wallet_template) {
     else {
         log("hook file doesn't exist.", hook.str());
     }
-    thread work(&c::hook_new_wallet__worker, this, subhome, wallet_template);
-    work.detach();
+//    thread work(&c::hook_new_wallet__worker, this, subhome, wallet_template);
+//    work.detach();
+    //Fix: new wallets won't see r2r_index_hdr
+    hook_new_wallet__worker(subhome, wallet_template);
+
 }
 
 ko c::authorize_device(const pub_t& p, pin_t pin, request_data_t& request_data) {

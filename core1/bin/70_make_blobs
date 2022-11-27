@@ -82,6 +82,10 @@ for branddir in `find distr -maxdepth 1 -mindepth 1 -type d`; do
                 echo "KO 87945 missing release_notes."
                 exit 1
             fi
+            if [[ ! -f $blobdir/doc/strset ]]; then
+                echo "KO 87946 missing strset file."
+                exit 1
+            fi
             cp deps $blobdir/ -R
             echo "Excluding OS Image"
             rm -rf $blobdir/raspberry_pi
@@ -109,7 +113,10 @@ for branddir in `find distr -maxdepth 1 -mindepth 1 -type d`; do
             tar -I zstd -cf $blobdir.tzst $blobdir
             mv $blobdir.tzst ../blobs/
             mv /tmp/${brand}_install_blob ../blobs/
+            . $blobdir/doc/strset
             rm -rf $blobdir
+            #write partid
+            echo "$str40" > ../blobs/${blobdir}.tzst.partid
 	    popd > /dev/null
     else
         echo "skipped distr/$brand"
