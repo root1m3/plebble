@@ -27,12 +27,16 @@ HS := $(wildcard *.h)
 INC := ../../../..
 CXXFLAGS = -O0 -g -std=c++20 -DDEBUG
 
-${OBJ}.o: ${OBJS} ${CPPS} ${HS}
-	ld -r -o ${OBJ}.o ${OBJS}
+all: ${OBJ}.o
 
 %.o: %.cpp
 	$(CXX) -fPIC -c ${CXXFLAGS} -I${INC} $^ -o $@
 
+${OBJ}.o: ${OBJS} ${CPPS} ${HS}
+	ld -r -o ${OBJ}.o ${OBJS}
+
 clean:
-	rm *.o -f
+	$(RM) -f *.o
+
+.PHONY: all clean
 

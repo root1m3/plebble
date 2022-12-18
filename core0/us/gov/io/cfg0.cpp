@@ -20,19 +20,18 @@
 //===-
 //===----------------------------------------------------------------------------
 //===-
-#include "cfg0.h"
-//#include <string.h>
-#include <sys/stat.h>
-#include <sys/types.h>
 #include <cassert>
 #include <fstream>
 #include <sstream>
 #include <cstdlib>
 #include <iostream>
+#include <sys/stat.h>
+#include <sys/types.h>
 
 #include <us/gov/stacktrace.h>
-#include "types.h"
 
+#include "types.h"
+#include "cfg0.h"
 
 #define loglevel "gov/io"
 #define logclass "cfg0"

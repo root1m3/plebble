@@ -20,8 +20,9 @@
 //===-
 //===----------------------------------------------------------------------------
 //===-
-#include "evidence_processor.h"
 #include <us/gov/peer/types.h>
+
+#include "evidence_processor.h"
 
 #define loglevel "engine"
 #define logclass "evidence_processor"

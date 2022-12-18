@@ -20,7 +20,6 @@
 //===-
 //===----------------------------------------------------------------------------
 //===-
-#include "delta.h"
 #include <functional>
 #include <random>
 
@@ -31,6 +30,7 @@
 #include "acl_tx.h"
 #include "local_delta.h"
 #include "types.h"
+#include "delta.h"
 
 #define loglevel "gov/engine/auth"
 #define logclass "delta"

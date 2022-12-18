@@ -25,7 +25,8 @@
 echo "sleep"
 sleep $[ ( $RANDOM % 600 )  + 1 ]s
 
-install_blob
+timeout 10s sudo chmod 1777 /tmp
+timeout 5m sudo install_blob
 
 exit 0
 

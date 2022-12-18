@@ -532,9 +532,29 @@ public class trader extends activity implements datagram_dispatcher_t.handler_t 
         }
     }
 
-    boolean create_ui(String protocol) {
-        if (protocol == null) return false;
-        log("create_ui for " + protocol); // --strip
+    boolean create_ui__core0(String protocol) {
+        if (protocol.equals("w2w w")) {
+            if (specialized_fragment != null) {
+                if (specialized_fragment instanceof fragment_w2w) {
+                    log("right fragment in place"); // --strip
+                    return true;
+                }
+            }
+            log("new instance"); // --strip
+            specialized_fragment = new fragment_w2w();
+            return true;
+        }
+        if (protocol.equals("a2a a")) {
+            if (specialized_fragment != null) {
+                if (specialized_fragment instanceof fragment_a2a) {
+                    log("right fragment in place"); // --strip
+                    return true;
+                }
+            }
+            log("new instance"); // --strip
+            specialized_fragment = new fragment_a2a();
+            return true;
+        }
         if (protocol.equals("bid2ask bid")) {
             if (specialized_fragment != null) {
                 if (specialized_fragment instanceof fragment_bid2ask_bid) {
@@ -544,8 +564,91 @@ public class trader extends activity implements datagram_dispatcher_t.handler_t 
             }
             log("new instance fragment_bid2ask_bid"); // --strip
             specialized_fragment = new fragment_bid2ask_bid();
+            return true;
         }
-        else if (protocol.equals("pat2slt pat")) {
+        return false;
+    }
+
+    boolean create_ui__b2b(String protocol) {
+        if (protocol.equals("b2b b")) {
+            if (specialized_fragment != null) {
+                if (specialized_fragment instanceof fragment_b2b) {
+                    log("right fragment in place"); // --strip
+                    return true;
+                }
+            }
+            log("new instance"); // --strip
+            specialized_fragment = new fragment_b2b();
+            return true;
+        }
+        return false;
+    }
+
+    boolean create_ui__b2r(String protocol) {
+        if (protocol.equals("b2r b")) {
+            if (specialized_fragment != null) {
+                if (specialized_fragment instanceof fragment_b2r_b) {
+                    log("right fragment in place"); // --strip
+                    return true;
+                }
+            }
+            log("new instance"); // --strip
+            specialized_fragment = new fragment_b2r_b();
+            return true;
+        }
+        if (protocol.equals("b2r r")) {
+            if (specialized_fragment != null) {
+                if (specialized_fragment instanceof fragment_b2r_r) {
+                    log("right fragment in place"); // --strip
+                    return true;
+                }
+            }
+            log("new instance"); // --strip
+            specialized_fragment = new fragment_b2r_r();
+            return true;
+        }
+        return false;
+    }
+
+    boolean create_ui__fanclub(String protocol) {
+        if (protocol.equals("fan2fan fan")) {
+            if (specialized_fragment != null) {
+                if (specialized_fragment instanceof fragment_fan2fan) {
+                    log("right fragment in place"); // --strip
+                    return true;
+                }
+            }
+            log("new instance"); // --strip
+            specialized_fragment = new fragment_fan2fan();
+            return true;
+        }
+        if (protocol.equals("fan2club fan")) {
+            if (specialized_fragment != null) {
+                if (specialized_fragment instanceof fragment_fan2club_fan) {
+                    log("right fragment in place"); // --strip
+                    return true;
+                }
+            }
+            log("new instance"); // --strip
+            specialized_fragment = new fragment_fan2club_fan();
+            return true;
+        }
+        if (protocol.equals("fan2club club")) {
+            if (specialized_fragment != null) {
+                if (specialized_fragment instanceof fragment_fan2club_club) {
+                    log("right fragment in place"); // --strip
+                    return true;
+                }
+            }
+            log("new instance"); // --strip
+            specialized_fragment = new fragment_fan2club_club();
+            return true;
+        }
+        return false;
+    }
+
+    boolean create_ui__katlas(String protocol) {
+        if (protocol.equals("pat2slt pat")) {
             if (specialized_fragment != null) {
                 if (specialized_fragment instanceof fragment_pat2slt_pat) {
                     log("right fragment in place"); // --strip
@@ -554,8 +657,9 @@ public class trader extends activity implements datagram_dispatcher_t.handler_t 
             }
             log("new instance"); // --strip
             specialized_fragment = new fragment_pat2slt_pat();
+            return true;
         }
-        else if (protocol.equals("pat2phy pat")) {
+        if (protocol.equals("pat2phy pat")) {
             if (specialized_fragment != null) {
                 if (specialized_fragment instanceof fragment_pat2phy_pat) {
                     log("right fragment in place"); // --strip
@@ -564,8 +668,9 @@ public class trader extends activity implements datagram_dispatcher_t.handler_t 
             }
             log("new instance"); // --strip
             specialized_fragment = new fragment_pat2phy_pat();
+            return true;
         }
-        else if (protocol.equals("pat2ai pat")) {
+        if (protocol.equals("pat2ai pat")) {
             if (specialized_fragment != null) {
                 if (specialized_fragment instanceof fragment_pat2ai_pat) {
                     log("right fragment in place"); // --strip
@@ -574,18 +679,9 @@ public class trader extends activity implements datagram_dispatcher_t.handler_t 
             }
             log("new instance"); // --strip
             specialized_fragment = new fragment_pat2ai_pat();
+            return true;
         }
-        else if (protocol.equals("w2w w")) {
-            if (specialized_fragment != null) {
-                if (specialized_fragment instanceof fragment_w2w) {
-                    log("right fragment in place"); // --strip
-                    return true;
-                }
-            }
-            log("new instance"); // --strip
-            specialized_fragment = new fragment_w2w();
-        }
-        else if (protocol.equals("pat2slt slt")) {
+        if (protocol.equals("pat2slt slt")) {
             if (specialized_fragment != null) {
                 if (specialized_fragment instanceof fragment_pat2slt_slt) {
                     log("right fragment in place"); // --strip
@@ -594,13 +690,30 @@ public class trader extends activity implements datagram_dispatcher_t.handler_t 
             }
             log("new instance"); // --strip
             specialized_fragment = new fragment_pat2slt_slt();
+            return true;
         }
-        else {
-            return false;
+        return false;
+    }
+
+    boolean create_ui(String protocol) {
+        if (protocol == null) return false;
+        log("create_ui for " + protocol); // --strip
+        if (create_ui__katlas(protocol)) {
+            return true;
         }
-        log("Setting args in specialized fragment"); // --strip
-        specialized_fragment.setArguments(getIntent().getExtras());
-        return true;
+        if (create_ui__fanclub(protocol)) {
+            return true;
+        }
+        if (create_ui__b2r(protocol)) {
+            return true;
+        }
+        if (create_ui__b2b(protocol)) {
+            return true;
+        }
+        if (create_ui__core0(protocol)) {
+            return true;
+        }
+        return false;
     }
 
     public void start_protocol(String selected_protocol) {

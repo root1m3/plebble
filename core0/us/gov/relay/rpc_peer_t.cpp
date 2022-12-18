@@ -20,8 +20,9 @@
 //===-
 //===----------------------------------------------------------------------------
 //===-
-#include "rpc_peer_t.h"
 #include <us/gov/socket/rpc_daemon_t.h>
+
+#include "rpc_peer_t.h"
 
 #define loglevel "gov/relay"
 #define logclass "rpc_peer_t"

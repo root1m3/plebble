@@ -25,12 +25,210 @@
 # Flush DNS cache: systemd-resolve --flush-caches
 #
 
+function help {
+    echo "sets up BDE (Brand Distribution End)"
+    echo "Requies ports 53, 80, and 443 opened."
+}
+
+function bindzones {
+    tf=$(mktemp /tmp/mk_bde_bindzones.XXXXXX)
+
+    # .bashrc - include command aliases
+    file=/etc/bind/named.conf.local
+    cat $file | grep -v ".*--${US}" > $tf
+    cat << EOF >> $tf
+    zone "${domain}" {                       //--${US}
+        type master;                        //--${US}
+        file "/etc/bind/zones/db.${domain}"; //--${US}
+    };                                      //--${US}
+                                            //--${US}
+EOF
+    echo "New file $file"
+    cat $file
+    echo "New file /etc/bind/zones/db.${domain}"
+    cat bde_data/bind/db.${domain}
+    if [[ -f $file ]]; then
+        echo "<<<<<<<<<< diff $file"
+        diff $file $tf
+        echo "<<<<<<<<<< diff $file"
+    fi
+    if [[ -f /etc/bind/zones/db.${domain} ]]; then
+        echo "<<<<<<<<<< diff /etc/bind/zones/db.${domain}"
+        diff /etc/bind/zones/db.${domain} bde_data/bind/db.${domain}
+        echo "<<<<<<<<<< diff /etc/bind/zones/db.${domain}"
+    fi
+    echo -n "Install bind files? [y/n]: "
+    read a
+    if [[ "_$a" != "_y" ]]; then
+        return
+    fi
+
+    mv $tf $file
+
+    chgrp bind $file
+    chmod 644 $file
+
+    mkdir -p /etc/bind/zones/
+    if [[ -f /etc/bind/zones/db.${domain} ]]; then
+        echo "Replacing /etc/bind/zones/db.${domain}"
+    fi
+    cp bde_data/bind/db.${domain} /etc/bind/zones/
+
+    rndc reload
+    if [[ $? -ne 0 ]]; then
+        echo "KO 78109 bind didnt reload."
+        exit 1
+    fi
+}
+
+function nginx_conf {
+    if [[ -f /etc/nginx/sites-available/${domain} ]]; then
+        echo "old /etc/nginx/sites-available/${domain}"
+        cat /etc/nginx/sites-available/${domain}
+        echo "new /etc/nginx/sites-available/${domain}"
+        cat bde_data/nginx/sites-available/${domain}
+        echo "<<<<<<<<<<<<< /etc/nginx/sites-available/${domain}"
+        diff /etc/nginx/sites-available/${domain} bde_data/nginx/sites-available/${domain}
+        echo "<</<<<<<<<<<< /etc/nginx/sites-available/${domain}"
+    fi
+    echo -n "Install nginx conf files? [y/n]: "
+    read a
+    if [[ "_$a" != "_y" ]]; then
+        return
+    fi
+    if [[ ! -f /etc/nginx/sites-available/${domain} ]]; then
+        cp bde_data/nginx/sites-available/${domain} /etc/nginx/sites-available/
+        pushd /etc/nginx/sites-enabled > /dev/null
+            ln -s /etc/nginx/sites-available/${domain}
+        popd
+        systemctl reload nginx
+        if [[ $? -ne 0 ]]; then
+            echo "KO 78119 nginx didnt reload."
+            exit 1
+        fi
+    else
+        echo "KO 68577 function  nginx_conf not ready for rewrite"
+        exit 1
+    fi
+}
+
+function htmldocs {
+    echo -n "Install html? [y/n]: "
+    read a
+    if [[ "_$a" != "_y" ]]; then
+        return
+    fi
+    echo "Replacing html"
+    mkdir -p /var/www/html/${US}
+    rm -rf /var/www/html/${US}/* -R
+    cp bde_data/nginx/html/* /var/www/html/${US}/ -R
+}
+
+function certbotinst {
+    echo -n "Install certbot? [y/n]: "
+    read a
+    if [[ "_$a" != "_y" ]]; then
+        return
+    fi
+    if [[ ! -x /usr/bin/certbot ]]; then
+        apt -y install certbot
+    fi
+    ssl_email="$str2"
+
+    mkdir -p /var/log/${US}
+    echo "2>&1 certbot -a manual --preferred-challenges dns -m ${ssl_email} --agree-tos -i nginx -w /var/www/html/${US} --domains "${domain}"  | tee -a /var/log/${US}/certbotrun"
+
+    echo "=============================================="
+    echo "== depending on the following feedback from certbot, do manuall something like this:============================================"
+    cat << EOF
+    echo "_acme-challenge IN TXT Vpr6hXl983KrG26Q0pMXXrfTO2rsgwe0kpnXNYD-zX8" >> /etc/bind/zones/db.${domain}; let v=`cat /etc/bind/zones/db.${domain} | grep "; Serial" | awk '{ print $1 }'`; let v2=$v+1; sed -i "s~^\(\s*\)1\(\s*\); Serial~\1${v2}\2; Serial~" /etc/bind/zones/db.${domain}; rndc reload
+    dig +short TXT _acme-challenge.${domain}
+EOF
+    echo "=============================================="
+
+    2>&1 certbot -a manual --preferred-challenges dns -m ${ssl_email} --agree-tos -i nginx -w /var/www/html/${US} --domains "${domain}"  | tee -a /var/log/${US}/certbotrun
+}
+
+function walletconf_custodial {
+    if [[ $custodial_server -ne 1 ]]; then
+        return
+    fi
+    echo "Config custodial server"
+    su gov -c "${US}-wallet conf authorize_and_create_guest_wallet | grep \"authorize_and_create_guest_wallet 1\" > /dev/null"
+    if [[ $? -eq 1 ]]; then
+        echo "configuring wallet for creating guest wallets [conf authorize_and_create_guest_wallet=1]"
+        su gov -c "${US}-wallet conf authorize_and_create_guest_wallet 1"
+#        run as user gov: wallet conf authorize_and_create_guest_wallet 1
+    else
+        echo "wallet already configured [conf authorize_and_create_guest_wallet=1]"
+    fi
+}
+
+function rootwallet {
+    walletconf_custodial
+    echo -n "Install (rewrite) root wallet? [y/n]: "
+    read a
+    if [[ "_$a" != "_y" ]]; then
+        return
+    fi
+    pathtar=""
+    pushd bde_data > /dev/null
+        rm -f wallet.tgz
+        tar -czf wallet.tgz wallet
+        rm -f walletbase.tgz
+        tar -czf template_base.tgz template_base
+        pathtar="$(pwd)"
+    popd  > /dev/null
+    home=`su gov -c "${US}-gov print_home"`
+    if [[ $? -ne 0 ]]; then
+        echo "KO 78699"
+        return
+    fi
+    echo -n "extract wallet ($pathtar/wallet.tgz) into $home? [y/n]: "
+    read a
+    if [[ "_$a" != "_y" ]]; then
+        return
+    fi
+    pushd $home > /dev/null
+        tar -xzf $pathtar/wallet.tgz
+        for t in $(find wallet/template -maxdepth 1 -mindepth 1 -type d); do
+            pushd $t > /dev/null
+                tar -xzf $pathtar/template_base.tgz  
+                if [[ -d template_base ]]; then
+                    pushd template_base > /dev/null
+                        tar -czf ../x.tgz *
+                    popd > /dev/null
+                    rm -rf template_base
+                    tar -xzf x.tgz
+                    rm x.tgz
+                fi
+                if [[ -d wallet_template ]]; then
+                    pushd wallet_template > /dev/null
+                        tar -czf ../x.tgz *
+                    popd > /dev/null
+                    rm -rf wallet_template
+                    tar -xzf x.tgz
+                    rm x.tgz
+                fi
+            popd > /dev/null
+        done
+        chown gov:gov wallet -R
+    popd > /dev/null
+    echo  $home/wallet updated
+    echo -n "Restart wallet service? [y/n]: "
+    read a
+    if [[ "_$a" != "_y" ]]; then
+        return
+    fi
+    systemctl restart ${US}-wallet    
+}
+
 if [[ ! -f strset0 ]]; then
-    echo "KO 83092 Please use the parent program: bin/brand_tool upload_bde_setup"
+    echo "KO 83092 Please use the parent program: bin/brand_tool gen_bde_setup"
     exit 1
 fi
 if [[ ! -f strset ]]; then
-    echo "KO 83093 Please use the parent program: bin/brand_tool upload_bde_setup"
+    echo "KO 83093 Please use the parent program: bin/brand_tool gen_bde_setup"
     exit 1
 fi
 
@@ -38,23 +236,28 @@ fi
 . strset
 
 US="$str3"
+if [[ "_$US" == "_" ]]; then
+    echo "KO 67583 Invalid variable US"
+    exit 1
+fi
 
-domain=${str68}
-ssl_email="$str2"
+if [[ ! -f /var/us_nets ]]; then
+    echo "KO 83762 Install node before upgrading to bde"
+    exit 1
+fi
 
-function help {
-    echo "sets up BDE (Brand Distribution End)"
-    echo "Requies ports 53, 80, and 443 opened."
-}
+installed_us=`cat /var/us_nets | awk '{print $2}'`
 
-function undo {
-    oldstr68=""
-    rm -f /etc/bind/zones/db.${oldstr68}
-    rm -f /etc/nginx/sites-enabled/${oldstr68}
-    rm -f /etc/nginx/sites-available/${oldstr68}
-}
+if [[ ${installed_us} != ${US} ]]; then
+    echo "KO 83761 This package is only compatible with brand ${US}. Installed brand: ${installed_us}"
+    exit 1
+fi
 
-#======================bind
+su gov -c "${US}-wallet version"
+if [[ $? -ne 0 ]]; then
+    echo "KO 85774"
+    exit 1
+fi
 
 if [[ ! -f /etc/named/named.conf.local ]]; then
     apt -y install bind9 bind9-utils
@@ -63,84 +266,27 @@ if [[ ! -f /etc/bind/named.conf.local ]]; then
     echo "KO 78109 file /etc/bind/named.conf.local doesn't exist."
     exit 1
 fi
+domain=${str68}
 if [[ ! -f bde_data/bind/db.${domain} ]]; then
     echo "KO 78108 bde_data/db.${domain} doesn't exist."
     exit 1
 fi
 
-#temporary file
-tf=$(mktemp /tmp/distr_make.XXXXXX)
+bindzones
+nginx_conf
+htmldocs
+certbotinst
+rootwallet
 
-# .bashrc - include command aliases
-file=/etc/bind/named.conf.local
-cat $file | grep -v ".*--${US}" > $tf
-cat << EOF >> $tf
-zone "${domain}" {                       //--${US}
-    type master;                        //--${US}
-    file "/etc/bind/zones/db.${domain}"; //--${US}
-};                                      //--${US}
-                                        //--${US}
-EOF
-mv $tf $file
-
-chgrp bind $file
-chmod 644 $file
-
-mkdir -p /etc/bind/zones/
-if [[ -f /etc/bind/zones/bde_data/bind/db.${domain} ]]; then
-    echo "Replacing /etc/bind/zones/bde_data/bind/db.${domain}"
-fi
-cp bde_data/bind/db.${domain} /etc/bind/zones/
-
-rndc reload
-if [[ $? -ne 0 ]]; then
-    echo "KO 78109 bind didnt reload."
-    exit 1
-fi
-
-#======================nginx
-
-if [[ ! -x /usr/bin/certbot ]]; then
-    apt -y install certbot
-fi
-
-if [[ ! -f /etc/nginx/sites-available/${domain} ]]; then
-    cp bde_data/nginx/sites-available/${domain} /etc/nginx/sites-available/
-    pushd /etc/nginx/sites-enabled > /dev/null
-        ln -s /etc/nginx/sites-available/${domain}
-    popd
-    systemctl reload nginx
-    if [[ $? -ne 0 ]]; then
-        echo "KO 78119 nginx didnt reload."
-        exit 1
+if [[ ! -f /etc/bind/zones/db.${domain} ]]; then
+    echo "WARNING: /etc/bind/zones/db.${domain} doesn't exist!"
+else
+    if [[ $custodial_server -eq 1 ]]; then
+        cat /etc/bind/zones/db.${domain} | grep "custodial" > /dev/null
+        if [[ $? -ne 0 ]]; then
+            echo "WARNING: /etc/bind/zones/db.${domain} should contain an A record for 'custodial'."
+        fi
     fi
-fi
-
-if [[ "_$US" == "_" ]]; then
-    echo "KO 67583 Invalid variable US"
-    exit 1
-fi
-
-mkdir -p /var/www/html/${US}
-rm -rf /var/www/html/${US}/* -R
-cp bde_data/nginx/html/* /var/www/html/${US}/ -R
-
-mkdir -p /var/log/${US}
-echo "2>&1 certbot -a manual --preferred-challenges dns -m ${ssl_email} --agree-tos -i nginx -w /var/www/html/${US} --domains "${domain}"  | tee -a /var/log/${US}/certbotrun"
-
-echo "=============================================="
-echo "== depending on the following feedback from certbot, do manuall something like this:============================================"
-cat << EOF
-echo "_acme-challenge IN TXT Vpr6hXl983KrG26Q0pMXXrfTO2rsgwe0kpnXNYD-zX8" >> /etc/bind/zones/db.${domain}; let v=`cat /etc/bind/zones/db.${domain} | grep "; Serial" | awk '{ print $1 }'`; let v2=$v+1; sed -i "s~^\(\s*\)1\(\s*\); Serial~\1${v2}\2; Serial~" /etc/bind/zones/db.${domain}; rndc reload
-dig +short TXT _acme-challenge.${domain}
-EOF
-echo "=============================================="
-
-2>&1 certbot -a manual --preferred-challenges dns -m ${ssl_email} --agree-tos -i nginx -w /var/www/html/${US} --domains "${domain}"  | tee -a /var/log/${US}/certbotrun
-
-if [[ $custodial_server -eq 1 ]]; then
-    echo "==configure wallet for creating guest wallets============================================"
-    run as user gov: wallet conf authorize_and_create_guest_wallet 1
 fi
 
 exit 0

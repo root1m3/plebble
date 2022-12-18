@@ -20,8 +20,6 @@
 //===-
 //===----------------------------------------------------------------------------
 //===-
-#include "delta.h"
-
 #include <functional>
 #include <random>
 
@@ -32,6 +30,7 @@
 #include "wallet_address.h"
 #include "local_delta.h"
 #include "types.h"
+#include "delta.h"
 
 #define loglevel "gov/traders"
 #define logclass "delta"

@@ -141,6 +141,10 @@ public final class connections extends activity {
         static final int pwr_off = Color.parseColor("#a0a0a0");
         static final int pwr_on = Color.parseColor("#3399ff");
 
+        static int darkgreen = Color.parseColor("#009900");
+        static int orange = Color.parseColor("#ffa500");
+
+
         @Override public View getView(int position, View view, ViewGroup parent) {
             View vi = view;
             if (vi == null) {
@@ -148,9 +152,16 @@ public final class connections extends activity {
             }
             ImageButton b = vi.findViewById(R.id.hmibutton);
             TextView label = vi.findViewById(R.id.label);
+            TextView ssid = vi.findViewById(R.id.ssid);
+            TextView address = vi.findViewById(R.id.address);
             Switch poweron = vi.findViewById(R.id.poweron);
             device_endpoint_t itm = getItem(position);
             String caption = itm.get_title();
+            //String subcaption = itm.get_subtitle();
+            String subhome = itm.get_subhome();
+            String addr_ = itm.get_address();
+            String ssid_ = itm.get_ssid();
+            
             label.setBackgroundColor(pwr_off);
             poweron.setOnCheckedChangeListener(null);
             if (itm.hmi == null) {
@@ -176,6 +187,27 @@ public final class connections extends activity {
                 label.setBackgroundColor(pwr_on);
             }
             label.setText(caption);
+            if (itm.has_addr()) {
+                if (subhome.isEmpty()) {
+                    address.setText("Privacy wallet: " + addr_);
+                    address.setTextColor(darkgreen);
+                }
+                else {
+                    address.setText("Custodial wallet: " + addr_ + "." + subhome);
+                    address.setTextColor(orange);
+                }
+                address.setVisibility(View.VISIBLE);
+            }
+            else {
+                address.setVisibility(View.GONE);
+            }
+            if (!ssid_.isEmpty()) {
+                ssid.setText("tied to wifi SSID: " + ssid_);
+                ssid.setVisibility(View.VISIBLE);
+            }
+            else {
+                address.setVisibility(View.GONE);
+            }
             View.OnClickListener lner = new View.OnClickListener() {
                 @Override public void onClick(View v) {
                     activity_.select_device_endpoint(position);
@@ -307,7 +339,7 @@ public final class connections extends activity {
         }
         String[] options;
 //        if (CFG.default_wallet_connections.isEmpty()) {
-            options = new String[]{"Open/Edit connection", onoff_hmi, "Delete connection", "Copy into a new connection", a.getResources().getString(R.string.cancel)};
+        options = new String[]{"Open/Edit connection", onoff_hmi, "Delete connection", "Copy into a new connection", "Add default connection/s", a.getResources().getString(R.string.cancel)};
 /*
         }
         else {
@@ -342,34 +374,35 @@ public final class connections extends activity {
                             ko r = i.a.device_endpoints.erase(pos);
                             if (is_ko(r)) {
                                 toast(r.msg);
+                                break;
                             }
-                            else {
-                                refresh();
-                            }
-                            break;
+                            refresh();
                         }
+                        break;
                     case 3:
                         {
                             ko r = i.a.device_endpoints.copy_device_endpoint(pos);
                             if (is_ko(r)) {
                                 toast(r.msg);
+                                break;
                             }
-                            else {
-                                refresh();
-                            }
-                            break;
+                            refresh();
                         }
+                        break;
 
-/*
                     case 4:
                         {
-                            if (!CFG.custodial_wallet_host.isEmpty()) {
-                                a.device_endpoints.add_default_wallet_connection_off();
-                                refresh();
+                            if (CFG.default_wallet_connections.isEmpty()) {
+                                toast("No default connections arte available");
+                                break;
                             }
+                            a.device_endpoints.add_default_wallet_connection2();
+                            refresh();
                         }
+                        break;
+
                     case 5:
-*/                }
+                }
             }
         })
         .setIcon(R.drawable.ic_itemlist).show();

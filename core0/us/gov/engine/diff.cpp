@@ -20,8 +20,6 @@
 //===-
 //===----------------------------------------------------------------------------
 //===-
-#include "diff.h"
-
 #include <cassert>
 #include <iomanip>
 #include <vector>
@@ -34,6 +32,7 @@
 
 #include "app.h"
 #include "local_deltas_t.h"
+#include "diff.h"
 
 #define loglevel "gov/engine"
 #define logclass "diff"

@@ -31,8 +31,21 @@
 #include <cstring>
 #include <cassert>
 #include <filesystem>
+#include <functional>
 
 using namespace std;
+
+void help(ostream& os) {
+    os << "srctool [options] -a <header_file> <file>        Adds header\n";
+    os << "srctool [options] -i <file>                      Removes header\n";
+    os << "srctool [options] --patch <pfx> <envfile> <file> Replaces in file all tokens defined in env. tokens are in the form ##<pfx>token##, env in the form token=\"replacement\" \n";
+    os << "Options:\n";
+    os << "  --ext <extension>                              Treat file as if it had the given extension.\n";
+    os << "  --dir                                          <file> is a directory, apply recursively.\n";
+    os << "  --patch                                        Tokens mode. all other options ignored.\n";
+    os << "  --dryrun                                       Write to srdout instead of rewriting files.\n";
+    os << "    extension: sh                                File shall have bangshe on 1st line.\n";
+}
 
 string _ext;
 bool _recursive{false};
@@ -70,6 +83,9 @@ set<string> ignoreexts {
 
 string ext(const string& file) {
 //cout << "file: " << file << endl;
+    if (file == "makefile_distr") {
+        return "makefile";
+    }
     if (!_ext.empty()) {
         return _ext;
     }
@@ -212,16 +228,6 @@ bool write_file(const string& filename, size_t from, const vector<unsigned char>
     os.write((char*)&buf[from], buf.size() - from);
 //cout << "file size " << buf.size() << endl;
     return !os.fail();
-}
-
-void help(ostream& os) {
-    os << "srctool [options] -a <header_file> <file>        Adds header\n";
-    os << "srctool [options] -i <file>                      Removes header\n";
-    os << "Options:\n";
-    os << "  --ext <extension>                              Treat file as if it had the given extension.\n";
-    os << "  --dir                                          <file> is a directory, apply recursively.\n";
-    os << "  --dryrun                                       Write to srdout instead of rewriting files.\n";
-    os << "    extension: sh                                File shall have bangshe on 1st line.\n";
 }
 
 bool fileinfo(const string& file, vector<uint8_t>& content, string& comment, size_t& hdr_start) {
@@ -461,6 +467,290 @@ int remove_header_dir(const string& dir) {
     return 0;
 }
 
+bool is_white(const char* p) {
+    auto c = *p;
+    if (c <= ' ') return true;
+    return false;
+}
+
+bool is_identifier(const char* p) {
+    auto c = *p;
+    if (c >= '0' && c <= '9') return true;
+    if (c >= 'A' && c <= 'Z') return true;
+    if (c >= 'a' && c <= 'z') return true;
+    if (c == '_') return true;
+    if (c == '-') return true;
+    return false;
+}
+
+void advance_to_identifier(const char*& p, const char* e) {
+    while (p != e) {
+//        cout << "advance_to_identifier p " << (void*)p << " [" << (char)*p << "] e " << (void*)e << endl;
+        if (!is_white(p)) break;
+        ++p;
+    }
+//    cout << "found p " << (void*)p << " [" << (char)*p << "] e " << (void*)e << endl;
+    return;
+}
+
+string extract_identifier(const char*& p, const char* e) {
+//cout << "extract_identifier p " << (void*)p << " e " << (void*)e << endl;
+    advance_to_identifier(p, e);
+    char context = ' ';
+    auto p0 = p;
+    char prev = ' ';
+    while (p != e) {
+        char c = *p;
+//        cout << "iteration " << (void*)p << " [" << (char)*p << "] e " << (void*)e << endl;
+        if (c == '#' && prev != '\\') {
+//cout << "ctx#IN\n";
+            context='#';
+            break;
+        }
+        if (c == '\"' && prev != '\\') {
+            if (context == ' ') {
+//cout << "ctx\"IN\n";
+                context = '\"';
+                ++p;
+                p0 = p;
+                continue;
+            }
+            if (context == '\"') {
+//cout << "ctx\"OUT\n";
+                context = ' ';
+                break;
+            }
+        }
+        if (c == '\'' && prev != '\\') {
+            if (context == ' ') {
+//cout << "ctx\'IN\n";
+                context = '\'';
+                ++p;
+                p0 = p;
+                continue;
+            }
+            if (context == '\'') {
+//cout << "ctx\'OUT\n";
+                context = ' ';
+                break;
+            }
+        }
+        if (context == ' ' && c != '\\') {
+            if (!is_identifier(p)) {
+//cout << "found a non-identifier char.\n";
+                break;
+            }
+        }
+        prev = c;
+        ++p;
+    }
+    if (p == p0) {
+        return "";
+    }
+    string ans = string(p0, p - p0);
+//cout << "ans = " << ans << endl;
+    return ans;
+}
+
+void advance_after(const char*& p, const char* e, char f) {
+//cout << "advance_after " << endl;
+    while (p != e) {
+        if (*p == f) {
+//cout << "found char " << f << endl;
+            ++p;
+            break;
+        }
+        ++p;
+    }
+}
+
+pair<string, string> extract_key_value(const string& line) {
+//cout << "extract_key_value line: " << line << endl;
+    const char* p = line.c_str();
+    const char* e = p + line.size();
+    pair <string, string> r;
+    r.first = extract_identifier(p, e);
+//cout << "key: " << r.first << endl;
+    if (r.first.empty()) {
+        return make_pair("", "");
+    }
+    advance_after(p, e, '=');
+    r.second = extract_identifier(p, e);
+//cout << "value: " << r.second << endl;
+    return r;
+}
+
+map<string, string> load_vars(const string& file) {
+    map<string, string> vars;
+    ifstream is(file);
+    while (is.good()) {
+        string line;
+        getline(is, line);
+        pair<string, string> r = extract_key_value(line);
+//cout << "key=" << r.first << " value=" << r.second << '\n';
+        if (r.first.empty()) {
+            continue;
+        }
+        auto i = vars.find(r.first);
+        if (i == vars.end()) {
+            vars.emplace(r.first, r.second);
+        }
+        else {
+            i->second = r.second;
+        }
+    }
+
+/*
+    cout << "----------------vars----------------:\n";
+    cout << "load:\n";
+    for (auto &i: vars) {
+        cout << "key: " << i.first << " value: " << i.second << '\n';
+    }
+    cout << "-/--------------vars----------------:\n";
+*/
+
+    return vars;
+}
+
+string replace_tokens0(const string varpfx, const string& line) {
+    string token = "##srctool_header##";
+    auto i = line.find(token);
+    if (i == string::npos) {
+        return line;
+    }
+    string pfx = line.substr(0, i);
+    string sfx = line.substr(i + token.size());
+//cout << "varpfx = " << varpfx << endl;
+    ostringstream os;
+    os << pfx << "-----------------------------------" << sfx << '\n';
+    os << pfx << "---- DO NOT EDIT ------------------" << sfx << '\n';
+    os << pfx << "-----------------------------------" << sfx << '\n';
+    os << pfx << "-- file generated from             " << sfx << '\n';
+    os << pfx << "--   ##" << varpfx << "_SRC##\n";
+    os << pfx << "-- by                              " << sfx << '\n';
+    os << pfx << "--   ##" << varpfx << "_BY##\n";
+    os << pfx << "-----------------------------------" << sfx << '\n';
+    os << '\n';
+    return os.str();
+}
+
+string replace_tokens(const string varpfx, const string& line, function<string(const string&)> f) {
+    const char* p = line.c_str();
+    const char* e = p + line.size();
+//cout << endl;
+//cout << endl;
+//cout << "replace_tokens: " << line << endl;
+//cout << "varpfx = " << varpfx << endl;
+
+    ostringstream os;
+    int mode = 0;
+    ostringstream buf;
+    ostringstream value;
+    while (p != e) {
+        while (p != e && mode == 0) {
+            if (p + 2 < e) {
+                if (strncmp(p, "##", 2) == 0) {
+//cout << "mode0 -> mode1. " << p << endl;
+                    buf = ostringstream();
+                    buf << "##";
+                    p += 2;
+                    mode = 1;
+                    break;
+                }
+            }
+            os << (char)*p;
+            ++p;
+            
+        }
+        while (p != e && mode == 1) {
+            if (p + varpfx.size() > e) {
+                os << buf.str();
+                mode = 0;
+//cout << "mode1 -> mode0. " << p << endl;
+                break;
+            }
+            if (!varpfx.empty()) {
+                if (strncmp(p, varpfx.c_str(), varpfx.size()) == 0) {
+                    buf << varpfx;
+                    p += varpfx.size();
+                }
+                else {
+                    os << buf.str();                    
+                    mode = 0;
+//cout << "mode1 -> mode0. " << p << endl;
+                    break;
+                }
+            }
+            value = ostringstream();
+            mode = 2;
+//cout << "mode1 -> mode2. " << p << endl;
+            break;
+        }
+        while (p != e && mode == 2) {
+            if (p + 2 > e) {
+//                cerr << "KO 50359 overflow" << '\n';
+                os << buf.str();
+                mode = 0;
+//cout << "mode2 -> mode0. " << p << endl;
+                break;
+            }
+            if (strncmp(p, "##", 2) == 0) {
+                ostringstream token;
+                token << varpfx << value.str();
+                auto r = f(value.str());
+                os << r;
+//        cout << ":::::::::: " << token.str() << " -> " << r << endl;
+//                auto i = tokens.find(token.str());
+//                if (i != tokens.end()) {
+//                    os << i->second;
+//                }
+                p += 2;
+                mode = 0;
+//cout << "mode2 -> mode0. " << p << endl;
+                break;
+            }
+            buf << (char)*p;
+            value << (char)*p;
+            ++p;
+        }
+    }
+    return os.str();
+}
+
+int patch(const string& prefix, const string& envfile, const string& file) { //file= output file, file assumes file.in to exist
+    auto vars = load_vars(envfile);    
+    ostringstream nm;
+    nm << file << ".in";
+    ifstream is(nm.str());
+    if (!is.good()) {
+        cerr << "KO 50499 " << file << '\n';
+        return 1;
+    }
+    ofstream os(file);
+
+    auto f = [&](const string& key) -> string {
+//cout << "find key " << key << endl;
+        auto i = vars.find(key);
+        if (i == vars.end()) {
+            return "";
+        }
+        return i->second;
+    };
+
+    while (is.good()) {
+        string line;
+        getline(is, line);
+        string oline = line;
+//cout << " - " << line << endl;
+        oline = replace_tokens0(prefix, oline);
+//cout << " > " << oline << endl;
+        oline = replace_tokens(prefix, oline, f);
+        os << oline << '\n';
+//cout << ">> " << oline << endl;
+    }    
+    return 0;
+}
+
 int main(int argc, char** argv) {
     if (argc < 2) {
         help(cerr);
@@ -497,6 +787,25 @@ int main(int argc, char** argv) {
             }
             _recursive = true;
             continue;
+        }
+        if (arg == "--patch") {
+            if (argc <= p) {
+                help(cerr);
+                return 1;
+            }
+            string prefix = argv[p++];
+            if (argc <= p) {
+                help(cerr);
+                return 1;
+            }
+            string envfile = argv[p++];
+            if (argc <= p) {
+                help(cerr);
+                return 1;
+            }
+            string ofile = argv[p++];
+            auto r = patch(prefix, envfile, ofile);
+            return r;
         }
         if (arg == "--dryrun") {
             _dryrun = true;

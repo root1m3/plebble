@@ -20,9 +20,10 @@
 //===-
 //===----------------------------------------------------------------------------
 //===-
-#include "syncd.h"
-#include "daemon_t.h"
 #include <us/gov/config.h>
+
+#include "daemon_t.h"
+#include "syncd.h"
 
 #define loglevel "gov/engine"
 #define logclass "syncd"

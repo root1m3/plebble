@@ -396,11 +396,24 @@ function adaptd {
             echo "KO 80015"
             exit 1
         fi
-        mv core2/brands/$brand x
+#echo "*1*********************"
+#git checkout alpha-55
+#git checkout ${baseh} 
+#cp core2/brand_seeds/plebble/strset0 /tmp/
+#pwd
+#exit 1
+        mv core2/brands/$brand x1
+        mv core2/brand_seeds/$brand x2
         rm core2 -r
         cp $c2 core2 -R
+
         rm core2/brands/$brand -r
-        mv x core2/brands/$brand
+        rm core2/brand_seeds/$brand -r
+
+        mv x1 core2/brands/$brand
+        mv x2 core2/brand_seeds/$brand
+
+
         git add core2
         git add -u
         if [[ -n "$(git status --porcelain)" ]]; then
@@ -468,9 +481,33 @@ function adapt { #create branch nbranch based on baseh. Then unlicense code, cre
             echo "KO 79120 Unexpected dir core2"
             exit 1
         fi
-        cp ${dsc2} core2 -R
+        cp -r ${dsc2} core2
+
+
+
+
+#echo "*1*********************"
+#mv downstream/core2/brand_seeds/katlas /tmp/
+#exit 1
+        if [[ ! -f core1/brand_seeds/strset0 ]]; then
+            mkdir -p core1/brand_seeds/$brand
+            cp /tmp/strset0 core1/brand_seeds/$brand/
+            git add core1/brand_seeds/$brand/strset0
+        fi
+        if [[ -f /tmp/makefile_distr ]]; then
+            cp /tmp/makefile_distr core1/snippets/
+#echo "*1*****************************"
+#pwd
+#exit 1
+#            mkdir -p core1/brand_seeds/$brand
+#            cp /tmp/strset0 core1/brand_seeds/$brand/
+#            git add core1/brand_seeds/$brand/strset0
+        fi
+
         rm core2/brands/${brand} -r
+        rm core2/brand_seeds/${brand} -r
         git mv core1/brands/$brand core2/brands/
+        git mv core1/brand_seeds/$brand core2/brand_seeds/
         cp README.md core2/brands/$brand/devjob_skel/
         rm -rf core2/brands/$brand/devjob_skel/.github
         if [[ -d .github ]]; then
@@ -516,11 +553,13 @@ function apply_changes_upstream1 {
     echo "    ## apply downstream changes into upstream hqrefactor0"
     echo "    #################################"
     echo "applying patch-d on branch hqrefactor0"
-
+#echo "*1********************************"
+#pwd
+#exit 1
     git apply ../patch4upstream --quiet
     if [[ $? -ne 0 ]]; then
-        pwd
-        echo "KO 88123 ../patch4upstream didnt apply"
+        >&2 pwd
+        >&2 echo "KO 88123 ../patch4upstream didnt apply"
         exit 1
     fi
     git add *
@@ -577,7 +616,9 @@ function apply_changes_upstream1 {
         fi
     popd > /dev/null
     mkdir -p core1/brands
+    mkdir -p core1/brand_seeds
     mv core2/brands/$brand core1/brands/
+    mv core2/brand_seeds/$brand core1/brand_seeds/
     rm core2 -rf
     cp core1/brands/$brand/devjob_skel/* ./ -R
     if [[ -d core1/brands/$brand/devjob_skel/.github ]]; then
@@ -752,6 +793,9 @@ function apply_changes_upstream {
 #                     │
 
     pushd upstream > /dev/null
+#pwd
+#echo "************STOPPED"
+#exit 1
         if [[ -f /tmp/patchx1 ]]; then
             echo "Applying manual corrections"
             git apply /tmp/patchx1
@@ -892,6 +936,7 @@ function procurl {
             echo "loading config for brand $brand"
             . ../.cbs/config_$brand
         fi
+
         echo "#########################"
         echo "## save core2...       ##"
         echo "#########################"

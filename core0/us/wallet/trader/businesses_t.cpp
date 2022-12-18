@@ -51,19 +51,19 @@ void c::init(const protocols_t& default_r2r) {
     if (is_ko(r)) {
         available_protocols = default_r2r;
     }
-    log("plugins enabled on this wallet:", available_protocols.size());
-    if (available_protocols.empty()) {
-        log("No plugins are enabled on this custodial wallet.");
-    }
-    else {
-        log("All plugins are enabled on this non-custodial wallet.");
-    }
     for (auto& i: available_protocols) {
         log("Enabling protocol selection ", i.to_string2());
         auto r = emplace(i, nullptr);
         assert(r.second);
     }
     select_all();
+    log("plugins enabled on this wallet:", available_protocols.size());
+    if (available_protocols.empty()) {
+        log("No plugins are enabled on this wallet.");
+    }
+    else {
+        log("All plugins are enabled on this wallet.");
+    }
 }
 
 c::~businesses_t() {
@@ -93,7 +93,16 @@ ko c::select(iterator& i) {
     }
     assert(r.second != nullptr);
     i->second = r.second;
-    i->second->init(parent.home + "/trader", protocol_factories);
+    auto r2 = i->second->init(parent.home + "/trader", protocol_factories);
+    if (is_ko(r2)) {
+        log("deleting bz");
+        auto r = parent.daemon.trades.libs.delete_business(i->second);
+        if (is_ko(r)) {
+            log(r, "Unexpected. Expect a memory leak!!");
+        }
+        i->second = nullptr;
+        return r2;
+    }
     return ok;
 }
 
@@ -101,8 +110,13 @@ void c::select_all() {
     for (auto i = begin(); i != end(); ++i) {
         if (i->second != nullptr) continue;
         log("selecting business for", i->first.to_string2());
-        select(i);
+        auto r = select(i);
     }
+    const auto count = erase_if(*this, [](const auto& item) {
+        auto const& [key, value] = item;
+        return value == nullptr;
+    });
+    log("protocols that couldn't load count", count);
 }
 
 business_t* c::select(const protocol_selection_t& protocol_selection) {
@@ -122,27 +136,6 @@ std::pair<ko, us::wallet::trader::trader_protocol*> c::create_protocol(protocol_
     log("create_protocol A", protocol_selection.to_string());
     return protocol_factories.create(protocol_selection);
 }
-
-/*
-std::pair<ko, us::wallet::trader::trader_protocol*> c::create_opposite_protocolX(protocol_selection_t&& protocol_selection) {
-    log("create_opposite_protocol A", protocol_selection.to_string());
-    if (!protocol_selection.is_set()) {
-        return make_pair(ok, nullptr);
-    }
-    for (auto& i: *this) {
-        if (i.second == nullptr) continue;
-        log("testing a business");
-        auto r = i.second->create_opposite_protocol(protocol_selection_t(protocol_selection));
-        if (r.first == ok) {
-            log("found");
-            return r;
-        }
-    }
-    auto r = "KO 7895 Protocol not available";
-    log(r);
-    return make_pair(r, nullptr);
-}
-*/
 
 std::pair<ko, us::wallet::trader::trader_protocol*> c::create_protocol(protocol_selection_t&& protocol_selection, params_t&& remote_params) {
     log("create_protocol B", protocol_selection.to_string());
@@ -169,7 +162,6 @@ void c::bookmark_info(vector<pair<protocol_selection_t, bookmark_info_t>>& o) co
     for (auto& i: *this) {
         if (i.second == nullptr) continue;
         auto x = i.second->bookmark_info();
-        //i.second->invert(x.first);
         o.emplace_back(x.first, x.second);
     }
 }

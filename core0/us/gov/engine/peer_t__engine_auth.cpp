@@ -20,9 +20,6 @@
 //===-
 //===----------------------------------------------------------------------------
 //===-
-//#include <us/gov/io/blob_reader_t.h>
-//#include <us/gov/io/blob_writer_t.h>
-
 #include "api.h"
 #include "daemon_t.h"
 #include "db_t.h"
@@ -35,35 +32,7 @@
 #define logclass "peer_t__engine_auth"
 #include "logs.inc"
 #include <us/gov/socket/dto.inc>
-/*
-namespace {
-    using t = us::gov::io::seriable_vector<us::gov::crypto::ripemd160::value_type>;
-    template<> datagram* write_datagram(channel_t channel, svc_t svc, seq_t seq, const t& o) {
-        static_assert(std::is_convertible<t*, writable*>::value, "KO 77897 template specialization for writable should have been instantiated instead.");
-        static_assert(std::is_convertible<t*, seriable*>::value, "KO 77897 template specialization for writable should have been instantiated instead.");
-        return o.get_datagram(channel, svc, seq);
-    }
 
-    template<> ko read_datagram(const datagram& d, t& o) {
-        return o.read(d);
-    }
-}
-
-namespace {
-    using t2 = us::gov::cash::accounts_t;
-    template<> datagram* write_datagram(channel_t channel, svc_t svc, seq_t seq, const t2& o) {
-        static_assert(std::is_convertible<t2*, writable*>::value, "KO 77897 template specialization for writable should have been instantiated instead.");
-        static_assert(std::is_convertible<t2*, seriable*>::value, "KO 77897 template specialization for writable should have been instantiated instead.");
-        return o.get_datagram(channel, svc, seq);
-    }
-
-    template<> ko read_datagram(const datagram& d, t2& o) {
-        static_assert(std::is_convertible<t2*, writable*>::value, "KO 77897 template specialization for writable should have been instantiated instead.");
-        static_assert(std::is_convertible<t2*, seriable*>::value, "KO 77897 template specialization for writable should have been instantiated instead.");
-        return o.read(d);
-    }
-}
-*/
 using namespace us::gov::engine;
 using c = us::gov::engine::peer_t;
 

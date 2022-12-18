@@ -20,9 +20,9 @@
 //===-
 //===----------------------------------------------------------------------------
 //===-
-#include "map_tx.h"
 #include "app.h"
 #include "types.h"
+#include "map_tx.h"
 
 #define loglevel "gov/cash"
 #define logclass "map_tx"

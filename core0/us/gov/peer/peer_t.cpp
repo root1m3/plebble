@@ -20,12 +20,11 @@
 //===-
 //===----------------------------------------------------------------------------
 //===-
-#include "peer_t.h"
-
 #include <us/gov/config.h>
 
 #include "daemon_t.h"
 #include "protocol.h"
+#include "peer_t.h"
 
 #define loglevel "gov/peer"
 #define logclass "peer_t"

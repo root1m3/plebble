@@ -20,9 +20,9 @@
 //===-
 //===----------------------------------------------------------------------------
 //===-
-#include "rpc_peer_t.h"
 #include "rpc_daemon_t.h"
 #include "protocol.h"
+#include "rpc_peer_t.h"
 
 #define loglevel "gov/peer"
 #define logclass "rpc_peer_t"

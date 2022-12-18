@@ -25,7 +25,6 @@
 #include <us/gov/io/blob_writer_t.h>
 
 #include "types.h"
-
 #include "locking_program_input_t.h"
 
 #define loglevel "gov/cash"

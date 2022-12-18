@@ -20,8 +20,6 @@
 //===-
 //===----------------------------------------------------------------------------
 //===-
-#include "delta.h"
-
 #include <thread>
 #include <chrono>
 #include <fstream>
@@ -34,6 +32,7 @@
 #include "install_script.h"
 #include "install_script_response.h"
 #include "types.h"
+#include "delta.h"
 
 #define loglevel "gov/sys"
 #define logclass "delta"

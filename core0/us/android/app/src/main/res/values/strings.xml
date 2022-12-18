@@ -55,7 +55,7 @@
     <string name="ipaddress">IP Address</string>
     <string name="tcpport">TCP Port</string>
     <string name="channel">Channel</string>
-    <string name="connect">Connect</string>
+    <string name="connect">Reconnect with PIN</string>
     <string name="resultsview">Results view</string>
     <string name="pairnodehelp">gov:~$ wallet pair &lt;this device public key&gt;</string>
     <string name="softwareversion">Software version</string>

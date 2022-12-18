@@ -23,10 +23,10 @@
 #include <us/gov/config.h>
 #ifdef CFG_PERMISSIONLESS_NETWORK
 
-#include "app.h"
-
 #include <us/gov/engine/daemon_t.h>
 #include <us/gov/engine/db_t.h>
+
+#include "app.h"
 
 #define loglevel "gov/engine/auth"
 #define logclass "app__permissionless"

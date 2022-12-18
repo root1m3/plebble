@@ -1,0 +1,64 @@
+#varNO1=testX
+ #varNO1=testX
+  #varNO1=testX
+
+var1=test1
+ var2=test1
+  var3=test2
+
+var4 =test3
+var5 = test4
+var6 =  test5
+var7  =test6
+var8  = test7
+var9  =  test8
+ var10 =test9
+ var11  =test10
+ var12  = test11
+ var13  =  test12
+  var14 =test13
+  var15  =test14
+  var16  = test15
+  var17  =  test16
+
+var18=t_-est17
+var19=_-t_-est18
+var20=_-t_-est1-_19
+
+var21="test20"
+ var22="test21"
+  var23="test22"
+
+var24 ="test23"
+var25 = "test24"
+var26 =  "test25"
+var27  ="test26"
+var28  = "test27"
+var29  =  "test28"
+ var30 ="test29"
+ var31  ="test30"
+ var32  = "test31"
+ var33  =  "test32"
+  var34 ="test33"
+  var35  ="test34"
+  var36  = "test35"
+  var37  =  "test36"
+
+var38="t_-est137"
+var39="_-t_-est38"
+var40="_-t_-est1-_39"
+
+var41='t_-est140'
+var42='_-t_-est141'
+var43='_-t_-est1-_42'
+
+str23="VALUE23"
+str24="VALUE25"
+str25="VALUE25"
+
+_SRC="TESTFILESRC"
+_BY="TESTFILEBY"
+
+
+
+

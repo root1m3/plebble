@@ -20,7 +20,6 @@
 //===-
 //===----------------------------------------------------------------------------
 //===-
-#include "server.h"
 #include <netinet/in.h>
 #include <fcntl.h>
 #include <errno.h>
@@ -32,6 +31,8 @@
 #include <us/gov/likely.h>
 #include <us/gov/socket/client.h>
 #include <us/gov/socket/daemon_t.h>
+
+#include "server.h"
 
 #define loglevel "gov/socket/multipeer"
 #define logclass "server"
@@ -147,7 +148,6 @@ void c::run_recv() {
     if (sock < 0) {
         auto r = "KO 89143 socket failure";
         log(r);
-        assert(false);
         return;
     }
     if (::listen(sock, 4) < 0) {
@@ -172,7 +172,6 @@ void c::run_recv() {
         log("KO 3067 ::accept loopback failed");
         close(sock);
         log("end", "loopback failure in accept");
-        assert(false);
         return;
     }
     char discard[4];

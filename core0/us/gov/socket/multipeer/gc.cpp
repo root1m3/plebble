@@ -20,9 +20,9 @@
 //===-
 //===----------------------------------------------------------------------------
 //===-
-#include "gc.h"
 #include <chrono>
 #include <us/gov/socket/client.h>
+#include "gc.h"
 
 #define loglevel "gov/socket/multipeer"
 #define logclass "gc_t"

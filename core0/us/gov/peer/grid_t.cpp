@@ -20,8 +20,6 @@
 //===-
 //===----------------------------------------------------------------------------
 //===-
-#include "grid_t.h"
-
 #include <chrono>
 #include <iomanip>
 #include <sstream>
@@ -33,6 +31,7 @@
 
 #include "protocol.h"
 #include "peer_t.h"
+#include "grid_t.h"
 
 #define loglevel "gov/peer"
 #define logclass "grid_t"

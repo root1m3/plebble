@@ -32,7 +32,7 @@ namespace us::test {
         using b = node;
 
         node_bid(const string& id, const string& homedir, const string& logdir, const string& vardir, uint16_t gport, uint16_t wport);
-        //bool load_data(const string& r2rhome);
+        bool load_data(const string& r2rhome);
         string desc() const override;
         vector<string> r2r_libs(bool filter_not_active) override;
         void create_bid(const string& r2rhome, vector<node*> processors, bookmarks_t&&);

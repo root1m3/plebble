@@ -20,8 +20,6 @@
 //===-
 //===----------------------------------------------------------------------------
 //===-
-#include "db_t.h"
-
 #include <functional>
 #include <random>
 
@@ -31,6 +29,7 @@
 
 #include "wallet_address.h"
 #include "types.h"
+#include "db_t.h"
 
 #define loglevel "gov/traders"
 #define logclass "db_t"

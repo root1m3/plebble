@@ -20,7 +20,6 @@
 //===-
 //===----------------------------------------------------------------------------
 //===-
-#include "install_script.h"
 #include <thread>
 #include <chrono>
 #include <iostream>
@@ -34,6 +33,7 @@
 
 #include "app.h"
 #include "types.h"
+#include "install_script.h"
 
 #define loglevel "gov/sys"
 #define logclass "install_script"

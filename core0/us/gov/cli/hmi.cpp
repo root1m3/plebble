@@ -20,7 +20,6 @@
 //===-
 //===----------------------------------------------------------------------------
 //===-
-#include "hmi.h"
 #include <us/gov/engine/daemon_t.h>
 #include <us/gov/vcs.h>
 #include <us/gov/socket/datagram.h>
@@ -32,6 +31,8 @@
 #include <us/gov/io/seriable.h>
 #include <us/gov/cash/accounts_t.h>
 #include <us/gov/cash/app.h>
+
+#include "hmi.h"
 
 #define loglevel "gov/cli"
 #define logclass "hmi"
@@ -340,7 +341,7 @@ ko c::exec_offline(const string& cmdline) {
         engine::daemon_t::fsinfo(engine::daemon_t::get_blocksdir(home), p.dot, lock.os);
         return ok;
     }
-    if (cmd == "h" || cmd == "-h" || cmd == "help" || cmd == "-help" || cmd == "--help") {
+    if (cmd == "h" || cmd == "-h" || cmd == "--h" || cmd == "help" || cmd == "-help" || cmd == "--help") {
         screen::lock_t lock(scr, interactive);
         help(p, lock.os);
         return ok;
@@ -392,6 +393,16 @@ void c::banner(const params& p, ostream& os) {
     os << ind << CFG_COPYRIGHT_LINE2 << '\n';
     os << ind << CFG_COPYRIGHT_LINE3 << '\n';
     os << ind << "version: " << us::vcs::version() << '\n';
+    os << ind << "monotonic versions: \n";
+    os << ind << "    deploy: " << CFG_MONOTONIC_VERSION_FINGERPRINT << '\n';
+    os << ind << "    api_v gov: " << CFG_API_V__GOV << '\n';
+    os << ind << "    api_v wallet: " << CFG_API_V__WALLET << '\n';
+    os << ind << "    binary serialization: " << CFG_BLOB_VERSION << '\n';
+    os << ind << "component brandcodes:\n";
+    os << ind << "    deployment blobs:" << CFG_BLOB_VERSION << '\n';
+    os << ind << "    rpc-client blobs:\n";
+    os << ind << "        android " << CFG_ANDROID_BLOB_ID << '\n';
+    os << ind << "        console " << CFG_ANDROID_BLOB_ID << '\n';
     os << ind << "local time: " << duration_cast<nanoseconds>((system_clock::now() - us::gov::engine::calendar_t::relay_interval).time_since_epoch()).count() << " ns since 1/1/1970\n";
     os << ind << "tx time shift: " << duration_cast<seconds>(us::gov::engine::calendar_t::relay_interval).count() << " seconds.\n";
     os << ind << "Build configuration: ";
@@ -740,8 +751,8 @@ void c::on_peer_disconnected(const string& reason) {
 
 void c::verification_result(request_data_t&& request_data) {
     log("verification_result", request_data);
-    screen::lock_t lock(scr, true);
-    lock.os << "subhome is " << request_data << '\n';
+//    screen::lock_t lock(scr, true);
+//    lock.os << "subhome is " << request_data << '\n';
 }
 
 void c::write_rpc_client_key() {

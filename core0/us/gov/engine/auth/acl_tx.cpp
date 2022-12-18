@@ -20,7 +20,7 @@
 //===-
 //===----------------------------------------------------------------------------
 //===-
-#include "acl_tx.h"
+#include <us/gov/config.h>
 #ifdef CFG_PERMISSIONED_NETWORK
 
 #include <iostream>
@@ -32,7 +32,9 @@
 #include <us/gov/crypto/base58.h>
 #include <us/gov/engine/types.h>
 #include <us/gov/likely.h>
+
 #include "app.h"
+#include "acl_tx.h"
 
 #define loglevel "gov/engine/auth"
 #define logclass "acl_tx"

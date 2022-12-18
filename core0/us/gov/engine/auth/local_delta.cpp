@@ -20,10 +20,10 @@
 //===-
 //===----------------------------------------------------------------------------
 //===-
+#include <us/gov/types.h>
+
 #include "local_delta.h"
 #include "app.h"
-
-#include <us/gov/types.h>
 
 #define loglevel "gov/engine/auth"
 #define logclass "local_delta"

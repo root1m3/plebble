@@ -71,7 +71,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginRight="8dp"
                     style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-                    android:hint="Tie to cellular/WiFi network (Enter SSID)"
+                    android:hint="Optional: Tie to WiFi network (Enter SSID)"
                     >
                         <com.google.android.material.textfield.TextInputEditText
                             android:id="@+id/ssid"

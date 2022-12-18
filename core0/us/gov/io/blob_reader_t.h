@@ -44,6 +44,10 @@
 #include "types.h"
 #include "readable.h"
 
+namespace us::gov::sockets {
+    struct datagram;
+}
+
 namespace us::gov::io {
 
     using namespace us::gov;

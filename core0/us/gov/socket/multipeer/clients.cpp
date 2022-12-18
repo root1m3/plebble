@@ -20,14 +20,14 @@
 //===-
 //===----------------------------------------------------------------------------
 //===-
-#include "clients.h"
-
 #include <fcntl.h>
 
 #include <us/gov/config.h>
 #include <us/gov/socket/peer_t.h>
 #include <us/gov/socket/daemon_t.h>
 #include <us/gov/socket/types.h>
+
+#include "clients.h"
 
 #define loglevel "gov/socket/multipeer"
 #define logclass "clients"

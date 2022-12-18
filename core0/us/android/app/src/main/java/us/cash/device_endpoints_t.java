@@ -106,30 +106,8 @@ public final class device_endpoints_t extends ArrayList<device_endpoint_t> imple
         }
         return on;
     }
-/*
-    public void add_default_wallet_connection_off() {
-        device_endpoint_t dd = defdep();
-        if (dd == null) return;
-        dd.hmi_req_on = false;
-        add(dd);
-    }
-*/
-    public int init() throws Exception {
-/*
-        {
-            //TODO: purge >= alpha-44
-            log("import_old_settings"); //--strip
-            pair<ko, Integer> r = import_old_settings(a.getApplicationContext());
-            if (ko.is_ok(r.first)) {
-                log("retrieved old_setting " + size()); //--strip
-                log("saving old_setting with new format"); //--strip
-                home = "device_endpoints";
-                save();
-                clear();
-            }
-        }
-*/
 
+    public int init() throws Exception {
         home = "device_endpoints";
         log("loading configuration. sz=" + size()); //--strip
         pair<ko, Integer> r = load_();
@@ -193,73 +171,25 @@ public final class device_endpoints_t extends ArrayList<device_endpoint_t> imple
     public ko copy_device_endpoint(int ndx) {
         log("copy_endpoint " + ndx); //--strip
         device_endpoint_t dep = get(ndx);
-        device_endpoint_t copy = new device_endpoint_t(this, "Copy of " + dep.name_.value, "", dep.ip4_endpoint);
+        device_endpoint_t copy = new device_endpoint_t(this, "Copy of " + dep.name_.value, dep.subhome.value, dep.ip4_endpoint);
         add(copy);
         log("save"); //--strip
         save();
         return ok;
     }
 
-/*
-    private pair<ko, Integer> import_old_settings(Context ctx) {
-        pair<ko, Integer> r = load_prev();
-        if (is_ko(r.first)) {
-            log("No prev setings found"); //--strip
-            return r;
-        }
-        //log("################## I'd delete file node_settings.json"); //--strip
-        cfg_android_private_t.delete_file(ctx, "", "node_settings.json");
-        return r;
-    }
-*/
-
-/*
-    public pair<ko, JSONObject> read_settings_json() {
-        log("read_settings_json"); //--strip
-        String sdata = cfg_android_private_t.read_file_string(a.getApplicationContext(), "", "node_settings.json");
-        if (sdata == null) {
-            ko r = new ko("KO 65784 Could not load settings");
-            log(r.msg); //--strip
-            return new pair<ko, JSONObject>(r, null);
-        }
-        log("data retrieved: " + sdata); //--strip
-        JSONObject root;
-        try {
-            root = new JSONObject(sdata);
-        }
-        catch (JSONException e) {
-            ko r = new ko("KO 65781 Invalid JSON data.");
-            log(r.msg); //--strip
-            return new pair<ko, JSONObject>(r, null);
-        }
-        if (root == null) {
-            ko r = new ko("KO 93827 Invalid JSON data.");
-            log(r.msg); //--strip
-            return new pair<ko, JSONObject>(r, null);
-        }
-        return new pair<ko, JSONObject>(ok, root);
-    }
-*/
-
     public void poweron(app a, int pos, final pin_t pin, app.progress_t progress) {
         log("poweron pos " + pos); //--strip
         set_cur(pos);
         log("============== cur.ip4_endpoint.to_string()= " + cur.ip4_endpoint.to_string()); //--strip
-//        device_endpoint_t dep = get(pos);
         cur.poweron(a, pin, progress);
         save();
-        //return dep.hmi;
     }
 
     public void poweroff(app a, int pos, boolean save_, app.progress_t progress) {
-//        set_cur(pos);
         device_endpoint_t dep = get(pos);
         dep.poweroff(progress);
         assert dep.hmi == null; //--strip
-
-//        device_endpoint_t dep = get(pos);
-//        assert dep != null; //--strip
-//        cur.poweroff(progress);
         if (save_) {
             save();
         }

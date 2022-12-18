@@ -20,8 +20,6 @@
 //===-
 //===----------------------------------------------------------------------------
 //===-
-#include "app.h"
-
 #include <thread>
 #include <chrono>
 #include <random>
@@ -36,6 +34,7 @@
 #include "file_tx.h"
 #include "local_delta.h"
 #include "accounts_t.h"
+#include "app.h"
 
 #define loglevel "gov/cash"
 #define logclass "app_file"

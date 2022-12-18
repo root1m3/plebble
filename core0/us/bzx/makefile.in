@@ -20,29 +20,47 @@
 #===-
 #===----------------------------------------------------------------------------
 #===-
+US:=##str3##
+USHBZ:=${US}-bz
+USGOV:=${US}gov
+LIBUSGOV:=lib${US}gov
+USWALLET:=${US}wallet
+USBZ:=${US}bz
+LIBUSWALLET:=lib${US}wallet
+CXXFLAGS=-g -O0 -std=c++20 -DDEBUG
 CPPS:=$(wildcard *.cpp)
 OBJS:=$(patsubst %.cpp, %.o, ${CPPS})
 HS:=$(wildcard *.h)
-CXXFLAGS=-g -O0 -std=c++20 -DDEBUG
 EC:=$(shell pkg-config --libs libsecp256k1)
-#LIBCRYPTO:=$(shell pkg-config --libs libcrypto++)
-#NC:=`pkg-config --libs ncurses`
-USGOV:=##str3##gov
-LIBUSGOV:=lib##str3##gov
-USWALLET:=##str3##wallet
-USBZ:=##str3##bz
-LIBUSWALLET:=lib##str3##wallet
-LIBS:= -L../gov -L../wallet -L../bz -l${USGOV} -l${USWALLET} -l${USBZ}
-INC:=-I../..
-ARCH:=$(shell uname -m)
-ifeq ($(ARCH),armv7l)
-LIBS+=-latomic
+OS:=$(shell uname)
+ifeq (${OS},Linux)
+    ARCH:=$(shell uname -m)
+else
+    ifeq (${OS},FreeBSD)
+      ARCH:=$(shell uname -p)
+    endif
 endif
 
-USHBZ:=##str3##-bz
+INC:=-I../..
 
-.PHONY: all
-all: ${USHBZ}
+LIB:=-L../bz -l${USBZ}
+LIB+=-L../wallet -l${USWALLET}
+LIB+=-L../gov -l${USGOV}
+
+LIB+=${EC}
+
+ARCH:=$(shell uname -m)
+ifeq ($(ARCH),armv7l)
+    LIB+=-latomic
+endif
+
+LIB+=-lstdc++fs -pthread
+
+RPATH:=-Wl,-rpath,../wallet
+RPATH+=-Wl,-rpath,../gov
+
+%.o: %.cpp
+	g++ -fPIC -c ${CXXFLAGS} ${INC} $^ -o $@
 
 ${USHBZ}: ${OBJS}
 #ifeq ($(WASM),1)
@@ -50,12 +68,17 @@ ${USHBZ}: ${OBJS}
 #else
 #	g++ ${CXXFLAGS} ${OBJS} -L../gov -L../wallet ${LIBS} ${EC} ${NC} ${LIBCRYPTO} -Wl,-rpath,../wallet -Wl,-rpath,../gov -I../.. -pthread -lstdc++fs -o ${USHWALLET}
 #	g++ ${CXXFLAGS} ${OBJS} ${INC} ${LIBS} ${EC} ${LIBCRYPTO} -Wl,-rpath,../wallet -Wl,-rpath,../gov -pthread -lstdc++fs -o ${USHBZ}
-	g++ ${CXXFLAGS} ${OBJS} ${INC} ${LIBS} ${EC} -Wl,-rpath,../wallet -Wl,-rpath,../gov -pthread -lstdc++fs -o ${USHBZ}
+	@echo ""
+	@echo "[--->Link executable: ${USHBZ}]"
+	$(CXX) ${CXXFLAGS} ${RPATH} ${OBJS} ${LIB} -o ${USHBZ}
+	@echo ""
 #endif
 
-%.o: %.cpp
-	g++ -fPIC -c ${CXXFLAGS} ${INC} $^ -o $@
+all: ${USHBZ}
 
 clean:
-	rm -f ${USHBZ}
-	rm -f *.o
+	$(RM) -f ${USHBZ}
+	$(RM) -f *.o
+
+.PHONY: all clean
+

@@ -20,11 +20,11 @@
 //===-
 //===----------------------------------------------------------------------------
 //===-
-#include "db_t.h"
+#include <us/gov/config.h>
+
 #include "accounts_t.h"
 #include "types.h"
-
-#include <us/gov/config.h>
+#include "db_t.h"
 
 #define loglevel "gov/cash"
 #define logclass "db_t"

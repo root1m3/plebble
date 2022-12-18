@@ -680,7 +680,7 @@ void c::test_restartw(node& w1, node& w2) {
     w2.wallet_cli_dis->expected_code.enabled = true;
     w2.wallet_cli_dis->expected_code.zero_arrivals_is_good = true;
 
-    w1.wallet->daemon->root_wallet->traders.dump("traders w1> ", cout);
+    w1.wallet->daemon->users.root_wallet->traders.dump("traders w1> ", cout);
     cout << endl;
 //    w2.wallet->daemon->traders.dump("traders w2> ", cout);
 //    cout << endl;

@@ -20,20 +20,26 @@
 #===-
 #===----------------------------------------------------------------------------
 #===-
-OBJ := engine
-CPPS := $(wildcard *.cpp) $(wildcard auth/*.cpp)
-OBJS := $(patsubst %.cpp, %.o, $(CPPS))
-HS := $(wildcard *.h) $(wildcard auth/*.h)
-INC := ../../..
-CXXFLAGS = -O0 -g -std=c++20 -DDEBUG
+OBJ:=engine
+CXXFLAGS=-O0 -g -std=c++20 -DDEBUG
+CPPS:=$(wildcard *.cpp)
+CPPS+=$(wildcard auth/*.cpp)
+OBJS:=$(patsubst %.cpp, %.o, $(CPPS))
+HS:=$(wildcard *.h)
+HS+=$(wildcard auth/*.h)
+INC:=-I../../..
 
-${OBJ}.o: ${OBJS}
-	ld -r -o ${OBJ}.o ${OBJS}
+all: ${OBJ}.o
 
 %.o: %.cpp
-	$(CXX) -fPIC -c ${CXXFLAGS} -lstdc++fs  -I${INC} $^ -o $@
+	$(CXX) -fPIC -c ${CXXFLAGS} ${INC} $^ -o $@
+
+${OBJ}.o: ${OBJS}
+	ld -r ${OBJS} -o ${OBJ}.o
 
 clean:
-	rm -f *.o
-	rm -f auth/*.o
+	$(RM) -f *.o
+	$(RM) -f auth/*.o
+
+.PHONY: clean all
 

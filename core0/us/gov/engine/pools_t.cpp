@@ -20,10 +20,10 @@
 //===-
 //===----------------------------------------------------------------------------
 //===-
-#include "pools_t.h"
 #include "diff.h"
 #include "local_deltas_t.h"
 #include "types.h"
+#include "pools_t.h"
 
 #define loglevel "gov/engine"
 #define logclass "pools_t"

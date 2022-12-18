@@ -20,18 +20,18 @@
 //===-
 //===----------------------------------------------------------------------------
 //===-
-#include <us/gov/crypto/symmetric_encryption.h>
-
 #include <string.h>
 #include <fstream>
 #include <sstream>
-#include <sys/stat.h>
 #include <cstdlib>
 #include <iostream>
-#include <sys/types.h>
 #include <cassert>
+#include <sys/types.h>
+#include <sys/stat.h>
 
+#include <us/gov/crypto/symmetric_encryption.h>
 #include <us/gov/socket/client.h>
+
 #include "cfg.h"
 #include "types.h"
 

@@ -20,8 +20,6 @@
 //===-
 //===----------------------------------------------------------------------------
 //===-
-#include "app.h"
-
 #include <us/gov/engine/daemon_t.h>
 #include <us/gov/engine/db_t.h>
 
@@ -31,6 +29,7 @@
 #include "delta.h"
 #include "acl_tx.h"
 #include "types.h"
+#include "app.h"
 
 #define loglevel "gov/engine/auth"
 #define logclass "app"

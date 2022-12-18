@@ -20,9 +20,10 @@
 //===-
 //===----------------------------------------------------------------------------
 //===-
-#include "maskcoord_t.h"
 #include <us/gov/config.h>
 #include <bitset>
+
+#include "maskcoord_t.h"
 
 #define loglevel "us/gov/engine/auth"
 #define logclass "maskcoord_t"

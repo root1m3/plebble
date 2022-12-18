@@ -44,13 +44,12 @@ function cleanup {
 }
 
 function nodes_auto {
-    tmpf=`mktemp`
+    tmpf=$(mktemp)
     /usr/bin/timeout -s 9 30 $prefix/bin/${US}-gov -home ${datadir0} -c $CHANNEL cmd app 20 seeds | grep -v "^\$"> $tmpf
-    n=`cat $tmpf | wc -l`
-    hom=`$prefix/bin/${US}-gov -home ${datadir0} -c $CHANNEL cmd home`
+    n=$(cat $tmpf | wc -l)
+    hom=$($prefix/bin/${US}-gov -home ${datadir0} -c $CHANNEL cmd home)
     cat $tmpf > $hom/nodes.auto
     rm -f $tmpf
-    #echo wrote $hom/nodes.auto
     echo -n "$hom/nodes.auto "
     cat $hom/nodes.auto | wc -l
 }

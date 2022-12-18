@@ -20,10 +20,11 @@
 //===-
 //===----------------------------------------------------------------------------
 //===-
-#include "bgtask.h"
 #include <cassert>
+
 #include "types.h"
 #include "config.h"
+#include "bgtask.h"
 
 #define loglevel "gov"
 #define logclass "bgtask"

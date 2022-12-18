@@ -26,10 +26,12 @@ echo "########################"
 echo "## 10_make_build_jobs ##"
 echo "########################"
 
+. lib/shenv
+
 if [[ -f .cbs/config ]]; then
     . .cbs/config
 else
-	echo "KO 8585 Missing .cbs/config."
+	>&2 echo "KO 8585 Missing .cbs/config."
 	exit 1
 fi
 brands=`realpath $brands`
@@ -51,6 +53,7 @@ devjob=""
 
 echo "10_make_build_jobs $@"
 echo "initial release config"
+#------------------------------------------ args
 release=1
 debug=0
 logs=0
@@ -62,12 +65,11 @@ ignore_cache=0
 fcgi=0
 let batch=0
 let only_deps=0
-
 while [[ true ]]; do
     opt=$1
     shift
     if [[ "_$opt" == "_--release" ]]; then
-        echo "release flag"
+        #echo "release flag"
         debug=0
         release=1
         logs=0
@@ -75,7 +77,7 @@ while [[ true ]]; do
         connlog=0
         continue
     elif [[ "_$opt" == "_--debug" ]]; then
-        echo "debug flag"
+        #echo "debug flag"
         debug=1
         release=0
         logs=1
@@ -83,48 +85,48 @@ while [[ true ]]; do
         connlog=1
     continue
         elif [[ "_$opt" == "_--with-logs" ]]; then
-        echo "logs flag"
+        #echo "logs flag"
         logs=1
     continue
         elif [[ "_$opt" == "_--without-logs" ]]; then
-        echo "-logs flag"
+        #echo "-logs flag"
         logs=0
     continue
         elif [[ "_$opt" == "_--with-counters" ]]; then
-        echo "counters flag"
+        #echo "counters flag"
         counters=1
         continue
     elif [[ "_$opt" == "_--without-counters" ]]; then
-        echo "-counters flag"
+        #echo "-counters flag"
         counters=0
         continue
     elif [[ "_$opt" == "_--with-connlog" ]]; then
-        echo "connlog flag"
+        #echo "connlog flag"
         connlog=1
         continue
     elif [[ "_$opt" == "_--without-connlog" ]]; then
-        echo "-connlog flag"
+        #echo "-connlog flag"
         connlog=0
         continue
     elif [[ "_$opt" == "_--with-fcgi" ]]; then
-        echo "fcgi flag"
+        #echo "fcgi flag"
         fcgi=1
         continue
     elif [[ "_$opt" == "_--without-fcgi" ]]; then
-        echo "-fcgi flag"
+        #echo "-fcgi flag"
         fcgi=0
         continue
     elif [[ "_$opt" == "_--branch" ]]; then
-        echo "-branch flag"
+        #echo "-branch flag"
         branch=$1
         shift
         continue
     elif [[ "_$opt" == "_--ignore-cache" ]]; then
-        echo " [ignore cache]"
+        #echo " [ignore cache]"
         ignore_cache=1
         continue
     elif [[ "_$opt" == "_--test" ]]; then
-        echo "--test flag"
+        #echo "--test flag"
         test=1
         continue
     elif [[ "_$opt" == "_--help" ]]; then
@@ -133,7 +135,7 @@ while [[ true ]]; do
     elif [[ "_$opt" == "_-o" ]]; then
         bjdir=$1
         shift
-        echo "output flag -o=$bjdir"
+        #echo "output flag -o=$bjdir"
         continue
     elif [[ "_$opt" == "_--batch" ]]; then
         let batch=1
@@ -142,31 +144,35 @@ while [[ true ]]; do
         let only_deps=1
         continue
     elif [[ _$opt == _-* ]]; then
-        echo "KO 60594 Invalid flag $opt"
+        >&2 echo "KO 60594 Invalid flag $opt"
         help
         exit 1
     else
-        echo "end parsing flags"
+        #echo "end parsing flags"
         break
     fi
 done
-conf=$opt
+conf="$opt"
+#echo ">$conf<"
+
+#-/---------------------------------------- args
+
 if [[ "_$conf" == "_" ]]; then
-    help
-    echo "KO 69862 brand expected."
+    >&2 help
+    >&2 echo "KO 69862 quoted brands expected."
     exit 1
 fi
 
 if [[ "_$branch" == "_" ]]; then
-    help
-    echo "KO 38723 Invalid branch"
+    >&2 help
+    >&2 echo "KO 38723 Invalid branch"
     exit 1
 fi
 
 echo "--------------------------------------"
 echo "Input:"
 echo "  branch=$branch"
-echo "  brand=$conf"
+echo "  brands=$conf"
 echo ""
 echo "Flags:"
 echo "  release=$release"
@@ -181,6 +187,7 @@ echo "Output:"
 echo "  bjdir=$bjdir"
 echo "--------------------------------------"
 if [[ $batch -eq 0 ]]; then
+    echo "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX: seeds! bin/gen_http_nodes"
     echo "yes?"
     read x
 fi
@@ -189,38 +196,35 @@ hash=""
 
 function patch {
     ifile="${1}.in"
-    ofile=$1
-    if [ "_$2" != "_" ]; then
+    ofile="$1"
+    if [[ "_$2" != "_" ]]; then
         echo "$1 -> $2"
         ofile=$2
     fi
     cp $ifile $ofile
-    strs=`cat $ifile  | grep -o "##str[0-9]*##" | sed "s/#//g"`
+    strs=$(cat $ifile  | grep -o "##str[0-9]*##" | sed "s/#//g")
     for s in $strs; do
         echo "$s = ${!s}"
-        sed -i "s%##$s##%${!s}%g" $ofile
+        sedi "s%##$s##%${!s}%g" $ofile
     done
 }
 
 function reroot {
-    if [ "_$1" != "_$2" ]; then
-        cp $1 $2 -R
+    if [[ "_$1" != "_$2" ]]; then
+        cp -r $1 $2
     fi
 }
 
 function patch_of {
-    brand=$1
+    brand="$1"
     strset="en-uk"
-    if [ ! -f $brand/core0/us/res/strings/$strset ]; then
-        echo "KO 50942 Unknown set ${strset}."
+    if [[ ! -f $brand/core0/us/res/strings/$strset ]]; then
+        >&2 echo "KO 50942 Unknown set ${strset}."
         exit 1
     fi
-
     . $brand/core0/us/res/strings/$strset
     . $brand/core0/us/res/strings/${strset}.ovr
     cp core1/snippet/makefile_distr $brand/
-    #cp core1/snippet/install_r2r $brand/
-    #chmod +x $brand/install_r2r
     echo "$brand/makefile_distr"
 }
 
@@ -240,14 +244,14 @@ function make_build_job {
         return;
     fi
     if [[ ! -d  $brands/$brand ]]; then
-        echo "KO 76095 brand spec not found at $brands/$brand"
+        >&2 echo "KO 76095 brand spec not found at $brands/$brand"
         exit 1
     fi
     rm -rf rep
     echo "cloning: git clone -b $branch --single-branch $gitrep rep"
     git clone -b $branch --single-branch $gitrep rep
     if [[ $? -ne 0 ]]; then
-        echo "KO 68594 Aborted."
+        >&2 echo "KO 68594 Aborted."
         exit 1
     fi
     pushd rep > /dev/null
@@ -257,7 +261,7 @@ function make_build_job {
         pushd core0/us/srctool > /dev/null
             make
             if [[ $? -ne 0 ]]; then
-                echo "KO 44665"
+                >&2 echo "KO 44665"
                 exit 1
             fi
         popd > /dev/null
@@ -265,7 +269,7 @@ function make_build_job {
         pushd core0/us > /dev/null
             ../../srctool --dir -a $brands/$brand/source_code_header .
             if [[ $? -ne 0 ]]; then
-                echo "KO 71180 patch_src failed"
+                >&2 echo "KO 71180 patch_src failed"
                 exit 1
             fi
         popd > /dev/null
@@ -273,7 +277,7 @@ function make_build_job {
         pushd core1 > /dev/null
             ../srctool --dir -a $brands/$brand/source_code_header .
             if [[ $? -ne 0 ]]; then
-                echo "KO 79681 patch_src failed"
+                >&2 echo "KO 79681 patch_src failed"
                 exit 1
             fi
         popd > /dev/null
@@ -315,8 +319,8 @@ function make_build_job {
                 echo "configuring core0. flags: $fgs"
     	        echo "bin/configure $fgs"
                 bin/configure $fgs
-                if [ $? -ne 0 ]; then
-                    echo "KO 20021 Configure failed."
+                if [[ $? -ne 0 ]]; then
+                    >&2 echo "KO 20021 Configure failed."
                     exit 1
                 fi
                 find . -type f -name "*.in" -delete
@@ -329,8 +333,8 @@ function make_build_job {
         popd > /dev/null
 
         strset="en-uk"
-        if [ ! -f $brand/core0/us/res/strings/$strset ]; then
-            echo "KO 60459 unknown set ${strset}."
+        if [[ ! -f $brand/core0/us/res/strings/$strset ]]; then
+            >&2 echo "KO 60459 unknown set ${strset}."
             exit 1
         fi
         set -a
@@ -344,18 +348,15 @@ function make_build_job {
             bin/configure $fgs
             find . -name "*.in" -delete
             rm bin/configure
-            #echo "adding headers to r2r sources "
-            #bin/patch_src -a ../core0/us/doc/header || exit 1 
         popd > /dev/null
         if [[ $str76 -eq 1 ]]; then
             echo "licensing core2"
             pushd core2 > /dev/null
                 ../srctool --dir -a $brands/$brand/source_code_header .
                 if [[ $? -ne 0 ]]; then
-                    echo "KO 79682 patch_src failed"
+                    >&2 echo "KO 79682 patch_src failed"
                     exit 1
                 fi
-    #            bin/patch_src -a $brands/$brand/source_code_header || exit 1
             popd > /dev/null
             cp core2 $brand/ -R
             pushd "$brand/core2/us/trader" > /dev/null
@@ -365,8 +366,6 @@ function make_build_job {
                 bin/configure $fgs
                 find . -name "*.in" -delete
                 rm bin/configure
-                #echo "adding headers to r2r sources "
-                #bin/patch_src -a ../core0/us/doc/header || exit 1 
             popd > /dev/null
         fi
         rm srctool
@@ -378,13 +377,20 @@ function make_build_job {
 
 function make_brands {
     dryrun=$1
-    if [ "_$conf" == "_all" ]; then
-        for b in $abrands; do
-            make_build_job $b $dryrun
-        done
-    else
-        make_build_job $conf $dryrun
+    if [[ "_$conf" == "_all" ]]; then
+        conf=${abrands}
     fi
+    for b in $conf; do
+        make_build_job "$b" $dryrun
+    done
+#exit 1
+#    if [[ "_$conf" == "_all" ]]; then
+#        for b in $abrands; do
+#            make_build_job $b $dryrun
+#        done
+#    else
+#        make_build_job $conf $dryrun
+#    fi
 }
 
 function make_brands0 {
@@ -419,7 +425,7 @@ function ec_sources {
     echo "git clone -q ${secp256k1_git}"
     git clone -q ${secp256k1_git}
     if [[ $? -ne 0 ]]; then
-        echo "KO 50445 Cannot clone ${secp256k1_git}."
+        >&2 echo "KO 50445 Cannot clone ${secp256k1_git}."
         exit 1
     fi        
     pushd secp256k1 > /dev/null
@@ -445,7 +451,7 @@ function fcgi_sources {
     echo "git clone -q ${fcgi_git} fastcgi++"
     git clone -q ${fcgi_git} fastcgi++
     if [[ $? -ne 0 ]]; then
-        echo "KO 50445 Cannot clone ${fcgi_git}."
+        >&2 echo "KO 50445 Cannot clone ${fcgi_git}."
         exit 1
     fi        
     pushd fastcgi++
@@ -457,11 +463,18 @@ function fcgi_sources {
 function make_build_jobs {
     branch=$1
     bjdir=$2
-    if [ -f .revs ]; then
+    if [[ -f .revs ]]; then
         src="DJ$devjob_id"
     else
         src="R"
     fi
+    mkdir -p $bjdir/lib/
+    cp ../core0/us/lib/shenv $bjdir/lib/
+    for a in ${cbs_archs}; do
+        var="symlink_${a}"
+        echo $var=\"${!var}\" >> $bjdir/lib/cbsenv
+    done 
+
     mkdir -p $bjdir/ec_src
     pushd "$bjdir"/ec_src > /dev/null
         ec_sources
@@ -526,45 +539,43 @@ function make_build_jobs {
             popd > /dev/null
 
             if [[ "_$hash" == "_" ]]; then
-                echo "KO 58798.1"
+                >&2 echo "KO 58798.1"
                 exit 1
             fi
             if [[ "_$src" == "_" ]]; then
-                echo "KO 58798.2"
+                >&2 echo "KO 58798.2"
                 exit 1
             fi
             if [[ "_$rephash" == "_" ]]; then
-                echo "KO 58798.3"
+                >&2 echo "KO 58798.3"
                 exit 1 
             fi
             if [[ "_$branch" == "_" ]]; then
-                echo "KO 58798.4"
+                >&2 echo "KO 58798.4"
                 exit 1 
             fi
             if [[ "_$debug" == "_" ]]; then
-                echo "KO 58798.5"
+                >&2 echo "KO 58798.5"
                 exit 1 
             fi
             if [[ "_$logs" == "_" ]]; then
-                echo "KO 58798.6"
+                >&2 echo "KO 58798.6"
                 exit 1 
             fi
             if [[ "_$counters" == "_" ]]; then
-                echo "KO 58798.7"
+                >&2 echo "KO 58798.7"
                 exit 1 
             fi
             if [[ "_$connlog" == "_" ]]; then
-                echo "KO 58798.8"
+                >&2 echo "KO 58798.8"
                 exit 1 
             fi
             if [[ "_$fcgi" == "_" ]]; then
-                echo "KO 58798.9"
+                >&2 echo "KO 58798.9"
                 exit 1 
             fi
             echo "vhash ${hash} <- ${src} ${rephash} ${branch} dbg-${debug} logs-${logs} counters-${counters} connlog-${connlog} fcgi-${fcgi}" >> ../build_hashes
-            
         popd >/dev/null
-        
     popd >/dev/null
 }
 
@@ -577,33 +588,45 @@ function move_to_distr {
         brand=`echo $(basename $(dirname $x))`
         echo "brand $brand"
         dist_src=0
+        dist_src_c2=0
         if [[ -f ./.cbs/config_${brand} ]]; then
             . ./.cbs/config_${brand}
         else
-            echo "KO 78869 Missing file ./.cbs/config_${brand}"
+            >&2 echo "KO 78869 Missing file ./.cbs/config_${brand}"
             exit 1
         fi
-        dstdir=$distr/$brand/src
-        mkdir -p ${dstdir}
-        mkdir -p ${dstdir}/core0
-        mkdir -p ${dstdir}/core1
-        echo "Static config"
-        cp ${srcdir}/core0/us/res/strings/en-uk ${dstdir}/core0/config
+        dstdir=$distr/$brand
+#        mkdir -p ${dstdir}
+#        mkdir -p ${dstdir}/core0
+#        mkdir -p ${dstdir}/core1
         if [[ $dist_src -eq 1 ]]; then
+            mkdir -p ${dstdir}/src/core0
+            echo "Static config"
+            cp ${srcdir}/core0/us/res/strings/en-uk ${dstdir}/src/core0/config
+
             echo "Copying core0 sources for brand $brand"
-            cp ${srcdir}/core0 ${dstdir}/ -R
+            cp -r ${srcdir}/core0/* ${dstdir}/src/core0/
+
+            mkdir -p ${dstdir}/src/core1
+            echo "Copying core1 sources for brand $brand"
+            cp -r ${srcdir}/core1/us ${dstdir}/src/core1/
+
+            if [[ $dist_src_c2 -eq 1 ]]; then
+                mkdir -p ${dstdir}/src/core2
+                echo "Copying core2 sources for brand $brand"
+                cp -r ${srcdir}/core2/us ${dstdir}/src/core2/
+            else
+                echo "Omiting core2 sources for brand $brand"
+            fi
         else
-            echo "Omiting core0 sources for brand $brand"
+            echo "Omiting sources for brand $brand"
         fi
-        echo "Copying core1 sources for brand $brand"
-        cp ${srcdir}/core1/us ${dstdir}/core1/ -R
-        cp ${srcdir}/core1/makefile ${dstdir}/core1/
     done
 }
 
 make_brands dryrun
 
-if [ "_$conf" == "_" ]; then
+if [[ "_$conf" == "_" ]]; then
     echo "yes?"
     read ans
 fi

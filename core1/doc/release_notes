@@ -18,6 +18,7 @@ Business Patterns:
 
 
 Shortlisted features/fixes:
+    * svcfish tests. nodes v0, v1. v1 shifts all api svc. v0 can propagate evs to v1 and viceversa.
     * doc. clang backend producing C++ model of the compiled program.
     * trades are lost on restarting daemons, implemented persistemce.
     * GFR - File registry. Git.
@@ -120,9 +121,17 @@ Shortlisted features/fixes:
 
     * frontend(dev)2backend(dev) R2R Protocol. Coordinate the merging of front-end / back-end codebases. Interoperatibitily.
 
+    * evidence_processor (relay): batches. Unleash wallet ev/s (evidence admission) without being a datagram machine gun
+         1- ev-inputs -> accumulator (double buffer)
+         2- After 1 second, build ev from accumulated inputs and relay.
+
+    * About custodial wallets. Procedure for upgrading to privacy wallet. Button Run your privacy wallet
+
 In progress/testing:
     * Continuous build System. Produces final assets or error report for every git commit.
 
+    * move bin/us-seeds to gov::engine::daemon::housekeeping thread
+      
 
 RELEASE NOTES
 
@@ -131,6 +140,15 @@ Planned Releases
 * 1.0
 * beta
 * alpha
+
+Issues:
+The adition of this header causes core1/bin/devjob sync to fail, as commanded by bin/99_postupgrade:
+error: patch failed: core0/us/snippet/distr_makefile.in:1
+# ##################################################################
+#blob location: tft_alpha-53_7-8d558b/core/x86_64/makefile
+#pwd: -------------------------------------------^
+###################################################################
+
 
 ================================================================================
 DISCLAIMER for alpha and beta stages.
@@ -162,11 +180,45 @@ Production releases. beta
 Production releases. alpha
 --------------------------
 
-alpha-52-hotfix - 
+alpha-55 -
+    * aarch64c new architecture integrated in the network deployment pipeline.
+    * FreeBSD, cheriBSD adaptation. First Node based on the new ARM processor:
+          UK Research & Innovation
+          DSbD DigitalSecurebyDesign 
+          Digital Catapult - Tech Prototype: ARM Morello board. SoC IntegratING CHERI spec (Cambridge University)
+          Campartimentalization: Fat Pointers encoding capabilities can be leveraged by this new arch: aarch64c
+
+alpha-54 - plebble-alpha-54_8-40a865 2022-12-16_20-13-53 vhash 8-40a865 <- R 9ca859d4839190e8bf52a44378d21d2ac3fbe2e7 alpha-54 dbg-0 logs-0 counters-0 connlog-0 fcgi-0
+    * sysops can do sudo commands using 'gov cmd sudo'
+    * PoC IoE. katlasnet wallets with R2R for regulator2business business2business
+    * Regulation workflow
+    * core2. tool converting PoC spec into functional prototypes.
+    * Bug manifested in a live presentation. Fixed=> 127.0.0.1 addresses were able to get registered by public_algorithm app40, causing trades to remote computers be redirected to our own wallet. Fix: loopback addresses are not listed in the public directory (items which, to add up, add zero value to this table).
+
+alpha-53 - plebble-alpha-53_7-f2d3d8 2022-12-08_15-38-50 vhash 7-f2d3d8 <- R e0130a4d7a2e583b64c79da81a81ba5ecbb95e3d alpha-53 dbg-0 logs-0 counters-0 connlog-0 fcgi-0
+    * install_blob leaves the prev blobs at downloads/<brand>_prev/cur
+    * core0 protocol a2a - actor2actor
+    * android - added bootstrap GUI for new art, sportclubs and health roles.
+    * build automation - Android activity screen capture function. Improved brand spec dir generation and bde_setup package generation.
+    * improved core1/bin/brandtool. Towards scalability on building brands in a distributed ecosystem. 
+    * brandtool can generate bde_data containing the new adition of wallet templates and hooks, on top of bind, nginx, keys, bookmarks, etc.
+    * brandtool can repeteadly be applied to core0_input__brand_package (core1/brands/*)
+    * brandtool can repeteadly be applied to remote BDE
+    * android. Fix. bug pairing settings didn't show the device public key unless connected.
+    * cbs. integrated the production of core0 + R2R protocols in core0, core1 and core2
+    * bash scripts send errors to cerr instead of cout
+    * bash replaced old bourne style `` with $()
+    * r2r. Added home and html static data for core0 and core1
+    * r2r. workflows are compiled in separated shared libraries
+    * makefiles. reviewed and updated
+    * cbs. Adapted installation scripts to deal with detached workflows    * cbs. Adapted installation scripts to deal with detached workflows
+    * Adapting bash scripts to FreeBSD. lib/shenv
+
+alpha-52-hotfix - plebble-alpha-52-hotfix_6-faa779 2022-11-27_03-22-34
     * new wallet hook run in a separate thread produced a race condition. protocols_t could not be loaded because the worker thread could not finish before it was needed.
     * Added brand HQ bookmark
 
-alpha-52 - 
+alpha-52 - alpha-52_6-20032d 2022-11-25_21-17-46 vhash 6-20032d <- R 9f118a5947cc0c4efbfb08f250a5f7cf383c2f32 alpha-52 dbg-0 logs-0 counters-0 connlog-0 fcgi-0
     * fix regression. reviewed wallet access authorization process.
     * Shell RPC-Client (c++, java) "--custodial" option allows selection of a remote custodial wallet by its id.
     * Brands are able to produce wallet templates for new guest(custodial) wallets, with multiple option wallet-type choices for the user (onboarding users under a role).

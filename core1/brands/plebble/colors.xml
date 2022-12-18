@@ -15,4 +15,5 @@
     <color name="colorBackgroundButtonEnd">#ff0000</color>	
     <color name="colorBackgroundButtonDisabled">#ffb3b3</color>
     <color name="toolBarButtonBG">#5e4142</color>
+    <color name="windowBG">#ffffff</color>
 </resources>

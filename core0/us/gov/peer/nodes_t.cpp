@@ -20,12 +20,14 @@
 //===-
 //===----------------------------------------------------------------------------
 //===-
-#include "nodes_t.h"
-#include "protocol.h"
 #include <chrono>
 #include <random>
+
 #include <us/gov/io/cfg.h>
 #include <us/gov/socket/client.h>
+
+#include "protocol.h"
+#include "nodes_t.h"
 
 #define loglevel "gov/peer"
 #define logclass "nodes_t"

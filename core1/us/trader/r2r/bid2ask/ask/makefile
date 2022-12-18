@@ -20,23 +20,23 @@
 #===-
 #===----------------------------------------------------------------------------
 #===-
+PROT:=bid2ask
+R:=ask
 OBJ:=role.o
 CPPS:=$(wildcard *.cpp)
 OBJS:=$(patsubst %.cpp, %.o, $(CPPS))
 HS:=$(wildcard *.h)
-LIB:=${LIB0}
-CXX:=g++
 
 all: ${OBJ}
+
+%.o: %.cpp
+	${CXX} -fPIC -c ${CXXFLAGS} ${INC} -I.. $^ -o $@
 
 ${OBJ}: ${OBJS} ${CPPS} ${HS}
 	ld -z defs -r ${OBJS} -o ${OBJ}
 
-%.o: %.cpp
-	${CXX} -fPIC -c ${CXXFLAGS} ${INC} -I.. ${LIB} $^ -o $@
-
 clean:
 	$(RM) *.o
 
-.PHONY: all
+.PHONY: all clean
 

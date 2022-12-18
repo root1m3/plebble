@@ -20,10 +20,12 @@
 //===-
 //===----------------------------------------------------------------------------
 //===-
-#include "thpool.h"
 #include <chrono>
+
 #include <us/gov/likely.h>
 #include <us/gov/socket/peer_t.h>
+
+#include "thpool.h"
 
 #define loglevel "gov/socket/multipeer"
 #define logclass "thpool"

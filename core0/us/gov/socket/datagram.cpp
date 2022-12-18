@@ -55,8 +55,8 @@
 #include <us/gov/engine/protocol.h>
 #include <us/wallet/engine/protocol.h>
 
-#include "datagram.h"
 #include "busyled_t.h"
+#include "datagram.h"
 
 #define loglevel "gov/socket"
 #define logclass "datagram"

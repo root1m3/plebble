@@ -93,7 +93,12 @@ public class wallet_connection_t implements us.gov.io.seriable {
         wc.name_.value = "copy_" + name_.value;
         wc.ssid.value = "";
         wc.addr.value = "";
-        wc.subhome.value = "";
+        if (addr.value.startsWith("new")) {
+            wc.subhome.value = subhome.value;
+        }
+        else {
+            wc.subhome.value = "";
+        }
         wc.ts.value = 0;
         return wc;
     }
@@ -138,6 +143,45 @@ public class wallet_connection_t implements us.gov.io.seriable {
 
     public String get_title() {
         String s = name_.value;
+/*
+        log("get title for " + s); //--strip
+        if (ssid.value != null && !ssid.value.isEmpty()) {
+            log("adding ssid " + ssid.value); //--strip
+            s = s + "_" + ssid.value;
+        }
+        if (addr.value != null && !addr.value.isEmpty()) {
+            log("adding addr " + addr.value); //--strip
+            s = s + "_" + addr.value;
+        }
+        log("returning " + s); //--strip
+*/
+        return s;
+    }
+
+    public boolean has_addr() {
+        if (addr.value != null && !addr.value.isEmpty()) {
+            return true;
+        }
+        return false;
+    }
+
+    public boolean is_custodial() {
+        if (subhome.value != null && !subhome.value.isEmpty()) {
+            return true;
+        }
+        return false;
+    }
+
+    public String get_address() {
+        return "" + addr.value;
+    }
+
+    public String get_ssid() {
+        return "" + ssid.value;
+    }
+
+    public String get_subtitle() {
+        String s = "";
         log("get title for " + s); //--strip
         if (ssid.value != null && !ssid.value.isEmpty()) {
             log("adding ssid " + ssid.value); //--strip
@@ -149,6 +193,13 @@ public class wallet_connection_t implements us.gov.io.seriable {
         }
         log("returning " + s); //--strip
         return s;
+    }
+
+    public String get_subhome() {
+        if (is_custodial()) {
+            return subhome.value;
+        }
+        return "";
     }
 
     @Override public serid_t serial_id() { return serid_t.no_header; }

@@ -20,7 +20,6 @@
 //===-
 //===----------------------------------------------------------------------------
 //===-
-#include "app.h"
 #include <cassert>
 
 #include <us/gov/stacktrace.h>
@@ -41,6 +40,7 @@
 #include "auth/local_delta.h"
 #include "auth/delta.h"
 #include "auth/app.h"
+#include "app.h"
 
 #define loglevel "gov/engine"
 #define logclass "app"

@@ -584,10 +584,10 @@ void test_traders1() {
 void c::copy_state(const string& dest) const {
     tee("copy_state", dest);
     ostringstream cmd;
-    cmd << "cp " << wallet->daemon->root_wallet->traders.sername() << ' ' << dest << "__traders";
+    cmd << "cp " << wallet->daemon->users.root_wallet->traders.sername() << ' ' << dest << "__traders";
     tee(cmd.str());
     assert(system(cmd.str().c_str()) == 0);
-    for (auto& i: wallet->daemon->root_wallet->traders) {
+    for (auto& i: wallet->daemon->users.root_wallet->traders) {
         if (i.second->id.is_zero()) continue;
         hash_t tid = i.second->id; //traders_t::get_utid_rootwallet();
         ostringstream cmd;
@@ -602,7 +602,7 @@ void c::diff_state(const string& st0, const string& st1) const {
     cmd << "diff " << st0 << "__traders " << st1 << "__traders";
     tee(cmd.str());
     assert(system(cmd.str().c_str()) == 0);
-    for (auto& i: wallet->daemon->root_wallet->traders) {
+    for (auto& i: wallet->daemon->users.root_wallet->traders) {
         if (i.second->id.is_zero()) continue;
 //        size_t utid = traders_t::get_utid_rootwallet(i.second->id);
         hash_t tid = i.second->id;
@@ -625,7 +625,7 @@ void c::traders_serialization_save(const traders_t& o) {
 }
 
 void c::traders_serialization_save() {
-    traders_serialization_save(wallet->daemon->root_wallet->traders);
+    traders_serialization_save(wallet->daemon->users.root_wallet->traders);
 }
 
 void c::print_pointers(ostream& os) const {

@@ -38,28 +38,33 @@ using namespace us::wallet::engine;
 using c = us::wallet::engine::users_t;
 
 c::users_t(daemon_t& daemon): daemon(daemon) {
+}
+
+c::~users_t() {
+    {
+        lock_guard<mutex> lock(mx);
+        for (auto i: *this) {
+            auto r = "KO 78869 wallet wasn't released before.";
+            log(r, i.second->subhome);
+            delete i.second;
+        }
+    }
+    release_wallet(root_wallet);
+}
+
+void c::init() {
     string govhomedir = daemon.home + "/../gov"; //is there a gov process running along with this wallet process? manage its key
     log("root wallet instantiation", "make sure it contains gov income address. looking at dir", govhomedir);
+    root_wallet = get_wallet("");
+    assert(root_wallet != nullptr);
     if (us::gov::io::cfg1::file_exists(us::gov::io::cfg_id::k_file(govhomedir))) {
         log("found gov/k file");
         auto k = us::gov::io::cfg1::load_sk(govhomedir);
         if (is_ko(k.first)) {
-            log("KO 79685 Could not load gov sk");
+            log("gov key is not available at", govhomedir);
         }
-        auto o = get_wallet("");
-        assert(o != nullptr);
-        hash_t addr = o->add_address(k.second);
+        hash_t addr = root_wallet->add_address(k.second);
         log("added income address", addr);
-        release_wallet(o);
-    }
-}
-
-c::~users_t() {
-    lock_guard<mutex> lock(mx);
-    for (auto i: *this) {
-        auto r = "KO 78869 wallet wasn't released before.";
-        log(r, i.second->subhome);
-        delete i.second;
     }
 }
 

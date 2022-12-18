@@ -23,23 +23,21 @@
 PROT:=games
 R:=player
 OBJ:=${PROT}-${R}.o
-#OBJ := libtrader-r2r-games
 CPPS:=$(wildcard *.cpp)
 OBJS:=$(patsubst %.cpp, %.o, $(CPPS))
 HS:=$(wildcard *.h)
-#INC:=../../../../..
 CXXFLAGS = -O0 -g -std=c++20 -DDEBUG
-CXX:=g++
 
 all: ${OBJ}
-
-${OBJ}: ${OBJS} ${CPPS} ${HS}
-	ld -r -o ${OBJ} ${OBJS}
 
 %.o: %.cpp
 	$(CXX) -fPIC -c ${CXXFLAGS} ${INC} $^ -o $@
 
+${OBJ}: ${OBJS} ${CPPS} ${HS}
+	ld -r ${OBJS} -o ${OBJ}
+
 clean:
 	$(RM) *.o
 
-.PHONY: all
+.PHONY: all clean
+

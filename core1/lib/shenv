@@ -1,0 +1,5 @@
+. ../core0/us/lib/shenv
+
+
+#    remote_arch=$($ssh -p$sshport $host 'export nm=`uname`; if [ $nm == "Linux" ]; then uname -m; elif [ $nm == "FreeBSD" ]; then uname -p; else echo "KO 44637"; fi')
+

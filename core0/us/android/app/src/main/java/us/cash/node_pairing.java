@@ -944,8 +944,9 @@ public final class node_pairing extends activity {
     String get_pubkey() {
         log("get_pubkey"); //--strip
         if (dep == null) return "";
-        if (dep.hmi == null) return "";
-        return dep.hmi.get_pubkey();
+        if (dep.cfg == null) return "";
+        if (dep.cfg.keys == null) return "";
+        return ec.instance.to_b58(dep.cfg.keys.getPublic());
     }
 
     void refresh_mode_widgets() {
@@ -1056,7 +1057,6 @@ public final class node_pairing extends activity {
             save_ssid.setVisibility(View.GONE);
         }
     }
-
 
     KeyListener subhome_key_listener = null;
 
@@ -1188,6 +1188,7 @@ public final class node_pairing extends activity {
 
     static int darkgreen = Color.parseColor("#009900");
     static int orange = Color.parseColor("#ffa500");
+
     private TextView current_endpoint;
     private TextInputEditText addr;
     private TextInputEditText port;

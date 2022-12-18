@@ -21,7 +21,7 @@
 #===-
 #===----------------------------------------------------------------------------
 #===-
-
+##deprecated
 [[ ! -f blob ]] && echo "expected blob file" && exit 1
 
 fullpath=`tar -I zstd -tvf blob | grep ".apk\$" |awk '{print $NF}'`

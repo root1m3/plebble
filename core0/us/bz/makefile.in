@@ -20,17 +20,32 @@
 #===-
 #===----------------------------------------------------------------------------
 #===-
+US:=##str3##
+LIBUSBZ:=lib${US}bz
+USGOV:=${US}gov
 CPPS := $(wildcard *.cpp)
 STDFLAGS:=-std=c++17 -Wno-psabi
 DEBUGFLAGS:=-g -O0 ${STDFLAGS} -DDEBUG
 RELEASEFLAGS:=-O3 ${STDFLAGS} -DNDEBUG
 CXXFLAGS:=${DEBUGFLAGS}
-USGOV:=##str3##gov
-LIBUSBZ:=lib##str3##bz
 
+INC:=-I../..
+LIB+=-L../gov -l${USGOV} -pthread
+LIB+=-lstdc++fs
 
-all: export CXXFLAGS:=${DEBUGFLAGS}
-all: targets
+ifneq (,$(findstring -g,${CXXFLAGS}))
+    RPATH:=-Wl,-rpath,../wallet
+    RPATH+=-Wl,-rpath,../gov
+else
+    RPATH:=
+endif
+
+${LIBUSBZ}.so: ${CPPS}
+	@echo ""
+	@echo "[--->Link shared library: ${LIBUSBZ}.so]"
+	$(CXX) -fPIC -shared ${CXXFLAGS} ${RPATH} ${CPPS} ${INC} ${LIB} -o ${LIBUSBZ}.so
+#	$(CXX) -fPIC -shared ${CXXFLAGS} ${CPPS} ${INC} -o ${LIBUSBZ}.so
+	@echo ""
 
 debug: export CXXFLAGS:=${DEBUGFLAGS}
 debug: targets
@@ -40,8 +55,10 @@ release: targets
 
 targets: ${LIBUSBZ}.so
 
-${LIBUSBZ}.so: ${CPPS}
-	g++ -fPIC -shared ${CXXFLAGS} ${CPPS} -I../.. -L../gov -l${USGOV} -pthread -lstdc++fs -o ${LIBUSBZ}.so
+all: export CXXFLAGS:=${DEBUGFLAGS}
+all: targets
 
 clean:
-	rm -f ${LIBUSBZ}.so
+	$(RM) -f ${LIBUSBZ}.so
+
+.PHONY: all clean targets release debug

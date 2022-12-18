@@ -7,39 +7,81 @@
     android:paddingStart="8dp"
     android:paddingEnd="8dp"
     android:orientation="vertical"
+    android:layout_marginBottom="10dp"
     >
 
-    <TextView
-        android:id="@+id/label"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Remote wallet connections:"
-        android:textSize="24dp"
-         />
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="#FFFFFF"
         android:orientation="horizontal"
         android:gravity="right|center_vertical"
-        android:layout_marginBottom="10dp"
         >
 
-        <Switch
-            android:id="@+id/poweron"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Power"
-            android:theme="@style/switch_theme"
-            />
-
-        <ImageButton
-            android:id="@+id/hmibutton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:src="@raw/gear"
+        <ImageView
+            android:id="@+id/conn_ico"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:src="@raw/conn_ico"
         />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="#FFFFFF"
+            android:orientation="vertical"
+            android:gravity="right|center_vertical"
+            >
+
+            <TextView
+                android:id="@+id/label"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text=""
+                android:textSize="24dp"
+                 />
+
+            <TextView
+                android:id="@+id/ssid"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text=""
+                android:textSize="14dp"
+                 />
+
+            <TextView
+                android:id="@+id/address"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text=""
+                android:textSize="14dp"
+                 />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="#FFFFFF"
+                android:orientation="horizontal"
+                android:gravity="right|center_vertical"
+                android:layout_marginBottom="10dp"
+                >
+
+                <Switch
+                    android:id="@+id/poweron"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Power"
+                    android:theme="@style/switch_theme"
+                    />
+
+                <ImageButton
+                    android:id="@+id/hmibutton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:src="@raw/gear"
+                />
+            </LinearLayout>
+        </LinearLayout>
     </LinearLayout>
 
 </LinearLayout>

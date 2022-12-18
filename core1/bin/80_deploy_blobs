@@ -152,7 +152,10 @@ function scp_blobs {
 }
 
 scp_blobs
-#up_blobs
+
+echo
+echo "upload to blockchain"
+up_blobs
 
 echo "Blobs have been delivered to BDPs, and they have uploaded the blob to blockchain."
 echo "Next step:"

@@ -20,11 +20,11 @@
 //===-
 //===----------------------------------------------------------------------------
 //===-
-#include "api.h"
 #include <us/gov/io/seriable.h>
 #include <us/gov/socket/daemon0_t.h>
 
 #include "peer_t.h"
+#include "api.h"
 
 #define loglevel "gov/relay"
 #define logclass "peer_t"

@@ -20,9 +20,10 @@
 //===-
 //===----------------------------------------------------------------------------
 //===-
-#include "api.h"
 #include <us/gov/io/blob_reader_t.h>
 #include <us/gov/io/blob_writer_t.h>
+
+#include "api.h"
 
 #ifdef has_us_gov_peer_api
 

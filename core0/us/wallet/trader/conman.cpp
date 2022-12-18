@@ -331,7 +331,7 @@ void c::wait() {
 
 void c::onwakeup() {
     log("onwakeup");
-    cv.notify_one();
+    cv.notify_all();
 }
 
 void c::die(const string& rson) {

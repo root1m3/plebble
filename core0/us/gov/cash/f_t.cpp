@@ -20,10 +20,11 @@
 //===-
 //===----------------------------------------------------------------------------
 //===-
-#include "f_t.h"
 #include <us/gov/io/cfg0.h>
 #include <us/gov/socket/datagram.h>
+
 #include "types.h"
+#include "f_t.h"
 
 #define loglevel "gov/cash"
 #define logclass "f_t"

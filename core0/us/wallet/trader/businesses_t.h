@@ -70,17 +70,8 @@ namespace us::wallet::trader {
     private:
         ko select(iterator&);
 
-/*
     public:
-        struct r2r_t {
-            trader_protocol* p{nullptr};
-            business_t* bz{nullptr};
-        };
-*/
-    public:
-
         [[nodiscard]] pair<ko, trader_protocol*> create_protocol(protocol_selection_t&&);
-        //[[nodiscard]] pair<ko, trader_protocol*> create_opposite_protocolX(protocol_selection_t&&);
         [[nodiscard]] pair<ko, trader_protocol*> create_protocol(protocol_selection_t&&, params_t&& remote_params);
 
         void bookmark_info(vector<pair<protocol_selection_t, bookmark_info_t>>& o) const;
@@ -89,11 +80,7 @@ namespace us::wallet::trader {
         void exec_help(const string& prefix, ostream&) const;
         ko exec(istream&);
 
-        //void published_bookmarks(bookmarks_t&) const;
-
         void published_protocols(protocols_t&, bool invert) const;
-//        void invert(protocols_t&) const;
-//        void invert(protocol_t&) const;
         ko invert(protocol_selection_t&) const;
         protocols_t published_protocols(bool invert) const;
         void dump(ostream& os) const;

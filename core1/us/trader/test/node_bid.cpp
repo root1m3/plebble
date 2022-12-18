@@ -35,10 +35,14 @@ using c = us::test::node_bid;
 c::node_bid(const string& id, const string& homedir, const string& logdir, const string& vardir, uint16_t gport, uint16_t wport): b(id, homedir, logdir, vardir, gport, wport) {
 }
 
-//bool c::load_data(const string& r2rhome) {
-//    created = true;
-//    return true;
-//}
+bool c::load_data(const string& r2rhome) {
+    {
+        ostringstream cmd;
+        cmd << "cp ../libtrader-bid2ask-bid.so " << homedir << "/123/wallet/trader/lib/";
+        system(cmd.str().c_str());
+    }
+    return true;
+}
 
 string c::desc() const {
     return "Bidrick";
@@ -51,7 +55,6 @@ vector<string> c::r2r_libs(bool filter_not_active) {
 void c::create_bid(const string& r2rhome, vector<node*> processors, bookmarks_t&& bookmarks) {
     b::create_node(r2rhome);
     using doctype_processors_t = us::wallet::trader::workflow::doctype_processors_t;
-//    assert(!created);
     cout << "creating bid" << endl;
     auto& hmi = *wallet_cli;
 
@@ -72,8 +75,6 @@ void c::create_bid(const string& r2rhome, vector<node*> processors, bookmarks_t&
         cout << "writing file " << f.str() << endl;
         doctype_processors.save(f.str());
     }
-//    created = true;
-//    restart_daemons();
 }
 
 void c::banner(ostream& os) const {

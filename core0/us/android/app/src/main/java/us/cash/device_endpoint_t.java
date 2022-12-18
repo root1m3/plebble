@@ -42,7 +42,7 @@ import static us.gov.io.types.blob_t.serid_t;                                   
 import us.string;                                                                              // string
 import us.wallet.engine.wallet_connection_t;                                                   // wallet_connection_t
 
-public final class device_endpoint_t extends wallet_connection_t { // implements hmi_t.hmi_callback_t {
+public final class device_endpoint_t extends wallet_connection_t {
 
     private static void log(final String line) {                        //--strip
         CFG.log_android("device_endpoint_t: " + line);                  //--strip
@@ -86,15 +86,6 @@ public final class device_endpoint_t extends wallet_connection_t { // implements
     }
 
     private device_endpoint_t(device_endpoint_t other) {}
-/*
- {
-        super(other);
-        parent = other.parent;
-        hmi = null;
-        cfg = new cfg_android_private_t(parent.a.getApplicationContext());
-        cfg.home = get_home();
-    }
-*/
 
     String get_home() {
         return parent.home + "/" + us.gov.crypto.ec.instance.to_encoded_address(cfg.keys.getPublic());

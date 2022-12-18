@@ -54,7 +54,7 @@ namespace us::wallet::trader {
         ~libs_t();
 
         pair<ko, business_t*> create_business(const protocol_selection_t&);
-        void delete_business(business_t*);
+        ko delete_business(business_t*);
         protocols_t available_protocol_selections() const;
         void load();
         static protocol_selection_t extract_protocol_selection(const string& filename);

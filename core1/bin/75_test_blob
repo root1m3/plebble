@@ -22,6 +22,22 @@
 #===----------------------------------------------------------------------------
 #===-
 
+
+#release blob
+brand="katlas"
+branch="alpha-53"
+deploy_monotonic_counter="7"
+hash="a9aab7"
+flags="_L"
+
+#destination
+bde="bde.katlasnet.katlastechnology.io
+actor1="pat.katlasnet.katlastechnology.io"
+actor2=""
+actor3=""
+actor4=""
+actor5=""
+
 cat << EOF
 * pick blob                     e.g.    blobs/linkbox_alpha-52_6-f4c3cd.tzst
 * ssh over to test bde node.            scp linkbox_alpha-52_6-f4c3cd.tzst linkbox:/root/
@@ -35,11 +51,27 @@ cat << EOF
                                             rm guest/2QX7LhWMFWnVDMqbsN1CdqBAjXNt -r
     bookmark_index                      rm bookmark_index
 
-* install blob                          install_blob --blob linkbox_alpha-52_6-f4c3cd.tzst 
+* install blob                          install_blob --blob linkbox_alpha-52_6-f4c3cd.tzst
 * run rpc-test
   install app                           https://linkbox.katlastechnology.io
 EOF
 
-echo "Complete tasks manually. Then enter yes
+echo "Complete tasks manually. Then enter yes"
 read a
+
 exit 0
+
+hostname="bde"
+ssh $bde hostname $hostname
+
+#Add bde to /etc/hosts
+#/etc/hosts 
+#127.0.0.1       localhost bde
+
+
+############### Actor Node (guest wallets): 
+
+scp blobs/${brand}_${branch}_${deploy_monotonic_counter}-${hash}${flags}.tzst ${actor}:/root/
+
+exit 0
+

@@ -25,22 +25,27 @@
 cmd=$1
 shift
 
-let jobs=`cat /proc/cpuinfo | grep "^processor" | wc -l`
-arch=`uname -m`
-echo "cpus=$jobs"
-
-if [[ $jobs -gt 1 ]]; then
-    let jobs=`echo "$jobs-1" | bc`
+if [[ ! -f lib/shenv ]]; then
+    >&2 echo "KO 78964"
+    exit 1
 fi
-echo "jobs0=$jobs"
+. lib/shenv
+
+if [[ ! -f lib/cbsenv ]]; then
+    >&2 echo "KO 78965"
+    exit 1
+fi
+. lib/cbsenv
+
+echo "cpus=$jobs"
 
 echo "DISTCC_HOSTS=$DISTCC_HOSTS"
 if [[ ! -z "${CXX}" ]]; then
     if [[ ${CXX} = *"distcc g++" ]]; then
-        let nc=`echo "${DISTCC_HOSTS}" | wc -w`
+        let nc=$(echo "${DISTCC_HOSTS}" | wc -w)
         echo "nc=$nc"
         if [[ $nc -gt 0 ]]; then
-            let jobs=`echo "$jobs * $nc" | bc`
+            let jobs=$(echo "$jobs * $nc" | bc)
         fi
     fi
 else
@@ -59,12 +64,11 @@ function check_android_sdk { #Search K8750R3. SYNC android/make.sh
     if [[ ! -d ~/android_sdk ]]; then
         echo "recreating android_sdk API 32"
         mkdir ~/android_sdk
-        for c0dir in `find . -type d -name "core0"`; do
+        for c0dir in $(find . -type d -name "core0"); do
             cp $c0dir/us/android/licenses ~/android_sdk/ -R
             break
         done
         pushd ~/android_sdk >/dev/null
-#            sdktools=sdk-tools-linux-4333796.zip
             sdktools=commandlinetools-linux-8512546_latest.zip
             wget https://dl.google.com/android/repository/$sdktools
             unzip $sdktools
@@ -75,20 +79,17 @@ function check_android_sdk { #Search K8750R3. SYNC android/make.sh
             $sdkmanager  "platform-tools"
             $sdkmanager "build-tools;33.0.0"  #Search R6Tr465. SYNC android/app/build.gradle
             $sdkmanager "platforms;android-32"
-            #tools/latest/bin/sdkmanager "platform-tools"
-            #tools/bin/sdkmanager "build-tools;28.0.3"
-            #$sdkmanager "platforms;android-28"
         popd >/dev/null
     fi
 }
 
-if [[ "_$cmd" == "_deps" ]]; then
+function mk_deps {
     echo "building deps"
     dest=deps
     rm $dest -rf
     mkdir -p $dest/$arch
-    prefix=`realpath $dest/$arch`
-    branch=`cat build_hashes | grep "^vhash " | sort | uniq | awk '{print $6}'`
+    prefix=$(realpath $dest/$arch)
+    branch=$(cat build_hashes | grep "^vhash " | sort | uniq | awk '{print $6}')
     echo "ec-secp256k1"
     pushd ec_src > /dev/null
         # ------------------------secp256k1
@@ -97,14 +98,14 @@ if [[ "_$cmd" == "_deps" ]]; then
             #./configure --prefix ec --enable-experimental --enable-module-ecdh --disable-dependency-tracking --enable-benchmark=no  --enable-coverage=no --enable-tests=no --enable-openssl-tests=no --enable-exhaustive-tests=no
             #U.S. Patent No. 7,110,538 has expired. --enable-endomorphism=yes for sig verification 25% faster
             ./configure --prefix $prefix --enable-experimental --enable-module-ecdh --disable-dependency-tracking --enable-benchmark=no  --enable-coverage=no --enable-tests=no --enable-exhaustive-tests=no 2>&1
-            make -j$jobs CXX="$CXX" 2>&1
+            ${make} -j$jobs CXX="$CXX" 2>&1
             r=$?
             if [[ $r -ne 0 ]]; then
                 >&2 echo "KO 76033 make error"
                 exit 1
             fi
             #./tests && (exit 1)
-            make install
+            ${make} install
             if [[ $r -ne 0 ]]; then
                 >&2 echo "KO 76034 make install error"
                 exit 1
@@ -129,16 +130,14 @@ if [[ "_$cmd" == "_deps" ]]; then
                         exit 1
                     fi
                 popd
-                #find -type f -name  "*" -exec sed -i "s/\-Werror//g" {} \;
-                #find -type f -name  "*" -exec sed -i "s/\-Wno\-error//g" {} \;
                 pushd build
-                    make -j$jobs
+                    ${make} -j$jobs
                     r=$?
                     if [[ $r -ne 0 ]]; then
                         >&2 echo "KO 76022 make error"
                         exit 1
                     fi
-                    make install
+                    ${make} install
                     r=$?
                     if [[ $r -ne 0 ]]; then
                         >&2 echo "KO 76023 make error"
@@ -156,13 +155,56 @@ if [[ "_$cmd" == "_deps" ]]; then
     rm -f make.sh
     mv build_hashes build_hashes_$arch
     echo "done deps. build_hashes_$arch"
-    exit 0
-fi
+}
 
-if [[ "_$cmd" == "_core" ]]; then
+function mvr2rdata {
+    tder=$1
+    mkdir -p r2r/home
+    homes=$(find ${tder}/r2r -type d -name "home")
+    echo "${tder}: Protocols with home data:"
+    echo "${homes}"
+    for d in ${homes}; do
+        ph=$(dirname $d)
+        P=$(cat ${ph}/makefile | grep "^PROT:=" | sed "s~^PROT:=\(.*\)~\1~")
+        if [[ "_$P" == "_" ]]; then
+            >&2 echo "KO 68576 makefile doesn't define PROT."
+            exit 1
+        fi
+        R=$(cat ${ph}/makefile | grep "^R:=" | sed "s~^R:=\(.*\)~\1~")
+        if [[ "_$R" == "_" ]]; then
+            >&2 echo "KO 68577 makefile doesn't define R."
+            exit 1
+        fi
+        mkdir -p r2r/home/${P}/${R}
+        #echo "${d}/* r2r/home/${P}/${R}/"
+        mv ${d}/* r2r/home/${P}/${R}/
+    done
+
+    mkdir -p r2r/html
+    wwws=$(find ${tder}/r2r -type d -name "html")
+    echo "${tder}: Protocols with landing page:"
+    echo "${wwws}"
+    for d in ${wwws}; do
+        ph=$(dirname $d)
+        P=$(cat ${ph}/makefile | grep "^PROT:=" | sed "s~^PROT:=\(.*\)~\1~")
+        if [[ "_$P" == "_" ]]; then
+            >&2 echo "KO 68576 makefile doesn't define PROT."
+            exit 1
+        fi
+        R=$(cat ${ph}/makefile | grep "^R:=" | sed "s~^R:=\(.*\)~\1~")
+        if [[ "_$R" == "_" ]]; then
+            >&2 echo "KO 68577 makefile doesn't define R."
+            exit 1
+        fi
+        mkdir -p r2r/html/${P}/${R}
+#        echo "mv ${d}/* r2r/html/${w}/"
+        mv ${d}/* r2r/html/${P}/${R}
+    done
+}
+
+function mk_core {
     opt=$1
-
-    for c0dir in `find . -type d -name "core0"`; do
+    for c0dir in $(find . -type d -name "core0"); do
         branddir=$(dirname $c0dir)
         brand=$(basename $branddir)
         hash=$(basename $(dirname $branddir))
@@ -178,250 +220,206 @@ Building core:
 EOF
         pushd "$branddir" >/dev/null
             pushd core0/us >/dev/null
+                ############
+                # make distr
+                ############
                 strset="en-uk"
                 . res/strings/$strset
                 if [[ -f res/strings/${strset}.ovr ]]; then
                     . res/strings/${strset}.ovr
                 fi
-                make -j$jobs CXX="$CXX" distr
+                ${make} -j${jobs} CXX="$CXX" distr
                 if [[ $? -ne 0 ]]; then
-                    echo "Errors occurred."
+                    >&2 echo "KO 59400 Errors occurred."
                     exit 1
                 fi
+
+                ###########
+                # this arch
+                ###########
                 cp distr/bin/apply_blob ../../
                 cp distr/bin/install_blob ../../
+                if [[ ! -f distr/lib/shenv ]]; then
+                    >&2 echo "KO 59401 Expected file core0/us/distr/lib/shenv."
+                    exit 1
+                fi
+                mv distr/lib/shenv /tmp/
                 mkdir -p ${arch}-dev
                 mv distr/include ${arch}-dev/
                 mv distr/lib ${arch}-dev/
+                mkdir distr/lib
+                mv /tmp/shenv distr/lib/
                 mv distr $arch
-                if [ "_$arch" == "_armv7l" ]; then #Raspberry Pi Zero. Raspi 3 is backwards compatible.
-                    ln -s armv7l armv6l
-                    ln -s armv7l-dev armv6l-dev
-                    ln -s armv7l aarch64
-                    ln -s armv7l-dev aarch64-dev
-                    tar -czf armv7l.tgz armv7l armv6l aarch64-dev
-                    tar -czf armv7l-dev.tgz armv7l-dev armv6l-dev aarch64-dev
-                    ln -s armv7l.tgz armv6l.tgz
-                    ln -s armv7l-dev.tgz armv6l-dev.tgz
-                    ln -s armv7l.tgz aarch64.tgz
-                    ln -s armv7l-dev.tgz aarch64-dev.tgz
-                else
-                    tar -czf $arch.tgz $arch
-                    tar -czf ${arch}-dev.tgz ${arch}-dev
-                fi
+
+                ###############
+                # Symlink archs
+                ###############
+                var="symlink_${arch}"
+                echo "var=$var"
+                sla=${!var}
+                echo "sla >>>${sla}<<<"
+                for x in $sla; do
+                    echo "symlink ${arch} ${x}"
+                    echo "symlink ${arch}-dev ${x}-dev"
+                    ln -s ${arch} ${x}
+                    ln -s ${arch}-dev ${x}-dev
+                done
+                tar -czf ${arch}.tgz ${arch} ${sla}
+                echo "produced ${arch}.tgz in $(pwd)"
+                sladev="${sla// /-dev }"
+                echo "sladev >>>${sladev}<<<"
+                tar -czf ${arch}-dev.tgz ${arch}-dev ${sladev}
+                echo "produced ${arch}-dev.tgz in $(pwd)"
+                for x in ${sla}; do
+                    ln -s ${arch}.tgz ${x}.tgz
+                    ln -s ${arch}-dev.tgz ${x}-dev.tgz
+                done
+                #/#############
+
             popd > /dev/null
-            echo "Files here. WP 12223:"
-            find .
-            rm -f $arch.tgz
-            rm -f ${arch}-dev.tgz
-            mv core0/us/$arch.tgz .
+
+            ###############
+            # Collect archs
+            ###############
+            mv core0/us/${arch}.tgz .
             mv core0/us/${arch}-dev.tgz .
-            if [ "_$arch" == "_armv7l" ]; then
-                rm -f armv6l.tgz
-                rm -f armv6l-dev.tgz
-                mv core0/us/armv6l.tgz .
-                mv core0/us/armv6l-dev.tgz .
+            var="symlink_${arch}"
+            sla=${!var}
+            for x in ${sla}; do
+                mv core0/us/${x}.tgz .
+                mv core0/us/${x}-dev.tgz .
+            done
 
-                rm -f aarch64.tgz
-                rm -f aarch64-dev.tgz
-                mv core0/us/aarch64.tgz .
-                mv core0/us/aarch64-dev.tgz .
-            fi
-            rm -rf core0
-            rm -rf core1
-            rm -rf core2
-            echo -n "Produced files at "
-            pwd
-            ls $arch.tgz ${arch}-dev.tgz apply_blob install_blob
-            if [ "_$arch" == "_armv7l" ]; then
-                ls armv6l.tgz armv6l-dev.tgz
-                ls aarch64.tgz aarch64-dev.tgz
-            fi
-        popd >/dev/null
-    done
-    echo "files here:"
-    find .
-    rm -rf ec_src
-    rm -rf fcgi_src
-    rm -f make.sh
-    mv build_hashes build_hashes_$arch
-    exit 0
-fi
-
-if [[ "_$cmd" == "_r2r" ]]; then
-    distr=$1
-    shift
-    cat << EOF
-r2r
-===
-distr=$distr
-arch=$arch
-
-EOF
-    for r2rdir in `find . -maxdepth 4 -mindepth 4 -type d -name "core1"`; do
-        branddir=$(dirname $r2rdir)
-        brand=$(basename $branddir)
-        hash=$(basename $(dirname $branddir))
-        branch=$(basename $(dirname $(dirname $branddir)))
-        corelibspkg=`find $distr/$brand -name "core_${branch}_${hash}.tar.zst"`
-        if [[ $? -ne 0 ]]; then
-            echo "cannot find file core_${branch}_${hash}.tar.zst in $distr"
-            exit 1
-        fi
-        f0=`realpath $corelibspkg`
-        echo "f0 $f0"
-        pushd "$branddir" >/dev/null
-            pushd core0/us >/dev/null
-                echo "loading environment"
-                strset="en-uk"
-                . res/strings/$strset
-                if [ -f res/strings/${strset}.ovr ]; then
-                    echo "found override string set"
-                    . res/strings/${strset}.ovr
-                fi
-            popd >/dev/null
-            mkdir -p tmp
-	        pushd tmp >/dev/null
-                tar -I zstd -xf $f0
-		        pushd core >/dev/null
-		            make PREFIX="usr/local" install-dev
-                    if [[ $? -ne 0 ]]; then
-                        echo "cannot install in usr"
-                        exit 1
-                    fi
-		        popd >/dev/null
-            popd >/dev/null
-            mv tmp/core/usr .
-            rm tmp -r
-            pwd=`pwd`
-            #echo "Installing ec"
-            #pushd $distr/ec > /dev/null
-            #    ./install_deps $pwd
-            #popd > /dev/null
-    	    dstarchpwd=$pwd/$arch
-    	    echo "dstarchpwd=$dstarchpwd"
-            incc0="-I`realpath usr/local/include`"
-            libc0="-L`realpath usr/local/lib`"
-            c1="`realpath core1`"
+            ################
+            # R2R core1 make
+            ################
+            mkdir -p r2r/${arch}
             pushd core1/us/trader > /dev/null
-                echo "making distr for arch $arch brand $brand"
-                dbgtag=""
-                if [ $str29 -eq 1 ]; then
-                    dbgtag="_dbg"
-                fi
-                make -j$jobs CXX="${CXX}" INCC0="$incc0" LIBC0="$libc0" CORE1="$c1"
+                echo "making core1 distr for arch $arch brand $brand."
+                ${make} -j${jobs} CXX="${CXX}"
                 if [[ $? -ne 0 ]]; then
-                    echo "make failed"
+                    >&2 echo "KO 91273 c1 make failed"
                     exit 1
                 fi
-                logstag=""
-                if [ $str33 -eq 1 ]; then
-                    logstag="_logs"
-                fi
-                for f in `find . -maxdepth 1 -type f -name "*.so"`; do
-                    echo $f
-                    file=`echo $(basename $f)`
-                    dir=`echo $(dirname $f)`
-                    echo "dir $dir file $file"
-                    pushd $dir >/dev/null
-                        prot=`echo $file | sed "s#lib\(.*\).so#\1#"`
-                        echo "prot=$prot"
-                        mkdir -p ${dstarchpwd}/r2r
-                        tar -I zstd -cf ${dstarchpwd}/r2r/lib${prot}${dbgtag}${logstag}_${branch}_${hash}.tzst $file
-                    popd >/dev/null
-                done
-                if [ "_$arch" == "_armv7l" ]; then
-                    ln -s armv7l armv6l    #Raspberry Pi Zero. Raspi 3 is backwards compatible.
-                    ln -s armv7l aarch64   #arm64 bits
-                fi
-                echo "pwd: $pwd"
-                echo "Core 1: Protocols with home data:"
-                find r2r -type d -name "home" | sed "s#r2r/\(.*\)/home#\1#"
-                for homsubdir in `find r2r -type d -name "home" | sed "s#r2r/\(.*\)/home#\1#"`; do
-                    echo "mv r2r/${homsubdir}/home/* ${pwd}/r2r/home/${homsubdir}"
-                    mkdir -p ${pwd}/r2r/home/${homsubdir}
-                    mv r2r/${homsubdir}/home/* ${pwd}/r2r/home/${homsubdir}
-                done
-                echo "Protocols with html:"
-                find r2r -type d -name "html" | sed "s#r2r/\(.*\)/html#\1#"
-                for homsubdir in `find r2r -type d -name "html" | sed "s#r2r/\(.*\)/html#\1#"`; do
-                    echo "mv r2r/${homsubdir}/html/* ${pwd}/r2r/html/${homsubdir}"
-                    mkdir -p ${pwd}/r2r/html/${homsubdir}
-                    mv r2r/${homsubdir}/html/* ${pwd}/r2r/html/${homsubdir}
-                done
             popd >/dev/null
-            if [[ -d core2 ]]; then
-                c2="`realpath core2`"
+
+            ################
+            # R2R core2 make
+            ################
+            if [[ -d core2/us/trader ]]; then
                 pushd core2/us/trader > /dev/null
-                    echo "making distr for arch $arch brand $brand"
-                    dbgtag=""
-                    if [ $str29 -eq 1 ]; then
-                        dbgtag="_dbg"
-                    fi
-                    make -j$jobs CXX="${CXX}" INCC0="$incc0" LIBC0="$libc0" CORE1="$c1" CORE2="$c2"
+                    echo "making core2 distr for arch $arch brand $brand."
+                    ${make} -j${jobs} CXX="${CXX}"
                     if [[ $? -ne 0 ]]; then
-                        echo "make failed"
+                        >&2 echo "KO 72293 c2 make failed"
                         exit 1
                     fi
-                    logstag=""
-                    if [ $str33 -eq 1 ]; then
-                        logstag="_logs"
-                    fi
-                    pwd
-                    for f in `find . -maxdepth 1 -type f -name "*.so"`; do
-                        echo $f
-                        file=`echo $(basename $f)`
-                        dir=`echo $(dirname $f)`
-                        echo "dir $dir file $file"
-                        pushd $dir >/dev/null
-                            prot=`echo $file | sed "s#lib\(.*\).so#\1#"`
-                            echo "prot=$prot"
-                            mkdir -p ${dstarchpwd}/r2r
-                            tar -I zstd -cf ${dstarchpwd}/r2r/lib${prot}${dbgtag}${logstag}_${branch}_${hash}.tzst $file
-                        popd >/dev/null
-                    done
-                    if [ "_$arch" == "_armv7l" ]; then
-                        ln -s armv7l armv6l    #Raspberry Pi Zero. Raspi 3 is backwards compatible.
-                        ln -s armv7l aarch64   #arm64 bits
-                    fi
-                    echo "pwd: $pwd"
-                    echo "Core 2: Protocols with home data:"
-                    find r2r -type d -name "home" | sed "s#r2r/\(.*\)/home#\1#"
-                    for homsubdir in `find r2r -type d -name "home" | sed "s#r2r/\(.*\)/home#\1#"`; do
-                        echo "mv r2r/${homsubdir}/home/* ${pwd}/r2r/home/${homsubdir}"
-                        mkdir -p ${pwd}/r2r/home/${homsubdir}
-                        mv r2r/${homsubdir}/home/* ${pwd}/r2r/home/${homsubdir}
-                    done
-                    echo "Protocols with html:"
-                    find r2r -type d -name "html" | sed "s#r2r/\(.*\)/html#\1#"
-                    for homsubdir in `find r2r -type d -name "html" | sed "s#r2r/\(.*\)/html#\1#"`; do
-                        echo "mv r2r/${homsubdir}/html/* ${pwd}/r2r/html/${homsubdir}"
-                        mkdir -p ${pwd}/r2r/html/${homsubdir}
-                        mv r2r/${homsubdir}/html/* ${pwd}/r2r/html/${homsubdir}
-                    done
                 popd >/dev/null
             fi
+
+            ###########
+            # this arch
+            ###########
+            for f in $(find core1/us/trader -maxdepth 1 -type f -name "*.so"); do
+                mv $f r2r/${arch}/
+            done
+            if [[ -d core2/us/trader ]]; then
+                for f in $(find core2/us/trader -maxdepth 1 -type f -name "*.so"); do
+                    mv $f r2r/${arch}/
+                done
+            fi
+
+            ###############
+            # Symlink archs
+            ###############
+            pushd r2r > /dev/null
+                var="symlink_${arch}"
+                sla=${!var}
+                for x in $(echo $sla); do
+                    ln -s ${arch} ${x}
+                done
+            popd > /dev/null
+
+            ##########
+            # R2R data
+            ##########
+            mvr2rdata core0/us/wallet/trader
+            mvr2rdata core1/us/trader
+            if [[ -d core2/us/trader ]]; then
+                mvr2rdata core2/us/trader
+            fi
+            #/########
+
             rm -rf core0
             rm -rf core1
             rm -rf core2
-            rm -rf usr
-            echo "Produced files"
-            find -type f -name "*.tzst"
         popd >/dev/null
     done
-    mv build_hashes build_hashes_$arch
     rm -rf ec_src
     rm -rf fcgi_src
     rm -f make.sh
-    exit 0
-fi
+    rm -rf lib
+    mv build_hashes build_hashes_$arch
+#    echo "files here:"
+#    find .
 
-if [[ "_$cmd" == "_android" ]]; then
+#files here:
+#.
+#./build_hashes_x86_64
+#./alpha-53
+#./alpha-53/7-bd7f2d
+#./alpha-53/7-bd7f2d/tft
+#./alpha-53/7-bd7f2d/tft/apply_blob
+#./alpha-53/7-bd7f2d/tft/x86_64.tgz
+#./alpha-53/7-bd7f2d/tft/brand_sha256sum
+#./alpha-53/7-bd7f2d/tft/x86_64-dev.tgz
+#./alpha-53/7-bd7f2d/tft/makefile_distr
+#./alpha-53/7-bd7f2d/tft/r2r
+#./alpha-53/7-bd7f2d/tft/r2r/html
+#./alpha-53/7-bd7f2d/tft/r2r/x86_64
+#./alpha-53/7-bd7f2d/tft/r2r/x86_64/libworkflow-consumer.so
+#./alpha-53/7-bd7f2d/tft/r2r/x86_64/libworkflow-logistics.so
+#./alpha-53/7-bd7f2d/tft/r2r/x86_64/libtrader-pat2slt-slt.so
+#./alpha-53/7-bd7f2d/tft/r2r/x86_64/libtrader-pat2slt-pat.so
+#./alpha-53/7-bd7f2d/tft/r2r/x86_64/libtrader-fan2club-club.so
+#./alpha-53/7-bd7f2d/tft/r2r/x86_64/libtrader-bid2ask-ask.so
+#./alpha-53/7-bd7f2d/tft/r2r/x86_64/libworkflow-organization.so
+#./alpha-53/7-bd7f2d/tft/r2r/x86_64/libtrader-bid2ask-bid.so
+#./alpha-53/7-bd7f2d/tft/r2r/x86_64/libtrader-fan2club-fan.so
+#./alpha-53/7-bd7f2d/tft/r2r/x86_64/libtrader-pat2phy-phy.so
+#./alpha-53/7-bd7f2d/tft/r2r/x86_64/libworkflow-healthcare.so
+#./alpha-53/7-bd7f2d/tft/r2r/x86_64/libtrader-games-player.so
+#./alpha-53/7-bd7f2d/tft/r2r/x86_64/libtrader-pat2ai-pat.so
+#./alpha-53/7-bd7f2d/tft/r2r/x86_64/libtrader-fan2fan-fan.so
+#./alpha-53/7-bd7f2d/tft/r2r/x86_64/libtrader-pat2ai-ai.so
+#./alpha-53/7-bd7f2d/tft/r2r/x86_64/libtrader-pat2phy-pat.so
+#./alpha-53/7-bd7f2d/tft/r2r/home
+#./alpha-53/7-bd7f2d/tft/r2r/home/bid2ask
+#./alpha-53/7-bd7f2d/tft/r2r/home/bid2ask/ask
+#./alpha-53/7-bd7f2d/tft/r2r/home/bid2ask/ask/ico.png
+#./alpha-53/7-bd7f2d/tft/r2r/home/bid2ask/ask/name
+#./alpha-53/7-bd7f2d/tft/r2r/home/bid2ask/bid
+#./alpha-53/7-bd7f2d/tft/r2r/home/bid2ask/bid/ico.png
+#./alpha-53/7-bd7f2d/tft/r2r/home/bid2ask/bid/name
+#./alpha-53/7-bd7f2d/tft/r2r/home/fan2fan
+#./alpha-53/7-bd7f2d/tft/r2r/home/fan2fan/ico.png
+#./alpha-53/7-bd7f2d/tft/r2r/home/fan2fan/name
+#./alpha-53/7-bd7f2d/tft/r2r/home/w2w
+#./alpha-53/7-bd7f2d/tft/r2r/home/w2w/ico.png
+#./alpha-53/7-bd7f2d/tft/r2r/home/w2w/name
+#./alpha-53/7-bd7f2d/tft/r2r/home/a2a
+#./alpha-53/7-bd7f2d/tft/r2r/home/a2a/ico.png
+#./alpha-53/7-bd7f2d/tft/r2r/home/a2a/name
+#./alpha-53/7-bd7f2d/tft/r2r/home/games
+#./alpha-53/7-bd7f2d/tft/r2r/home/games/ico.png
+#./alpha-53/7-bd7f2d/tft/r2r/home/games/name
+#./alpha-53/7-bd7f2d/tft/install_blob
+#./alpha-53/7-bd7f2d/sha256sum
+
+}
+
+function mk_android {
     check_android_sdk
-#    if [ -d ~/us_sdk_deps/libs_android ]; then  #remove in future, when all devjobs out there are updated
-#	    echo "removing deprecated dir ~/us_sdk_deps"
-#	    rm -rf ~/us_sdk_deps
-#    fi
     if [[ ! -d ~/us_sdk_deps ]]; then
         mkdir ~/us_sdk_deps
         pushd ~/us_sdk_deps >/dev/null
@@ -442,7 +440,7 @@ if [[ "_$cmd" == "_android" ]]; then
             popd >/dev/null
         popd >/dev/null
     fi
-    for c0dir in `find . -type d -name "core0"`; do
+    for c0dir in $(find . -type d -name "core0"); do
         pushd "$c0dir/us/sdk/wallet/java" >/dev/null
             rm -rf libs_spongy
             rm -rf libs_bouncy
@@ -450,7 +448,7 @@ if [[ "_$cmd" == "_android" ]]; then
             ln -s ~/us_sdk_deps/libs_bouncy
         popd >/dev/null
     done
-    for c0dir in `find . -type d -name "core0"`; do
+    for c0dir in $(find . -type d -name "core0"); do
         branddir=$(dirname $c0dir)
         brand=$(basename $branddir)
         hash=$(basename $(dirname $branddir)) #package hash
@@ -467,7 +465,11 @@ EOF
             pushd core0/us > /dev/null
                 echo "SDK"
                 pushd sdk/wallet/java >/dev/null
-                    make -j$jobs
+                    ${make} -j$jobs
+                    if [[ $? -ne 0 ]]; then
+                        >&2 echo "KO 72693 java sdk make failed"
+                        exit 1
+                    fi
                 popd >/dev/null
                 strset="en-uk"
                 . res/strings/$strset
@@ -483,8 +485,7 @@ EOF
                         sleep 2
                         ./make.sh
                         if [[ $? -ne 0 ]]; then
-		            sleep 2
-                            echo "KO 10996 Build failed."
+                            >&2 echo "KO 10996 Android app build failed."
                             exit 1
                         fi
                     fi
@@ -509,9 +510,24 @@ EOF
     rm -f make.sh
     rm -rf ec_src
     rm -rf fcgi_src
+    rm -rf lib
+}
+
+if [[ "_$cmd" == "_deps" ]]; then
+    mk_deps
     exit 0
 fi
 
-echo "KO 5201 $cmd" > &2
+if [[ "_$cmd" == "_core" ]]; then
+    mk_core "$1"
+    exit 0
+fi
+
+if [[ "_$cmd" == "_android" ]]; then
+    mk_android
+    exit 0
+fi
+
+>&2 echo "KO 52001 $cmd"
 exit 1
 

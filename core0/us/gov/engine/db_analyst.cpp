@@ -20,8 +20,6 @@
 //===-
 //===----------------------------------------------------------------------------
 //===-
-#include "db_analyst.h"
-
 #include <fstream>
 #include <iostream>
 #include <map>
@@ -35,6 +33,7 @@
 #include "diff.h"
 #include "daemon_t.h"
 #include "types.h"
+#include "db_analyst.h"
 
 #define loglevel "gov/engine"
 #define logclass "db_analyst"

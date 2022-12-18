@@ -20,41 +20,62 @@
 #===-
 #===----------------------------------------------------------------------------
 #===-
-CXXFLAGS=-O0 -g -std=c++20 -DDEBUG -Wno-psabi
-CPPS:=$(wildcard *.cpp)
-OBJS:=$(CPPS:.cpp=.o)
-SUBOBJS:=engine/libengine.o trader/libtrader.o wallet/libwallet.o cli/libcli.o
-HS:=$(wildcard *.h)
-INC:=-I../..
+LIBUSWALLET:=lib##str3##wallet
 USGOV:=##str3##gov
 LIBUSGOV:=lib##str3##gov
-EC:=$(shell pkg-config --libs libsecp256k1)
-LIBCRYPTO:=$(shell pkg-config --libs libcrypto++)
-LIBS:=-L../gov -l${USGOV} ${EC} ${LIBCRYPTO} -lb64  -ldl
-
-ARCH:=$(shell uname -m)
 FCGI:=##str45##
+CXXFLAGS=-O0 -g -std=c++20 -DDEBUG -Wno-psabi
+CPPS:=$(wildcard *.cpp)
+HS:=$(wildcard *.h)
 
-ifeq ($(ARCH), armv7l)
-    LIBS+=-latomic
+OBJS:=$(CPPS:.cpp=.o)
+DOBJS:=engine/libengine.o
+DOBJS+=trader/libtrader.o
+DOBJS+=wallet/libwallet.o
+DOBJS+=cli/libcli.o
+
+OS:=$(shell uname)
+ifeq (${OS},Linux)
+    ARCH:=$(shell uname -m)
+else
+    ifeq (${OS},FreeBSD)
+      ARCH:=$(shell uname -p)
+    endif
 endif
 
+ifeq (${OS},Linux)
+    EC:=$(shell pkg-config --libs libsecp256k1)
+    LIBCRYPTO:=$(shell pkg-config --libs libcrypto++)
+else
+    ifeq (${OS},FreeBSD)
+        EC:=$(shell PKG_CONFIG_PATH=/usr/local/lib/pkgconfig pkg-config --libs libsecp256k1)
+        LIBCRYPTO:=$(shell pkg-config --libs libcryptopp)
+    endif
+endif
+
+INC:=-I../..
+
+LIBS:=-L../gov -l${USGOV}
+LIBS+=${EC}
+LIBS+=${LIBCRYPTO}
 ifeq ($(FCGI),1)
     LIBS+=-lfastcgipp
 endif
+ifeq ($(ARCH), armv7l)
+    LIBS+=-latomic
+endif
+LIBS+=-lb64
+LIBS+=-ldl
+LIBS+=-lstdc++fs -pthread
 
 ifneq (,$(findstring -g,${CXXFLAGS}))
-    RPATH:=-Wl,-z,defs -Wl,-rpath,../gov
+    RPATH:=-Wl,-z,defs
+    RPATH+=-Wl,-rpath,../gov
 else
     RPATH:=-Wl,-z,defs
 endif
 
-LIBUSWALLET:=lib##str3##wallet
-
 all: ${LIBUSWALLET}.so
-
-${LIBUSWALLET}.so: ${OBJS} subobjs
-	$(CXX) -fPIC -shared ${CXXFLAGS} ${RPATH} ${SUBOBJS} ${OBJS} ${LIBS} -lstdc++fs -pthread -o ${LIBUSWALLET}.so
 
 %.o: %.cpp
 	$(CXX) -fPIC -c ${CXXFLAGS} ${INC} $^ -o $@
@@ -62,10 +83,16 @@ ${LIBUSWALLET}.so: ${OBJS} subobjs
 subobjs:
 	@for a in $$(ls); do \
 	if [ -d $$a ]; then \
-	echo "==============directory $$a"; \
-	$(MAKE) -C $$a; \
+	echo "==============directory wallet/$$a"; \
+	$(MAKE) -C $$a all; \
 	fi; \
 	done;
+
+${LIBUSWALLET}.so: subobjs ${OBJS}
+	@echo ""
+	@echo "[--->Link shared library: ${LIBUSWALLET}.so]"
+	$(CXX) -fPIC -shared ${CXXFLAGS} ${RPATH} ${OBJS} ${DOBJS} ${LIBS} -o ${LIBUSWALLET}.so
+	@echo ""
 
 clean:
 	@for a in $$(ls); do \
@@ -73,8 +100,8 @@ clean:
 	    $(MAKE) -C $$a clean; \
 	fi; \
 	done;
-	rm -f ${LIBUSWALLET}.so
-	rm *.o -f
+	$(RM) -f ${LIBUSWALLET}.so
+	$(RM) -f *.o
 
 .PHONY: all subobjs clean
 

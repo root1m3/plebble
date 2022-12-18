@@ -118,10 +118,8 @@ void c::start() {
         setup_signals(this, true);
         cout << "start_govs" << endl;
         start_govs(true);
-        //this_thread::sleep_for(1s);
         cout << "start_wallets" << endl;
         start_wallets();
-        //this_thread::sleep_for(1s);
         stage1_create();
         stop();
         join();
@@ -149,12 +147,10 @@ void c::start() {
     start_govs(false);
     start_wallets();
     test_list_protocols();
-//    this_thread::sleep_for(3s);
 }
 
 void c::stop() {
     for (auto& i: *this) {
-        //if(i.second->gov != nullptr) i.second->stop();
         i.second->stop();
     }
     setup_signals(this, false);
@@ -506,7 +502,6 @@ void c::start_govs(bool make_stage) {
             setup_signals(this, true);
             cout << "resuming test" << endl;
         }
-//cout << "sleep 1s" << endl;
         sleep_for(1);
     }
 }
@@ -542,7 +537,7 @@ void c::stage1_ff() {
     }
     {
         ostringstream os;
-        os << "cp " << stage1dir << "/* " << homedir << "/ -R";
+        os << "cp -r " << stage1dir << "/* " << homedir << '/';
         cout << "xec: " << os.str() << endl;
         system(os.str().c_str());
     }

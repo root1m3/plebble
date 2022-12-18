@@ -20,12 +20,11 @@
 //===-
 //===----------------------------------------------------------------------------
 //===-
-#include "rpc_daemon_t.h"
-
 #include <us/gov/config.h>
 
 #include "rpc_peer_t.h"
 #include "types.h"
+#include "rpc_daemon_t.h"
 
 #define loglevel "gov/engine"
 #define logclass "rpc_daemon_t"

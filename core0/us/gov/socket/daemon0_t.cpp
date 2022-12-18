@@ -25,9 +25,9 @@
 #include <us/gov/io/blob_writer_t.h>
 #include <us/gov/io/blob_reader_t.h>
 
-#include "daemon0_t.h"
 #include "outbound/caller_daemon_t.h"
 #include "types.h"
+#include "daemon0_t.h"
 
 #define loglevel "gov/socket"
 #define logclass "daemon0_t"

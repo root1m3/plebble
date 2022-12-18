@@ -20,15 +20,13 @@
 #===-
 #===----------------------------------------------------------------------------
 #===-
-LIB:=${LIB0}
-
 all: bid2ask games
 
-bid2ask: 
-	$(MAKE) CXXFLAGS="${CXXFLAGS}" INC="${INC}" LIB0="${LIB}" -C bid2ask;
+bid2ask:
+	$(MAKE) CXXFLAGS="${CXXFLAGS}" INC="${INC}" -C bid2ask;
 
-games: 
-	$(MAKE) CXXFLAGS="${CXXFLAGS}" INC="${INC}" LIB0="${LIB}" -C games;
+games:
+	$(MAKE) CXXFLAGS="${CXXFLAGS}" INC="${INC}" -C games;
 
 clean:
 	$(MAKE) clean -C bid2ask;

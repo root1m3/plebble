@@ -20,9 +20,9 @@
 //===-
 //===----------------------------------------------------------------------------
 //===-
-#include "sysops_t.h"
 #include "protocol.h"
 #include "peer_t.h"
+#include "sysops_t.h"
 
 #define loglevel "gov/engine"
 #define logclass "sysops_t"

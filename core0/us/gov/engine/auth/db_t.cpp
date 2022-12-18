@@ -20,13 +20,12 @@
 //===-
 //===----------------------------------------------------------------------------
 //===-
-#include "db_t.h"
-
 #include <us/gov/config.h>
 #include <us/gov/engine/peer_t.h>
 
 #include "maskcoord_t.h"
 #include "types.h"
+#include "db_t.h"
 
 #define loglevel "gov/engine/auth"
 #define logclass "db_t"

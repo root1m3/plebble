@@ -20,12 +20,18 @@
 #===-
 #===----------------------------------------------------------------------------
 #===-
-OBJ := libtrader-r2r-w2w
-CPPS := $(wildcard *.cpp)
-OBJS := $(patsubst %.cpp, %.o, $(CPPS))
-HS := $(wildcard *.h)
-INC := ../../../../..
-CXXFLAGS = -O0 -g -std=c++20 -DDEBUG
+PROT:=w2w
+R:=w
+OBJ:=${PROT}-${R}
+
+#OBJ:=libtrader-r2r-w2w
+CXXFLAGS=-O0 -g -std=c++20 -DDEBUG
+CPPS:=$(wildcard *.cpp)
+OBJS:=$(patsubst %.cpp, %.o, $(CPPS))
+HS:=$(wildcard *.h)
+INC:=../../../../..
+
+all: ${OBJ}.o
 
 ${OBJ}.o: ${OBJS} ${CPPS} ${HS}
 	ld -r -o ${OBJ}.o ${OBJS}
@@ -34,5 +40,7 @@ ${OBJ}.o: ${OBJS} ${CPPS} ${HS}
 	$(CXX) -fPIC -c ${CXXFLAGS} -I${INC} $^ -o $@
 
 clean:
-	rm *.o -f
+	$(RM) *.o -f
+
+.PHONY: all clean
 

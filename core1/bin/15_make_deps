@@ -25,6 +25,8 @@ echo "##################"
 echo "## 15_make_deps ##"
 echo "##################"
 
+. lib/shenv
+
 if [[ -f ./.cbs/config ]]; then
     . ./.cbs/config
 else
@@ -43,9 +45,9 @@ function help {
 }
 
 ignore_cache=0
-while [ true ]; do
+while [[ true ]]; do
     opt=$1
-    echo "read opt=$opt"
+    #echo "read opt=$opt"
     shift
     if [ "_$opt" == "_--local-build" ]; then
         echo " [local build]"
@@ -74,7 +76,7 @@ if [ "_$build_jobs" == "_" ]; then
 fi
 echo "using dir $build_jobs"
 
-let fcgi=`cat build_jobs/build_hashes  | grep "^vhash " | sed "s/.*fcgi-\([01]\).*/\1/"`
+let fcgi=`cat ${build_jobs}/build_hashes | grep "^vhash " | sed "s/.*fcgi-\([01]\).*/\1/"`
 if [[ "_$fcgi" == "_" ]]; then
     let fcgi=0
 fi
@@ -87,8 +89,6 @@ function do_arch {
     echo "do_arch $host $arch"
     echo "uploading build_jobs"
     rsync -r -e "$ssh -p$sshport" --progress --delete -a ${build_jobs}.tzst $host:/root/
-
-    #rsync -r -e "$ssh -p$sshport" --progress --delete -a snippet/build_job_make $host:/root/
     echo "building $arch"
     cat << EOF > /tmp/make.sh
 #!/bin/bash
@@ -100,7 +100,7 @@ pushd /root >/dev/null;
         ./make.sh deps
         r=\$?
         if [[ \$r -ne 0 ]]; then
-            echo "make ended with errors"
+            echo "make ended with errors. \$r"
             exit \$r
         fi
     popd >/dev/null
@@ -140,15 +140,15 @@ function wait_done {
             port=${!vport}
             #echo "querying host $host"
             s=`$ssh -p$port $host "head -n1 foo.err"`
-            if [ "_$s" != "_" ]; then
-                echo "?????????Abnormal finding: $s"
-                echo "$ssh -p$port $host \"killall make; killall build_job_make; killall cc1plus\""
+            if [[ "_$s" != "_" ]]; then
+                echo "$ssh -p$port $host \"killall make; killall make.sh; killall cc1plus\""
                 $ssh -p$port $host "killall make; killall build_job_make; killall cc1plus"
                 echo "Complete cerr file: $ssh -p16671 $host \"cat foo.err\""
                 echo "1st Error: $s"
                 exit 1
                 break
             fi
+
             s=`$ssh -p$port $host "tail -n1 foo.out"`
             echo "$arch @$host: $s"
             if [[ $s = ===DONE===* ]]; then
@@ -169,15 +169,30 @@ function wait_done {
 function move_to_distr {
     mkdir -p $distr
     mv deps/x86_64/include deps/
-    rm -r deps/armv7l/include
+    for a in `echo $archs`; do
+        rm -rf deps/$a/include
+    done
     mv deps $distr/
-    [[ ! -d distr/deps/include ]] && echo "KO 68857 missing deps include" && exit 1
-    [[ ! -d distr/deps/x86_64 ]] && echo "KO 68858 missing deps x86_64" && exit 1
+    if [[ ! -d distr/deps/include ]]; then
+        echo "KO 68857 missing deps include"
+        exit 1
+    fi
     if [[ $local_build -eq 0 ]]; then
-        [[ ! -d distr/deps/armv7l ]] && echo "KO 68859 missing deps armv7l" && exit 1
+        for a in ${cbs_archs}; do
+            if [[ ! -d distr/deps/$a ]]; then
+                 echo "KO 68858 missing deps $a"
+                 exit 1
+            fi
+            rm -rf deps/$a/include
+        done
         pushd "$distr/deps" >/dev/null
-            ln -s armv7l armv6l  #raspi Zero
-            ln -s armv7l aarch64  #arm64bits
+            for a in ${cbs_archs}; do
+                var="symlink_$a"
+                sla=${!var}
+                for x in `echo $sla`; do
+                    ln -s $a $x
+                done
+            done
         popd >/dev/null
     fi
     cp snippet/install_deps distr/deps/
@@ -200,7 +215,7 @@ if [[ $ignore_cache -eq 0 ]]; then
         echo "source bin/15_make_deps [cached]" >> $distr/build_hashes
         exit 0
     else
-        echo "deps not found in cache."
+        echo "deps not found in cache (.cache/$cache_file)."
     fi
 else
     echo "Ignoring cache"
@@ -213,13 +228,11 @@ if [[ $local_build -eq 1 ]]; then
     arch=`uname -m`
     vhost=host_$arch
     vport=port_ssh_$arch
-#    !vhost="localhost"
-#    !vport="16671"
     host_x86_64="localhost"
     port_ssh_x86_64="16671"
     wait_done "$arch "
 else
-    wait_done "x86_64 armv7l "
+    wait_done "${cbs_archs}"
 fi
 
 move_to_distr
@@ -235,3 +248,4 @@ echo "Finished"
 find $distr -type f
 
 exit 0
+

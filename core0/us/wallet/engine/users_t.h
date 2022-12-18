@@ -43,8 +43,11 @@ namespace us::wallet::engine {
         using datagram = us::gov::socket::datagram;
         using track_status_t = us::gov::engine::track_status_t;
 
+    public:
         users_t(daemon_t&);
         ~users_t();
+
+        void init();
 
     public:
         wallet::local_api* get_wallet(const string& subhome); //returns soft pointer
@@ -61,6 +64,8 @@ namespace us::wallet::engine {
         #if CFG_LOGS == 1
             string logdir;
         #endif
+
+        wallet::local_api* root_wallet;
 
     private:
         mutable mutex mx;

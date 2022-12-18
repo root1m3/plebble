@@ -20,41 +20,56 @@
 #===-
 #===----------------------------------------------------------------------------
 #===-
+US=##str3##
+USTESTX:=${US}test-c0
+USGOV:=${US}gov
+LIBUSGOV:=lib${US}gov
+USWALLET:=${US}wallet
+LIBUSWALLET:=lib${US}wallet
+USTEST:=${US}test
+LIBUSTEST:=lib${US}test
+CXXFLAGS=-g -O0 -std=c++20 -DDEBUG
 CPPS:=$(wildcard *.cpp)
 OBJS:=$(patsubst %.cpp, %.o, ${CPPS})
 HS:=$(wildcard *.h)
-FCGILIBS:=-lfastcgipp
-CXXFLAGS=-g -O0 -std=c++20 -DDEBUG
 EC:=$(shell pkg-config --libs libsecp256k1)
-INC:=-I../..
-USGOV:=##str3##gov
-LIBUSGOV:=lib##str3##gov
-USWALLET:=##str3##wallet
-LIBUSWALLET:=lib##str3##wallet
-USTEST:=##str3##test
-LIBUSTEST:=lib##str3##test
-LIBS:=-L../test -l${USTEST} -L../wallet -l${USWALLET} -L../gov -l${USGOV}
-ARCH:=$(shell uname -m)
-
-ifeq ($(ARCH),armv7l)
-    LIBS+=-latomic
+OS:=$(shell uname)
+ifeq (${OS},Linux)
+    ARCH:=$(shell uname -m)
+else
+    ifeq (${OS},FreeBSD)
+      ARCH:=$(shell uname -p)
+    endif
 endif
 
-RPATH:=-Wl,-rpath,../test -Wl,-rpath,../wallet -Wl,-rpath,../gov
+INC:=-I../..
 
-USTESTX:=##str3##test-c0
+LIB:=-L../test -l${USTEST}
+LIB+=-L../wallet -l${USWALLET}
+LIB+=-L../gov -l${USGOV}
+ifeq ($(ARCH),armv7l)
+    LIB+=-latomic
+endif
+LIB+=-lstdc++fs -pthread
+
+RPATH:=-Wl,-rpath,../test
+RPATH+=-Wl,-rpath,../wallet
+RPATH+=-Wl,-rpath,../gov
 
 all: ${USTESTX}
-
-${USTESTX}: ${OBJS}
-	$(CXX) ${CXXFLAGS} ${RPATH} ${OBJS} ${LIBS} -lstdc++fs -pthread -o ${USTESTX}
 
 %.o: %.cpp
 	$(CXX) -fPIC -c ${CXXFLAGS} ${INC} $^ -o $@
 
+${USTESTX}: ${OBJS}
+	@echo ""
+	@echo "[--->Link executable: ${USTESTX}]"
+	$(CXX) ${CXXFLAGS} ${RPATH} ${OBJS} ${LIB} -o ${USTESTX}
+	@echo ""
+
 clean:
-	rm -f ${USTESTX}
-	rm -f *.o
+	$(RM) -f ${USTESTX}
+	$(RM) -f *.o
 
 .PHONY: all clean
 

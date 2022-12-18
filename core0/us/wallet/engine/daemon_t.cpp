@@ -30,7 +30,9 @@
 #include <us/gov/config.h>
 #include <us/gov/crypto/ec.h>
 #include <us/gov/io/cfg0.h>
+#include <us/gov/io/blob_reader_t.h>
 #include <us/gov/socket/client.h>
+#include <us/gov/socket/datagram.h>
 #include <us/gov/crypto/ec.h>
 #include <us/gov/traders/wallet_address.h>
 #include <us/gov/engine/track_status_t.h>
@@ -62,6 +64,7 @@ namespace {
 
     struct my_dispatcher_t: us::gov::socket::datagram::dispatcher_t {
         using b = us::gov::socket::datagram::dispatcher_t;
+        //using datagram = us::gov::socket::datagram;
 
         my_dispatcher_t(c& daemon): daemon(daemon) {
         }
@@ -73,9 +76,9 @@ namespace {
             }
             using track_status_t = us::gov::engine::daemon_t::ev_track_t::status_t;
             track_status_t status;
+
             us::gov::io::blob_reader_t reader(*d);
             auto r = reader.read(status);
-//            auto r = blob_reader_t::readD(*d, status);
             delete d;
             if (is_ko(r)) {
                 log("engine_track", r);
@@ -83,6 +86,7 @@ namespace {
             }
             log("engine_track");
             daemon.on_tx_tracking_status(status);
+
             return true;
         }
 
@@ -109,15 +113,16 @@ c::daemon_t(channel_t channel, const keys_t& k, port_t port, pport_t pport, cons
     log("downloads directory:", downloads_dir);
     io::cfg0::ensure_dir(downloads_dir);
 
-    api_v = CFG_API_V__WALLET;
-    assert(api_v != 0);
-    log("set api_v", +api_v);
+    users.init();
+//    api_v = CFG_API_V__WALLET;
+//    assert(api_v != 0);
+//    log("set api_v", +api_v);
 
-    root_wallet = users.get_wallet("");
+    //root_wallet = users.root_wallet;
 }
 
 c::~daemon_t() {
-    users.release_wallet(root_wallet);
+    //users.release_wallet(root_wallet);
     join();
 }
 
@@ -136,6 +141,12 @@ void c::wait(const chrono::seconds& d) {
 
 ko c::register_w_(host_t addr) {
     log ("register_w_", addr);
+    if (!us::gov::socket::client::is_valid_ip(addr, channel)) {
+        auto r = "KO 88509 Invalid IP address.";
+        log(r, addr, channel);
+        return r;
+    }
+
     blob_t blob;
     {
         us::gov::traders::wallet_address ev(id.pub.hash(), addr, pport);
@@ -329,7 +340,11 @@ void c::hook_new_wallet(const string& subhome, const string& wallet_template) {
     hook << home << "/bin/hook";
     if (us::gov::io::cfg0::file_exists(hook.str())) {
         auto k = gov::crypto::ec::keys::generate();
-        hook << " new_wallet " << wallet_template_home(wallet_template) << ' ' << wallet_home(subhome) << ' ' << k.priv;
+        string h = wallet_template_home(wallet_template);
+        if (h.empty()) {
+            h = "-";
+        }
+        hook << " new_wallet " << h << ' ' << wallet_home(subhome) << ' ' << k.priv;
         log("calling system hook ", hook.str());
         int r = system(hook.str().c_str());
         if (r != 0) {
@@ -348,6 +363,13 @@ void c::hook_new_wallet(const string& subhome, const string& wallet_template) {
 
 ko c::authorize_device(const pub_t& p, pin_t pin, request_data_t& request_data) {
     log("is device authorized?", pin);
+
+    if (request_data.size() > 100) {
+        auto r = "KO 68754 abuse";
+        log(r);
+        return r;
+    }
+
     string subhome_req;
     string wallet_template;
     bool trigger_hook{false};
@@ -356,6 +378,7 @@ ko c::authorize_device(const pub_t& p, pin_t pin, request_data_t& request_data) 
         is >> subhome_req;
         if (subhome_req == "new") {
             is >> wallet_template;
+            us::gov::io::cfg0::trim(wallet_template);
             trigger_hook = true;
         }
     }
@@ -364,9 +387,10 @@ ko c::authorize_device(const pub_t& p, pin_t pin, request_data_t& request_data) 
         return r;
     }
     request_data = subhome_req;
-    if (wallet_template.empty()) {
-        return ok;
-    }
+
+//    if (wallet_template.empty()) {
+//        return ok;
+//    }
     if (trigger_hook) {
         log("trigger hook new_wallet");
         hook_new_wallet(subhome_req, wallet_template);
@@ -478,6 +502,9 @@ bool c::has_home(const string& subhome) const {
 
 string c::wallet_template_home(const string& template_name) const {
     ostringstream os;
+    if (template_name.empty()) {
+        return "";
+    }
     os << home << "/template/" << template_name;
     io::cfg0::ensure_dir(os.str());
     return os.str();

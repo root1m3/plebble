@@ -20,12 +20,13 @@
 //===-
 //===----------------------------------------------------------------------------
 //===-
-#include "safe_deposit_box.h"
+#include <b64/decode.h>
+
 #include "m_t.h"
 #include "f_t.h"
 #include "t_t.h"
 #include "types.h"
-#include <b64/decode.h>
+#include "safe_deposit_box.h"
 
 #define loglevel "gov/cash"
 #define logclass "safe_deposit_box"

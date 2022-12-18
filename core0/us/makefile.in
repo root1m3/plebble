@@ -122,6 +122,8 @@ distr-common: | targets
 	install bin/${US}_distr_make ${DISTRDIR}/bin/
 	install bin/blob_extract_apk ${DISTRDIR}/bin/
 	install bin/${US}-uninstall ${DISTRDIR}/bin/
+	mkdir -p ${DISTRDIR}/lib
+	install lib/shenv ${DISTRDIR}/lib/
 	mkdir -p ${DISTRDIR}/logtool
 	install logtool/logtool ${DISTRDIR}/logtool/
 	mkdir -p ${DISTRDIR}/etc/systemd/system
@@ -171,8 +173,8 @@ distr-common: | targets
 	find wallet -type f -name "*.h" -exec install -D {} ${DISTRDIR}/include/us/{} \;
 	find gov -type f -name "*.inc" -exec install -D {} ${DISTRDIR}/include/us/{} \;
 	find wallet -type f -name "*.inc" -exec install -D {} ${DISTRDIR}/include/us/{} \;
-	for f in `ack -h -o --no-group "api/generated/gov/c\+\+[/a-z0-9_-]*" ${DISTRDIR}/include/us/gov`; do install -D $$f ${DISTRDIR}/include/us/$$f ; done
-	for f in `ack -h -o --no-group "api/generated/wallet/c\+\+[/a-z0-9_-]*" ${DISTRDIR}/include/us/wallet`; do install -D $$f ${DISTRDIR}/include/us/$$f ; done
+	for f in $$(ack -h -o --no-group "api/generated/gov/c\+\+[/a-z0-9_-]*" ${DISTRDIR}/include/us/gov); do install -D $$f ${DISTRDIR}/include/us/$$f ; done
+	for f in $$(ack -h -o --no-group "api/generated/wallet/c\+\+[/a-z0-9_-]*" ${DISTRDIR}/include/us/wallet); do install -D $$f ${DISTRDIR}/include/us/$$f ; done
 	find api/generated/ -maxdepth 3 -mindepth 1 -type f -name "svc_*" -exec install -D {} ${DISTRDIR}/include/us/{} \;
 	install vcs_git_cpp ${DISTRDIR}/include/us/
 	mkdir -p ${DISTRDIR}/wallet/trader/w2w
@@ -223,7 +225,7 @@ logtool/logtool: logtool/main.cpp
 	$(MAKE) -C logtool
 
 sdk-spongy:
-	$(MAKE) spongy -C sdk/wallet/java
+	$(MAKE) -C sdk/wallet/java spongy
 
 android: sdk-spongy
 	$(MAKE) -C android
@@ -236,30 +238,30 @@ clean_crypto:
 	rm -f gov/libusgov.so
 
 clean_gov:
-	$(MAKE) clean -C gov;
-	$(MAKE) clean -C govx;
+	$(MAKE) -C gov clean;
+	$(MAKE) -C govx clean;
 
 clean_wallet:
-	$(MAKE) clean -C wallet;
-	$(MAKE) clean -C walletx;
+	$(MAKE) -C wallet clean;
+	$(MAKE) -C walletx clean;
 
 clean_bz:
-	$(MAKE) clean -C bz;
-	$(MAKE) clean -C bzx;
+	$(MAKE) -C bz clean;
+	$(MAKE) -C bzx clean;
 
 clean_sdk:
 	$(MAKE) clean -C sdk/wallet/java;
 
 clean_test:
-	$(MAKE) clean -C test;
-	$(MAKE) clean -C testx;
+	$(MAKE) -C test clean;
+	$(MAKE) -C testx clean;
 
 clean_api:
-	$(MAKE) clean -C api;
+	$(MAKE) -C api clean;
 
 clean: clean_gov clean_wallet clean_bz clean_test clean_api
-	$(MAKE) clean -C logtool;
-	rm -rf distr
+	$(MAKE) -C logtool clean;
+	$(RM) -rf distr
 
 clean_java: clean_sdk
 	$(MAKE) clean -C android;

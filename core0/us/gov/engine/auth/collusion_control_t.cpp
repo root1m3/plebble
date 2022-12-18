@@ -20,9 +20,10 @@
 //===-
 //===----------------------------------------------------------------------------
 //===-
-#include "collusion_control_t.h"
 #include <us/gov/config.h>
 #include <us/gov/socket/client.h>
+
+#include "collusion_control_t.h"
 
 #define loglevel "gov/engine/auth"
 #define logclass "collusion_control_t"

@@ -20,8 +20,8 @@
 //===-
 //===----------------------------------------------------------------------------
 //===-
-#include "clique_t.h"
 #include "peer_t.h"
+#include "clique_t.h"
 
 #define loglevel "gov/peer"
 #define logclass "clique_t"

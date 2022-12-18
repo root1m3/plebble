@@ -20,15 +20,14 @@
 //===-
 //===----------------------------------------------------------------------------
 //===-
-#include "shell.h"
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
 #include <chrono>
 #include <cassert>
 #include <sstream>
 #include <vector>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
 
 #include <us/gov/stacktrace.h>
 #include <us/gov/config.h>
@@ -46,6 +45,7 @@
 #include "daemon_t.h"
 #include "db_analyst.h"
 #include "types.h"
+#include "shell.h"
 
 #define loglevel "gov/engine"
 #define logclass "shell"
@@ -98,7 +98,7 @@ void c::help(ostream& os) const {
     os << "  tracked_tx            Print info about tx being tracked.\n";
     os << "  watch                 Print monitoring info.\n";
     os << "  logline               Print a line for the log.\n";
-    os << "  uptime                process age\n";
+    os << "  uptime                This process age\n";
     #if CFG_COUNTERS == 1
         os << "  p|performances        Print performances\n";
     #endif
@@ -106,15 +106,16 @@ void c::help(ostream& os) const {
     os << "  app <id>              Enter app shell.\n";
     os << "  seeds                 Print list of seed nodes.\n";
     os << "  a|add_node <address>  Add a seed node.\n";
-    os << "  bl          Show blacklist.\n";
-    os << "  cbl         Clear blacklist.\n";
-    os << "  gc          Show garbage collector.\n";
-    os << "  test_node <host:port>\n";
+    os << "  bl                    Show blacklist.\n";
+    os << "  cbl                   Clear blacklist.\n";
+    os << "  gc                    Show garbage collector.\n";
+    os << "  test_node <host:port> Connects to the given node.\n";
     os << "  data <addr>           Prints data stored in the address specified.\n";
-    os << "  print_kv_b64 <addr>          Prints same data for automatic processing.\n";
-    os << "  update_dfs_index      fetch missing files.\n";
-    os << "  consensus             print consensus info.\n";
+    os << "  print_kv_b64 <addr>   Prints same data for automatic processing.\n";
+    os << "  update_dfs_index      Fetch missing files.\n";
+    os << "  consensus             Print consensus info.\n";
     os << "  list_files <address> <path>      list files in address matching path.\n";
+    os << "  sudo                  Exec system command as root.\n";
 }
 
 ko c::command(const string& cmdline, ostream& os) {
@@ -431,9 +432,24 @@ ko c::command(istream& is, const string& cmd, ostream& os) {
             os << l << '\n';
             return ok;
         }
-        return "KO 74693 Invalid command show";
+        auto r = "KO 74693 Invalid command show";
+        log(r);
+        return r;
     }
-
+    if (cmd == "sudo") {
+        string line;
+        getline(is, line);
+        ostringstream scmd;
+        scmd << "sudo " << is.rdbuf();
+        int rc = system(scmd.str().c_str()); 
+        if (rc != 0) {
+            os << "Error code: " << rc << '\n';
+            auto r = "KO 40386 System returned an error code.";
+            log(r);
+            return r;
+        }
+        return ok;
+    }
     auto r = "KO 91000 Invalid command.";
     log(r);
     return r;

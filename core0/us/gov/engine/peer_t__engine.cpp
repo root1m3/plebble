@@ -20,8 +20,6 @@
 //===-
 //===----------------------------------------------------------------------------
 //===-
-#include "api.h"
-#include "local_deltas_t.h"
 #include <us/gov/config.h>
 #include <us/gov/engine/protocol.h>
 #include <us/gov/io/blob_reader_t.h>
@@ -31,6 +29,8 @@
 #include "daemon_t.h"
 #include "db_t.h"
 #include "types.h"
+#include "api.h"
+#include "local_deltas_t.h"
 #include "peer_t.h"
 
 #define loglevel "gov/engine"
@@ -48,24 +48,6 @@ namespace {
         return o.read(d);
     }
 }
-
-/*
-namespace {
-    using t2 = us::gov::crypto::ripemd160::value_type;
-    template<> datagram* write_datagram(channel_t channel, svc_t svc, seq_t seq, const t2& o) {
-        auto d = new datagram(channel, svc, seq, blob_writer_t::blob_size(o));
-        blob_writer_t w(*d);
-        w.write(o);
-        return d;
-    }
-
-    template<> ko read_datagram(const datagram& d, t2& o) {
-        blob_reader_t reader(d);
-        return reader.read(o);
-    }
-}
-*/
-
 
 using namespace us::gov::engine;
 using c = us::gov::engine::peer_t;

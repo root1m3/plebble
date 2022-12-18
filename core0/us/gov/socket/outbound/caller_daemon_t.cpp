@@ -20,11 +20,13 @@
 //===-
 //===----------------------------------------------------------------------------
 //===-
-#include "caller_daemon_t.h"
 #include <chrono>
+
 #include <us/gov/likely.h>
 #include <us/gov/socket/client.h>
 #include <us/gov/socket/datagram.h>
+
+#include "caller_daemon_t.h"
 
 #define loglevel "gov/socket/outbound"
 #define logclass "caller_daemon_t"

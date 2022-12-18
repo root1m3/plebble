@@ -20,11 +20,14 @@
 #===-
 #===----------------------------------------------------------------------------
 #===-
-.PHONY: all clean
 
 all:
 	$(MAKE) -C w2w
+#	$(MAKE) -C a2a
 
 clean:
 	$(MAKE) -C w2w clean
+	$(MAKE) -C a2a clean
+
+.PHONY: all clean
 

@@ -842,13 +842,7 @@ struct network_c0: network {
     }
 
     void stage1_ff_configure() override {
-/*
-        cout << "configuring ask node" << endl;
-        assert(dynamic_cast<node_bank*>(find("bank1")->second)->load_data("w2w"));
 
-        cout << "configuring pat node" << endl;
-        assert(dynamic_cast<node_bank*>(find("bank2")->second)->load_data("w2w"));
-*/
     }
 
 };
@@ -863,8 +857,6 @@ void test_r2r(const string& homedir, const string& logdir, const string& vardir)
 
     network_c0 n(homedir, logdir, vardir, os);
     n.start();
-
-    //us::test::r2r_t::wait_from_seq = 29;
 
     if (!only_interactive_shell) {
         {
@@ -885,48 +877,6 @@ void test_r2r(const string& homedir, const string& logdir, const string& vardir)
     n.join();
 }
 
-    /*
-    cout << "=software updates=====================================================================" << endl;
-    //software updates account
-    {
-        auto a=bid.wallet_cli->api().new_address();
-        assert(a.first==ok);
-        cout << "software updates account: " << a.second << ". @ bid wallet" << endl;
-
-        {
-        cout << "list addresses:" << endl;
-        auto l=bid.wallet_cli->api().list(1);
-        assert(l.first==ok);
-        cout << l.second << endl;
-        }
-
-        gov::engine::evidence* ev;
-        {
-            auto am=1000000;
-            auto t=bid.wallet_cli->api().transfer(a.second, am, hash_t(0));
-            if (t.first!=ok) cout << t.first << endl;
-            assert(t.first==ok);
-            cout << "transfer " << am << " to address " << a.second << endl;
-            cout << t.second << endl;
-            ev=gov::engine::evidence::from_b58(t.second);
-        }
-        uint64_t ts=ev->ts;
-
-        wait_settlement(*bid.gov_cli, ts);
-        delete ev;
-
-        cout << "balance account " << a.second << ":" << endl;
-        auto t=bid.wallet_cli->api().balance(1);
-        if (t.first!=ok) {
-            cout << t.first << endl;
-        }
-        else {
-            cout << t.second << endl;
-        }
-
-    }
-*/
-
 void test_l2_main(string logdir0) {
     log_start("", "main");
     tee("=================test_l2========================");
@@ -942,7 +892,6 @@ void test_l2_main(string logdir0) {
 
 void test_l2() {
     string logdir0 = log_dir() + "/test_l2";
-//    string logdir0 = "test_l2";
     tee("starting thread for test_l2. log_dir", logdir0);
     thread th(&test_l2_main, logdir0); //start new log file
     th.join();

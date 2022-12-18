@@ -20,8 +20,6 @@
 //===-
 //===----------------------------------------------------------------------------
 //===-
-#include "grid_analyst.h"
-
 #include <fstream>
 #include <iostream>
 #include <iomanip>
@@ -31,6 +29,8 @@
 
 #include <us/gov/sys/app.h>
 #include <us/gov/engine/diff.h>
+
+#include "grid_analyst.h"
 
 using c = us::gov::engine::grid_analyst;
 using namespace std;

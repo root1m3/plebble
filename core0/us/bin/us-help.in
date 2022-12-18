@@ -30,20 +30,20 @@ usgov="${US}-gov -c ${CHANNEL} -p ${PORT}"
 
 ch=${CHANNEL}
 ip=`hostname -I | awk '{print $1}'`
-gw=`route  -n | grep "^0.0.0.0" | awk '{print $2}' | head -n1`
-nodeid=`$usgov id | awk '{print $NF}'`
-homedir=`$usgov print_home`
-wanep=`$usgov lookup_node $nodeid`
+gw=$(route  -n | grep "^0.0.0.0" | awk '{print $2}' | head -n1)
+nodeid=$($usgov id | awk '{print $NF}')
+homedir=$($usgov print_home)
+wanep=$($usgov lookup_node $nodeid)
 ports_slot=${PSLOT}
 ssh_port="${ports_slot}71"
 
-if [ $ch -eq 0 ]; then
-  chs="PUBLIC SYSTEM"
+if [[ $ch -eq 0 ]]; then
+    chs="PUBLIC SYSTEM"
 else
-    if [ $ch -gt 1000 ]; then
+    if [[ $ch -gt 1000 ]]; then
         chs="ORGANIZATION"
     else
-        if [ $ch -eq 1 ]; then
+        if [[ $ch -eq 2 ]]; then
             chs="PUBLIC SYSTEM (devnet)"
         else
             chs="RESERVED"

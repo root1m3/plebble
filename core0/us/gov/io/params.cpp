@@ -20,13 +20,12 @@
 //===-
 //===----------------------------------------------------------------------------
 //===-
-#include "params.h"
-
 #include <thread>
 
 #include <us/gov/config.h>
 
 #include "types.h"
+#include "params.h"
 
 //#define loglevel "gov/io"
 //#define logclass "params"

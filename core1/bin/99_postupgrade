@@ -22,6 +22,18 @@
 #===----------------------------------------------------------------------------
 #===-
 
+function help {
+    cat << EOF
+$0 <cmd>
+Commands:
+  run                                               postupgrade entry point
+  post_upgrade <brand>                              can be called between network upgrades
+  forkfromhere                                      only run this segment
+  update_static_cfg                                 only run this segment
+  relnotes                                          only run this segment
+EOF
+}
+
 function update_devjobs {
     brand=$1
     echo "=================== github brand $brand branch $branch"
@@ -141,44 +153,71 @@ function post_upgrade {
     done
 }
 
-function save_release_history {
-    let bn=`echo $branch | sed "s~alpha-\([0-9]*\)~\1~"`
+let create_new_branch=1
+
+function forkfromhere {
+    let bn=`echo $branch | sed "s~alpha-\([0-9]*\).*~\1~"`
     let bn=$bn+1
     proposed="alpha-$bn"
-    echo -n "enter new branch (or y for $proposed): "
-    newb=""
-    read newb
-    if [[ "_$newb" == "_y" ]]; then
-        newb=$proposed
-    fi
-    echo "New branch: $newb"
-    echo "y/ctrl-c"
-    read a
+    newb=$proposed
+    while [[ true ]]; do
+        echo -n "enter new or existing branch (or 'y' for ${newb})"
+        read newb
+        if [[ "_$newb" == "_" ]]; then
+            continue
+        fi
+        if [[ "_$newb" == "_y" ]]; then
+            newb=$proposed
+        fi
+        git branch | grep "$newb" > /dev/null
+        if [[ $? -eq 0 ]]; then
+            echo -n "Branch $newb already exists. Use it? (n will ask for a branch again) [y/n]: "
+            read ans
+            if [[ "_$ans" == "_y" ]]; then
+                let create_new_branch=0
+                break
+            fi
+        else
+            echo "Creating new branch $newb."
+            let create_new_branch=1
+            break
+        fi
+    done
 
+    curgit=`git branch | grep "^\* " | awk '{ print $2}'`
+    if [[ "_$curgit" == "_$branch" ]]; then
+        if [[ $create_new_branch -eq 0 ]]; then
+            echo "checking out branch $newb"
+            git checkout $newb
+            if [[ $? -ne 0 ]]; then
+                echo "KO 88979 git gave errors"
+                exit 1
+            fi
+            git pull
+        else
+            echo "creating new git branch $newb"
+            git checkout -b $newb
+        fi
+    fi
+
+    echo "updating branch in cbs/config"
+    sed -i "s/^branch=\"$branch\"/branch=\"$newb\"/" .cbs/config
+
+}
+function save_release_history {
+    if [[ ! -d distr ]]; then
+        echo "WARNING: distr not found - skipping save to history"
+        return
+    fi
     echo "archiving distr files"
     dir=release_history/$branch
     mkdir -p $dir
     mv distr $dir/
     mv blobs $dir/
-
     echo "Saved release history at $dir"
+}
 
-    curgit=`git branch | grep "^\* " | awk '{ print $2}'`
-    if [[ "_$curgit" == "_$branch" ]]; then
-        echo "creating new git branch $newb"
-        git checkout -b $newb
-    fi
-
-    echo "updating new branch in cbs/config"
-    sed -i "s/^branch=\"$branch\"/branch=\"$newb\"/" .cbs/config
-
-    . release_history/$branch/distr/us/src/core0/us/vcs_git_env
-    echo "======================================="
-    echo "info for core1/doc/release_notes:"
-    echo -n "${core0_branch}_${core0_hashname} ${core0_build_date} "
-    cat release_history/$branch/distr/build_hashes | grep vhash | sort | uniq
-    echo "======================================="
-
+function update_static_cfg {
     echo "Updating mainnet API service numbers:"
     pushd ../core0/us/api > /dev/null
         cp generated/gov/svc_v`cat generated/gov/svc_cur_v` netsvc/gov
@@ -194,7 +233,16 @@ function save_release_history {
     sed -i "s~^str99=\([0-9]*\)\(.*\)~str99=${moco}\2~" ../core0/us/res/strings/en-uk
 
     echo " * Increased the monolitic deployments counter str99 in core0/us/res/strings/en-uk."
-    echo "Please commit the newly created branch $nreb with these changes (netsvc. release notes)"
+}
+
+#TODO: REPEATED core0 dir !!!!!!!!!!! release_history/alpha-53/distr/us/src/core0/core0/us
+function relnotes {
+    . release_history/$branch/distr/us/src/core0/us/vcs_git_env
+    echo "======================================="
+    echo "info for core1/doc/release_notes:"
+    echo -n "${core0_branch}_${core0_hashname} ${core0_build_date} "
+    cat release_history/$branch/distr/build_hashes | grep vhash | sort | uniq
+    echo "======================================="
 }
 
 function postupgrade_entry_point {
@@ -203,7 +251,7 @@ function postupgrade_entry_point {
         exit 1
     fi
     let ne=`cat distr/build_hashes | grep "$branch" | wc -l`
-    if [[ $ne -ne 5 ]]; then  #arch
+    if [[ $ne -ne 3 ]]; then  #arch
         echo "KO 43398 expecting 5 entries containing $branch in distr/build_hashes"
         exit 1
     fi
@@ -211,7 +259,7 @@ function postupgrade_entry_point {
         echo "KO 40398 blobs doesn't exists"
         exit 1
     fi
-    let ne=`ls blobs -1 | grep "$branch" | wc -l`
+    let ne=`ls blobs -1 | grep ".tzst.partid" | grep "$branch" | wc -l`
     let ene=`ls ${brands}/ -1 | wc -l`
     if [[ $ne -ne $ene ]]; then
         echo "KO 43398 expecting $ene blobs containing $branch in blobs/"
@@ -224,6 +272,16 @@ function postupgrade_entry_point {
 
     post_upgrade
     save_release_history
+    forkfromhere
+    update_static_cfg
+    relnotes
+
+
+    if [[ $create_new_branch -eq 0 ]]; then
+        echo "Please commit the newly created branch $nreb with these changes (netsvc. release notes)"
+    else
+        echo "Please commit the branch $nreb with these changes (netsvc. release notes)"
+    fi
 
     echo "==============================================="
 
@@ -232,15 +290,6 @@ function postupgrade_entry_point {
 
     exit $ecode
 
-}
-
-function help {
-    cat << EOF
-$0 <cmd>
-Commands:
-  run                                               postupgrade entry point
-  post_upgrade <brand>                              can be called between network upgrades
-EOF
 }
 
 . .cbs/config
@@ -258,6 +307,16 @@ if [[ "_$cmd" == "_post_upgrade" ]]; then
     post_upgrade0 $brand
     exit 1
 fi
+if [[ "_$cmd" == "_forkfromhere" ]]; then
+    forkfromhere
+    exit $?
+fi
+if [[ "_$cmd" == "_update_static_cfg" ]]; then
+    update_static_cfg
+    exit $?
+fi
+
 
 help
 exit 1
+

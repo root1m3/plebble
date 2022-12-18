@@ -66,20 +66,12 @@ void c::stage1_configure() {
         cout << "transfer some coins to bid node" << endl;
         transfer_wait(*ask, *bid, ask->recv_coin, 1000000);
     }
-    /// store one entry in the world trader-wallets database
-//    find("ask")->second->register_wallet();
-//    find("bid")->second->register_wallet();
-
 }
 
 void c::stage1_ff_configure() {
     auto ask = dynamic_cast<node_ask*>(find("ask")->second);
-    //auto bid = dynamic_cast<node_bid*>(find("bid")->second);
-
-    //cout << "configuring ask node" << endl;
+    auto bid = dynamic_cast<node_bid*>(find("bid")->second);
     assert(ask->load_data("bid2ask/ask"));
-
-    //cout << "configuring bid node" << endl;
-    //assert(bid->load_data("bid2ask/bid"));
+    assert(bid->load_data("bid2ask/bid"));
 }
 

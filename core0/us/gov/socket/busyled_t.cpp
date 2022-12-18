@@ -20,8 +20,9 @@
 //===-
 //===----------------------------------------------------------------------------
 //===-
-#include "busyled_t.h"
 #include <us/gov/likely.h>
+
+#include "busyled_t.h"
 
 #define loglevel "gov/socket"
 #define logclass "busyled_t"

@@ -21,22 +21,23 @@
 #===----------------------------------------------------------------------------
 #===-
 OBJ:=apitool
+CXXFLAGS=-O3 -std=c++20 -DNDEBUG
 CPPS:=$(wildcard *.cpp)
 OBJS:=$(patsubst %.cpp, %.o, $(CPPS))
 HS:=$(wildcard *.h)
+
 INC:=../../..
-CXXFLAGS=-O3 -std=c++20 -DNDEBUG
 
 all: generated
 
 debug: export CXXFLAGS:=-O0 -g -std=c++20 -DDEBUG
 debug: all
 
-${OBJ}.o: ${OBJS}
-	ld -r -o ${OBJ}.o ${OBJS}
-
 %.o: %.cpp
 	${CXX} -fPIC -c ${CXXFLAGS} -I${INC} $^ -o $@
+
+${OBJ}.o: ${OBJS}
+	ld -r -o ${OBJ}.o ${OBJS}
 
 apitool: ${OBJ}.o
 	${CXX} ${CXXFLAGS} ${OBJ}.o -o apitool

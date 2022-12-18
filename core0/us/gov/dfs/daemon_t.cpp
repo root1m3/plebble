@@ -20,8 +20,6 @@
 //===-
 //===----------------------------------------------------------------------------
 //===-
-#include "daemon_t.h"
-
 #include <chrono>
 #include <sstream>
 #include <fstream>
@@ -31,6 +29,7 @@
 
 #include "protocol.h"
 #include "peer_t.h"
+#include "daemon_t.h"
 
 #define loglevel "gov/dfs"
 #define logclass "daemon_t"

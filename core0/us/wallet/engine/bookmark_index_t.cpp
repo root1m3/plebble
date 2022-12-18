@@ -20,6 +20,8 @@
 //===-
 //===----------------------------------------------------------------------------
 //===-
+#include <set>
+
 #include <us/gov/config.h>
 #include <us/wallet/wallet/local_api.h>
 
@@ -42,12 +44,6 @@ void c0::dump(ostream& os) const {
     }
 }
 
-/*
-c0& c0::operator = (const c0& other) {
-    clear();
-    
-}
-*/
 void c0::protocols(protocols_t& o) const {
     assert(o.empty());
     o.reserve(size());
@@ -127,13 +123,17 @@ void c::add(wallet::local_api& w) {
     auto ep = w.local_endpoint;
     ep.wloc = w.subhome;
     int n = v.size();
+    
+    static set<protocol_selection_t> not_to_index{{"w2w", "w"}, {"bid2ask", "bid"}, {"bid2ask", "ask"}};
     for (auto& i: v) {
+        if (not_to_index.find(i.first) != not_to_index.end()) {
+            continue;
+        }
         ostringstream name;
         name << "bm_" << ++n;
         bm.add(name.str(), bookmark_t(qr_t(ep, move(i.first)), move(i.second)));
         log("added", name.str());
     }
-//    w.published_bookmarks(bm);
     if (bm.empty()) {
         return;
     }

@@ -20,23 +20,23 @@
 #===-
 #===----------------------------------------------------------------------------
 #===-
-OBJ := libcli
-CPPS := $(wildcard *.cpp)
-OBJS := $(patsubst %.cpp, %.o, $(CPPS))
+OBJ:=libcli
+CXXFLAGS=-O0 -g -std=c++20 -DDEBUG
+CPPS:=$(wildcard *.cpp)
+OBJS:=$(patsubst %.cpp, %.o, $(CPPS))
 HS := $(wildcard *.h)
-INC := ../../..
-CXXFLAGS = -O0 -g -std=c++20 -DDEBUG
-
-.PHONY: all clean
+INC:=../../..
 
 all: ${OBJ}.o
-
-${OBJ}.o: ${OBJS}
-	ld -r -o ${OBJ}.o ${OBJS}
 
 %.o: %.cpp
 	$(CXX) -fPIC -c ${CXXFLAGS} -I${INC} $^ -o $@
 
+${OBJ}.o: ${OBJS}
+	ld -r -o ${OBJ}.o ${OBJS}
+
 clean:
-	rm *.o -f
+	$(RM) -f *.o
+
+.PHONY: all clean
 

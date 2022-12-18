@@ -20,13 +20,12 @@
 //===-
 //===----------------------------------------------------------------------------
 //===-
-#include "rpc_daemon_t.h"
-
 #include <us/gov/crypto/ripemd160.h>
 #include <us/gov/engine/protocol.h>
 
 #include "hmi.h"
 #include "types.h"
+#include "rpc_daemon_t.h"
 
 #define loglevel "gov/cli"
 #define logclass "rpc_daemon_t"

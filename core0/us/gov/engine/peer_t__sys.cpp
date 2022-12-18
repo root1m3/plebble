@@ -20,9 +20,10 @@
 //===-
 //===----------------------------------------------------------------------------
 //===-
-#include "peer_t.h"
-#include "types.h"
 #include <us/gov/engine/protocol.h>
+
+#include "types.h"
+#include "peer_t.h"
 
 #define loglevel "gov/engine"
 #define logclass "peer_t__sys"

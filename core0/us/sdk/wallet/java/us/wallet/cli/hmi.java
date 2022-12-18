@@ -363,9 +363,9 @@ public class hmi {
 
     public void verification_result(request_data_t request_data) {
         log("verification_result " + request_data.value); //--strip
-        scr.lock.lock();
-        scr.os.println("subhome is " + request_data.value);
-        scr.lock.unlock();
+//        scr.lock.lock();
+//        scr.os.println("subhome is " + request_data.value);
+//        scr.lock.unlock();
     }
 
     public void on_I_disconnected(final reason_t reason) {

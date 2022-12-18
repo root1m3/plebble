@@ -190,17 +190,8 @@ ko c::start_daemon(busyled_t::handler_t* busyled_handler_send, busyled_t::handle
     string subhome = ""; // Daemon non-custodial wallet
     log("selecting wallet. subhome =", subhome);
     w = daemon->users.get_wallet(subhome);
-    { /// Import gov key
-        auto k = gov::io::cfg1::load_sk(p.get_home_gov());
-        if (is_ko(k.first)) {
-            log("gov key is not available at", p.get_home_gov());
-        }
-        else {
-            log("adding gov key");
-            w->add_address(k.second);
-        }
-    }
-    cerr << "DBG STARTED-WALLET_DAEMON." << endl;
+    assert(w != nullptr);
+    log("DBG started wallet_daemon.");
     #if CFG_FCGI == 1
         if (p.fcgi) {
             cerr << "DBG run_fcgi" << endl;
@@ -208,10 +199,10 @@ ko c::start_daemon(busyled_t::handler_t* busyled_handler_send, busyled_t::handle
             run_fcgi(p);
         }
         else {
-            cerr << "DBG not run_fcgi" << endl;
+            log("DBG not run_fcgi");
         }
     #else
-        cerr << "DBG def CFG_FCGI " << CFG_FCGI << endl;
+        log("DBG def CFG_FCGI" ,CFG_FCGI);
     #endif
     return ok;
 }
@@ -393,12 +384,13 @@ void c::on_peer_disconnected(const string& reason) {
 
 void c::verification_result(request_data_t&& request_data) {
     log("verification_result", request_data);
-    screen::lock_t lock(scr, true);
-    lock.os << "subhome is " << request_data << '\n';
+//    screen::lock_t lock(scr, true);
+//    lock.os << "subhome is " << request_data << '\n';
 }
 
 void c::stop() {
     log("stop");
+    //log_stacktrace();
     setup_signals(false);
     #if CFG_FCGI == 1
         if (fcgi) {
@@ -1319,6 +1311,16 @@ void c::banner(const params& p, ostream& os) {
     os << ind << CFG_COPYRIGHT_LINE2 << '\n';
     os << ind << CFG_COPYRIGHT_LINE3 << '\n';
     os << ind << "version: " << us::vcs::version() << '\n';
+    os << ind << "monotonic versions: \n";
+    os << ind << "    deploy: " << CFG_MONOTONIC_VERSION_FINGERPRINT << '\n';
+    os << ind << "    api_v gov: " << CFG_API_V__GOV << '\n';
+    os << ind << "    api_v wallet: " << CFG_API_V__WALLET << '\n';
+    os << ind << "    binary serialization: " << CFG_BLOB_VERSION << '\n';
+    os << ind << "component brandcodes:\n";
+    os << ind << "    deployment blobs:" << CFG_BLOB_VERSION << '\n';
+    os << ind << "    rpc-client blobs:\n";
+    os << ind << "        android " << CFG_ANDROID_BLOB_ID << '\n';
+    os << ind << "        console " << CFG_ANDROID_BLOB_ID << '\n';
     os << ind << "local time: " << duration_cast<nanoseconds>((system_clock::now() - us::gov::engine::calendar_t::relay_interval).time_since_epoch()).count() << " ns since 1/1/1970\n";
     os << ind << "tx time shift: " << duration_cast<seconds>(us::gov::engine::calendar_t::relay_interval).count() << " seconds.\n";
     os << ind << "Build configuration: ";
@@ -1520,7 +1522,7 @@ void c::help(const params& p, ostream& os) { //moved
         us::wallet::trader::traders_t::help(ind____ + "    ", os);
         fmt::twocol(ind____, "create_bookmark <title> <icofile|-> \"[<channel>] <address>[.subhome]\" <protocol|-> <role|-> [<output-file>]", "Display bookmark blob on screen, or to specified file.", os);
         fmt::twocol(ind____, "decode_bookmark [-f <filename> | <blob_b58>]", "Decode bookmark_t blob (from file or encoded) and shows its content on screen.", os);
-        fmt::twocol(ind____, "create_protocol_list ", "Display protocols_t blob on screen, or to specified file", os);
+        fmt::twocol(ind____, "create_protocols <prot> <role>", "Display protocols_t blob on screen, or to specified file", os);
         fmt::twocol(ind____, "decode_protocol_list [-f <filename> | <blob_b58>]", "Decode protocols_t blob (from file or encoded) and shows its content on screen.", os);
         fmt::twocol(ind____, "r2r_index [-f <file>] [-e]", "Obtain interesting bookmarks. Optionally save it to file or print encoded.", os);
         fmt::twocol(ind____, "r2r_index_hdr ", "Print protocol_selections available in the r2r_index.", os);
@@ -2297,6 +2299,9 @@ ko c::exec_online1(const string& cmd, shell_args& args) {
             }
         }
         protocols_t p;
+        {
+            auto r = p.load(ofile);
+        }
         p.emplace_back(protocol_selection_t(protocol, role));
         if (ofile.empty()) {
             auto s = p.encode();
@@ -2517,7 +2522,7 @@ ko c::exec_online1(const string& cmd, shell_args& args) {
     if (command == "compilance_report") {
         return KO_40322;
     }
-    if (command == "h" || command == "-h" || command == "help" || command == "-help" || command == "--help") {
+    if (command == "h" || command == "-h" || command == "--h" || command == "help" || command == "-help" || command == "--help") {
         screen::lock_t lock(scr, interactive);
         help(p, lock.os);
         return ok;

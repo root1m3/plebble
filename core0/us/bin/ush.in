@@ -41,6 +41,7 @@ grootkey=$keyroot/id_rsa_groot
 
 mynode=$mynode_ip
 mynodeport=$mynode_sshport
+#echo "using_node__ssh: $mynode_ip $mynode_sshport"
 
 lannodes="$keyroot/lan_nodes"
 
@@ -109,14 +110,18 @@ function resolve_ip {
 reachableaddr=""
 reachableport=""
 
+let quiet=0
+
 function resolv {
     n=$1
     if [ "_$usepkh" == "_yes" ]; then
-    pkh=$1
+        pkh=$1
         nick=`cat $namefile  | $grep "^$pkh " | awk '{print $2}'`
-        if [ "_$nick" == "_" ]; then
-        echo "info: $pkh is anonymous to me."
-    fi
+        #if [[ $quiet -eq 0 ]]; then
+        #    if [[ "_$nick" == "_" ]]; then
+        #        echo "info: $pkh is anonymous to me."
+        #    fi
+        #fi
     else
         nick=$1
         echo "cat $namefile  | $grep \" $nick \" | awk '{print \$1}'"
@@ -153,6 +158,14 @@ function resolv {
         scp="torsocks scp -P$reachableport -i $grootkey"
     fi
 }
+
+if [[ "_$cmd" == "_scan" ]]; then
+    for i in `ush nodes | grep -v "entries" | grep -v "candidates" | grep -v "am node" | grep -v "nodes" | awk '{ print $1 }'`; do
+        echo -n "$i "
+        timeout 10 ush -pkh ssh $i 'br=`cat /var/us_nets | cut -d " " -f2`; $br-gov version'
+    done
+    exit 0
+fi
 
 if [[ "_$cmd" == "_nick" ]]; then
     resolv $1
@@ -362,6 +375,7 @@ echo "  ssh <nick>  ssh into node"
 echo "  nmap <nick> check range 16670-16680"
 echo "  nicks           Lists contacts"
 echo "  nick <nick>     Info on name"
+echo "  scan     do ssh command for each node"
 echo "functions in $mynode:"
 echo "  nodes           list all nodes - [app 20 db]"
 echo "  accounts        list all accounts - [app 30 db]"

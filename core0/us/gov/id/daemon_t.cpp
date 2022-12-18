@@ -20,9 +20,9 @@
 //===-
 //===----------------------------------------------------------------------------
 //===-
-#include "daemon_t.h"
 #include "protocol.h"
 #include "peer_t.h"
+#include "daemon_t.h"
 
 #define loglevel "gov/id"
 #define logclass "daemon_t"
@@ -34,16 +34,6 @@ using c = us::gov::id::daemon_t;
 c::daemon_t(channel_t channel, port_t port, pport_t pport, int workers): b(channel, port, workers), pport(pport) {
     log("set pport", pport);
 }
-
-/*
-socket::client* c::create_client(sock_t sock) {
-    log("KO 78673 specialize peer");
-    assert(false);
-    return nullptr;
-//    log("create_client", sock);
-//    return new peer_t(*this, sock);
-}
-*/
 
 void c::dump(const string& prefix, ostream& os) const {
     os << prefix << "id::daemon_t: This node public key: " << get_keys().pub << " addr " << get_keys().pub.hash() << '\n';

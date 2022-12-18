@@ -63,7 +63,6 @@ ko lib0_t::delete_business(business_t* bz) {
     auto i = find(bz);
     if (i == end()) {
         auto r = "KO 78699 tried to delete business not created by this factory.";
-        assert(false);
         log(r);
         return r;
     }
@@ -219,26 +218,10 @@ ko lib_t::good() const {
     return r;
 }
 
-/*
- const string& home, protocol_factories_t& protocol_factories
-
-
-    auto r = business->init(home, protocol_factories);
-    if (is_ko(r)) {
-        log(r, "Business could not init.");
-        delete business;
-        business = nullptr;
-        ::dlclose(plugin);
-        plugin = nullptr;
-        return;
-    }
-*/
-
 ko lib_t::delete_business(business_t* bz) {
     log("lib_t::delete_business", bz);
     auto r = b::delete_business(bz);
     if (is_ko(r)) {
-        assert(false);
         return r;
     }
     {
@@ -249,8 +232,10 @@ ko lib_t::delete_business(business_t* bz) {
         }
     }
     log("calling destroy_bz");
-    destroy_bz(bz);
-    log("returned from destroy_bz");
+    if (bz != nullptr) {
+        destroy_bz(bz);
+        log("returned from destroy_bz");
+    }
     return ok;
 }
 
@@ -272,8 +257,6 @@ pair<ko, business_t*> lib_t::create_business() {
     if (o == nullptr) {
         auto r = "KO 59982 Cannot create bz using shared library factory.";
         log(r);
-//        ::dlclose(plugin);
-//        plugin = nullptr;
         return make_pair(r, nullptr);
     }
     emplace(o);
@@ -299,7 +282,7 @@ protocol_selection_t c::extract_protocol_selection(const string& fn) {
             ++i;
         }
         auto i0 = i;
-        i = fn.find_first_of('.', i0);
+        i = fn.find_first_of("-.", i0);
         if (unlikely(i == string::npos)) {
             log("KO 91027 missing extension.", fn);
             return protocol_selection_t();
@@ -321,12 +304,6 @@ protocol_selection_t c::extract_protocol_selection(const string& fn) {
     assert(ans.is_set());
     return ans;
 }
-
-//void lib_t::dump(ostream& os) const {
-//    log("lib list_prot bz=", business->name);
-//    assert(business != nullptr);
-//    business->list_protocols(os);
-//}
 
 c::libs_t(trades_t& parent): parent(parent) {
     log("creating libs");
@@ -374,7 +351,10 @@ void c::load_plugins() {
         if (!is_regular_file(p.path())) continue;
         string fn = p.path().filename().string();
         protocol_selection_t protocol_selection = extract_protocol_selection(fn);
-        if (!protocol_selection.is_set()) continue;
+        if (!protocol_selection.is_set()) {
+            log("Ignoring lib", fn, "protocol_selection is unparseable.");
+            continue;
+        }
         if (find(protocol_selection) != end()) {
             auto r = "KO 86692 business factory already exists.";
             log(r, protocol_selection.to_string2());
@@ -436,16 +416,18 @@ pair<ko, business_t*> c::create_business(const protocol_selection_t& protocol_se
     return i->second->create_business();
 }
 
-void c::delete_business(business_t* bz) {
+ko c::delete_business(business_t* bz) {
     log("delete_business", bz);
+    if (bz == nullptr) return ok;
     log("delete_business", bz->protocol_selection());
     auto i = find(bz->protocol_selection());
     if (i == end()) {
-        assert(false);
-        return;
+        auto r = "KO 55835 bz not found.";
+        log(r);
+        return r;
     }
     log("calling lib delete_business", i->first.to_string2());
-    i->second->delete_business(bz);
+    return i->second->delete_business(bz);
 }
 
 protocols_t c::available_protocol_selections() const {

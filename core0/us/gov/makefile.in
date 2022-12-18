@@ -20,29 +20,55 @@
 #===-
 #===----------------------------------------------------------------------------
 #===-
+LIBUSGOV:=lib##str3##gov
 CXXFLAGS=-O0 -g -std=c++20 -DDEBUG -Wno-psabi
 CPPS:=$(wildcard *.cpp)
-OBJS:=$(CPPS:.cpp=.o)
-SUBOBJS:=cli/cli.o io/io.o crypto/crypto.o socket/socket.o peer/peer.o relay/relay.o dfs/dfs.o engine/engine.o id/id.o auth/auth.o cash/cash.o sys/sys.o traders/traders.o log/log.o
 HS:=$(wildcard *.h)
-INC:=-I../..
-EC:=$(shell pkg-config --libs libsecp256k1)
-LIBCRYPTO:=$(shell pkg-config --libs libcrypto++)
-LIBS:=${EC} ${LIBCRYPTO} -lb64
-ARCH:=$(shell uname -m)
+OS:=$(shell uname)
+ifeq (${OS},Linux)
+    ARCH:=$(shell uname -m)
+else
+    ifeq (${OS},FreeBSD)
+      ARCH:=$(shell uname -p)
+    endif
+endif
+ifeq (${OS},Linux)
+    EC:=$(shell pkg-config --libs libsecp256k1)
+    LIBCRYPTO:=$(shell pkg-config --libs libcrypto++)
+else
+    ifeq (${OS},FreeBSD)
+        EC:=$(shell PKG_CONFIG_PATH=/usr/local/lib/pkgconfig pkg-config --libs libsecp256k1)
+        LIBCRYPTO:=$(shell pkg-config --libs libcryptopp)
+    endif
+endif
 
-ifeq ($(ARCH),armv7l)
-    LIBS+=-latomic
+OBJS:=$(CPPS:.cpp=.o)
+DOBJS:=cli/cli.o
+DOBJS+=io/io.o
+DOBJS+=crypto/crypto.o
+DOBJS+=socket/socket.o
+DOBJS+=peer/peer.o
+DOBJS+=relay/relay.o
+DOBJS+=dfs/dfs.o
+DOBJS+=engine/engine.o
+DOBJS+=id/id.o
+DOBJS+=auth/auth.o
+DOBJS+=cash/cash.o
+DOBJS+=sys/sys.o
+DOBJS+=traders/traders.o
+DOBJS+=log/log.o
+
+INC:=-I../..
+
+LIB+=${EC} ${LIBCRYPTO} -lb64
+LIB+=-lstdc++fs -pthread
+ifeq (${ARCH},armv7l)
+    LIB+=-latomic
 endif
 
 RPATH:=-Wl,-z,defs
 
-LIBUSGOV:=lib##str3##gov
-
 all: ${LIBUSGOV}.so
-
-${LIBUSGOV}.so: ${OBJS} subojs
-	$(CXX) -fPIC -shared ${CXXFLAGS} ${RPATH} ${SUBOBJS} ${OBJS} ${LIBS} -lstdc++fs -pthread -o ${LIBUSGOV}.so
 
 %.o: %.cpp
 	$(CXX) -fPIC -c ${CXXFLAGS} ${INC} $^ -o $@
@@ -50,10 +76,16 @@ ${LIBUSGOV}.so: ${OBJS} subojs
 subojs:
 	@for a in $$(ls); do \
 	if [ -d $$a ]; then \
-	echo "==============directory $$a"; \
+	echo "==============directory gov/$$a"; \
 	$(MAKE) -C $$a; \
 	fi; \
 	done;
+
+${LIBUSGOV}.so: subojs ${OBJS}
+	@echo ""
+	@echo "[--->Link shared library: ${LIBUSGOV}.so]"
+	$(CXX) -fPIC -shared ${CXXFLAGS} ${RPATH} ${OBJS} ${DOBJS} ${LIB} -o ${LIBUSGOV}.so
+	@echo ""
 
 clean:
 	@for a in $$(ls); do \
@@ -61,9 +93,9 @@ clean:
 	    $(MAKE) -C $$a clean; \
 	fi; \
 	done;
-	rm -f vcs_git
-	rm -f *.o
-	rm -f ${LIBUSGOV}.so
+	$(RM) -f vcs_git
+	$(RM) -f *.o
+	$(RM) -f ${LIBUSGOV}.so
 
 .PHONY: all subojs clean
 

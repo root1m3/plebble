@@ -20,7 +20,6 @@
 //===-
 //===----------------------------------------------------------------------------
 //===-
-#include "install_script_response.h"
 #include <sys/time.h>
 #include <iostream>
 #include <thread>
@@ -34,6 +33,7 @@
 
 #include "app.h"
 #include "types.h"
+#include "install_script_response.h"
 
 #define loglevel "gov/sys"
 #define logclass "install_script_response"

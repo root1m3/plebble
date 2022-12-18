@@ -20,8 +20,8 @@
 //===-
 //===----------------------------------------------------------------------------
 //===-
-#include "addr_t.h"
 #include "tcp_addr.h"
+#include "addr_t.h"
 
 using namespace std;
 using namespace us::gov::engine;

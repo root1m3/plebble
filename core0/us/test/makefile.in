@@ -20,42 +20,60 @@
 #===-
 #===----------------------------------------------------------------------------
 #===-
+US:=##str3##
+LIBUSTEST:=lib${US}test
+USGOV:=${US}gov
+LIBUSGOV:=lib${US}gov
+USWALLET:=${US}wallet
+LIBUSWALLET:=lib${US}wallet
 CXXFLAGS=-O0 -g -std=c++20 -DDEBUG -Wno-psabi
-CPPS:=$(wildcard *.cpp) $(wildcard net/*.cpp) $(wildcard sim/*.cpp) $(wildcard shard/*.cpp)
+
+FCGI:=##str45##
+
+CPPS:=$(wildcard *.cpp)
+CPPS+=$(wildcard net/*.cpp)
+CPPS+=$(wildcard sim/*.cpp)
+CPPS+=$(wildcard shard/*.cpp)
+
+HS:=$(wildcard *.h)
+HS+=$(wildcard net/*.h)
+HS+=$(wildcard sim/*.h)
+HS+=$(wildcard shard/*.h)
+
 OBJS:=$(CPPS:.cpp=.o)
-DEPENDS := $(patsubst %.cpp,%.d,$(CPPS))
-HS:=$(wildcard *.h) $(wildcard net/*.h) $(wildcard sim/*.h) $(wildcard shard/*.h)
-INC:=-I../..
-USGOV:=##str3##gov
-LIBUSGOV:=lib##str3##gov
-USWALLET:=##str3##wallet
-LIBUSWALLET:=lib##str3##wallet
+DEPENDS:=$(patsubst %.cpp,%.d,$(CPPS))
+-include $(DEPENDS)
+
 LIBCRYPTO:=$(shell pkg-config --libs libcrypto++)
 EC:=$(shell pkg-config --libs libsecp256k1)
-LIBS:=-L../wallet -l${USWALLET} -L../gov -l${USGOV} ${EC} ${LIBCRYPTO} -lb64 -ldl
-ARCH:=$(shell uname -m)
-FCGI:=##str45##
-LIBUSTEST:=lib##str3##test
 
-ifeq ($(ARCH), armv7l)
-    LIBS+=-latomic
-endif
+INC:=-I../..
 
+LIB:=-L../wallet -l${USWALLET}
+LIB+=-L../gov -l${USGOV}
+LIB+=${EC}
 ifeq ($(FCGI),1)
-    LIBS+=-lfastcgipp
+    LIB+=-lfastcgipp
 endif
+LIB+=${LIBCRYPTO}
+LIB+=-lb64
+LIB+=-ldl
+LIB+=-lstdc++fs -pthread
 
-RPATH:=-Wl,-z,defs -Wl,-rpath,../wallet -Wl,-rpath,../gov
+RPATH:=-Wl,-z,defs
+RPATH+=-Wl,-rpath,../wallet
+RPATH+=-Wl,-rpath,../gov
 
 all: ${LIBUSTEST}.so
 
-${LIBUSTEST}.so: ${OBJS} ${HS}
-	$(CXX) -fPIC -shared ${CXXFLAGS} ${RPATH} ${OBJS} ${LIBS} -lstdc++fs -pthread -o ${LIBUSTEST}.so
-
--include $(DEPENDS)
-
 %.o: %.cpp makefile
 	$(CXX) -fPIC ${CXXFLAGS} ${INC} -MMD -MP -c $< -o $@
+
+${LIBUSTEST}.so: ${OBJS} ${HS}
+	@echo ""
+	@echo "[--->Link shared library: ${LIBUSTEST}.so]"
+	$(CXX) -fPIC -shared ${CXXFLAGS} ${RPATH} ${OBJS} ${LIB} -o ${LIBUSTEST}.so
+	@echo ""
 
 clean:
 	$(RM) ${LIBUSTEST}.so

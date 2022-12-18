@@ -54,7 +54,7 @@
     <string name="ipaddress">Dirección IP</string>
     <string name="tcpport">Puerto TCP</string>
     <string name="channel">Canal</string>
-    <string name="connect">Conectar</string>
+    <string name="connect">Reconectar con PIN</string>
     <string name="resultsview">Vista de resultados</string>
     <string name="pairnodehelp">gov:~$ wallet pair &lt;clave pública de este dispositivo&gt;</string>
     <string name="softwareversion">Versión del software</string>

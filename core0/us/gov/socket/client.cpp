@@ -20,7 +20,6 @@
 //===-
 //===----------------------------------------------------------------------------
 //===-
-#include "client.h"
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -42,6 +41,7 @@
 #include <us/gov/io/cfg0.h>
 
 #include "daemon0_t.h"
+#include "client.h"
 
 #define loglevel "gov/socket"
 #define logclass "client"

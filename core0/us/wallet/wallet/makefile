@@ -20,23 +20,23 @@
 #===-
 #===----------------------------------------------------------------------------
 #===-
-OBJ := libwallet
-CPPS := $(wildcard *.cpp)
-OBJS := $(patsubst %.cpp, %.o, $(CPPS))
-HS := $(wildcard *.h)
-INC := ../../..
+OBJ:=libwallet
 CXXFLAGS = -O0 -g -std=c++20 -DDEBUG
-
-all: ${OBJ}.o
+CPPS:=$(wildcard *.cpp)
+OBJS:=$(patsubst %.cpp, %.o, $(CPPS))
+HS:=$(wildcard *.h)
+INC:=../../..
 
 ${OBJ}.o: ${OBJS}
-	ld -r -o ${OBJ}.o ${OBJS}
+	ld -r ${OBJS} -o ${OBJ}.o
 
 %.o: %.cpp
 	$(CXX) -fPIC -c ${CXXFLAGS} -I${INC} $^ -o $@
 
+all: ${OBJ}.o
+
 clean:
-	rm *.o -f
+	$(RM) *.o -f
 
 .PHONY: all clean
 

@@ -26,29 +26,37 @@ WITHTEST:=##str62##
 STDFLAGS:=-std=c++20 -Wno-psabi
 DEBUGFLAGS:=-g -O0 ${STDFLAGS} -DDEBUG
 RELEASEFLAGS:=-O3 ${STDFLAGS} -DNDEBUG
-PREFIX:=/usr/local
-ARCH:=$(shell uname -m)
 CXXFLAGS=${DEBUGFLAGS}
-CXX:=g++
+PREFIX:=/usr/local
+OS:=$(shell uname)
+ifeq (${OS},Linux)
+    ARCH:=$(shell uname -m)
+else
+    ifeq (${OS},FreeBSD)
+      ARCH:=$(shell uname -p)
+    endif
+endif
 CORE0:=$(shell realpath ../../../core0)
 CORE1:=$(shell realpath ../../../core1)
-INCC0:=-I${CORE0}
-LIBC0:=-L${CORE0}/us/gov -L${CORE0}/us/wallet
 
-INCC1:=-I${CORE1}
-LIBC1:=-L${CORE1}/us/trader
+INC:=-I${CORE0} -I${CORE1}
 
-INC:=${INCC0} ${INCC1}
-LIB:=${LIBC0} ${LIBC1}
+LIB:=-L${CORE1}/us/trader
+LIB+=-L${CORE0}/us/wallet -l${US}wallet
+LIB+=-L${CORE0}/us/gov -l${US}gov
+LIB+=-lstdc++fs -pthread
 
 LIBUSTESTC1:=lib${US}test-c1
 USTESTC1:=${US}-test-c1
 
 ifeq (${DEFAULTDEBUG},1)
-RPATH:=-Wl,-rpath,${CORE1}/us/trader -Wl,-rpath,${CORE0}/us/wallet -Wl,-rpath,${CORE0}/us/gov
+    RPATH:=-Wl,-rpath,${CORE1}/us/trader
+    RPATH+=-Wl,-rpath,${CORE0}/us/wallet
+    RPATH+=-Wl,-rpath,${CORE0}/us/gov
     all: debug
 else
-RPATH:=-Wl,-z,defs
+    RPATH:=-Wl,-z,defs
+    RPATH+=-Wl,-rpath=.
     all: release
 endif
 
@@ -65,36 +73,57 @@ else
 endif
 
 test/${LIBUSTESTC1}.so: libs
-	$(MAKE) CXXFLAGS="${CXXFLAGS}" INC="${INC}" LIB0="${LIB}" -C test
+	$(MAKE) CXXFLAGS="${CXXFLAGS}" INC="${INC}" -C test
 
 testx/${USTESTC1}: test/${LIBUSTESTC1}.so
-	$(MAKE) CXXFLAGS="${CXXFLAGS}" INC="${INC}" LIB0="${LIB}" -C testx
+	$(MAKE) CXXFLAGS="${CXXFLAGS}" INC="${INC}" -C testx
 
-libs: lib${US}trader-bid2ask-bid.so lib${US}trader-bid2ask-ask.so lib${US}trader-games-player.so
+libswf: libworkflow-consumer.so
+libswf: libworkflow-logistics.so
+libswf: libworkflow-organization.so
 
-DEPS_bid2ask=workflow/consumer/wf.o workflow/logistics/wf.o workflow/organization/wf.o
+libs: libtrader-bid2ask-bid.so
+libs: libtrader-bid2ask-ask.so
+libs: libtrader-games-player.so
+
+DEPS_wf_consumer=
+DEPS_wf_logistics=
+DEPS_wf_organization=
+
+DEPS_bid2ask=-lworkflow-consumer
 DEPS_games=
 
-lib${US}trader-bid2ask-bid.so: r2r
-	${CXX} -shared -fPIC ${CXXFLAGS} ${RPATH} ${DEPS_bid2ask} r2r/bid2ask/bid2ask-bid.o ${LIB} -l${US}wallet -l${US}gov -lstdc++fs -pthread -o lib${US}trader-bid2ask-bid.so
+wfobjs:
+	$(MAKE) CXXFLAGS="${CXXFLAGS}" INC="${INC}" -C workflow;
 
-lib${US}trader-bid2ask-ask.so: r2r
-	${CXX} -shared -fPIC ${CXXFLAGS} ${RPATH} ${DEPS_bid2ask} r2r/bid2ask/bid2ask-ask.o ${LIB} -l${US}wallet -l${US}gov -lstdc++fs -pthread -o lib${US}trader-bid2ask-ask.so
+r2robjs:
+	$(MAKE) CXXFLAGS="${CXXFLAGS}" INC="${INC}" -C r2r;
 
-lib${US}trader-games-player.so: r2r
-	${CXX} -shared -fPIC ${CXXFLAGS} ${RPATH} ${DEPS_games} r2r/games/games-player.o ${LIB} -l${US}wallet -l${US}gov -lstdc++fs -pthread -o lib${US}trader-games-player.so
+libworkflow-consumer.so: wfobjs
+	${CXX} -shared -fPIC ${CXXFLAGS} ${RPATH} workflow/consumer/wf.o ${DEPS_wf_consumer} ${LIB} -o libworkflow-consumer.so
 
-r2r: workflow
-	$(MAKE) CXXFLAGS="${CXXFLAGS}" INC="${INC}" LIB0="${LIB}" -C r2r;
+libworkflow-logistics.so: wfobjs
+	${CXX} -shared -fPIC ${CXXFLAGS} ${RPATH} workflow/logistics/wf.o ${DEPS_wf_logistics} ${LIB} -o libworkflow-logistics.so
 
-workflow:
-	$(MAKE) CXXFLAGS="${CXXFLAGS}" INC="${INC}" LIB0="${LIB}" -C workflow;
+libworkflow-organization.so: wfobjs
+	${CXX} -shared -fPIC ${CXXFLAGS} ${RPATH} workflow/organization/wf.o ${DEPS_wf_organization} ${LIB} -o libworkflow-organization.so
 
-install: release
-	bin/install
 
-protocols.tgz: arch
-	tar -czf protocols.tgz `uname -m`
+libtrader-bid2ask-bid.so: libswf r2robjs
+	${CXX} -shared -fPIC ${CXXFLAGS} ${RPATH} r2r/bid2ask/bid2ask-bid.o ${DEPS_bid2ask} ${LIB} -o libtrader-bid2ask-bid.so
+
+libtrader-bid2ask-ask.so: libswf r2robjs
+	${CXX} -shared -fPIC ${CXXFLAGS} ${RPATH} r2r/bid2ask/bid2ask-ask.o ${DEPS_bid2ask} ${LIB} -o libtrader-bid2ask-ask.so
+
+libtrader-games-player.so: libswf r2robjs
+	${CXX} -shared -fPIC ${CXXFLAGS} ${RPATH} r2r/games/games-player.o ${DEPS_games} ${LIB} -o libtrader-games-player.so
+
+
+#install: release
+#	bin/install
+
+#protocols.tgz: arch
+#	tar -czf protocols.tgz `uname -m`
 
 clean:
 	$(MAKE) clean -C r2r;
@@ -103,5 +132,5 @@ clean:
 	$(MAKE) clean -C testx;
 	$(RM) *.so
 
-.PHONY: all debug release clean targets arch libs test libtest workflow r2r
+.PHONY: all debug release clean targets arch libs libswf test libtest wfobjs r2robjs
 

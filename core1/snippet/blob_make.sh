@@ -23,25 +23,44 @@
 #===-
 
 function do_help {
-	echo "blobmake"
-	echo "./make.sh [--jail <jail>] <command>"
-	echo "Commands:"
-	echo " r2r_sdk                              Extracts the sdk for creating r2r wapplets."
-	echo " r2r_lib_list_available               Print r2r wallet plugins available in blob."
-	echo " r2r_lib_list_installed               "
-	echo " r2r_lib_list_default                 "
-	echo " r2r_lib_install <prot-role>          "
-	echo " r2r_lib_uninstall <prot-role>        "
-	echo " r2r_lib_commit                       "
+    cat << EOF
+./make.sh [--jail <jail>] <command>"
+Invoked without arguments is equivalent to the command install.
 
-	echo " apply_blob [apply_blob options] apply_blob."
+Commands:"
+    R2R protocols:
+        Query:
+            status                               Lists both r2r plugins contained in this blob and those installed.
+            r2r_lib_list_available               Lists r2r plugins contained in this blob.
+            r2r_lib_list_installed               Lists installed protocols.
+            r2r_lib_list_default                 Lists protocols installed by default.
+
+        Install/uninstall R2R protocols:
+            r2r_lib_install <prot-role>          Install protocol in the system. (see r2r_lib_commit).
+            r2r_lib_uninstall <prot-role>        Uninstall protocol in the system. (see r2r_lib_commit).
+            r2r_lib_commit                       Finish install/uninstall protocols.
+
+    Workflow libs: (R2R dependencies)
+        Query:
+            wf_lib_list_available                Lists workflow libs contained in this blob.
+            r2r__list_workflow_libs              List workflow libs needed by the given r2r lib.
+
+    Blob:
+            apply_blob [apply_blob options]      apply_blob.
+
+    SDK:
+            r2r_sdk                              Extracts the sdk for creating new r2r wapplets (or wlugins).
+EOF
 }
 
 jaildir=""
 cmd=""
 cmdargs=""
+
+. lib/shenv
+
 function parse_input {
-    echo "Parse input: $@"
+#    echo "Parse input: $@"
     opt=""
     while [[ true ]]; do
         opt=$1
@@ -63,8 +82,8 @@ function parse_input {
         cmd="install"
     fi
     cmdargs="$@"
-    echo "cmd=$cmd"
-    echo "cmdargs=$cmdargs"
+#    echo "cmd=$cmd"
+#    echo "cmdargs=$cmdargs"
     #echo "cmd=$cmd"
 }
 
@@ -74,13 +93,13 @@ brand=`pwd | tr '/' ' ' | awk '{print $NF}' | tr '_' ' ' | awk '{ print $1 }'`
 branch=`pwd | tr '/' ' ' | awk '{print $NF}' | tr '_' ' ' | awk '{ print $2 }'`
 hash=`pwd | tr '/' ' ' | awk '{print $NF}' | tr '_' ' ' | awk '{ print $3 }'`
 
-echo jaildir=$jaildir
-echo cmd=$cmd
-echo cmdargs=$cmdargs
+#echo jaildir=$jaildir
+#echo cmd=$cmd
+#echo cmdargs=$cmdargs
 
 function r2r_lib_list_installed {
     US=$brand
-    ch=`cat $jaildir/var/us_nets | grep " $US " | awk '{print $1}'`
+    ch=`cat ${jaildir}/var/us_nets | grep " $US " | awk '{print $1}'`
     if [[ $? -ne 0 ]]; then
         echo "KO 94752 brand $US is not installed."
         exit 1
@@ -90,7 +109,7 @@ function r2r_lib_list_installed {
         exit 1
     fi
     ushome="/home/gov/.${US}"
-    if [ "_$ch" != "_0" ]; then
+    if [[ "_$ch" != "_0" ]]; then
         ushome="$ushome/$ch"
     fi
     whome="$ushome/wallet"
@@ -98,11 +117,20 @@ function r2r_lib_list_installed {
     r2rdst="$thome/lib"
     echo "r2r libs at $thome/lib"
     if [[ -d $jaildir$r2rdst ]]; then
-        for f in `find $jaildir$r2rdst -name "*.so"`; do
+        for f in `find $jaildir$r2rdst -name "libtrader*.so"`; do
             n=${f##*/}
             echo "$jaildir$r2rdst   --  $n"
         done
     fi
+}
+
+
+function do_r2r_lib_list_available {
+    ls -1 lib/${arch}/r2r/* | grep -v libworkflow | sed "s~lib/${arch}/r2r/libtrader-\(.*\).so~\1~" | sed 's/^/    /'
+}
+
+function do_wf_lib_list_available {
+    ls -1 lib/${arch}/r2r/* | grep libworkflow
 }
 
 opt=""
@@ -111,33 +139,59 @@ if [[ "_$jaildir" != "_" ]]; then
 fi
 
 if [[ "_$cmd" == "_apply_blob" ]]; then
+    echo "Invoking bin/apply_blob $opt $cmdargs"
     bin/apply_blob $opt $cmdargs
     exit $?
 fi
 if [[ "_$cmd" == "_install" ]]; then
+    echo "Invoking bin/apply_blob $opt $cmdargs install"
     bin/apply_blob $opt $cmdargs install
     exit $?
 fi
 if [[ "_$cmd" == "_r2r_sdk" ]]; then
     rm -rf r2r_sdk
-    tar -I zstd -xf core_${branch}_${hash}.tar.zst
+    #tar -I zstd -xf core_${branch}_${hash}.tar.zst
     pushd core > /dev/null
         make PREFIX=../r2r_sdk install-dev
     popd > /dev/null
-    rm -rf core
-    cp src/core1/us r2r_sdk/ -R
+    #rm -rf core
+    cp -r src/core1/us r2r_sdk/
     cp src/core1/makefile r2r_sdk/
     echo "r2r_sdk"
     exit 0
 fi
 if [[ "_$cmd" == "_r2r_lib_list_available" ]]; then
-    ls -1 lib/`uname -m`/r2r/*
+    do_r2r_lib_list_available
+    exit 0
+fi
+if [[ "_$cmd" == "_wf_lib_list_available" ]]; then
+    do_wf_lib_list_available
+    exit 0
+fi
+if [[ "_$cmd" == "_r2r__list_workflow_libs" ]]; then
+    if [[ -z $cmdargs ]]; then
+        echo "Available protocol_selections:"
+        do_r2r_lib_list_available
+        echo "KO 44537 specify protocol_selection"
+        exit 1
+    fi
+    ldd lib/${arch}/r2r/libtrader-${cmdargs}.so | grep "libworkflow" | awk '{ print $1 }'
     exit 0
 fi
 if [[ "_$cmd" == "_r2r_lib_list_installed" ]]; then
     r2r_lib_list_installed
     exit 0
 fi
+if [[ "_$cmd" == "_status" ]]; then
+    echo "Installed:"
+    r2r_lib_list_installed
+    echo
+    echo "Available:"
+    do_r2r_lib_list_available
+    exit 0
+fi
+
+
 if [[ "_$cmd" == "_r2r_lib_list_default" ]]; then
     bin/apply_blob $opt $cmdargs r2r_lib_list_default
     exit $?

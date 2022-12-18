@@ -85,6 +85,7 @@ namespace us::wallet::trader::r2r::w2w {
     public:
         ko trading_msg(peer_t&, svc_t, blob_t&&) override;
         void dump(ostream&) const override;
+        bool requires_online(const string& cmd) const override;
         void help_online(const string& indent, ostream&) const override;
         void help_onoffline(const string& indent, ostream&) const override;
         void help_show(const string& indent, ostream&) const override;
@@ -94,7 +95,6 @@ namespace us::wallet::trader::r2r::w2w {
         const char* get_name() const override;
         void reset();
         blob_t push_payload(uint16_t pc) const override;
-        bool requires_online(const string& cmd) const override;
         ko exec_offline(const string& cmd, ch_t&) override;
         ko exec_online(peer_t&, const string& cmd, ch_t&) override;
         static void exec_help(const string& prefix, ostream&);

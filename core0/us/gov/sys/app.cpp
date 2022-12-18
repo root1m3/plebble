@@ -20,8 +20,6 @@
 //===-
 //===----------------------------------------------------------------------------
 //===-
-#include "app.h"
-
 #include <thread>
 #include <fstream>
 #include <chrono>
@@ -41,6 +39,7 @@
 #include "install_script.h"
 #include "install_script_response.h"
 #include "types.h"
+#include "app.h"
 
 #define loglevel "gov/sys"
 #define logclass "app"
@@ -116,9 +115,12 @@ void c::maintenance(int code, const hash_t& jobid) {
         string govshell;
         is >> govshell;
         if (govshell == "govshell") {
-           engine::shell sh(demon);
-           sh.command(is, os);
-           send_response(os.str(), jobid);
+            engine::shell sh(demon);
+            auto r = sh.command(is, os);
+            if (is_ko(r)) {
+                os << r;
+            }
+            send_response(os.str(), jobid);
         }
     }
     else if (code == 1) {
@@ -192,10 +194,10 @@ bool c::process(const install_script& t) {
     int code = 1;
     {
         stringstream is(t.script);
-        string govshell;
-        is >> govshell;
-        if (govshell == "govshell") {
-            log("script is govshell");
+        string interpreter;
+        is >> interpreter;
+        if (interpreter == "govshell") {
+            log("interpreter is govshell");
             code = 0;
         }
     }

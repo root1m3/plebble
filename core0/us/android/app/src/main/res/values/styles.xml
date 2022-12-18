@@ -10,6 +10,7 @@
         <item name="android:buttonStyle">@style/RobotoButtonStyle</item>
         <item name="android:textAppearanceButton">@style/Plebble.Material.Button</item>
         <item name="android:windowAnimationStyle">@null</item>
+        <item name="android:windowBackground">@color/windowBG</item>
     </style>
 
     <style name="Plebble.Material.Button" parent="@android:style/TextAppearance.Material.Button">

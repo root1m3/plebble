@@ -20,7 +20,6 @@
 //===-
 //===----------------------------------------------------------------------------
 //===-
-#include "node_address_tx.h"
 #include <random>
 #include <functional>
 
@@ -29,6 +28,7 @@
 #include <us/gov/auth/peer_t.h>
 
 #include "acl_tx.h"
+#include "node_address_tx.h"
 
 #define loglevel "gov/engine/auth"
 #define logclass "node_address_tx"

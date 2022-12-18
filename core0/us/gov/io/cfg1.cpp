@@ -20,15 +20,16 @@
 //===-
 //===----------------------------------------------------------------------------
 //===-
-#include "cfg1.h"
 #include <string.h>
 #include <fstream>
 #include <sstream>
-#include <sys/stat.h>
 #include <cstdlib>
 #include <iostream>
-#include <sys/types.h>
 #include <cassert>
+#include <sys/stat.h>
+#include <sys/types.h>
+
+#include "cfg1.h"
 
 #define loglevel "gov/io"
 #define logclass "cfg1"

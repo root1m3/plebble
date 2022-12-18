@@ -20,8 +20,6 @@
 //===-
 //===----------------------------------------------------------------------------
 //===-
-#include "net_daemon_t.h"
-
 #include <us/gov/socket/client.h>
 #include <us/gov/dfs/protocol.h>
 #include <us/gov/engine/protocol.h>
@@ -32,6 +30,7 @@
 #include "protocol.h"
 #include "local_deltas_t.h"
 #include "evidence.h"
+#include "net_daemon_t.h"
 
 #define loglevel "gov/engine"
 #define logclass "net_daemon_t"

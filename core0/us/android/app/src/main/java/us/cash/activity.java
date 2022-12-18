@@ -57,6 +57,15 @@ import androidx.appcompat.widget.Toolbar;                                       
 import android.net.Uri;                                                                        // Uri
 import android.view.View;                                                                      // View
 import android.view.Window;                                                                    // Window
+import android.graphics.Bitmap;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.util.Date;
+import android.os.Environment;
 
 public class activity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
 
@@ -682,6 +691,38 @@ public class activity extends AppCompatActivity implements NavigationView.OnNavi
         }
     }
 
+    public File screenshot(String filename) {
+        View view = getWindow().getDecorView().getRootView();
+
+        Date date = new Date();
+          
+        // Here we are initialising the format of our image name
+        CharSequence format = android.text.format.DateFormat.format("yyyy-MM-dd_hh:mm:ss", date);
+        try {
+            // Initialising the directory of storage
+            String dirpath = Environment.getExternalStorageDirectory() + "";
+            File file = new File(dirpath);
+            if (!file.exists()) {
+                boolean mkdir = file.mkdir();
+            }
+            String path = dirpath + "/" + filename + "-" + format + ".png";
+            view.setDrawingCacheEnabled(true);
+            Bitmap bitmap = Bitmap.createBitmap(view.getDrawingCache());
+            view.setDrawingCacheEnabled(false);
+            File imageurl = new File(path);
+            FileOutputStream outputStream = new FileOutputStream(imageurl);
+            bitmap.compress(Bitmap.CompressFormat.PNG, 50, outputStream);
+            outputStream.flush();
+            outputStream.close();
+            return imageurl;
+  
+        } catch (FileNotFoundException io) {
+            io.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
     static final int SCAN_REQUESTCODE = 3720;
     static final int INSTALL_PACKAGES_REQUESTCODE = 1791;
 

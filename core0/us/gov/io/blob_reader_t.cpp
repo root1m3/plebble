@@ -20,10 +20,12 @@
 //===-
 //===----------------------------------------------------------------------------
 //===-
-#include "blob_reader_t.h"
 #include <cstring>
+
 #include <us/gov/crypto/base58.h>
 #include <us/gov/io/cfg0.h>
+
+#include "blob_reader_t.h"
 
 #define loglevel "gov/io"
 #define logclass "blob_reader_t"

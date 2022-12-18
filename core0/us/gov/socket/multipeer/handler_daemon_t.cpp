@@ -20,14 +20,14 @@
 //===-
 //===----------------------------------------------------------------------------
 //===-
-#include "handler_daemon_t.h"
-
 #include <chrono>
 #include <sstream>
 
 #include <us/gov/socket/protocol.h>
 #include <us/gov/socket/peer_t.h>
 #include <us/gov/socket/daemon_t.h>
+
+#include "handler_daemon_t.h"
 
 #define loglevel "gov/socket/multipeer"
 #define logclass "handler_daemon_t"

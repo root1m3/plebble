@@ -62,65 +62,74 @@ if [[ "_$flagscode" != "_" ]]; then
     flagscode="_${flagscode}"
 fi
 
+shenvfile=`realpath ../core0/us/lib/shenv`
+
 for branddir in `find distr -maxdepth 1 -mindepth 1 -type d`; do
+    brand=$(basename $branddir)
+    if [[ ! -f distr/$brand/version ]]; then
+        continue
+    fi
     echo ""
     echo "branddir=$branddir"
-    brand=$(basename $branddir)
     echo "brand=$brand"
     echo "hash=$hash"
-    echo "find $branddir -name \"core_*_$hash.tar.zst\""
-    branch=`find $branddir -name "core_*_$hash.tar.zst" | sed "s#.*core_\(.*\)_${hash}.tar.zst#\1#"`
-    if [[ -f distr/$brand/bin/apply_blob ]]; then #any expected-to-be-there file
-        echo "brand $brand branch $branch hash $hash branddir $branddir"
-        pushd distr > /dev/null
-            blobdir="${brand}_${branch}_${hash}${flagscode}"
-            echo "blobdir=$blobdir"
-            rm -rf $blobdir
-            mkdir -p $blobdir
-            cp $brand/* $blobdir/ -R
-            if [[ ! -f $blobdir/doc/release_notes ]]; then
-                echo "KO 87945 missing release_notes."
-                exit 1
-            fi
-            if [[ ! -f $blobdir/doc/strset ]]; then
-                echo "KO 87946 missing strset file."
-                exit 1
-            fi
-            cp deps $blobdir/ -R
-            echo "Excluding OS Image"
-            rm -rf $blobdir/raspberry_pi
-            cp $blobdir/bin/install_blob /tmp/${brand}_install_blob
-            pushd $blobdir/wallet-cli > /dev/null
-                apk=`find . -type f -name "*.apk"`
-                echo "apk=$apk"
-                if [[ "_$apk" != "_" ]]; then
-                    apkhash=`us-wallet digest $apk`
-                    if [[ $? -ne 0 ]]; then
-                        echo "KO 89782 need a working us-wallet program."
-                        exit 1
-                    fi
-                    ln -s "$apk" blob.apk
-                    echo "$apkhash" > blobhash 
-                    echo "apkhash=$apkhash"
-                fi
-            popd > /dev/null 
-            echo "writing blobmake.sh"
-            pwd
-            ls ../snippet/blob_make.sh
-            echo "cp ../snippet/blob_make.sh $blobdir/make.sh"
-            cp ../snippet/blob_make.sh $blobdir/make.sh
-            chmod +x $blobdir/make.sh           
-            tar -I zstd -cf $blobdir.tzst $blobdir
-            mv $blobdir.tzst ../blobs/
-            mv /tmp/${brand}_install_blob ../blobs/
-            . $blobdir/doc/strset
-            rm -rf $blobdir
-            #write partid
-            echo "$str40" > ../blobs/${blobdir}.tzst.partid
-	    popd > /dev/null
-    else
-        echo "skipped distr/$brand"
+    #echo "find $branddir -name \"core_*_$hash.tar.zst\""
+    branch=`cat distr/${brand}/version | sed "s~\(.*\)_\(.*\)~\1~"`
+    hash2=`cat distr/${brand}/version | sed "s~\(.*\)_\(.*\)~\2~"`
+    if [[ "_$hash2" != "_$hash" ]]; then
+        echo "KO 71123 Inconsistent hashes."
+        exit 1
     fi
+#    branch=`find $branddir -name "core_*_$hash.tar.zst" | sed "s#.*core_\(.*\)_${hash}.tar.zst#\1#"`
+    echo "brand $brand branch $branch hash $hash branddir $branddir"
+    pushd distr > /dev/null
+        blobdir="${brand}_${branch}_${hash}${flagscode}"
+        echo "blobdir=$blobdir"
+        rm -rf $blobdir
+        mkdir -p $blobdir
+        cp -r $brand/* $blobdir/
+        if [[ ! -f $blobdir/doc/release_notes ]]; then
+            echo "KO 87945 missing release_notes."
+            exit 1
+        fi
+        if [[ ! -f $blobdir/doc/strset ]]; then
+            echo "KO 87946 missing strset file."
+            exit 1
+        fi
+        mkdir -p $blobdir/lib
+        cp $shenvfile $blobdir/lib/
+        cp -r deps $blobdir/
+        echo "Excluding OS Image"
+        rm -rf $blobdir/raspberry_pi
+        cp $blobdir/bin/install_blob /tmp/${brand}_install_blob
+        pushd $blobdir/wallet-cli > /dev/null
+            apk=`find . -type f -name "*.apk"`
+            echo "apk=$apk"
+            if [[ "_$apk" != "_" ]]; then
+                apkhash=`us-wallet digest $apk`
+                if [[ $? -ne 0 ]]; then
+                    echo "KO 89782 need a working us-wallet program."
+                    exit 1
+                fi
+                ln -s "$apk" blob.apk
+                echo "$apkhash" > blobhash 
+                echo "apkhash=$apkhash"
+            fi
+        popd > /dev/null 
+        echo "writing blobmake.sh"
+#        pwd
+        ls ../snippet/blob_make.sh
+        echo "cp ../snippet/blob_make.sh $blobdir/make.sh"
+        cp ../snippet/blob_make.sh $blobdir/make.sh
+        chmod +x $blobdir/make.sh           
+        tar -I zstd -cf $blobdir.tzst $blobdir
+        mv $blobdir.tzst ../blobs/
+        mv /tmp/${brand}_install_blob ../blobs/
+        . $blobdir/doc/strset
+        rm -rf $blobdir
+        #write partid
+        echo "$str40" > ../blobs/${blobdir}.tzst.partid
+    popd > /dev/null
 done
 
 echo ""

@@ -34,8 +34,8 @@ set -o pipefail
 arg=$1
 shift
 
-if [ "_${UPNPGOV}" == "_" ]; then
-    echo "Requires environment variables"
+if [[ "_${UPNPGOV}" == "_" ]]; then
+    >&2 echo "KO 87865 Requires environment variables"
     exit 1
 fi
 
@@ -44,20 +44,20 @@ function solvelan {
     if [[ "_$lan" != "_" ]]; then
         return
     fi
-    while [ true ]; do
-        as=`/usr/bin/upnpc -s | grep "Local LAN\|ExternalIPAddress" | sort | awk '{ print $NF }'`
+    while [[ true ]]; do
+        as=$(/usr/bin/upnpc -s | grep "Local LAN\|ExternalIPAddress" | sort | awk '{ print $NF }')
         PS=${PIPESTATUS[0]}
         test $PS -eq 0
-        if [ $? -ne 0 ]; then
+        if [[ $? -ne 0 ]]; then
             exit 0  #no upnp here
         fi
-        wan=`echo $as | awk '{print $1}'`
-        lan=`echo $as | awk '{print $2}'`
+        wan=$(echo $as | awk '{print $1}')
+        lan=$(echo $as | awk '{print $2}')
 
-        if [ "_$lan" != "_" ]; then
-        if [ "_$wan" != "_" ]; then
-            break
-        fi
+        if [[ "_$lan" != "_" ]]; then
+            if [[ "_$wan" != "_" ]]; then
+                break
+            fi
         fi
         sleep 1
         echo "retrying"
@@ -65,36 +65,35 @@ function solvelan {
 }
 
 function mapport {
-  port=$1
-  pport=$2
-  solvelan
-  if [ $pport -ne 0 ]; then
-    /usr/bin/upnpc -a $lan $port $pport TCP
-  fi
+    port=$1
+    pport=$2
+    solvelan
+    if [[ $pport -ne 0 ]]; then
+        /usr/bin/upnpc -a $lan $port $pport TCP
+    fi
 }
 
 function unmapport {
-  pport=$1
-  if [ $pport -ne 0 ]; then
+    pport=$1
+    if [[ $pport -ne 0 ]]; then
     /usr/bin/upnpc -d $pport TCP
-  fi
+    fi
 }
 
-if [ "_$arg" == "_map" ]; then
+if [[ "_$arg" == "_map" ]]; then
     port=$1
     pport=$2
     mapport ${port} ${pport}
     exit 0
 fi
 
-if [ "_$arg" == "_unmap" ]; then
+if [[ "_$arg" == "_unmap" ]]; then
     pport=$1
     unmapport ${pport}
     exit 0
 fi
 
-
-if [ "_$arg" == "_close" ]; then
+if [[ "_$arg" == "_close" ]]; then
     unmapport ${UPNPGOV}
     unmapport ${UPNPWALLET}
     unmapport ${UPNPHTTP}
@@ -104,7 +103,7 @@ if [ "_$arg" == "_close" ]; then
     exit 0
 fi
 
-if [ "_$UPNP" == "_on" ]; then
+if [[ "_$UPNP" == "_on" ]]; then
     mapport ${PORT} ${UPNPGOV}
     mapport ${WALLET_PORT} ${UPNPWALLET}
     mapport ${HTTP_PORT} ${UPNPHTTP}
@@ -114,3 +113,4 @@ if [ "_$UPNP" == "_on" ]; then
 fi
 
 exit 0
+

@@ -40,7 +40,7 @@ namespace us::gov::socket {
         qi(datagram*, client*);
         qi(const qi&) = delete;
         ~qi();
-        short skip{0};
+        short errcount{0};
     };
 
     struct priority_service {

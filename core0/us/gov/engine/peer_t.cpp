@@ -20,7 +20,6 @@
 //===-
 //===----------------------------------------------------------------------------
 //===-
-#include "peer_t.h"
 #include "daemon_t.h"
 #include "protocol.h"
 #include "net_daemon_t.h"
@@ -31,6 +30,7 @@
 #include "protocol.h"
 #include "net_daemon_t.h"
 #include "svcfish_t.h"
+#include "peer_t.h"
 
 #define loglevel "gov/engine"
 #define logclass "peer_t"

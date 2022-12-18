@@ -20,8 +20,8 @@
 //===-
 //===----------------------------------------------------------------------------
 //===-
-#include "neuralyzer_t.h"
 #include "daemon_t.h"
+#include "neuralyzer_t.h"
 
 #define loglevel "gov/engine"
 #define logclass "neuralyzer_t"

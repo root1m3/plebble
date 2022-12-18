@@ -133,7 +133,7 @@ namespace us::wallet::engine {
         users_t users;
         pushman pm;
         gov_rpc_daemon_t gov_rpc_daemon;
-        wallet::local_api* root_wallet;
+
     };
 
 }

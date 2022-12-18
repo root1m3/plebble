@@ -20,8 +20,8 @@
 //===-
 //===----------------------------------------------------------------------------
 //===-
-#include "app.h"
 #include "local_delta.h"
+#include "app.h"
 
 #define loglevel "gov/cash"
 #define logclass "app_tx"

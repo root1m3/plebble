@@ -20,27 +20,31 @@
 #===-
 #===----------------------------------------------------------------------------
 #===-
-OBJ:= socket
-CPPS:= $(wildcard *.cpp)
-OBJS:= $(patsubst %.cpp, %.o, $(CPPS))
-SUBOBJS:= single/socket_single.o multipeer/socket_multipeer.o outbound/socket_outbound.o
-HS:= $(wildcard *.h)
-INC:= ../../..
+OBJ:=socket
 CXXFLAGS=-O0 -g -std=c++20 -DDEBUG -Wno-psabi
+CPPS:=$(wildcard *.cpp)
+HS:=$(wildcard *.h)
+OBJS:=$(patsubst %.cpp, %.o, $(CPPS))
+DOBJS:=single/socket_single.o
+DOBJS+=multipeer/socket_multipeer.o
+DOBJS+=outbound/socket_outbound.o
+INC:=-I../../..
 
-${OBJ}.o: deps ${OBJS}
-	ld -r -o ${OBJ}.o ${OBJS} ${SUBOBJS}
+all: ${OBJ}.o
 
 %.o: %.cpp
-	$(CXX) -fPIC -Wno-psabi -c ${CXXFLAGS} $^ -pthread -I${INC} -o $@
+	$(CXX) -fPIC -Wno-psabi -c ${CXXFLAGS} $^ -pthread ${INC} -o $@
 
 deps:
 	@for a in $$(ls); do \
 	if [ -d $$a ]; then \
-	echo "====== directory $$a"; \
+	echo "==============directory socket/$$a"; \
 	$(MAKE) -C $$a; \
 	fi; \
 	done;
+
+${OBJ}.o: deps ${OBJS} 
+	ld -r ${DOBJS} ${OBJS} -o ${OBJ}.o
 
 clean:
 	@for a in $$(ls); do \
@@ -48,7 +52,7 @@ clean:
 	$(MAKE) -C $$a clean; \
 	fi; \
 	done;
-	rm -f *.o
+	$(RM) -f *.o
 
-.PHONY: deps all
+.PHONY: deps clean all
 

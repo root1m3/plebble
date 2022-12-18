@@ -616,11 +616,11 @@ void c::load_state() {
 }
 
 void c::save_state_() const { //assume mx is taken
-    log("saving active trades");
-    auto r = save(sername() + "_off"); // TODO: re-enable trades persistence
-    if (is_ko(r)) {
-        log("active trades could not be saved", sername());
-    }
+    log("saving active trades - SKIPPED");
+    //auto r = save(sername() + "_off"); // TODO: re-enable trades persistence
+    //if (is_ko(r)) {
+    //    log("active trades could not be saved", sername());
+    //}
 }
 
 void c::save_state() const { //assume mx is taken

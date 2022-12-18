@@ -76,7 +76,7 @@ str76=0                 #core2 R2R
 str77="bid2ask-ask bid2ask-bid"                #default R2R libs
 str78=16643             #HTTPS port
 str79=0                 #HTTPS server
-str80=1                 #enable sharding
+str80=0                 #enable sharding
 str81=32                #CFG_SHARD_SIZE
 str82="https://github.com/user/project"   #Repreducible builds URL
 str83=0                 #Android AppStore build; 0-no 1-yes
@@ -89,5 +89,6 @@ str95="" #default wallet_connections blob b58
 str96=""       #Guest Custodial wallets host URL
 str97=8        #api_v gov
 str98=10       #api_v wallet
-str99=6        #monotonic version fingerprint
+str99=9        #monotonic version fingerprint
+
 

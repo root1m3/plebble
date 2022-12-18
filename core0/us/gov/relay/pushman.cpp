@@ -20,11 +20,11 @@
 //===-
 //===----------------------------------------------------------------------------
 //===-
-#include "pushman.h"
 #include <us/gov/socket/datagram.h>
 #include <us/gov/io/blob_writer_t.h>
 
 #include "peer_t.h"
+#include "pushman.h"
 
 #define loglevel "gov/relay"
 #define logclass "pushman"

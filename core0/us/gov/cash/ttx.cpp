@@ -20,9 +20,8 @@
 //===-
 //===----------------------------------------------------------------------------
 //===-
-#include "ttx.h"
-
 #include "app.h"
+#include "ttx.h"
 
 #define loglevel "gov/cash"
 #define logclass "ttx"

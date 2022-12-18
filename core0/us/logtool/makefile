@@ -21,7 +21,6 @@
 #===----------------------------------------------------------------------------
 #===-
 CXXFLAGS=-O3 -std=c++20 -Wno-psabi
-CXX:=g++
 
 all: logtool
 
@@ -29,6 +28,6 @@ logtool: main.cpp
 	$(CXX) ${CXXFLAGS} main.cpp -lstdc++fs -o logtool
 
 clean:
-	rm -f logtool
+	$(RM) -f logtool
 
 .PHONY: all

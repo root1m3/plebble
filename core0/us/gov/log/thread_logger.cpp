@@ -20,12 +20,14 @@
 //===-
 //===----------------------------------------------------------------------------
 //===-
-#include "thread_logger.h"
-#include "task.h"
 #include <iostream>
+
 #include <us/gov/likely.h>
 #include <us/gov/config.h>
 #include <us/gov/stacktrace.h>
+
+#include "task.h"
+#include "thread_logger.h"
 
 using namespace std;
 using namespace us::dbg;

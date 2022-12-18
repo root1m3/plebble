@@ -20,8 +20,9 @@
 //===-
 //===----------------------------------------------------------------------------
 //===-
-#include "peer_t.h"
 #include <us/gov/socket/daemon0_t.h>
+
+#include "peer_t.h"
 
 #define loglevel "gov/auth"
 #define logclass "peer_t"

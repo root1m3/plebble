@@ -24,6 +24,8 @@
 branddir=$1
 branch=$2
 
+. lib/shenv
+
 dbg=0
 logs=0
 counters=0
@@ -38,9 +40,9 @@ function help {
 function findbrand {
     d=$1
     if [[ -d $d ]]; then
-        n=`find $d -maxdepth 1 -mindepth 1 -type d | wc -l`
+        n=$(find $d -maxdepth 1 -mindepth 1 -type d | wc -l)
         if [[ $n -eq 1 ]]; then
-            branddir=`find $d -maxdepth 1 -mindepth 1 -type d`
+            branddir=$(find $d -maxdepth 1 -mindepth 1 -type d)
             echo "selecting existing brand at $branddir"
         fi
 	fi
@@ -62,18 +64,18 @@ if [[ -f ../../.revs ]]; then
 fi
 
 if [[ "_$branddir" == "_" ]]; then
-    help
-    echo "KO 40307"
+    >&2 help
+    >&2 echo "KO 40307"
     exit 1
 fi
 
 if [[ "_$branch" == "_" ]]; then
-    help
-    echo "KO 46538"
+    >&2 help
+    >&2 echo "KO 46538"
     exit 1
 fi
 
-branddir=`realpath $branddir`
+branddir=$(realpath $branddir)
 
 echo "applying $branddir"
 echo "branch $branch"
@@ -91,33 +93,33 @@ function copyhash {
 }
 
 function patch_core {
-    branddir=$1
-    c0=$2
-    if [ -f $branddir/en-uk ]; then
+    branddir="$1"
+    c0="$2"
+    if [[ -f $branddir/en-uk ]]; then
         $c0/us/bin/override_env $c0/us/res/strings/en-uk $branddir/en-uk > $c0/us/res/strings/en-uk.ovr
     else
-      echo "KO 7060"
+      >&2 echo "KO 70600 "
       exit 1
     fi
-    if [ $dbg -eq 1 ]; then
-      sed -i 's~^str29=\(.*\)~str29=1~' $c0/us/res/strings/en-uk.ovr
+    if [[ $dbg -eq 1 ]]; then
+        sedi 's~^str29=\(.*\)~str29=1~' $c0/us/res/strings/en-uk.ovr
     else
-      sed -i 's~^str29=\(.*\)~str29=0~' $c0/us/res/strings/en-uk.ovr
+        sedi 's~^str29=\(.*\)~str29=0~' $c0/us/res/strings/en-uk.ovr
     fi
-    if [ $logs -eq 1 ]; then
-      sed -i 's~^str33=\(.*\)~str33=1~' $c0/us/res/strings/en-uk.ovr
+    if [[ $logs -eq 1 ]]; then
+        sedi 's~^str33=\(.*\)~str33=1~' $c0/us/res/strings/en-uk.ovr
     else
-      sed -i 's~^str33=\(.*\)~str33=0~' $c0/us/res/strings/en-uk.ovr
+        sedi 's~^str33=\(.*\)~str33=0~' $c0/us/res/strings/en-uk.ovr
     fi
-    if [ $counters -eq 1 ]; then
-      sed -i 's~^str41=\(.*\)~str41=1~' $c0/us/res/strings/en-uk.ovr
+    if [[ $counters -eq 1 ]]; then
+        sedi 's~^str41=\(.*\)~str41=1~' $c0/us/res/strings/en-uk.ovr
     else
-      sed -i 's~^str41=\(.*\)~str41=0~' $c0/us/res/strings/en-uk.ovr
+        sedi 's~^str41=\(.*\)~str41=0~' $c0/us/res/strings/en-uk.ovr
     fi
-    if [ $connlog -eq 1 ]; then
-      sed -i 's~^str42=\(.*\)~str42=1~' $c0/us/res/strings/en-uk.ovr
+    if [[ $connlog -eq 1 ]]; then
+        sedi 's~^str42=\(.*\)~str42=1~' $c0/us/res/strings/en-uk.ovr
     else
-      sed -i 's~^str42=\(.*\)~str42=0~' $c0/us/res/strings/en-uk.ovr
+        sedi 's~^str42=\(.*\)~str42=0~' $c0/us/res/strings/en-uk.ovr
     fi
     pushd $c0 > /dev/null
         pushd us > /dev/null
@@ -147,37 +149,37 @@ function patch_android {
     echo "us/android: replacing us.cash with: $str28"
     pushd $c0/us/android > /dev/null
         gradlename=${str28/./-}
-        sed -i "s/us-cash/$gradlename/g" settings.gradle
+        sedi "s/us-cash/$gradlename/g" settings.gradle
         pushd app > /dev/null
-            sed -i "s/applicationId \"us\.cash\"/applicationId \"$str28\"/" build.gradle
+            sedi "s/applicationId \"us\.cash\"/applicationId \"$str28\"/" build.gradle
             if [[ $? -ne 0 ]]; then
-                echo "KO 88796"
+                >&2 echo "KO 88796"
                 exit 1
             fi
-            sed -i "s#versionName \"0 28/03/2017\"#versionName \"$core0_version_name $core0_build_date\"#" build.gradle
+            sedi "s#versionName \"0 28/03/2017\"#versionName \"$core0_version_name $core0_build_date\"#" build.gradle
             if [[ $? -ne 0 ]]; then
-                echo "KO 88797"
+                >&2 echo "KO 88797"
                 exit 1
             fi
-            sed -i "s#versionCode 6#versionCode $core0_version_code#" build.gradle
+            sedi "s#versionCode 6#versionCode $core0_version_code#" build.gradle
             if [[ $? -ne 0 ]]; then
-                echo "KO 88798"
+                >&2 echo "KO 88798"
                 exit 1
             fi
             pushd src > /dev/null
                 find . -type f -name "*.java" -exec sed -i "s/package us\.cash;/package $str28;/g" {} \;
                 find . -type f -name "*.java.in" -exec sed -i "s/package us\.cash;/package $str28;/g" {} \;
-                sed -i "s/android:value=\"us\.cash\./android\:value=\"$str28./g" main/AndroidManifest.xml.in
+                sedi "s/android:value=\"us\.cash\./android\:value=\"$str28./g" main/AndroidManifest.xml.in
                 find . -type f -name "*.xml" -exec sed -i "s/us\.cash\./$str28./g" {} \;
                 pushd main/java  > /dev/null
-                    pkgdir=`echo $str28 | sed "s#\.#/#g"`
-                    if [ ! -d $pkgdir ]; then
+                    pkgdir=$(echo $str28 | sed "s#\.#/#g")
+                    if [[ ! -d $pkgdir ]]; then
                         mkdir tmp
                         mv us/cash/* tmp/
                         rm us* -r
                         mkdir -p $pkgdir
                         mv tmp/* $pkgdir/
-            rmdir tmp
+                        rmdir tmp
                     fi
                 popd > /dev/null
             popd > /dev/null
@@ -189,12 +191,12 @@ tf=$(mktemp /tmp/override_env.XXXXXX)
 echo "" > $tf
 
 #just to pick the brand name
-if [ -f $branddir/en-uk ]; then
+if [[ -f $branddir/en-uk ]]; then
     echo "overriding env"
     . $branddir/en-uk
 else
-    echo "KO 50095 en-uk missing"
-    rm $tf -f
+    >&2 echo "KO 50095 en-uk missing"
+    rm -f $tf
     exit 1
 fi
 brand=$str3
@@ -203,41 +205,41 @@ out=brand_$brand
 rm -rf $out
 mkdir $out
 pushd $out > /dev/null
-    url=`git config --get remote.origin.url`
+    url=$(git config --get remote.origin.url)
     git clone -b $branch --single-branch $url rep
-    if [ $? -ne 0 ]; then
-        echo "KO 50128 Invalid url or branch"
+    if [[ $? -ne 0 ]]; then
+        >&2 echo "KO 50128 Invalid url or branch"
         exit 1
     fi
     c0=rep/core0
     pushd $c0/us > /dev/null
-    . res/strings/en-uk
-        if [ -f $branddir/en-uk ]; then
+        . res/strings/en-uk
+        if [[ -f $branddir/en-uk ]]; then
             echo "overriding env"
             bin/override_env res/strings/en-uk $branddir/en-uk > $tf
         else
-            echo "KO 7040"
+            >&2 echo "KO 7040"
             rm -f $tf
             exit 1
         fi
     popd > /dev/null
     . $tf
-    if [ $dbg -eq 1 ]; then
+    if [[ $dbg -eq 1 ]]; then
         str29=1
     else
         str29=0
     fi
-    if [ $logs -eq 1 ]; then
+    if [[ $logs -eq 1 ]]; then
         str33=1
     else
         str33=0
     fi
-    if [ $counters -eq 1 ]; then
+    if [[ $counters -eq 1 ]]; then
         str41=1
     else
         str41=0
     fi
-    if [ $connlog -eq 1 ]; then
+    if [[ $connlog -eq 1 ]]; then
         str42=1
     else
         str42=0
@@ -255,9 +257,9 @@ pushd $out > /dev/null
         popd > /dev/null
     popd > /dev/null
     echo "patch core"
-    patch_core $branddir $c0
+    patch_core "$branddir" "$c0"
     echo "patch android"
-    patch_android $branddir $c0
+    patch_android "$branddir" "$c0"
     rm rep/.git -rf
     mv $c0/us .
     rm rep -r

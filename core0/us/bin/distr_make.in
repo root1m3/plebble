@@ -22,19 +22,32 @@
 #===----------------------------------------------------------------------------
 #===-
 
+###################################################################
+#blob location: tft_alpha-53_7-8d558b/core/x86_64/bin/tft_distr_make
+#pwd: -------------------------------------------^
+###################################################################
+
 distr=$1
 target=$2
 prefix=$3
 jaildir=$4
 
+if [[ ! -f ${distr}/lib/shenv ]]; then
+    >&2 pwd
+    >&2 echo "KO 69532 ${distr}/lib/shenv not found."
+    exit 1
+fi
+
+. ${distr}/lib/shenv
+
 JAILDIR=""
-if [ "_$jaildir" != "_" ]; then
+if [[ "_$jaildir" != "_" ]]; then
     mkdir -p $jaildir
     JAILDIR=$(realpath $jaildir)
 fi
 
-if [ "_$prefix" != "_" ]; then
-    if [ "_$JAILDIR" != "_" ]; then
+if [[ "_$prefix" != "_" ]]; then
+    if [[ "_$JAILDIR" != "_" ]]; then
         PREFIX=$JAILDIR$prefix #preix must be absolute dir
     else
         PREFIX=$(realpath $prefix)
@@ -82,14 +95,14 @@ function clean_deprecated {
 function regenerate_motd {
     cat etc/motd_hdr > $JAILDIR/etc/motd
     while read -r line; do
-        us=`echo $line | awk '{print $2}'`
-        if [ -f $JAILDIR/var/${us}_motd ]; then
+        us=$(echo $line | awk '{print $2}')
+        if [[ -f $JAILDIR/var/${us}_motd ]]; then
             cat $JAILDIR/var/${us}_motd >> $JAILDIR/etc/motd
         fi
     done < $JAILDIR/var/us_nets
 }
 
-if [ "_$target" == "_" ]; then
+if [[ "_$target" == "_" ]]; then
     echo "$0 <dist dir> <install|install-nginx|install-system-base> <prefix> <jaildir>"
     echo "  defaults: prefix=<jaildir>/usr/local"
     echo "            jaildir=\"\""
@@ -97,7 +110,7 @@ fi
 
 function init_jail {
     if [[ "_${JAILDIR}" == "_" ]]; then
-        echo "KO 30178: jaildir init failed."
+        >&2 echo "KO 30178 jaildir init failed."
         exit 1
     fi
     if [[ -f /home/${GOVUSER}/.${US}/config ]]; then
@@ -137,10 +150,10 @@ function init_jail {
         cp /var/${US}/ush_config ${JAILDIR}/var/${US}/
     fi
     if [[ -f ${JAILDIR}/var/us_nets ]]; then
-        ch=`cat ${JAILDIR}/var/us_nets | grep " $blob_brand " | awk '{print $1}'`
-        if [ "_$ch" != "_" ]; then
+        ch=$(cat ${JAILDIR}/var/us_nets | grep " $blob_brand " | awk '{print $1}')
+        if [[ "_$ch" != "_" ]]; then
             ushome="/home/${GOVUSER}/.${US}"
-            if [ "_$ch" != "_0" ]; then
+            if [[ "_$ch" != "_0" ]]; then
                 ushome="$ushome/$ch"
             fi
             whome="$ushome/wallet"
@@ -164,9 +177,9 @@ if [[ "_${JAILDIR}" != "_" ]]; then
     init_jail
 fi
 
-if [ "_$target" == "_install" ]; then
+if [[ "_$target" == "_install" ]]; then
     mkdir -p ${JAILDIR}/tmp
-    pushd $distr > /dev/null
+    pushd ${distr} > /dev/null
         # pre/post-install-system-base
         echo "#!/bin/bash -x" > ${JAILDIR}/tmp/pre-install
         echo "#!/bin/bash -x" > ${JAILDIR}/tmp/post-install
@@ -258,7 +271,7 @@ EOF
         echo "written ${JAILDIR}${DATADIR0}/wallet/config"
 
         . ${JAILDIR}${DATADIR0}/config  #User selected channel now in env
-        if [ $CHANNEL -ne 0 ]; then
+        if [[ $CHANNEL -ne 0 ]]; then
             DATADIR=${DATADIR0}/${CHANNEL}
         else
             DATADIR=${DATADIR0}
@@ -266,8 +279,8 @@ EOF
         mkdir -p ${JAILDIR}${DATADIR}
 
         # seed nodes - /home/gov/.us[|/channel]/gov/nodes
-        if [ -f etc/nodes.distr${CHANNEL} ]; then
-            n=`cat etc/nodes.distr${CHANNEL} | wc -l`
+        if [[ -f etc/nodes.distr${CHANNEL} ]]; then
+            n=$(cat etc/nodes.distr${CHANNEL} | wc -l)
             echo "$n seed nodes"
             mkdir -p ${JAILDIR}${DATADIR}/gov
             cp etc/nodes.distr${CHANNEL} ${JAILDIR}${DATADIR}/gov/nodes.distr
@@ -309,8 +322,8 @@ EOF
 
         # post-install
         cat << EOF >> ${JAILDIR}/tmp/post-install
-chown ${GOVUSER}:${GOVUSER} /var/log/${US} -R
-chown ${GOVUSER}:${GOVUSER} ${DATADIR0} -R
+chown -R ${GOVUSER}:${GOVUSER} /var/log/${US}
+chown -R ${GOVUSER}:${GOVUSER} ${DATADIR0}
 EOF
 
         # exec post-install
@@ -327,7 +340,7 @@ EOF
     echo "done."
 fi
 
-if [ "_$target" == "_install-system-base" ]; then
+if [[ "_$target" == "_install-system-base" ]]; then
     mkdir -p ${JAILDIR}/tmp
     pushd $distr > /dev/null
         if [[ "_${JAILDIR}" == "_" ]]; then
@@ -344,7 +357,8 @@ if [ "_$target" == "_install-system-base" ]; then
         # system dependencies
         #
         if [[ ${TORSERVER} -eq 0 ]]; then
-            echo "systemctl stop tor" >> ${JAILDIR}/tmp/pre-install-system-base
+            write_systemctl stop tor >> ${JAILDIR}/tmp/pre-install-system-base
+            #echo "systemctl stop tor" >> ${JAILDIR}/tmp/pre-install-system-base
         fi
 
         # exec pre-install-system-base
@@ -425,7 +439,7 @@ EOF
         cat ${JAILDIR}$file | grep -v ".* #${US}" > $tf  #deprecate since alpha-29.20
         #cat ${JAILDIR}$file | grep -v ".* #${US}-distr_make" > $tf
         if [[ ${SSH_DEV} -eq 1 ]]; then
-            let n22=`cat $tf | grep "^Port 22" | wc -l`
+            let n22=$(cat $tf | grep "^Port 22" | wc -l)
             if [[ $n22 -eq 0 ]]; then
                 echo "Port 22 #${US}-distr_make" >> $tf  #leave 22 active if there wasn't any port specified already
             fi
@@ -434,7 +448,7 @@ EOF
         echo "PasswordAuthentication yes #${US}-distr_make" >> $tf
         mv $tf ${JAILDIR}$file
         echo "chmod 644 $file" >> ${JAILDIR}/tmp/post-install-system-base
-        echo "systemctl restart ssh" >> ${JAILDIR}/tmp/post-install-system-base
+        write_systemctl restart sshd >> ${JAILDIR}/tmp/post-install-system-base
 
         #
         # /etc/systemd
@@ -479,14 +493,8 @@ EOF
 
         # /home/gov/downloads
         mkdir -p ${JAILDIR}${GOVHOME}/downloads
-        echo "chown ${GOVUSER}:${GOVUSER} ${GOVHOME}/ -R" >> ${JAILDIR}/tmp/post-install-system-base
-        echo "chown ${GOVUSER}:${GOVUSER} ${GOVHOME}/.[^.]* -R" >> ${JAILDIR}/tmp/post-install-system-base
-        #TODO remove this fix. v alpha-29.20 chowned gov all dirs under /home
-        for f in `find /home -maxdepth 1 -mindepth 1 -type d`; do
-           n=$(basename $f)
-           echo $n
-           echo "chown $n.$n /home/$n -R" >> ${JAILDIR}/tmp/post-install-system-base
-        done
+        echo "chown -R ${GOVUSER}:${GOVUSER} ${GOVHOME}/" >> ${JAILDIR}/tmp/post-install-system-base
+        echo "chown -R ${GOVUSER}:${GOVUSER} ${GOVHOME}/.[^.]*" >> ${JAILDIR}/tmp/post-install-system-base
 
         #echo "chown ${GOVUSER}.${GOVUSER} ${GOVHOME}/downloads -R" >> ${JAILDIR}/tmp/post-install-system-base
         #echo "chown ${GOVUSER}.${GOVUSER} ${GOVHOME}/.bash_aliases" >> ${JAILDIR}/tmp/post-install-system-base
@@ -548,8 +556,8 @@ EOF
 
             cat << EOF >> ${JAILDIR}/tmp/post-install-system-base
 chmod 700 -R /var/lib/tor/${US}_hidden
-chown debian-tor:debian-tor /var/lib/tor/${US}_hidden -R
-systemctl restart tor
+chown -R debian-tor:debian-tor /var/lib/tor/${US}_hidden
+$(write_systemctl restart tor)
 EOF
         else
 
@@ -568,7 +576,7 @@ EOF
         #TODO: not overwrite existing conf if pinned
         let rewrite_http_conf=1
         if [[ -f ${JAILDIR}/etc/nginx/sites-available/${US}.conf ]]; then
-            au=`cat ${JAILDIR}/etc/nginx/sites-available/${US}.conf | grep "^#--${US}: AUTOUPDATE " | sed "s/.*AUTOUPDATE \([01]\).*/\1/"`
+            au=$(cat ${JAILDIR}/etc/nginx/sites-available/${US}.conf | grep "^#--${US}: AUTOUPDATE " | sed "s/.*AUTOUPDATE \([01]\).*/\1/")
             if [[ "_$au" == "_0" ]]; then
                 let rewrite_http_conf=0
             fi
@@ -614,9 +622,9 @@ EOF
         rm $tf
 
         cat << EOF >> ${JAILDIR}/tmp/post-install-system-base
-chown ${GOVUSER}:${GOVUSER} /var/log/${US} -R
+chown -R ${GOVUSER}:${GOVUSER} /var/log/${US}
 systemctl enable nginx
-systemctl restart nginx
+$(write_systemctl restart nginx)
 if [[ -f /usr/sbin/ldconfig ]]; then
     /usr/sbin/ldconfig
 else
@@ -639,7 +647,7 @@ EOF
     popd > /dev/null
 fi
 
-if [ "_$target" == "_install-dev" ]; then
+if [[ "_$target" == "_install-dev" ]]; then
     pushd $distr > /dev/null
         echo "PREFIX=${PREFIX}"
         echo "INCDIR=${INCDIR}"

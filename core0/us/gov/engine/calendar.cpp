@@ -20,9 +20,9 @@
 //===-
 //===----------------------------------------------------------------------------
 //===-
-#include "calendar.h"
 #include "evidence.h"
 #include "app.h"
+#include "calendar.h"
 
 #define loglevel "engine"
 #define logclass "calendar"

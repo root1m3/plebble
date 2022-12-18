@@ -20,8 +20,9 @@
 //===-
 //===----------------------------------------------------------------------------
 //===-
-#include "votes_t.h"
 #include <set>
+
+#include "votes_t.h"
 
 #define loglevel "gov/engine"
 #define logclass "votes_t"

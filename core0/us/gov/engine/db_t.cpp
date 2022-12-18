@@ -20,15 +20,14 @@
 //===-
 //===----------------------------------------------------------------------------
 //===-
-#include "db_t.h"
-
 #include <us/gov/config.h>
 #include <us/gov/sys/app.h>
 #include <us/gov/cash/app.h>
 #include <us/gov/traders/app.h>
+#include <us/gov/engine/auth/app.h>
 
 #include "daemon_t.h"
-#include "auth/app.h"
+#include "db_t.h"
 
 #define loglevel "gov/engine"
 #define logclass "db_t"

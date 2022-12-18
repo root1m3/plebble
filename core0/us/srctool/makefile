@@ -26,5 +26,5 @@ all:
 	$(CXX) main.cpp -o srctool
 
 clean:
-	rm -f srctool
+	$(RM) -f srctool
 

@@ -20,11 +20,11 @@
 //===-
 //===----------------------------------------------------------------------------
 //===-
-#include "daemon_t.h"
 #include <fcntl.h>
 
 #include "outbound/caller_daemon_t.h"
 #include "types.h"
+#include "daemon_t.h"
 
 #define loglevel "gov/socket"
 #define logclass "daemon_t"

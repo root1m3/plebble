@@ -1767,6 +1767,9 @@ void c::load_state(const hash_t& tid) {
 }
 
 void c::save_state() const {
+    log("save_state - SKIPPED");
+    return;
+
     if (id.is_zero()) {
         return;
     }

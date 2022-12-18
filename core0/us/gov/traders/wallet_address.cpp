@@ -20,8 +20,6 @@
 //===-
 //===----------------------------------------------------------------------------
 //===-
-#include "wallet_address.h"
-
 #include <thread>
 #include <chrono>
 #include <iostream>
@@ -33,6 +31,7 @@
 
 #include "app.h"
 #include "types.h"
+#include "wallet_address.h"
 
 #define loglevel "gov/traders"
 #define logclass "wallet_address"

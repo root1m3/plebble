@@ -20,10 +20,11 @@
 //===-
 //===----------------------------------------------------------------------------
 //===-
-#include "caller_daemon_t.h"
 #include <us/gov/likely.h>
 #include <us/gov/socket/datagram.h>
 #include <us/gov/socket/client.h>
+
+#include "caller_daemon_t.h"
 
 #define loglevel "gov/socket/outbound"
 #define logclass "send_queue_t"
@@ -131,7 +132,7 @@ void c::resume_clients_() {
     uint64_t now = duration_cast<nanoseconds>(system_clock::now().time_since_epoch()).count();
     auto i = attic.begin();
     while (i != attic.end()) {
-        if (now-i->first < attic_t::min_age) {
+        if ((now - i->first) < attic_t::min_age) {
             log("client needs more holding time.", i->second->endpoint());
             break;
         }
@@ -258,7 +259,11 @@ void c::run_send() {
         int n = ::send(d->second->sock, d->first->data() + d->first->dend, sz, MSG_NOSIGNAL);
         busyled.reset();
         if (likely(n >= 0)) {
-            d->skip = 0;
+            if (d->errcount > 0) {     //--strip
+                log("Recovering after", d->errcount, "consecutive errors."); //--strip
+            } //--strip
+            d->errcount = 0;
+//            d->skip = 0;
             log("::send fd ", d->second->sock, "sz", sz, "returned", n);
             d->first->dend += n;
             log("sent", n, "to", d->second->endpoint(), "progress", d->first->dend, "/", d->first->size(), '[', (100.0*((float)d->first->dend)/((float)(d->first->size()))), "%]");
@@ -281,13 +286,17 @@ void c::run_send() {
         #if CFG_COUNTERS == 1
             ++dropped;
         #endif
-        log("EINPROGRESS=", EINPROGRESS, "EAGAIN=", EAGAIN);
-        log("errno", errno, strerror(errno), "skip count", d->skip);
+        log("info constants: EINPROGRESS=", EINPROGRESS, "EAGAIN=", EAGAIN);
+        log("errno", errno, strerror(errno), "errcount count", d->errcount);
         switch(errno) {
             case EINPROGRESS:
             case EAGAIN:
                 log("temp error");
                 hold(d->second);
+                if (++d->errcount >= 255) {
+                    log("disconnect after errcount maxed.");
+                    d->second->disconnect(0, "");
+                }
                 continue;
             case EBADF: //9 Bad file descriptor
             case EPIPE: //32 Broken pipe

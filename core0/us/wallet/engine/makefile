@@ -20,23 +20,23 @@
 #===-
 #===----------------------------------------------------------------------------
 #===-
-OBJ := libengine
-CPPS := $(wildcard *.cpp)
-OBJS := $(patsubst %.cpp, %.o, $(CPPS))
-HS := $(wildcard *.h)
-INC := ../../..
+OBJ:=libengine
 CXXFLAGS = -O0 -g -std=c++20 -DDEBUG
-
-.PHONY: all clean
+CPPS:=$(wildcard *.cpp)
+OBJS:=$(patsubst %.cpp, %.o, $(CPPS))
+HS:=$(wildcard *.h)
+INC:= ../../..
 
 all: ${OBJ}.o
-
-${OBJ}.o: ${OBJS}
-	ld -r -o ${OBJ}.o ${OBJS}
 
 %.o: %.cpp
 	$(CXX) -fPIC -c ${CXXFLAGS} -I${INC} $^ -o $@
 
+${OBJ}.o: ${OBJS}
+	ld -r ${OBJS} -o ${OBJ}.o
+
 clean:
-	rm *.o -f
+	$(RM) -f *.o
+
+.PHONY: all clean
 

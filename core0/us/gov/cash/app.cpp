@@ -20,8 +20,6 @@
 //===-
 //===----------------------------------------------------------------------------
 //===-
-#include "app.h"
-
 #include <random>
 #include <fstream>
 #include <thread>
@@ -46,6 +44,7 @@
 #include "safe_deposit_box.h"
 #include "delta.h"
 #include "types.h"
+#include "app.h"
 
 #define loglevel "gov/cash"
 #define logclass "app"

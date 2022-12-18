@@ -24,19 +24,30 @@
 
 function help {
     cat << EOF
-$0 new <brand_seed_dir>      Create a New brand. If the brand is not new it will ask before rewriting parts.
-$0 gen_strset <brand_seed_dir>
-$0 upload_bde_setup <brand_seed_dir>
-$0 gen_bookmarks <brand_seed_dir>
+New/update:
+    $0 update <brand_seed_dir>      Update an existing brand or create a New brand. If the brand is not new it will ask before rewriting parts.
+
+strtset:
+    $0 gen_strset <brand_seed_dir>
+
+BDE - Brand Distribution End. bde_setup:
+    $0 gen_bde_setup <brand_seed_dir>
+    $0 upload_bde_setup <brand_seed_dir>
+    $0 exec_bde_setup <brand_seed_dir>    Runs remotelly bde_setup
+
+Bookmarks:
+    $0 gen_bookmarks <brand_seed_dir>
 EOF
 }
+
+. lib/shenv
 
 cmd=$1
 shift
 
 if [[ -z $cmd ]]; then
     help
-    echo "KO 67768 command required."
+    >&2 echo "KO 67768 command required."
     exit 1
 fi
 
@@ -45,37 +56,38 @@ bseed=${brand_seed_dir}/strset0
 shift
 if [[ ! -f $bseed ]]; then
     help
-    echo "KO 67760 ${brand_seed_dir}/strset0 required"
+    >&2 echo "KO 67760 ${brand_seed_dir}/strset0 required"
     exit 1
 fi
 
 . $bseed
-if [[ -z $subdomain ]]; then
+if [[ ! -z $subdomain ]]; then
     nodes_domain="${subdomain}.${domain}"
 else
     nodes_domain="${domain}"
 fi
+echo "nodes_domain=$nodes_domain"
 brand=${unixname}
 
 if [[ -z $brand ]]; then
-    echo "KO 67770 brand unixname is empty."
+    >&2 echo "KO 67770 brand unixname is empty."
     exit 1
 fi
 
 if [[ -f ./.cbs/config ]]; then
     . ./.cbs/config
 else
-    echo "KO 85851 Missing .cbs/config."
+    >&2 echo "KO 85851 Missing .cbs/config."
     exit 1
 fi
 
 if [[ ! -d $keyroot ]]; then
-    echo "KO 25851 keyroot $keyroot is not accessible."
+    >&2 echo "KO 25851 keyroot $keyroot is not accessible."
     exit 1
 fi
 
 if [[ -z ${brands} ]]; then
-    echo "KO 67471 brands is empty."
+    >&2 echo "KO 67471 brands is empty."
     exit 1
 fi
 
@@ -119,33 +131,125 @@ EOF
 }
 
 function check_working_wallet {
-    ${us}-wallet id > /dev/null
+    su ${GOVUSER} -c "${us}-wallet id" > /dev/null
     if [[ $? -ne 0 ]]; then
-        echo "KO 12795 need a working ${us}-wallet"
+        >&2 echo "KO 12795 need a working ${us}-wallet"
         exit 1
     fi
 }
 
-function gen_strset {
-    brand_blobid=`${us}-wallet gen_keys | tail -n1 | awk '{ print $NF }' | cut -c 1-8`
-    if [[ $? -ne 0 ]]; then
-        echo "KO 49987 ${us}-wallet gen_keys failed"
+wallet_connection=""
+custodial_host=""
+
+function gen_wallet_connections_actors {
+    echo "gen_wallet_connections_actors"
+    if [[ ! -d ${brand_seed_dir}/bde_data/wallet/template ]]; then
+        >&2 echo "KO 78968 no wallet templates found in ${brand_seed_dir}/bde_data/wallet/template"
         exit 1
     fi
-    android_blobid=`${us}-wallet gen_keys | tail -n1 | awk '{ print $NF }' | cut -c 1-8`
-    copyrightline="2017-2022 ${company}. ${company_url}"
-    wallet_connection=""
-    custodial_host=""
-    if [[ ${custodial_server} -eq 1 ]]; then
+    wcs=$(mktemp /tmp/wallet_connections.XXXXXX)
+    chown gov $wcs
+    echo "wcs=$wcs"
+
+    for roledir in $(find -L ${brand_seed_dir}/bde_data/wallet/template -mindepth 1 -maxdepth 1 -type d); do
+        echo "    roledir=$roledir"
+        role=$(basename $roledir)
+        echo "    role=$role"
+        rolevar="$(echo "$role" | tr '-' '_')"
+        var=name_role_template__${rolevar}
+        echo "    var=$var"
+        name=${!var}
+        if [[ "_$name" == "_" ]]; then
+            echo "WARNING: $roledir requires variable $var be set in strset0. using name: $role"
+            name="$role"
+        fi
+        echo "    name=$name"
+        wc=$(su ${GOVUSER} -c "$us-wallet make_wallet_connection ${bde_ip} 16673 ${channel} \"Wallet for $name\" \"new $role\"")
+        echo "    wc=$wc"
+        echo "A0: $us-wallet decode_wallet_connection $wc"
+        su ${GOVUSER} -c "$us-wallet decode_wallet_connection $wc"
+        if [[ $? -ne 0 ]]; then
+            >&2 echo "KO 78692"
+            exit 1
+        fi
+        echo "B0: $us-wallet wallet_connections_add $wcs $wc"
+        su ${GOVUSER} -c "$us-wallet wallet_connections_add $wcs $wc"
+        if [[ $? -ne 0 ]]; then
+            >&2 echo "KO 78691"
+            exit 1
+        fi
+    done
+    echo su ${GOVUSER} -c "$us-wallet encode $wcs"
+    wallet_connection=$(su ${GOVUSER} -c "$us-wallet encode $wcs")
+    if [[ $? -ne 0 ]]; then
+        >&2 echo "KO 78693"
+        exit 1
+    fi
+    rm $wcs
+
+    echo "Summary of wallet connections blob: $wallet_connection"
+    echo "-----------------------------------"
+    su ${GOVUSER} -c "$us-wallet decode_wallet_connections $wallet_connection"
+
+}
+
+function gen_wallet_connections {
+    echo "gen_wallet_connections"
+    if [[ ${custodial_server} -eq 0 ]]; then
+        wallet_connection=$(su ${GOVUSER} -c "$us-wallet make_wallet_connection ${bde_ip} 16673 ${channel} \"Custodial Wallet at ${custodial_server_name}\"")
+    else
         custodial_host="https://custodial.${nodes_domain}"
-        wallet_connection=`$us-wallet make_wallet_connection ${bde_ip} 16673 ${channel} "${custodial_server_name} Custodial Wallet"`
+        gen_wallet_connections_actors
+    fi
+}
+
+function gen_strset {
+    destfile=$1
+
+    if [[ "_${origblob_brand}" != "_" ]]; then
+        if [[ "_${origblob_android}" == "_" ]]; then
+            >&2 echo "KO 58493 unexpected"
+            exit 1
+        fi
+        #new brand
+        brand_blobid=$(su ${GOVUSER} -c "${us}-wallet gen_keys" | tail -n1 | awk '{ print $NF }' | cut -c 1-8)
+        if [[ $? -ne 0 ]]; then
+            >&2 echo "KO 49987 ${us}-wallet gen_keys failed"
+            exit 1
+        fi
+        android_blobid=$(su ${GOVUSER} -c "${us}-wallet gen_keys" | tail -n1 | awk '{ print $NF }' | cut -c 1-8)
+        if [[ $? -ne 0 ]]; then
+            >&2 echo "KO 49987 ${us}-wallet gen_keys failed"
+            exit 1
+        fi
+    else
+        #update brand
+        if [[ ! -f ${brand_dir}/en-uk ]]; then
+            >&2 echo "KO 78649 "
+            exit 1
+        fi
+        . ${brand_dir}/en-uk
+        brand_blobid="${str40}"
+        android_blobid="${str56}"
     fi
 
-    cat << EOF
+
+    copyrightline="2017-2022 ${company}. ${company_url}"
+
+    govaddr
+
+    gen_wallet_connections
+
+    columns="32"
+    #wline=$(printf "%*s%*s" $(( (${#mmsg} + columns) / 2)) "mmsg" $(( (${#mmsg} + columns) / 2)) '')
+    wline=$(printf "%*s%*s" "$(((${columns} + ${#title})/2))" "$title" "$(((${columns} - ${#title})/2))" '')
+
+
+    cat << EOF > $destfile
 str1="$title" #title
-str2="$email" #author's email
+str2="${developer_email}" #author's email
 str3="$unixname" #OS image filename
-str4="-------             $title             -------" #motd
+str4="-------${wline}-------" #motd
 str5="${unixname}" #node hostname
 str6=${channel} #Channel                                                  #Channel: 0-mainnet; 1-testnet; 2-localnet
 str10="ysMCfLj9wt9ZdaaRaNtCS2WUJh8T5kvrh4ihHARKiTH1" #Automatic Updates Subscription PubKey. Used for verifying binaries.
@@ -160,30 +264,27 @@ str48="" #ACRA connection string. url-login-password
 str56="${android_blobid}" #Android app blob id
 str59="${copyrightline}" #copyright line
 str63="This program comes with LIMITED WARRANTY. For details type 'show w'." #copyright cmd line1
-str64="You should have a license in order to use this software issued by ${title}. Type 'show c' for details." #copyright cmd line2
+str64="${license_terms}. Type 'show c' for details." #copyright cmd line2
 str65="http://bde.${nodes_domain}:16680" #distr_node_url
 str66="${node_gov_addr}" #distr_node_pkh
-str67="${bde_ip}:16680 " #Seeds; Use bin/gen_http_nodes
+str67="${str67}" #Seeds; Use bin/gen_http_nodes
 str68="${nodes_domain}" #bind-domain
 str69="bde.${nodes_domain}"       #BDE IP Address. BrandDistributionEnd
-str70="" #bindMX1
-str71="" #bindMX2 
+str70="${bindMX1}" #bindMX1
+str71="${bindMX2}" #bindMX2 
 str73=0                 #TOR_ENABLED
 str74=1                 #HTTP_ENABLED
 str75=1                 #BIND_ENABLED
 str76=1                 #core2 R2R
 str77="${default_r2r_libs}"                #default R2R libs
 str79=0                 #HTTPS server
-str80=0                 #enable sharding
-str82="https://${nodes_domain}/releases"   #Reproducible builds URL
-str82="${github}"
+str82="${github}"   #Reproducible builds URL
 str91="${full_description}" #frontend bz about
 str92=${foss}                 #FOSS
 str93="${company_url}"                #Origin landing page
 str95="${wallet_connection}"  #default wallet_connection blob b58
 str96="${custodial_host}"       #Guest Custodial wallets host URL
 EOF
-
 }
 
 node_gov_k=""
@@ -191,33 +292,63 @@ node_gov_addr=""
 node_wallet_k=""
 node_wallet_addr=""
 
+function govsk {
+    if [[ ! -z ${node_gov_k} ]]; then
+        return
+    fi
+    node_gov_k=$(cat ${brandkeyroot}/govk)
+    if [[ $? -ne 0 ]]; then
+        >&2 echo "KO 45814 cannot retrieve node_gov_k from ${brandkeyroot}/govk"
+        exit 1
+    fi
+    if [[ -z ${node_gov_k} ]]; then
+        >&2 echo "KO 45916 cannot load ${brandkeyroot}/govk."
+        exit 1
+    fi
+}
+
+function govaddr {
+    if [[ ! -z ${node_gov_addr} ]]; then
+        return
+    fi
+    govsk
+    node_gov_addr=$(su ${GOVUSER} -c "${us}-wallet priv_key ${node_gov_k}" | grep "^addr " | awk '{ print $2 }')
+    if [[ $? -ne 0 ]]; then
+        >&2 echo "KO 75923 cannot generate addr from node_gov_k"
+        exit 1
+    fi
+}
+
 function gen_govk {
-    echo "gen_govk"
-    if [[ ! -f ${brandkeyroot}/govk ]]; then
-        node_gov_k=`${us}-wallet gen_keys | grep "^priv " | awk '{ print $2 }'`
+    echo -n "Gen gov k (${brandkeyroot}/govk)? [y/n]"
+    read a
+    if [[ $a != "y" ]]; then
+        node_gov_k=$(cat ${brandkeyroot}/govk)
         if [[ $? -ne 0 ]]; then
-            echo "KO 45925 cannot create node_gov_k"
+            >&2 echo "KO 42924 cannot retrieve node_gov_k from ${brandkeyroot}/govk"
+            exit 1
+        fi
+        return
+    fi
+    if [[ ! -f ${brandkeyroot}/govk ]]; then
+        node_gov_k=$(su ${GOVUSER} -c "${us}-wallet gen_keys" | grep "^priv " | awk '{ print $2 }')
+        if [[ $? -ne 0 ]]; then
+            >&2 echo "KO 45925 cannot create node_gov_k"
             exit 1
         fi
         if [[ -z ${node_gov_k} ]]; then
-            echo "KO 45926 cannot create node_gov_k. empty. wallet working ok?"
+            >&2 echo "KO 45926 cannot create node_gov_k. empty. wallet working ok?"
             exit 1
         fi
         echo "${node_gov_k}" > ${brandkeyroot}/govk
-    else
-        node_gov_k=`cat ${brandkeyroot}/govk`
-        if [[ $? -ne 0 ]]; then
-            echo "KO 45924 cannot retrieve node_gov_k from ${brandkeyroot}/govk"
-            exit 1
-        fi
-        if [[ -z ${node_gov_k} ]]; then
-            echo "KO 45926 cannot load ${brandkeyroot}/govk."
-            exit 1
-        fi
     fi
-    node_gov_addr=`${us}-wallet priv_key ${node_gov_k} | grep "^addr " | awk '{ print $2 }'`
-    if [[ $? -ne 0 ]]; then
-        echo "KO 75923 cannot generate addr from node_gov_k"
+    govaddr
+    if [[ ! -f ${brandkeyroot}/govk ]]; then
+        >&2 echo "KO 88678 ${brandkeyroot}/govk doesn't exist."
+        exit 1
+    fi
+    if [[ -z ${node_gov_k} ]]; then
+        >&2 echo "KO 78677 node_gov_k is empty."
         exit 1
     fi
 }
@@ -226,13 +357,13 @@ function walletsk {
     if [[ ! -z ${node_wallet_k} ]]; then
         return
     fi
-    node_wallet_k=`cat ${brandkeyroot}/walletk`
+    node_wallet_k=$(cat ${brandkeyroot}/walletk)
     if [[ $? -ne 0 ]]; then
-        echo "KO 45824 cannot retrieve node_wallet_k from ${brandkeyroot}/walletk"
+        >&2 echo "KO 45824 cannot retrieve node_wallet_k from ${brandkeyroot}/walletk"
         exit 1
     fi
     if [[ -z ${node_wallet_k} ]]; then
-        echo "KO 45926 cannot load ${brandkeyroot}/walletk."
+        >&2 echo "KO 45926 cannot load ${brandkeyroot}/walletk."
         exit 1
     fi
 }
@@ -242,207 +373,390 @@ function walletaddr {
         return
     fi
     walletsk
-    node_wallet_addr=`${us}-wallet priv_key ${node_wallet_k} | grep "^addr " | awk '{ print $2 }'`
+    node_wallet_addr=$(su ${GOVUSER} -c "${us}-wallet priv_key ${node_wallet_k}" | grep "^addr " | awk '{ print $2 }')
     if [[ $? -ne 0 ]]; then
-        echo "KO 75823 cannot generate addr from node_wallet_k"
+        >&2 echo "KO 75823 cannot generate addr from node_wallet_k"
         exit 1
     fi
 }
 
 function gen_walletk {
-    echo "gen_walletk"
+    echo -n "Gen wallet k (${brandkeyroot}/walletk)? [y/n]: "
+    read a
+    if [[ $a != "y" ]]; then
+        walletsk
+        return
+    fi
     if [[ ! -f ${brandkeyroot}/walletk ]]; then
-        node_wallet_k=`${us}-wallet gen_keys | grep "^priv " | awk '{ print $2 }'`
+        node_wallet_k=$(su ${GOVUSER} -c "${us}-wallet gen_keys" | grep "^priv " | awk '{ print $2 }')
         if [[ $? -ne 0 ]]; then
-            echo "KO 45825 cannot create node_wallet_k"
+            >&2 echo "KO 45825 cannot create node_wallet_k"
             exit 1
         fi
         if [[ -z ${node_wallet_k} ]]; then
-            echo "KO 45826 cannot create node_wallet_k. empty. wallet working ok?"
+            >&2 echo "KO 45826 cannot create node_wallet_k. empty. wallet working ok?"
             exit 1
         fi
         echo "${node_wallet_k}" > ${brandkeyroot}/walletk
-    else
-        walletsk
     fi
     walletaddr
+    if [[ ! -f ${brandkeyroot}/walletk ]]; then
+        >&2 echo "KO 88678 ${brandkeyroot}/walletk doesn't exist."
+        exit 1
+    fi
+    if [[ -z ${node_wallet_k} ]]; then
+        >&2 echo "KO 78777 node_wallet_k is empty."
+        exit 1
+    fi
 }
 
 function gen_settings {
-    echo "Gen android settings.xml?"
-    echo "y/n"
-    read a
-    if [[ $a == "y" ]]; then
-        cat << EOF > ${brand_dir}/settings.xml
+    tf=$(mktemp /tmp/gen_settings.XXXXXX)
+    cat << EOF > $tf
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">${android_app_name}</string>
     <string name="brandbusiness">${company}</string>
 </resources>
 EOF
+    echo new ${brand_dir}/settings.xml
+    cat $tf
+    echo "<<<<<<< ${brand_dir}/settings.xml"
+    diff ${brand_dir}/settings.xml $tf
+    echo "<</<<<< ${brand_dir}/settings.xml"
+    echo -n "write ${brand_dir}/settings.xml? [y/n]"
+    read a
+    if [[ $a != "y" ]]; then
+        rm $tf
+        return
     fi
+    mv $tf ${brand_dir}/settings.xml
 }
 
 function gen_bookmarks {
-    if [[ -f ${brand_dir}/bookmarks ]]; then
-        echo "bookmars already exist in brand dir. Not generating one."
+    echo -n "update ${brand_dir}/bookmarks? [y/n]"
+    read a
+    if [[ $a != "y" ]]; then
         return
+    fi
+    if [[ -f ${brand_dir}/bookmarks ]]; then
+        echo "========Existing bookmarks==========="
+        su ${GOVUSER} -c "$us-wallet decode_bookmark -f ${brand_dir}/bookmarks"
+        echo "=/======Existing bookmarks==========="
+    else
+        echo "========Existing bookmarks==========="
+        echo "no bookmarks"
+        echo "=/======Existing bookmarks==========="
     fi
     trade_bookmark_chan=""
     if [[ ${channel} -ne 0 ]]; then
         trade_bookmark_chan="${channel} "
     fi
     if [[ -z ${trade_bookmark_label} ]]; then
-        echo "No bookmarks"
-        rm -f ${brand_dir}/bookmarks
-        return
+        if [[ -f ${brand_dir}/bookmarks ]]; then
+#            echo "No bookmarks are generated."
+            echo -n "rewrite existing ${brand_dir}/bookmarks? [y/n]"
+            read a
+            if [[ $a != "y" ]]; then
+                return
+            fi
+            let x=$(git ls-files ${brand_dir}/bookmarks | wc -l)
+            if [[ $x -eq 0 ]]; then
+                rm -f ${brand_dir}/bookmarks
+            else
+                git rm ${brand_dir}/bookmarks
+            fi
+            return
+        fi
     fi
     if [[ -z ${trade_bookmark_protocol_selection} ]]; then
         trade_bookmark_protocol_selection="- - "
     fi
+    tf=$(mktemp /tmp/bookmarks.XXXXXX)
+    chown ${GOVUSER} ${tf}
     walletaddr
     subhome=""
+    echo "Generating brand HQ bookmark using node NC-Wallet."
     #subhome=".subhome"
-    echo "$us-wallet create_bookmark \"${trade_bookmark_label}\" ${brand_seed_dir}/icoapp.png \"${trade_bookmark_chan}${node_wallet_addr}${subhome}\" ${trade_bookmark_protocol_selection} ${brand_dir}/bookmarks"
-    $us-wallet create_bookmark "${trade_bookmark_label}" ${brand_seed_dir}/icoapp.png "${trade_bookmark_chan}${node_wallet_addr}${subhome}" ${trade_bookmark_protocol_selection} ${brand_dir}/bookmarks
-    if [[ ! -f ${brand_dir}/bookmarks ]]; then
-        echo "KO 91028 bookmarks hasn't been created"
+    cmd="create_bookmark \"${trade_bookmark_label}\" ${brand_seed_dir}/icoapp.png \"${trade_bookmark_chan}${node_wallet_addr}${subhome}\" ${trade_bookmark_protocol_selection} $tf"
+    echo "$us-wallet $cmd"
+    su ${GOVUSER} -c "$us-wallet $cmd"
+    if [[ ! -f ${tf} ]]; then
+        >&2 echo "KO 91028 bookmarks hasn't been created"
         exit 1
     fi
     echo "-bookmark-----------"
-    $us-wallet decode_bookmark -f ${brand_dir}/bookmarks
+    su ${GOVUSER} -c "$us-wallet decode_bookmark -f $tf"
     echo "--------------------"
+    echo -n "write ${brand_dir}/bookmarks? [y/n]"
+    read a
+    if [[ $a != "y" ]]; then
+        rm $tf
+        return
+    fi
+    mv $tf ${brand_dir}/bookmarks
+
+    if [[ -f ${brand_seed_dir}/bookmarks ]]; then
+        echo "Append these bookmarks..."
+        su ${GOVUSER} -c "$us-wallet decode_bookmark -f ${brand_seed_dir}/bookmarks"
+        echo
+        echo "... to ..."
+        echo
+        su ${GOVUSER} -c "$us-wallet decode_bookmark -f ${brand_dir}/bookmarks"
+        echo
+        echo -n "...? [y/n]: "
+        read a
+        if [[ "$a" != "y" ]]; then
+            return
+        fi
+        su ${GOVUSER} -c "$us-wallet trade bookmarks_append ${brand_dir}/bookmarks ${brand_seed_dir}/bookmarks"
+
+        echo ""
+        echo "brand bookmarks are:"
+        su ${GOVUSER} -c "$us-wallet decode_bookmark -f ${brand_dir}/bookmarks"
+    fi
 }
 
 function cpfile {
     f=$1
     if [[ ! -f $f ]]; then
-        echo "KO 69210 $f doesn't exist."
+        >&2 echo "KO 69210 $f doesn't exist."
         exit 1
     fi
     cp $f ${brand_dir}/
     if [[ $? -ne 0 ]]; then
-        echo "KO 69211 could not copy $f."
+        >&2 echo "KO 69211 could not copy $f."
         exit 1
     fi
 }
 
-let w3=0
-function copy_brand {
-    echo "Copy brand ${base_brand_dir} into ${brand_dir}/?"
-    echo "y/n"
+origblob_brand=""
+origblob_android=""
+
+function clone_brand {
+    if [[ "_${base_brand}" == "_" ]]; then
+        echo "skipping copying from base brand"
+        return
+    fi
+    echo -n "Copy ${base_brand_dir}/*? [y/n]: "
     read a
-    if [[ $a == "y" ]]; then
-        if [[ ! -d ${base_brand_dir} ]]; then
-            echo "KO 62711 base brand doesn't exist."
-            exit 1
-        fi
-        if [[ -d ${brand_dir} ]]; then
-            echo "KO 67771 brand already exists."
-            exit 1
-        fi
-        mkdir ${brand_dir}
-        if [[ $? -ne 0 ]]; then
-            echo "KO 65995 cannot create dir ${brand_dir}"
-            exit 1
-        fi
+    if [[ $a != "y" ]]; then
+        return
+    fi
 
-        #--------------------------------
-        cp ${base_brand_dir}/* ${brand_dir}/ -R
-        if [[ $? -ne 0 ]]; then
-            echo "KO 62795 Couldn't copy ${base_brand_dir}/* ${brand_dir}/"
-            exit 1
-        fi
+    if [[ ! -f ${base_brand_dir}/en-uk ]]; then
+        >&2 echo "KO 67584"
+        exit 1
+    fi
+    . ${base_brand_dir}/en-uk
 
-        #--------------------------------
-        rm ${brand_dir}/bde_setup -rf
-
-        #--------------------------------
-        rm -f ${brand_dir}/en-uk
-        gen_strset > ${brand_dir}/en-uk
-        let w3=1
-
-        #--------------------------------
-        if [[ ${upload_googleplay} -eq 1 ]]; then
-            cpfile ${brand_seed_dir}/android_playstore_banner.png
-            cpfile ${brand_seed_dir}/android_playstore_ico.png
-        fi
-        cpfile ${brand_seed_dir}/brand.png
-        cpfile ${brand_seed_dir}/icoapp.png
-        cpfile ${brand_seed_dir}/logo.png
-        cpfile ${brand_seed_dir}/splash.png
-        cpfile ${brand_seed_dir}/colors.xml
-
-        #--------------------------------
-        gen_settings
-
-        #--------------------------------
-        gen_bookmarks
-
-        #--------------------------------
-        cp ${brand_seed_dir}/strset0 ${brand_dir}/
-
-        #--------------------------------
-        echo "${brand_dir} created"
-
+    origblob_brand="${str40}"
+    origblob_android="${str56}"
+    
+    echo "cp -rp ${base_brand_dir}/* ${brand_dir}/"
+    cp -rp ${base_brand_dir}/* ${brand_dir}/ -R
+    if [[ $? -ne 0 ]]; then
+        >&2 echo "KO 62795 Couldn't copy ${base_brand_dir}/* ${brand_dir}/"
+        exit 1
     fi
 }
 
-brandkeyroot=${keyroot}/cbs/${brand}
-gpg_keyid=""
-gpg_passphrase=""
+function write_strset {
+    tf=$(mktemp /tmp/gen_strset.XXXXXX)
+    gen_strset ${tf}
+    
+    if [[ -f ${brand_dir}/en-uk ]]; then
+        echo "<<<<<<<<<<<< ${brand_dir}/en-uk"
+        diff ${brand_dir}/en-uk ${tf}
+        echo "<</<<<<<<<<< ${brand_dir}/en-uk"
+    fi
+    echo -n "write ${brand_dir}/{en-uk, strset0} ? [y/n]: "
+    read a
+    if [[ $a != "y" ]]; then
+        rm ${tf}
+        return
+    fi
+    rm -f ${brand_dir}/en-uk
+    mv ${tf} ${brand_dir}/en-uk
+#    git diff ${brand_dir}/en-uk
 
-function gen_gpgkey {
-    gpg_home=${brandkeyroot}/gnupg
-    gpg="gpg --homedir ${gpg_home}"
+    echo "wrote ${brand_dir}/en-uk"
+    cp ${brand_seed_dir}/strset0 ${brand_dir}/
+    echo "wrote ${brand_dir}/strset0"
+    let w3=1
+}
+
+function write_pngs {
+    echo -n "write ${brand_dir}/{png, xml} files ? [y/n]: "
+    read a
+    if [[ $a != "y" ]]; then
+        return 
+    fi
+    if [[ ${upload_googleplay} -eq 1 ]]; then
+        echo "copying googleplay png's"
+        cpfile ${brand_seed_dir}/google_playstore/android_playstore_banner.png
+        cpfile ${brand_seed_dir}/google_playstore/android_playstore_ico.png
+    fi
+    echo "copying core0 png's"
+    cpfile ${brand_seed_dir}/brand.png
+    cpfile ${brand_seed_dir}/icoapp.png
+    cpfile ${brand_seed_dir}/logo.png
+    cpfile ${brand_seed_dir}/splash.png
+    cpfile ${brand_seed_dir}/colors.xml
+}
+
+let w3=0
+function update_brand {
+    echo -n "Update ${brand_dir}/? [y/n]: "
+    read a
+    if [[ $a != "y" ]]; then
+        return 
+    fi
+
+#    if [[ ! -d ${base_brand_dir} ]]; then
+#        >&2 echo "KO 62711 base brand doesn't exist."
+#        exit 1
+#    fi
+#    if [[ -d ${brand_dir} ]]; then
+#        >&2 echo "KO 67771 brand already exists."
+#        exit 1
+#    fi
+    mkdir -p ${brand_dir}
+    if [[ $? -ne 0 ]]; then
+        >&2 echo "KO 65995 cannot create dir ${brand_dir}"
+        exit 1
+    fi
+
+    clone_brand
+    #--------------------------------TODO: remove them from brands/*, and this line
+    rm -rf ${brand_dir}/bde_setup
+    write_strset
+    write_pngs
+    gen_settings
+    gen_bookmarks
+    if [[ ! -d ${brand_dir} ]]; then
+        >&2 echo "KO 62771 ${brand_dir} doesn't exist."
+        exit 1
+    fi
+    echo "${brand_dir} updated."
+}
+
+brandkeyroot=${keyroot}/cbs/${brand}
+gpg_distr_keyid=""
+gpg_devjob_keyid=""
+gpg_passphrase=""
+gpg_home=${brandkeyroot}/gnupg
+gpg="gpg --homedir ${gpg_home}"
+
+function create_gpg_key {
+    passphrase=$1
+    comment=$2
+    name=$3
+    email=$4
+    #-----------------------
+    cat << EOF > foo
+     %echo Generating a basic OpenPGP key
+     Key-Type: RSA
+     Key-Length: 4096
+     Name-Real: ${name}
+     Name-Comment: ${comment}
+     Name-Email: ${email}
+     Expire-Date: 0
+     Passphrase: $gpg_passphrase
+     %commit
+     %echo done
+EOF
+    cat foo
+    $gpg --batch --generate-key foo
+    if [[ $? -ne 0 ]]; then
+        >&2 echo "KO 32795 gpg failed."
+        exit 1
+    fi
+    rm foo
+}
+
+function gen_gpgkeys {
+    if [[ "_${developer_name}" == "_" ]]; then
+        >&2 echo "KO 76892"
+        exit 1
+    fi
+    if [[ "_${developer_email}" == "_" ]]; then
+        >&2 echo "KO 76893"
+        exit 1
+    fi
+    if [[ "_${devjob_developer_name}" == "_" ]]; then
+        >&2 echo "KO 76894"
+        exit 1
+    fi
+    if [[ "_${devjob_developer_email}" == "_" ]]; then
+        >&2 echo "KO 76895"
+        exit 1
+    fi
+
     if [[ ! -d ${gpg_home} ]]; then
+        echo "gen gpgkey (${gpg_home})" #? [y/n]: "
+        #read a
+        #if [[ $a != "y" ]]; then
+        #    return
+        #fi
         mkdir -p ${gpg_home}
         chmod 700 ${gpg_home}
 
-        gpg_passphrase=`${us}-wallet gen_keys | grep "^priv " | awk '{ print $2 }'`
-
-        #-----------------------
-        cat << EOF > foo
-         %echo Generating a basic OpenPGP key
-         Key-Type: RSA
-         Key-Length: 4096
-         Name-Real: ${developer_name}
-         Name-Comment: $brand software release authority
-         Name-Email: ${developer_email}
-         Expire-Date: 0
-         Passphrase: $gpg_passphrase
-         # Do a commit here, so that we can later print "done" :-)
-         %commit
-         %echo done
-EOF
-        #-----------------------
-        cat foo
-        $gpg --batch --generate-key foo
-        if [[ $? -ne 0 ]]; then
-            echo "KO 32795 gpg failed."
-            exit 1
+        gpg_passphrase=$(su ${GOVUSER} -c "${us}-wallet gen_keys" | grep "^priv " | awk '{ print $2 }')
+        create_gpg_key $gpg_passphrase "$brand software release authority" "${developer_name}" "${developer_email}"
+        if [[ "_${devjob_developer_email}" != "_${developer_email}" ]]; then
+            create_gpg_key $gpg_passphrase "$brand devjob author" "${devjob_developer_name}" "${devjob_developer_email}"
         fi
-        rm foo
         echo $gpg_passphrase > ${gpg_home}/passphrase
         chmod 600 ${gpg_home}/passphrase
     else
         if [[ ! -f ${gpg_home}/passphrase ]]; then
-            echo "KO 78679 ${gpg_home}/passphrase doesn't exist."
+            >&2 echo "KO 78679 ${gpg_home}/passphrase doesn't exist."
             exit 1
         fi
-        gpg_passphrase=`cat ${gpg_home}/passphrase`
+        gpg_passphrase=$(cat ${gpg_home}/passphrase)
     fi
-    gpg_keyid=`$gpg --list-secret-keys --keyid-format=long | grep "^ " | awk '{ print $1 }'`
-    echo "gpg_keyid $gpg_keyid"
+    gpg_distr_keyid=$($gpg --list-secret-keys --keyid-format=long | grep "${developer_email}" -B1 | head -n1 | awk '{ print $1 }')
+    
+    if [[ "_${devjob_developer_email}" != "_${developer_email}" ]]; then
+        gpg_devjob_keyid=$($gpg --list-secret-keys --keyid-format=long | grep "${devjob_developer_email}" -B1 | head -n1 | awk '{ print $1 }')
+    else
+        gpg_devjob_keyid=${gpg_distr_keyid}
+    fi
+    echo "gpg_distr_keyid $gpg_distr_keyid"
+    echo "gpg_devjob_keyid $gpg_devjob_keyid"
+
+    if [[ ! -f ${gpg_home}/passphrase ]]; then
+        >&2 echo "KO 78678 ${gpg_home}/passphrase doesn't exist."
+        exit 1
+    fi
+    if [[ -z ${gpg_distr_keyid} ]]; then
+        >&2 echo "KO 78577 gpg_distr_keyid is empty."
+        exit 1
+    fi
+    if [[ -z ${gpg_devjob_keyid} ]]; then
+        >&2 echo "KO 78578 gpg_devjob_keyid is empty."
+        exit 1
+    fi
 }
 
 function gen_android_keys {
+#    echo -n "gen android keys (${brandkeyroot}/keystore.jks)? [y/n]: "
+#    read a
+#    if [[ $a != "y" ]]; then
+#        return
+#    fi
     keytool="keytool"
     if [[ "_$JAVA_HOME" != "_" ]]; then
         keytool=$JAVA_HOME/bin/keytool
     fi
     if [[ ! -f ${brandkeyroot}/keystore.jks ]]; then
+        echo -n "gen android keys (${brandkeyroot}/keystore.jks)" #? [y/n]: "
         $keytool -genkey -v -keystore ${brandkeyroot}/keystore.jks -alias distr -keyalg RSA -keysize 2048 -validity 10000 -dname "cn=${developer_name}, ou=web3, o=${company}, c=world" -storepass "$gpg_passphrase"
+    fi
+    if [[ ! -f ${brandkeyroot}/keystore.jks ]]; then
+        >&2 echo "KO 78678 ${brandkeyroot}/keystore.jks doesn't exist."
+        exit 1
     fi
 #-storepass abcdef12 -keypass abcdef12
 }
@@ -455,37 +769,52 @@ keyroot=${brandkeyroot}
 #-----------------------
 #  devjov - remote git
 dj_gpgh=\${keyroot}/gnupg
-dj_author="${developer_email}"
-dj_gpgkey="${gpg_keyid}"
+dj_author="${devjob_developer_email}"
+dj_gpgkey="${gpg_devjob_keyid}"
 
 #distr goes to upstream brand node
 distr_node_pkh=2it9gucHmxbGeJpwGoPusEaRaiop #pi2
-distr_node_url="http://katlasnet.katlastechnology.io:16680/downloads"
+distr_node_url="http://bde.${nodes_domain}:16680"
 
 #distr packages
 distr_gpg_home=\${keyroot}/gnupg
-distr_key="${gpg_keyid}"
-
-str40="${brand_blobid}"   #Blob Brandid
+distr_key="${gpg_distr_keyid}"
 
 #blob deployment account
 address_blobs=4NwEEwnQbnwB7p8yCBNkx9uj71ru          #account
 
-dist_src=0
+dist_src=${foss}
 EOF
+    echo "devjob_sync_nextsteps=\"$devjob_sync_nextsteps\""
 }
 
 brand_config=".cbs/config_$brand"
 
 let w1=0
 function gen_cbs_config {
-    echo "Create ${brand_config}?"
-    echo "y/n"
+    tf=$(mktemp /tmp/gen_cbs_config.XXXXXX)
+    gen_cbs_config0 > ${tf}
+    echo "--------file: new ${brand_config}"
+    cat ${tf}
+    if [[ -f ${brand_config} ]]; then
+        echo "--------file: old ${brand_config}"
+        cat ${brand_config}
+        echo "<<<<<<<<<<<<<< ${brand_config}" 
+        diff ${brand_config} ${tf}
+        echo "<</<<<<<<<<<<< ${brand_config}" 
+    fi
+    echo -n "write gen_cbs_config (${brand_config})? [y/n]: "
     read a
-    if [[ $a == "y" ]]; then
-        gen_cbs_config0 > ${brand_config}
-        echo "${brand_config} created"
-        let w1=1
+    if [[ $a != "y" ]]; then
+        rm ${tf}
+        return
+    fi
+    echo "${brand_config} updated"
+    cat ${tf} > ${brand_config}
+    let w1=1
+    if [[ ! -f ${brand_config} ]]; then
+        >&2 echo "KO 77778 ${brand_config} doesn't exist."
+        exit 1
     fi
 }
 
@@ -494,53 +823,52 @@ GOVUSER=${str11}
 
 function create_gov_user0 {
     echo "Generating $GOVUSER password."
-    gov_passwd=`${us}-wallet gen_keys | grep "^priv " | awk '{ print $2 }'`
+    gov_passwd=$(su ${GOVUSER} -c "${us}-wallet gen_keys" | grep "^priv " | awk '{ print $2 }')
     echo "Creating $GOVUSER."
     ssh $unixname "adduser --disabled-password --gecos \"\" $GOVUSER; echo \"$GOVUSER:${gov_passwd}\" | chpasswd"
     if [[ $? -ne 0 ]]; then
-        echo "KO 87985 smthing went wrong"
+        >&2 echo "KO 87985 smthing went wrong"
         exit 1
     fi
 }
 
 function create_gov_user {
-    yn=`ssh $unixname "cat /etc/passwd | grep \"^$GOVUSER:x\" >/dev/null; if [[ \$? -eq 0 ]]; then echo 'YES'; else echo 'NO'; fi"`
+    yn=$(ssh $unixname "cat /etc/passwd | grep \"^$GOVUSER:x\" >/dev/null; if [[ \$? -eq 0 ]]; then echo 'YES'; else echo 'NO'; fi")
     if [[ $? -ne 0 ]]; then
-        echo "KO 87943 ssh failed"
+        >&2 echo "KO 87943 ssh failed"
         exit 1
     fi
     if [[ "_$yn" != "_YES" ]]; then
-        echo "$GOVUSER doesn't exist in $bde_ip. Create $GOVUSER user?"
-        echo "y/n"
+        echo -n "$GOVUSER doesn't exist in $bde_ip. Create $GOVUSER user? [y/n]: "
         read a
         if [[ $a == "y" ]]; then
             create_gov_user0
         fi
     fi
-    yn=`ssh $unixname "cat /etc/passwd | grep \"^$GOVUSER:x\" > /dev/null; if [[ \$? -eq 0 ]]; then echo 'YES'; else echo 'NO'; fi"`
+    yn=$(ssh $unixname "cat /etc/passwd | grep \"^$GOVUSER:x\" > /dev/null; if [[ \$? -eq 0 ]]; then echo 'YES'; else echo 'NO'; fi")
     if [[ $? -ne 0 ]]; then
-        echo "KO 87944 ssh failed"
+        >&2 echo "KO 87944 ssh failed"
         exit 1
     fi
     if [[ "_$yn" != "_YES" ]]; then
-        echo "KO 97943 GOVUSER doesn't exist in $bde_ip"
+        >&2 echo "KO 97943 GOVUSER doesn't exist in $bde_ip"
         exit 1
     fi
 }
 
 function create_gov_k {
     if [[ ${channel} -ne 0 ]]; then
-        echo "KO 67458 script does not support channel 0. recode."
+        >&2 echo "KO 67458 script does not support channel 0. recode."
     fi
-    yn=`ssh $unixname "if [[ -f /home/$GOVUSER/.${unixname}/gov/k ]]; then echo 'YES'; else echo 'NO'; fi"`
+    yn=$(ssh $unixname "if [[ -f /home/$GOVUSER/.${unixname}/gov/k ]]; then echo 'YES'; else echo 'NO'; fi")
     if [[ $? -ne 0 ]]; then
-        echo "KO 77943 ssh failed"
+        >&2 echo "KO 77943 ssh failed"
         exit 1
     fi
     if [[ "_$yn" == "_YES" ]]; then
-        rsk=`ssh $unixname cat /home/$GOVUSER/.${unixname}/gov/k`
+        rsk=$(ssh $unixname cat /home/$GOVUSER/.${unixname}/gov/k)
         if [[ "_$rsk" != "_${node_gov_k}" ]]; then
-            echo "KO 67943 secret key gov/k already exist in $bde_ip and doesn't match stored node_gov_k"
+            >&2 echo "KO 67943 secret key gov/k already exist in $bde_ip and doesn't match stored node_gov_k"
             exit 1
         fi
     else
@@ -551,17 +879,17 @@ function create_gov_k {
 
 function create_wallet_k {
     if [[ ${channel} -ne 0 ]]; then
-        echo "KO 67358 script does not support channel 0. recode."
+        >&2 echo "KO 67358 script does not support channel 0. recode."
     fi
-    yn=`ssh $unixname "if [[ -f /home/$GOVUSER/.${unixname}/wallet/k ]]; then echo 'YES'; else echo 'NO'; fi"`
+    yn=$(ssh $unixname "if [[ -f /home/$GOVUSER/.${unixname}/wallet/k ]]; then echo 'YES'; else echo 'NO'; fi")
     if [[ $? -ne 0 ]]; then
-        echo "KO 77843 ssh failed"
+        >&2 echo "KO 77843 ssh failed"
         exit 1
     fi
     if [[ "_$yn" == "_YES" ]]; then
-        rsk=`ssh $unixname cat /home/$GOVUSER/.${unixname}/wallet/k`
+        rsk=$(ssh $unixname cat /home/$GOVUSER/.${unixname}/wallet/k)
         if [[ "_$rsk" != "_${node_wallet_k}" ]]; then
-            echo "KO 64343 secret key wallet/k already exist in $bde_ip and doesn't match stored node_wallet_k"
+            >&2 echo "KO 64343 secret key wallet/k already exist in $bde_ip and doesn't match stored node_wallet_k"
             exit 1
         fi
     else
@@ -571,34 +899,34 @@ function create_wallet_k {
 }
 
 function ssh_passwordless {
-    echo "Configure password-less access to BDE $unixname?"
-    echo "y/n"
+    echo -n "Configure password-less access to BDE $unixname? [y/n]: "
     read a
-    if [[ $a == "y" ]]; then
-        if [[ ! -f /root/.ssh/id_rsa.pub ]]; then
-            echo "KO 78699 can't configure ssh access to bde. host pubkey not found."
-            exit 1
-        fi
-        idrsapub=`cat /root/.ssh/id_rsa.pub`
-        echo "Access to BDE:"
-        ssh $unixname "if [[ ! -d /root/.ssh ]]; then ssh-keygen; fi; echo \"$idrsapub #brand_tool\" >> /root/.ssh/authorized_keys; cat /root/.ssh/authorized_keys"
-        if [[ $? -ne 0 ]]; then
-            echo "KO 87984 smthing went wrong"
-            exit 1
-        fi
+    if [[ $a != "y" ]]; then
+        return
+    fi
 
-        echo "Testing passwordless access to BDE: (if you're asked for password now something is wrong)"
-        ssh $unixname ls /home
-        if [[ $? -ne 0 ]]; then
-            echo "KO 87985 smthing went wrong"
-            exit 1
-        fi
+    if [[ ! -f /root/.ssh/id_rsa.pub ]]; then
+        >&2 echo "KO 78699 can't configure ssh access to bde. host pubkey not found."
+        exit 1
+    fi
+    idrsapub=$(cat /root/.ssh/id_rsa.pub)
+    echo "Access to BDE:"
+    ssh $unixname "if [[ ! -d /root/.ssh ]]; then ssh-keygen; fi; echo \"$idrsapub #brand_tool\" >> /root/.ssh/authorized_keys; cat /root/.ssh/authorized_keys"
+    if [[ $? -ne 0 ]]; then
+        >&2 echo "KO 87984 smthing went wrong"
+        exit 1
+    fi
+    echo "Testing passwordless access to BDE: (if you're asked for password now something is wrong)"
+    ssh $unixname ls /home
+    if [[ $? -ne 0 ]]; then
+        >&2 echo "KO 87985 smthing went wrong"
+        exit 1
     fi
 }
 
 let w2=0
 function local_etchosts {
-    let n=`cat /etc/hosts | grep "#brand_tool" | grep "$unixname" | wc -l`
+    let n=$(cat /etc/hosts | grep "#brand_tool" | grep "$unixname" | wc -l)
     if [[ $n -eq 0 ]]; then
         echo "Add $bde_ip $unixname to /etc/hosts?"
         echo "y/n"
@@ -611,39 +939,39 @@ function local_etchosts {
 }
 
 function bde_bootstrap {
-    local_etchosts
-    ssh_passwordless
-    create_gov_user
-    create_gov_k
-    create_wallet_k
+    echo -n "bootstrap BDE? (ssh access, gov user, write gov/wallet secrek keys (k)) [y/n]: "
+    read a
+    if [[ $a == "y" ]]; then
+        local_etchosts
+        ssh_passwordless
+        create_gov_user
+        create_gov_k
+        create_wallet_k
+    fi
 }
 
 function docheck {
-    a=`cat ${brandkeyroot}/govk`
-    b=`${us}-wallet priv_key $a | grep "^addr " | awk '{ print $2 }'`
-    c=`cat ${brand_dir}/en-uk | grep "^str66=" | sed "s~^str66=\"\(.*\)\" #distr_node_pkh~\1~"`
+    a=$(cat ${brandkeyroot}/govk)
+    b=$(su ${GOVUSER} -c "${us}-wallet priv_key $a" | grep "^addr " | awk '{ print $2 }')
+    c=$(cat ${brand_dir}/en-uk | grep "^str66=" | sed "s~^str66=\"\(.*\)\" #distr_node_pkh~\1~")
     if [[ "_$b" != "_$c" ]]; then
-        echo "KO 76895 Inconsistency 1. ${brand_dir}/en-uk"
+        >&2 echo "KO 76895 Inconsistency 1. ${brand_dir}/en-uk"
         exit 1
     fi
-    d=`ssh $unixname "cat /home/${GOVUSER}/.${brand}/gov/k"`
+    d=$(ssh $unixname "cat /home/${GOVUSER}/.${brand}/gov/k")
     if [[ "_$a" != "_$d" ]]; then
         echo "KO 76895 Inconsistency 2. remote govk"
         exit 1
     fi
 }
 
-function build_brand_genesis_node_package0 {
-    if [[ -d ${brand_dir}/bde_setup ]]; then
-        echo "KO 78569 ${brand_dir}/bde_setup exists"
-        exit 1
+function bindzones {
+    if [[ -d ${bde_setup_dir}/bde_data/bind ]]; then
+        echo "${bde_setup_dir}/bde_data/bind exists, skipping bind"
+        return
     fi
-    cp bde_setup ${brand_dir}/ -R
-
-    bde_setup_dir=${brand_dir}/bde_setup
-
-    #-------------------------------- bind
-    binddir="${brand_dir}/bde_setup/bde_data/bind"
+    bde_setup_dir=$1
+    binddir="${bde_setup_dir}/bde_data/bind"
     mkdir -p ${binddir}
     zonefile=${binddir}/db.${nodes_domain}
 
@@ -673,8 +1001,14 @@ fi
 
 #_acme-challenge.linkbox.katlastechnology.io     IN      TXT "Myen_apZmFws81N6z-WYELbJErR7zGUQRjQnX2yMzEc"
 
-    #-------------------------------- nginx - sites
+}
 
+function nginx_sites {
+    bde_setup_dir=$1
+    if [[ -d ${bde_setup_dir}/bde_data/nginx/sites-available ]]; then
+        echo "${bde_setup_dir}/bde_data/nginx/sites-available exists, skipping nginx_sites"
+        return
+    fi
     sitesdir="${bde_setup_dir}/bde_data/nginx/sites-available"
     mkdir -p ${sitesdir}
     sitefile=${sitesdir}/${nodes_domain}
@@ -697,22 +1031,30 @@ server {
 
 }
 EOF
+}
 
-    #-------------------------------- nginx - html
+function nginx_html {
+    bde_setup_dir=$1
+
+    if [[ -d ${bde_setup_dir}/bde_data/nginx/html/index.html ]]; then
+        echo "${bde_setup_dir}/bde_data/nginx/html/index.html exists, skipping nginx_html"
+        return
+    fi
+
     indexdir="${bde_setup_dir}/bde_data/nginx/html/"
     mkdir -p ${indexdir}
     indexfile=${indexdir}/index.html
     #str56="Zerrq9u56" #Android app blob id
 
-    android_blobid=`cat ${brand_dir}/en-uk | grep "^str56=" | sed "s~^str56=\"\(.*\)\".*~\1~"`
+    android_blobid=$(cat ${brand_dir}/en-uk | grep "^str56=" | sed "s~^str56=\"\(.*\)\".*~\1~")
     if [[ -z ${android_blobid} ]]; then
-        echo "KO 78895 android_blobid missing."
+        >&2 echo "KO 78895 android_blobid missing."
         exit 1
     fi
 
-    android_app_name=`cat ${brand_dir}/en-uk | grep "^str32=" | sed "s~^str32=\"\(.*\)\".*~\1~"`
+    android_app_name=$(cat ${brand_dir}/en-uk | grep "^str32=" | sed "s~^str32=\"\(.*\)\".*~\1~")
     if [[ -z ${android_app_name} ]]; then
-        echo "KO 78896 android_app_name missing."
+        >&2 echo "KO 78896 android_app_name missing."
         exit 1
     fi
 
@@ -765,7 +1107,7 @@ fi
 <pre>
 
 <pre>
-<a href="clone.html">Clone this server</a>.
+<a href="clone.html">Clone this node</a>.
 Use your own hardware for maximum privacy.
 <a href="clone.html">This link</a> will help you to setup your node featuring
  * debian GNU/Linux OS
@@ -812,92 +1154,58 @@ EOF
     mkdir -p ${ppolicydir} 
     mv ${ppolicydir}/index.html.in ${ppolicydir}/index.html
 
-    sed -i "s~##str_android_app_name##~${android_app_name}~g" ${ppolicydir}/index.html
-    sed -i "s~##str_company##~${company}~g" ${ppolicydir}/index.html
-    sed -i "s~##str_company_address##~${company_address}~g" ${ppolicydir}/index.html
-    sed -i "s~##str_company_url##~${company_url}~g" ${ppolicydir}/index.html
-    sed -i "s~##str_domain##~${domain}~g" ${ppolicydir}/index.html
-
+    sedi "s~##str_android_app_name##~${android_app_name}~g" ${ppolicydir}/index.html
+    sedi "s~##str_company##~${company}~g" ${ppolicydir}/index.html
+    sedi "s~##str_company_address##~${company_address}~g" ${ppolicydir}/index.html
+    sedi "s~##str_company_url##~${company_url}~g" ${ppolicydir}/index.html
+    sedi "s~##str_domain##~${domain}~g" ${ppolicydir}/index.html
 }
 
-function build_brand_genesis_node_package {
-    if [[ -d ${brand_dir}/bde_setup ]]; then
-        echo "Replace ${brand_dir}/bde_setup?"
-        echo "y/n"
-        read a
-        if [[ $a == "y" ]]; then
-            rm -rf ${brand_dir}/bde_setup
-            build_brand_genesis_node_package0
-        fi
-    else
-        build_brand_genesis_node_package0
-    fi
+function gen_nginx {
+    bde_setup_dir=$1
+    nginx_sites "${bde_setup_dir}"
+    nginx_html "${bde_setup_dir}"
 }
 
-function cmd_new {
+function gen_bde_setup {
+    bde_setup_dir=${brand}_bde_setup
+    if [[ -d ${bde_setup_dir} ]]; then
+        >&2 echo "KO 78569 ${bde_setup_dir} exists in current directory."
+        exit 1
+    fi
+    mkdir -p ${bde_setup_dir}
+    cp -rp bde_setup/* ${bde_setup_dir}/
+    bindzones ${bde_setup_dir}
+    gen_nginx ${bde_setup_dir}
 
-    #-------------------------------
-    gen_govk
-    if [[ ! -f ${brandkeyroot}/govk ]]; then
-        echo "KO 88678 ${brandkeyroot}/govk doesn't exist."
+    if [[ ! -d ${brand_seed_dir}/bde_data ]]; then
+        >&2 echo "KO 78690 ${brand_seed_dir}/bde_data doesn't exist."
         exit 1
     fi
-    if [[ -z ${node_gov_k} ]]; then
-        echo "KO 78677 node_gov_k is empty."
-        exit 1
-    fi
-
-    #-------------------------------
-    gen_walletk
-    if [[ ! -f ${brandkeyroot}/walletk ]]; then
-        echo "KO 88678 ${brandkeyroot}/walletk doesn't exist."
-        exit 1
-    fi
-    if [[ -z ${node_wallet_k} ]]; then
-        echo "KO 78777 node_wallet_k is empty."
-        exit 1
-    fi
-
-    #-------------------------------
-    gen_gpgkey
-    if [[ ! -f ${gpg_home}/passphrase ]]; then
-        echo "KO 78678 ${gpg_home}/passphrase doesn't exist."
-        exit 1
-    fi
-    if [[ -z ${gpg_keyid} ]]; then
-        echo "KO 78577 gpg_keyid is empty."
-        exit 1
-    fi
-
-    #-------------------------------
-    gen_android_keys
-    if [[ ! -f ${brandkeyroot}/keystore.jks ]]; then
-        echo "KO 78678 ${brandkeyroot}/keystore.jks doesn't exist."
-        exit 1
-    fi
-
-    #-------------------------------
-    copy_brand
     if [[ ! -d ${brand_dir} ]]; then
-        echo "KO 62771 ${brand_dir} doesn't exist."
+        >&2 echo "KO 78692 ${brand_dir} doesn't exist."
         exit 1
     fi
+    if [[ ! -f ${brand_dir}/en-uk ]]; then
+        >&2 echo "KO 78691 ${brand_dir}/en-uk doesn't exist."
+        exit 1
+    fi
+    cp ${brand_seed_dir}/strset0 ${bde_setup_dir}/
+    cp ${brand_dir}/en-uk ${bde_setup_dir}/strset
+    mkdir -p ${bde_setup_dir}/bde_data
+    cp -r ${brand_seed_dir}/bde_data/* ${bde_setup_dir}/bde_data/
+    echo $bde_setup_dir
+}
 
-    #-------------------------------
+function cmd_update {
+    gen_govk
+    gen_walletk
+    gen_gpgkeys
+    gen_android_keys
     gen_cbs_config
-    if [[ ! -f ${brand_config} ]]; then
-        echo "KO 77778 ${brand_config} doesn't exist."
-        exit 1
-    fi
-
-    #-------------------------------
+    update_brand
     bde_bootstrap
-
-    #-------------------------------
     docheck
-
-    #-------------------------------
-    build_brand_genesis_node_package
 
     #-------------------------------
     echo "DONE:"
@@ -918,63 +1226,68 @@ function cmd_new {
     echo "Next: upload blob : scp blobs/${brand}_alpha-*.tzst ${unixname}:/root/"
     echo "Next: upload ${brand}_install_blob: scp blobs/${brand}_install_blob ${unixname}:/root/"
     echo "Next: install: ssh ${unixname} ./${brand}_install_blob --blob ${brand}_alpha-?.tzst"
-    echo "Next: setup BDE (DNS, nginx, https, etc). Run: $0 upload_bde_setup"
+    echo "Next: setup BDE (Brand Genesis node - DNS, nginx, https, etc). Run: $0 gen_bde_setup"
     echo "Next: remove /var/${brand}/installed_blob__pinned"
 }
 
 function upload_bde_setup {
-    pushd ${brand_dir} > /dev/null
-        if [[ ! -d bde_setup ]]; then
-            echo "KO 78693 bde_setup doesn't exist in ${brand_dir}"
-            exit 1
-        fi
-        if [[ ! -f strset0 ]]; then
-            echo "KO 78694 strset0 doesn't exist in ${brand_dir}"
-            exit 1
-        fi
-        if [[ ! -f en-uk ]]; then
-            echo "KO 78695 en-uk doesn't exist in ${brand_dir}"
-            exit 1
-        fi
-        cp strset0 bde_setup/
-        cp en-uk bde_setup/strset
-        rm -f ${brand}_bde_setup.tgz
-        mv bde_setup ${brand}_bde_setup
-        tar -czf ${brand}_bde_setup.tgz ${brand}_bde_setup
-        mv ${brand}_bde_setup bde_setup
-        rm -f bde_setup/strset0
-        rm -f bde_setup/strset
-        scp ${brand}_bde_setup.tgz ${unixname}:/root/
-        ssh ${unixname} "rm -rf ${brand}_bde_setup; tar -xzf ${brand}_bde_setup.tgz; rm -f ${brand}_bde_setup.tgz; ls -la ${brand}_bde_setup"
-        echo "Next steps:"
-        echo "*  ssh ${unixname}"
-        echo "*  cd ${brand}_bde_setup"
-        echo "*  ./mk_bde"
-    popd > /dev/null
+    bde_setup_dir=${brand}_bde_setup
+    if [[ ! -d ${bde_setup_dir} ]]; then
+        >&2 echo "KO 74693 ${bde_setup_dir} dir doesn't exist."
+        exit 1
+    fi
+    rm -f ${bde_setup_dir}.tgz
+    tar -czf ${bde_setup_dir}.tgz ${bde_setup_dir}
+    scp ${bde_setup_dir}.tgz ${unixname}:/root/
+    ssh ${unixname} "rm -rf ${bde_setup_dir}; tar -xzf ${bde_setup_dir}.tgz; rm -f ${bde_setup_dir}.tgz; ls -la ${bde_setup_dir}"
+}
+
+function exec_bde_setup {
+    echo "using bde host ${unixname}"
+    ping tft -c1
+    if [[ $? -ne 0 ]]; then
+        >&2 echo "KO 78695 Host unavailable."
+        exit 1
+    fi
+    gen_bde_setup
+    upload_bde_setup
+    bde_setup_dir=${brand}_bde_setup
+    echo "ssh ${unixname} \"cd ${bde_setup_dir}; ./mk_bde\""
+    ssh ${unixname} "cd ${bde_setup_dir}; ./mk_bde"
 }
 
 #-------------------------------
-us=`cat /var/us_nets | awk '{ print $2 }'`
+us=$(cat /var/us_nets | awk '{ print $2 }')
 if [[ $? -ne 0 ]]; then
-    echo "KO 11795 /var/us_nets not found"
+    >&2 echo "KO 11795 /var/us_nets not found"
     exit 1
 fi
 
 check_working_wallet
 
-if [[ "_$cmd" == "_new" ]]; then
-    cmd_new
+if [[ "_$cmd" == "_update" ]]; then
+    cmd_update
     exit 0
 fi
 if [[ "_$cmd" == "_gen_strset" ]]; then
-    gen_strset
-    if [[ -f ${brand_dir}/en-uk ]]; then
-        echo "# warning: this is on-the-fly newly generated file that is not supposed to match the existing ${brand_dir}/en-uk generated previously."
-    fi
+    tf=$(mktemp /tmp/gen_strset.XXXXXX)
+    gen_strset $tf
+    cat $tf
+    rm $tf
     exit 0
 fi
 if [[ "_$cmd" == "_upload_bde_setup" ]]; then
     upload_bde_setup
+    exit 0
+fi
+if [[ "_$cmd" == "_exec_bde_setup" ]]; then
+    exec_bde_setup
+    exit 0
+fi
+
+
+if [[ "_$cmd" == "_gen_bde_setup" ]]; then
+    gen_bde_setup
     exit 0
 fi
 if [[ "_$cmd" == "_gen_bookmarks" ]]; then
@@ -983,5 +1296,6 @@ if [[ "_$cmd" == "_gen_bookmarks" ]]; then
 fi
 
 help
-echo "KO 68493 Invalid command."
+>&2 echo "KO 68493 Invalid command."
 exit 1
+

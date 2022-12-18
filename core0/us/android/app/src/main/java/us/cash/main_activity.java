@@ -125,71 +125,8 @@ public final class main_activity extends activity {
     public main_activity() {
         if (CFG.default_view_bookmarks == 1) {
             _nodes_mode_tab = 1;
-//            _nodes_mode_all = false;
         }
     }
-/*
-    public static class adapter_t extends ArrayAdapter<device_endpoint_t> {
-
-        private main_activity activity_;
-        private LayoutInflater inflater = null;
-
-        public adapter_t(main_activity ac, ArrayList<device_endpoint_t> data) {
-            super(ac, R.layout.device_endpoint, data);
-            this.activity_ = ac;
-            inflater = (LayoutInflater)activity_.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-        }
-
-        static final int pwr_off = Color.parseColor("#a0a0a0");
-        static final int pwr_on = Color.parseColor("#0010BB");
-
-        @Override public View getView(int position, View view, ViewGroup parent) {
-            View vi = view;
-            if (vi == null) {
-                vi = inflater.inflate(R.layout.device_endpoint, null, true);
-            }
-            Button b = vi.findViewById(R.id.hmibutton);
-            device_endpoint_t itm = getItem(position);
-            String caption = itm.get_title();
-            b.setBackgroundColor(pwr_off);
-            if (itm.hmi != null) {
-                caption = "[ON] " + caption;
-                b.setBackgroundColor(pwr_on);
-            }
-            b.setText(caption);
-            View.OnClickListener lner = new View.OnClickListener() {
-                @Override public void onClick(View v) {
-                    activity_.select_device_endpoint(position);
-                }
-            };
-            b.setOnClickListener(lner);
-            return vi;
-        }
-*/
-/*
-        private void setClipboard(Context context, String text, String message) {
-            if(android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.HONEYCOMB) {
-                android.text.ClipboardManager clipboard = (android.text.ClipboardManager) context.getSystemService(Context.CLIPBOARD_SERVICE);
-                clipboard.setText(text);
-            }
-            else {
-                android.content.ClipboardManager clipboard = (android.content.ClipboardManager) context.getSystemService(Context.CLIPBOARD_SERVICE);
-                android.content.ClipData clip = android.content.ClipData.newPlainText(message, text);
-                clipboard.setPrimaryClip(clip);
-            }
-        }
-    }
-*/
-/*
-    @Override public int menuid() {
-        if (!a.has_hmi()) {
-            return R.menu.menu_nohmi;
-        }
-        else {
-            return R.menu.menu_hmi_online;
-        }
-    }
-*/
 
     void tweak_menu() {
         if (a.device_endpoints == null) {
@@ -200,19 +137,6 @@ public final class main_activity extends activity {
         updateavailable = nav_menu.findItem(R.id.nav_updateavailable);
         if (updateavailable != null) {
             updateavailable.setVisible(false);
-/*
-            if (a.hmi().sw_updates != null) {
-                if (a.hmi().sw_updates.is_updateavailable) {
-                    updateavailable.setVisible(true);
-                }
-                else {
-                    updateavailable.setVisible(false);
-                }
-            }
-            else {
-                updateavailable.setVisible(false);
-            }
-*/
         }
         boolean showiot = true;
         //release builds (which don't incluce lines marked '--strip' ) doesn't show the experimental IoT menu.
@@ -306,24 +230,6 @@ public final class main_activity extends activity {
         a.main = null;
     }
 
-/*
-    public static boolean is_integer(String str) {
-        boolean ret = true;
-        try {
-            Long.parseLong(str);
-        }
-        catch (Exception e) {
-            ret = false;
-        }
-        return ret;
-    }
-
-    String r_(int id) {
-        return a.getResources().getString(id);
-    }
-*/
-
-
     @Override public void onBackPressed() {
         if (drawer_layout.isDrawerOpen(GravityCompat.START)) {
             drawer_layout.closeDrawer(GravityCompat.START);
@@ -342,16 +248,6 @@ public final class main_activity extends activity {
         }
         super.onBackPressed();
     }
-
-/*
-    public void go_conf(final int index) {
-        a.assert_ui_thread(); //--strip
-        log("launching settings..."); //--strip
-        Intent intent = new Intent(main_activity.this, node_pairing.class);
-        intent.putExtra("conf_index", index);
-        startActivity(intent);
-    }
-*/
 
 /*
     private boolean isConnectedViaWifi() {
@@ -438,15 +334,8 @@ public final class main_activity extends activity {
     private MenuItem updateavailable;
 
     public int _nodes_mode_tab = 0;
-
     public hash_t _nodes_mode_custom_tid = null;
     public bookmarks_t _nodes_mode_custom = null;
-
-
-//    public boolean _nodes_mode_all = true;
-//    public bookmarks_t _nodes_mode_custom = null;
-//    public hash_t _nodes_mode_custom_tid = null;
-//    public bookmark_index_t _nodes_mode_index = null;
 
 }
 

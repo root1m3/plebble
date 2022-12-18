@@ -20,8 +20,9 @@
 //===-
 //===----------------------------------------------------------------------------
 //===-
-#include "bgtask.h"
 #include <functional>
+
+#include "bgtask.h"
 
 #define loglevel "gov"
 #define logclass "wbgtask"

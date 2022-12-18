@@ -20,7 +20,6 @@
 //===-
 //===----------------------------------------------------------------------------
 //===-
-#include "shell_args.h"
 #include <sstream>
 #include <algorithm>
 #include <cctype>
@@ -29,6 +28,7 @@
 #include <us/gov/config.h>
 
 #include "cfg0.h"
+#include "shell_args.h"
 
 //#define loglevel "io"
 //#define logclass "shell_args"

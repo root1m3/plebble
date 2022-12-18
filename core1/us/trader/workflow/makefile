@@ -20,19 +20,18 @@
 #===-
 #===----------------------------------------------------------------------------
 #===-
-LIB:=${LIB0}
 HS:=$(wildcard *.h)
 
 all: consumer organization logistics
 
 consumer: ${HS}
-	$(MAKE) CXXFLAGS="${CXXFLAGS}" INC="${INC}" LIB0="${LIB}" -C consumer;
+	$(MAKE) CXXFLAGS="${CXXFLAGS}" INC="${INC}" -C consumer;
 
 organization: ${HS}
-	$(MAKE) CXXFLAGS="${CXXFLAGS}" INC="${INC}" LIB0="${LIB}" -C organization;
+	$(MAKE) CXXFLAGS="${CXXFLAGS}" INC="${INC}" -C organization;
 
 logistics: ${HS}
-	$(MAKE) CXXFLAGS="${CXXFLAGS}" INC="${INC}" LIB0="${LIB}" -C logistics;
+	$(MAKE) CXXFLAGS="${CXXFLAGS}" INC="${INC}" -C logistics;
 
 clean:
 	$(MAKE) clean -C consumer;

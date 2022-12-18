@@ -20,11 +20,13 @@
 //===-
 //===----------------------------------------------------------------------------
 //===-
+#include <iostream>
+
+#include <us/gov/config.h>
+#include <us/gov/stacktrace.h>
+
 #include "task.h"
 #include "thread_logger.h"
-#include <us/gov/config.h>
-#include <iostream>
-#include <us/gov/stacktrace.h>
 
 using namespace std;
 using namespace chrono;

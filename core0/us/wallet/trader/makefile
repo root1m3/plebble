@@ -20,23 +20,20 @@
 #===-
 #===----------------------------------------------------------------------------
 #===-
-OBJ := libtrader
-CPPS := $(wildcard *.cpp)
-OBJS := $(patsubst %.cpp, %.o, $(CPPS))
-HS := $(wildcard *.h)
-INC := ../../..
+OBJ:=libtrader
 CXXFLAGS = -O0 -g -std=c++20 -DDEBUG
-LIBS := workflow/libtrader-workflow.o personality/libtrader-personality.o bootstrap/libtrader-bootstrap.o r2r/w2w/libtrader-r2r-w2w.o
+CPPS:=$(wildcard *.cpp)
+OBJS:=$(patsubst %.cpp, %.o, $(CPPS))
+HS:=$(wildcard *.h)
 
-.PHONY: all clean
+INC:= ../../..
+
+LIBS:=workflow/libtrader-workflow.o
+LIBS+=personality/libtrader-personality.o
+LIBS+=bootstrap/libtrader-bootstrap.o
+LIBS+=r2r/w2w/w2w-w.o
 
 all: ${OBJ}.o
-
-r2r/w2w/libtrader-r2r-w2w.o:
-	$(MAKE) -C r2r
-
-workflow/libtrader-workflow.o:
-	$(MAKE) -C workflow
 
 personality/libtrader-personality.o:
 	$(MAKE) -C personality
@@ -44,17 +41,25 @@ personality/libtrader-personality.o:
 bootstrap/libtrader-bootstrap.o:
 	$(MAKE) -C bootstrap
 
-${OBJ}.o: ${OBJS} ${LIBS}
-	ld -r -o ${OBJ}.o ${LIBS} ${OBJS}
+workflow/libtrader-workflow.o:
+	$(MAKE) -C workflow
+
+r2r/w2w/w2w-w.o:
+	$(MAKE) -C r2r
 
 %.o: %.cpp
 	$(CXX) -fPIC -c ${CXXFLAGS} -I${INC} $^ -o $@
+
+${OBJ}.o: ${OBJS} ${LIBS}
+	ld -r ${OBJS} ${LIBS} -o ${OBJ}.o
 
 clean:
 	$(MAKE) -C r2r clean
 	$(MAKE) -C workflow clean
 	$(MAKE) -C personality clean
 	$(MAKE) -C bootstrap clean
-	rm *.o -f
+	$(RM) -f *.o
+
+.PHONY: all clean
 
 

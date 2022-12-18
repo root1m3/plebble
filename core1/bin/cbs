@@ -26,28 +26,30 @@ echo "## Continuous Build Script ##"
 echo "#############################"
 
 if [[ ! -f ./.cbs/config ]]; then
-    echo "KO 15502 missing .cbs/config"
+    >&2 echo "KO 15502 missing .cbs/config"
     exit 1
 fi
 . ./.cbs/config
+. lib/shenv
 
 function help {
     cat << EOF
-$0 [-b] [--local-build] [--flags <flags10>] [--brand <brand|all] <cmd>
---yes              Don't ask questions, assume yes.
---stop-on-blobs
-clear_ccache
-run
-
-*stop <job>
+$0 [-b] [--local-build] [--flags <flags10>] [--brand <brand|all]* <cmd>
+options:
+    --yes              Don't ask questions, assume yes.
+    --stop-on-blobs
+commands:
+    clear_ccache
+    run
+    stop <job>
 EOF
     exit 0
 }
 
-ley yes=0
+let yes=0
 let bg=0
 let local_build=0
-brand=all
+brand=""
 flags10=""
 while [[ true ]]; do
     opt=$1
@@ -61,8 +63,8 @@ while [[ true ]]; do
         let local_build=1
         continue
     elif [[ "_$opt" == "_--brand" ]]; then
-        brand=$1
-        echo "brand $brand"
+        brand="$brand $1"
+        echo "added brand $brand"
         shift
         continue
     elif [[ "_$opt" == "_--flags" ]]; then
@@ -92,27 +94,20 @@ function run_cbs_init {
     flags10="$flags10 --branch $branch -o build_jobs_distr"
     flags15=""
     flags20=""
-    flags35=""
     if [[ $local_build -eq 1 ]]; then
-        echo "Creating single-arch blobs on this local machine. arch=`uname -m`"
+        echo "Creating single-arch blobs on this local machine. arch=$arch"
         flags15="${flags15} --local-build"
         flags20="${flags20} --local-build"
-        flags35="${flags35} --local-build"
     fi
-    echo "brand=$brand"
+    if [[ "_$brand" == "_" ]]; then
+        brand="all"
+    fi
+    echo "brands=$brand"
     echo "branch=$branch"
     echo "flags10(src)=$flags10"
     echo "flags15(deps)=$flags15"
     echo "flags20(core)=$flags20"
-    echo "flags35(r2r)=$flags35"
     echo "flags_compile_job=$flags_compile_job"
-    echo "Make sure you have your signing password ready."
-    echo "Sure? yes or CTRL-C"
-    if [[ $yes -eq 1 ]]; then
-        echo "auto-answering yes"
-    else
-        read ryes
-    fi
 }
 
 sep="-------------------------------------------------------------------------------"
@@ -122,7 +117,7 @@ function run_cbs {
     date
     echo $sep
     echo "bin/10_make_build_jobs ${flags10} ${brand}"
-    bin/10_make_build_jobs ${flags10} $brand
+    bin/10_make_build_jobs ${flags10} "${brand}"
     if [[ $? -ne 0 ]]; then
         exit 1
     fi
@@ -144,18 +139,18 @@ function run_cbs {
     if [[ $? -ne 0 ]]; then
         exit 1
     fi
-    echo $sep
-    echo "bin/35_make_r2r_protocols ${flags35} build_jobs_distr"
-    bin/35_make_r2r_protocols ${flags35} build_jobs_distr
-    if [[ $? -ne 0 ]]; then
-        exit 1
-    fi
-    echo $sep
-    echo "bin/40_make_raspi_image"
-    bin/40_make_raspi_image
-    if [[ $? -ne 0 ]]; then
-        exit 1
-    fi
+#    echo $sep
+#    echo "bin/35_make_r2r_protocols ${flags35} build_jobs_distr"
+#    bin/35_make_r2r_protocols ${flags35} build_jobs_distr
+#    if [[ $? -ne 0 ]]; then
+#        exit 1
+#    fi
+#    echo $sep
+#    echo "bin/40_make_raspi_image"
+#    bin/40_make_raspi_image
+#    if [[ $? -ne 0 ]]; then
+#        exit 1
+#    fi
     echo $sep
     echo "bin/50_tokenized_files_and_sign build_jobs_distr"
     bin/50_tokenized_files_and_sign build_jobs_distr
@@ -180,11 +175,15 @@ function run_cbs {
     echo "Test blob ?"
     if [[ $yes -eq 1 ]]; then
         echo "auto-answering yes"
+        let test_blob=1
     else
         read ryes
+        if [[ "_$ryes" == "_yes" ]]; then
+            let test_blob=1
+        fi
     fi
     if [[ $test_blob -eq 1 ]]; then
-        bin/85_test_blob
+        bin/75_test_blob
     fi
 
     echo "deploy to distribution nodes (Brand Distribution End) ?"
@@ -255,7 +254,7 @@ function c3po19 {
     echo "brand: $brand"
     echo -n "remote seq: "
     $scp -P$port build_jobs_$prog.tzst $user@$host:/root
-    bgssh "buildlog_${host}" -p$port $user@$host 'set -e; cd /root; rm build_jobs_'$prog' -rf; tar -I zstd -xf build_jobs_'$prog'.tzst; cd build_jobs_'$prog'; ./make.sh r2r; cd $(dirname `find . -name install_r2r`); ./install_r2r; cd /root; rm /var/log/'$brand'/* -rf; systemctl restart '$brand'-wallet'
+    bgssh "buildlog_${host}" -p$port $user@$host 'set -e; cd /root; rm build_jobs_'$prog' -rf; tar -I zstd -xf build_jobs_'$prog'.tzst; cd build_jobs_'$prog'; ./make.sh r2r; cd $(dirname $(find . -name install_r2r)); ./install_r2r; cd /root; rm /var/log/'$brand'/* -rf; systemctl restart '$brand'-wallet'
     echo "/$prog"
 }
 
@@ -272,7 +271,7 @@ function c3po20 {
     echo "brand: $brand"
     echo -n "remote seq: "
     $scp -P$port build_jobs_$prog.tzst $user@$host:/root
-    bgssh "buildlog_${host}" -p$port $user@$host 'set -e; rm build_jobs_'$prog' -rf; tar -I zstd -xf build_jobs_'$prog'.tzst; cd build_jobs_'$prog'; ./make.sh core; pwd; cd $(dirname `find . -name makefile_distr`); pwd ; make -f makefile_distr install; echo "installed"; cd /root; rm build_jobs_'$prog' -r; tar -I zstd -xf build_jobs_'$prog'.tzst; cd build_jobs_'$prog'; ./make.sh r2r; cd $(dirname `find . -name install_r2r`); ./install_r2r; cd /root; rm /var/log/'$brand'/* -rf; systemctl restart '$brand'-gov; systemctl restart '$brand'-wallet'
+    bgssh "buildlog_${host}" -p$port $user@$host 'set -e; rm build_jobs_'$prog' -rf; tar -I zstd -xf build_jobs_'$prog'.tzst; cd build_jobs_'$prog'; ./make.sh core; pwd; cd $(dirname $(find . -name makefile_distr)); pwd ; make -f makefile_distr install; echo "installed"; cd /root; rm build_jobs_'$prog' -r; tar -I zstd -xf build_jobs_'$prog'.tzst; cd build_jobs_'$prog'; ./make.sh r2r; cd $(dirname $(find . -name install_r2r)); ./install_r2r; cd /root; rm /var/log/'$brand'/* -rf; systemctl restart '$brand'-gov; systemctl restart '$brand'-wallet'
     echo "/$prog"
 }
 
@@ -289,7 +288,7 @@ function c3po30 {
     echo "brand: $brand"
     echo -n "remote seq: "
     $scp -P$port build_jobs_$prog.tzst $user@$host:/root
-    bgssh "buildlog_${host}" -p$port $user@$host 'set -e; rm build_jobs_'$prog' -rf; tar -I zstd -xf build_jobs_'$prog'.tzst; cd build_jobs_'$prog'; ./make.sh core; pwd; cd $(dirname `find . -name makefile_distr`); pwd ; make -f makefile_distr install; cd /root; rm /var/log/'$brand'/* -rf; systemctl restart '$brand'-gov; systemctl restart '$brand'-wallet; echo "remote process ended"'
+    bgssh "buildlog_${host}" -p$port $user@$host 'set -e; rm build_jobs_'$prog' -rf; tar -I zstd -xf build_jobs_'$prog'.tzst; cd build_jobs_'$prog'; ./make.sh core; pwd; cd $(dirname $(find . -name makefile_distr)); pwd ; make -f makefile_distr install; cd /root; rm /var/log/'$brand'/* -rf; systemctl restart '$brand'-gov; systemctl restart '$brand'-wallet; echo "remote process ended"'
     echo "/$prog"
 }
 
@@ -303,8 +302,8 @@ function do_prog {
     echo "do_prog prog=$prog user=$user brand=$brand flags=$flags host=$host port=$port"
     echo "ok?"
     read x
-    if [ "_$host" == "_" ]; then
-        echo "KO 50499"
+    if [[ "_$host" == "_" ]]; then
+        >&2 echo "KO 50499 "
         exit 1
     fi
     echo "bin/10_make_build_jobs $flags -o build_jobs_$prog $branch $brand"
@@ -338,7 +337,7 @@ fi
 function clear_ccache_arch {
     host=$1
     sshport=$2
-    grootkey=`ush show_groot_key`
+    grootkey=$(ush show_groot_key)
     ssh="ssh -i $grootkey "
     echo "clear_ccache_arch $host:$sshport"
     $ssh -p$sshport $host "ccache -C"
@@ -347,8 +346,8 @@ function clear_ccache_arch {
 if [[ "_$cmd" == "_clear_ccache" ]]; then
     set -x
     ccache -C
-    archs="x86_64 armv7l "
-    for arch in $archs; do
+#    archs="x86_64 armv7l "
+    for arch in $cbs_archs; do
         vhost=host_$arch
         vport=port_ssh_$arch
         host=${!vhost}
@@ -372,7 +371,7 @@ if [[ "_$cmd" == "_android" ]]; then
     set +e
     echo "Invoking bin/50_tokenized_files_and_sign build_jobs_distr"
     bin/50_tokenized_files_and_sign build_jobs_android
-    apk=`find distr -type f -name "*.apk"`
+    apk=$(find distr -type f -name "*.apk")
     echo "$apk"
     echo "install?"
     read x

@@ -97,6 +97,12 @@ public abstract class role_fragment extends Fragment implements datagram_dispatc
         content.addView(_redirects_view);
         _redirects_view.init(this, getActivity());
 
+        if (under_construction) {
+            under_construction_view _under_construction_view = (under_construction_view) inflater.inflate(R.layout.under_construction, null);
+            content.addView(_under_construction_view);
+        }
+
+
         String cards = init_cards();
         _workflow_view.init(this, cards, new workflow_item_view.on_click_listener() {
                 @Override public void on_send(workflow_item_view v) {
@@ -263,5 +269,6 @@ public abstract class role_fragment extends Fragment implements datagram_dispatc
     public NestedScrollView scroll;
 
     boolean logo = true;
+    public boolean under_construction = false;
 }
 

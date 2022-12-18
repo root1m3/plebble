@@ -52,20 +52,17 @@ import android.view.ViewGroup;                                                  
 import android.view.View;                                                                      // View
 
 public class fragment_pat2ai_pat extends role_fragment {
-    View v;
 
-    static void log(final String line) {         //--strip
-       CFG.log_android("fragment_pat2ai_pat: " + line);     //--strip
-    }                                            //--strip
+    static void log(final String line) {                     //--strip
+       CFG.log_android("fragment_pat2ai_pat: " + line);      //--strip
+    }                                                        //--strip
 
-    @Override
-    public String init_cards() {
+    @Override public String init_cards() {
         return "aireq ehr aires";
     }
 
-    @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        v = super.onCreateView(inflater, container, savedInstanceState);
+    @Override public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        View v = super.onCreateView(inflater, container, savedInstanceState);
         if (v == null) return null;
         create_ai_request = tr.findViewById(R.id.action);
         create_ai_request.set_stock_image(3);
@@ -168,8 +165,7 @@ public class fragment_pat2ai_pat extends role_fragment {
 
     void setup_handlers() {
         create_ai_request.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
+            @Override public void onClick(View view) {
                 String type;
                 String[] options = parse_types();
                 if (options!=null) {
@@ -192,7 +188,8 @@ public class fragment_pat2ai_pat extends role_fragment {
         });
     }
 
-    private MaterialCardView referrer;
+//    View v;
+//    private MaterialCardView referrer;
     private toolbar_button create_ai_request;
 }
 

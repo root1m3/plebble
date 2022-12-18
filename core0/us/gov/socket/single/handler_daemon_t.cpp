@@ -20,12 +20,13 @@
 //===-
 //===----------------------------------------------------------------------------
 //===-
-#include "handler_daemon_t.h"
 #include <sstream>
 
 #include <us/gov/socket/rpc_daemon_t.h>
 #include <us/gov/socket/types.h>
 #include <us/gov/config.h>
+
+#include "handler_daemon_t.h"
 
 #define loglevel "gov/socket/inbound/single"
 #define logclass "handler_daemon_t"

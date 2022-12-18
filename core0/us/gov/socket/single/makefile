@@ -21,32 +21,22 @@
 #===----------------------------------------------------------------------------
 #===-
 OBJ:= socket_single
-INC:= ../../../..
 CPPS:= $(wildcard *.cpp)
 OBJS:= $(patsubst %.cpp, %.o, $(CPPS))
 HS:= $(wildcard *.h)
 CXXFLAGS=-O0 -g -std=c++20 -DDEBUG -Wno-psabi
+INC:= ../../../..
 
-${OBJ}.o: deps ${OBJS}
-	ld -r -o ${OBJ}.o ${OBJS}
+all: ${OBJ}.o
 
 %.o: %.cpp
 	$(CXX) -fPIC -Wno-psabi -c ${CXXFLAGS} $^ -pthread -I${INC} -o $@
 
-deps:
-	@for a in $$(ls); do \
-	if [ -d $$a ]; then \
-	    $(MAKE) -C $$a; \
-	fi; \
-	done;
+${OBJ}.o: ${OBJS}
+	ld -r -o ${OBJ}.o ${OBJS}
 
 clean:
-	@for a in $$(ls); do \
-	if [ -d $$a ]; then \
-	    $(MAKE) -C $$a clean; \
-	fi; \
-	done;
-	rm -f *.o
+	$(RM) -f *.o
 
-.PHONY: all deps
+.PHONY: all clean
 

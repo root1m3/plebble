@@ -20,7 +20,6 @@
 //===-
 //===----------------------------------------------------------------------------
 //===-
-#include "daemon_t.h"
 #include <sys/stat.h>
 #include <stdio.h>
 #include <fstream>
@@ -51,6 +50,7 @@
 #include "diff.h"
 #include "db_t.h"
 #include "db_analyst.h"
+#include "daemon_t.h"
 
 #define loglevel "gov/engine"
 #define logclass "daemon_t"
@@ -160,6 +160,17 @@ us::ko c::start() {
         syncd.stop();
         return r;
     }
+/*
+    log("starting thread: housekeeping");
+    r = housekeeping::start();
+    if (unlikely(is_ko(r))) {
+        peerd.stop();
+        pm.stop();
+        syncd.stop();
+        evidence_processor::stop();
+        return r;
+    }
+*/
     r = t::start();
     if (unlikely(is_ko(r))) {
         peerd.stop();
@@ -443,6 +454,7 @@ void c::print_map(ostream& os) const {
 }
 
 #include <us/gov/socket/multipeer/server.h>
+
 void c::watch(ostream& os) const {
     print_map(os);
     os << "uptime " << uptime() << '\n';

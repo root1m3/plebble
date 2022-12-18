@@ -97,6 +97,8 @@ function procblob {
         exit 1
     fi
     chmod -w /home/${GOVUSER}/.${US}/gov/fsroot/$local_hash
+
+    echo "$wallet store $address -f $local_blob $blobid" >> /var/log/${US}/upload_blob_log
 }
 
 brand=$1

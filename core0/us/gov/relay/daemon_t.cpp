@@ -20,9 +20,10 @@
 //===-
 //===----------------------------------------------------------------------------
 //===-
-#include "daemon_t.h"
 #include <limits>
+
 #include "peer_t.h"
+#include "daemon_t.h"
 
 #define loglevel "gov/relay"
 #define logclass "daemon_t"

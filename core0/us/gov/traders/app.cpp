@@ -20,8 +20,6 @@
 //===-
 //===----------------------------------------------------------------------------
 //===-
-#include "app.h"
-
 #include <functional>
 #include <random>
 #include <tuple>
@@ -30,11 +28,13 @@
 #include <us/gov/auth/peer_t.h>
 #include <us/gov/engine/daemon_t.h>
 #include <us/gov/engine/db_t.h>
+#include <us/gov/socket/client.h>
 
 #include "wallet_address.h"
 #include "local_delta.h"
 #include "delta.h"
 #include "types.h"
+#include "app.h"
 
 #define loglevel "gov/traders"
 #define logclass "app"
@@ -71,9 +71,9 @@ void c::process(const wallet_address& t) {
         log(r);
         return;
     }
-    if (unlikely(t.net_addr == 2130706433)) {
-        auto r = "KO 34030 invalid localhost address.";
-        log(r);
+    if (unlikely(!us::gov::socket::client::is_valid_ip(t.net_addr, demon.peerd.channel))) {
+        auto r = "KO 34030 invalid address.";
+        log(r, t.net_addr, demon.peerd.channel);
         return;
     }
     if (unlikely(t.net_addr == 0)) {

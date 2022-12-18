@@ -20,7 +20,6 @@
 //===-
 //===----------------------------------------------------------------------------
 //===-
-#include "evidence.h"
 #include <time.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -33,6 +32,7 @@
 #include <us/gov/traders/app.h>
 
 #include "types.h"
+#include "evidence.h"
 
 #define loglevel "gov/engine"
 #define logclass "evidence"

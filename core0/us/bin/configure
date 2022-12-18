@@ -22,6 +22,8 @@
 #===----------------------------------------------------------------------------
 #===-
 
+. lib/shenv
+
 function banner {
     cat << EOF
 ----------------------------------------------
@@ -42,10 +44,9 @@ fi
 . res/strings/$strset
 androidname0=${str28}
 
-#api_v override 
+#api_v override
 let api_v_gov0=${str97}
 let api_v_wallet0=${str98}
-
 
 if [[ -f res/strings/${strset}.ovr ]]; then
     echo "found override string set"
@@ -134,7 +135,7 @@ done
 function findbrand {
     d=$1
     if [[ -d $d ]]; then
-        n=`find $d -maxdepth 1 -mindepth 1 -type d | wc -l`
+        n=$(find $d -maxdepth 1 -mindepth 1 -type d | wc -l)
         if [[ $n -eq 1 ]]; then
             branddir=`find $d -maxdepth 1 -mindepth 1 -type d`
             echo "selecting existing brand at $branddir"
@@ -151,7 +152,7 @@ fi
 
 if [[ "_$branddir" != "_" ]]; then
     if [[ ! -d $branddir ]]; then
-        echo "brand $branddir not found"
+        >&2 echo "KO 49441 brand $branddir not found."
         exit 1
     fi
     cp $branddir/${strset} res/strings/${strset}.ovr
@@ -168,7 +169,6 @@ fi
 if [[ -f res/strings/${strset}.ovr ]]; then
     . res/strings/${strset}.ovr
 fi
-
 
 if [[ $dbg -eq 1 ]]; then
     str29=1
@@ -221,13 +221,13 @@ if [[ ! -f res/strings/${strset}.ovr ]]; then
     cp res/strings/${strset} res/strings/${strset}.ovr
 fi
 
-sed -i "s/^str29=.*//" res/strings/${strset}.ovr
-sed -i "s/^str33=.*//" res/strings/${strset}.ovr
-sed -i "s/^str41=.*//" res/strings/${strset}.ovr
-sed -i "s/^str42=.*//" res/strings/${strset}.ovr
-sed -i "s/^str45=.*//" res/strings/${strset}.ovr
-sed -i "s/^str62=.*//" res/strings/${strset}.ovr
-sed -i "s/^str83=.*//" res/strings/${strset}.ovr
+sedi "s/^str29=.*//" res/strings/${strset}.ovr
+sedi "s/^str33=.*//" res/strings/${strset}.ovr
+sedi "s/^str41=.*//" res/strings/${strset}.ovr
+sedi "s/^str42=.*//" res/strings/${strset}.ovr
+sedi "s/^str45=.*//" res/strings/${strset}.ovr
+sedi "s/^str62=.*//" res/strings/${strset}.ovr
+sedi "s/^str83=.*//" res/strings/${strset}.ovr
 
 echo "str29=$str29 #dbg" >> res/strings/${strset}.ovr
 echo "str33=$str33 #logs" >> res/strings/${strset}.ovr
@@ -241,9 +241,9 @@ cat res/strings/${strset}.ovr | grep -v "^$" > res/strings/${strset}.ovr_
 mv res/strings/${strset}.ovr_ res/strings/${strset}.ovr
 
 function checkbin {
-    which make
+    which ${make}
     if [[ $? -ne 0 ]]; then
-        echo "KO 44921 run bin/apt first"
+        >&2 echo "KO 44921 ${make} not found. run bin/apt first"
         exit 1
     fi
 }
@@ -254,8 +254,8 @@ let warngit=0
 function gen_api {
     echo "generating RPC-API code snippets "
     pushd api > /dev/null
-        make clean
-        make -j8
+        ${make} clean
+        ${make} -j${jobs}
     popd > /dev/null
     echo ""
 
@@ -268,11 +268,11 @@ function gen_api {
     if [[ ${api_v_gov0} -ne ${api_v_gov} ]]; then
         if [[ $gitenv == 1 ]]; then
             echo "Updating strset with gov api versioning info ${api_v_gov0} -> ${api_v_gov}"
-            sed -i "s/^str97=[0-9]*/str97=${api_v_gov}/" res/strings/${strset}
+            sedi "s/^str97=[0-9]*/str97=${api_v_gov}/" res/strings/${strset}
             let api_v_gov0=$api_v_gov
             let warngit=1
         else
-            echo "KO 79588 Inconsistency in gov RPC-API versions."
+            >&2 echo "KO 79588 Inconsistency in gov RPC-API versions."
             exit 1
         fi
     fi
@@ -280,11 +280,11 @@ function gen_api {
     if [[ ${api_v_wallet0} -ne ${api_v_wallet} ]]; then
         if [[ $gitenv == 1 ]]; then
             echo "Updating strset with wallet api versioning info ${api_v_wallet0} -> ${api_v_wallet}"
-            sed -i "s/^str98=[0-9]*/str98=${api_v_wallet}/" res/strings/${strset}
+            sedi "s/^str98=[0-9]*/str98=${api_v_wallet}/" res/strings/${strset}
             let api_v_wallet0=$api_v_wallet
             let warngit=1
         else
-            echo "KO 79589 Inconsistency in wallet RPC-API versions."
+            >&2 echo "KO 79589 Inconsistency in wallet RPC-API versions."
             exit 1
         fi
     fi
@@ -322,7 +322,7 @@ patch_sdk_src_file2() {
     fi
     n=`cat ${file}_old | wc -l`
     dst=${file}
-    indent=`cat ${file}_old | grep "^ *//#include <us/$origfile>" | sed "s~^\( *\)//.*~\1~"`
+    indent=$(cat ${file}_old | grep "^ *//#include <us/$origfile>" | sed "s~^\( *\)//.*~\1~")
     cat ${file}_old | grep "^ *//#include <us/$origfile>" -B$n > $dst
     if [[ $? -ne 0  ]]; then
         echo "write to ${dst} failed. permissions?"
@@ -357,7 +357,7 @@ patch_sdk_src() {
     echo "patching sdk sources"
     usdir="."
     pfx="$usdir/sdk/wallet/java"
-    files=`find $pfx/us -name "*.java" -exec grep -H "^ *//#include " {} \; | tr ':' ' ' | awk '{print $1}' | sort | uniq`
+    files=$(find $pfx/us -name "*.java" -exec grep -H "^ *//#include " {} \; | tr ':' ' ' | awk '{print $1}' | sort | uniq)
     for f in $files; do
         patch_sdk_src_file $f
     done
@@ -365,7 +365,7 @@ patch_sdk_src() {
 
 function configure_sdk {
     if [[ ! -f vcs_git_java ]]; then
-        echo "KO 89345 failed vcs_git_java"
+        >&2 echo "KO 89345 failed vcs_git_java"
         exit 1
     fi
     progress_reset
@@ -373,11 +373,15 @@ function configure_sdk {
     usdir="."
     pfx="$usdir/sdk/wallet/java"
     sedregex="s/^import org.spongycastle./import org.bouncycastle./g"
-    find $pfx/us/gov/crypto -name "*.java" -exec sed -i "$sedregex" {} \;
+    for f in $(find $pfx/us/gov/crypto -name "*.java"); do
+        sedi "$sedregex" $f
+    done
     progress
-    find $pfx/test/us/gov/crypto -name "*.java" -exec sed -i "$sedregex" {} \;
+    for f in $(find $pfx/test/us/gov/crypto -name "*.java"); do
+        sedi "$sedregex" $f
+    done
     progress
-    sed -i "$sedregex" $pfx/us/gov/socket/datagram.java
+    sedi "$sedregex" $pfx/us/gov/socket/datagram.java
     progress
     rm -f sdk/wallet/java/selected_cryptosuite
     echo ""
@@ -403,16 +407,18 @@ function progress {
 function patch {
     ifile="${1}.in"
     ofile=$1
+#echo "patch $ifile $ofile"
+
     if [[ "_$2" != "_" ]]; then
         #echo "$1 -> $2"
         ofile=$2
     fi
     cp $ifile $ofile
-    strs=`cat $ifile  | grep -o "##str[0-9]*##" | sed "s/#//g"`
+    strs=$(cat $ifile  | grep -o "##str[0-9]*##" | sed "s/#//g")
     for s in $strs; do
         progress
         # echo -n "$s = ${!s}; "
-        sed -i "s%##$s##%${!s}%g" $ofile
+        sedi "s%##$s##%${!s}%g" $ofile
     done
     progress
 }
@@ -425,7 +431,7 @@ function patchin {
 
 function reroot {
     if [[ "_$1" != "_$2" ]]; then
-        cp $1 $2 -R
+        cp -r $1 $2
     fi
     progress
 }
@@ -445,6 +451,7 @@ progress_reset
 javapkgdir=`echo $str28 | sed "s#\.#/#g"`
 echo "java_pkg_dir: $javapkgdir"
 echo "processing .in files "
+
 patch raspbian/make
 patch raspbian/10-us/files/rc.local
 patch etc/motd etc/${str3}_motd
@@ -491,14 +498,13 @@ patch etc/nginx/conf.d/us-hidden.conf etc/nginx/conf.d/${str3}-hidden.conf
 patch snippet/distr_makefile snippet/${str3}_distr_makefile
 patch android/app/src/main/AndroidManifest.xml
 if [[ $appstore -eq 1 ]]; then
-    sed -i "s~<uses-permission android:name=\"android.permission.REQUEST_INSTALL_PACKAGES\" />~~" android/app/src/main/AndroidManifest.xml
+    sedi "s~<uses-permission android:name=\"android.permission.REQUEST_INSTALL_PACKAGES\" />~~" android/app/src/main/AndroidManifest.xml
 fi
 patch android/bin/sign_apk
-for f in `find android/app/src/main/java -name CFG.java.in`; do
+for f in $(find android/app/src/main/java -name CFG.java.in); do
     patchin $f
 done
 patch sdk/wallet/java/us/CFG.java
-#patch android/app/build.gradle
 patch api/config.h
 patch Doxyfile
 patch test/makefile
@@ -522,7 +528,7 @@ androidname=${str28}
 if [[ "_${androidname}" != "_${androidname0}" ]]; then
     if [[ $gitenv -eq 1 ]]; then
         echo "git environment: android app name remains ${androidname0}"
-        sed -i "s/package=\"${androidname}\"/package=\"${androidname0}\"/" android/app/src/main/AndroidManifest.xml
+        sedi "s/package=\"${androidname}\"/package=\"${androidname0}\"/" android/app/src/main/AndroidManifest.xml
         androidname=${androidname0}
     fi
 fi
@@ -530,7 +536,7 @@ fi
 echo "VCS"
 bin/gen_vcs_git
 if [[ ! -f vcs_git_env ]]; then
-    echo "KO 30219 configure finished with error."
+    >&2 echo "KO 30219 configure finished with error."
     exit 1
 fi
 
@@ -551,15 +557,16 @@ echo ""
 echo "ANDROID"
 pushd android > /dev/null
     ./configure
-    if [ $? -ne 0 ]; then
-    exit 1
+    if [[ $? -ne 0 ]]; then
+        >&2 echo "KO 44938 "
+        exit 1
     fi
 popd > /dev/null
 
 echo ""
 echo "Instrumentation"
 let instr=$logs
-if [ $instr -eq 0 ]; then
+if [[ $instr -eq 0 ]]; then
     if [[ -f ../../.git/config ]]; then
         let instr=1
     fi
@@ -569,11 +576,11 @@ if [ $instr -eq 0 ]; then
     fi
 fi
 
-if [ $instr -eq 0 ]; then
+if [[ $instr -eq 0 ]]; then
      echo "stripping instrumentation code...";
      bin/strip .
-     if [ $? -ne 0 ]; then
-         echo "KO 66975 Strip failed"
+     if [[ $? -ne 0 ]]; then
+         >&2 echo "KO 66975 Strip failed"
          exit 1
      fi
 else
@@ -621,3 +628,4 @@ if [[ $warngit -eq 1 ]]; then
 fi
 
 exit 0
+

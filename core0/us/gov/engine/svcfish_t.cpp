@@ -20,9 +20,9 @@
 //===-
 //===----------------------------------------------------------------------------
 //===-
-#include "svcfish_t.h"
-
 #include <us/gov/config.h>
+
+#include "svcfish_t.h"
 
 #define loglevel "gov/engine"
 #define logclass "svcfish_t"

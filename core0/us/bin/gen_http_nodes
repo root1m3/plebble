@@ -40,7 +40,7 @@ shift
 
 if [[ "_$cmd" != "_scan" ]]; then
     help
-    echo "KO 86875 Invalid command."
+    >&2 echo "KO 86875 Invalid command."
     exit 1
 fi
 
@@ -48,7 +48,7 @@ nodes0=/tmp/nodes0
 if [[ ! -f $nodes0 ]]; then
     echo "Finding all nodes with http port open"
     echo "" > $nodes0
-    for h in `cat etc/nodes.distr0 | sed 's/72$/80/'`; do
+    for h in $(cat etc/nodes.distr0 | sed 's/72$/80/'); do
         cmd="timeout 10 wget -t 1 --quiet --connect-timeout=2 -O - $h"
         echo "Exec: $cmd"
         eval $cmd > /dev/null
@@ -68,13 +68,13 @@ if [[ "_$US" == "_" ]]; then
 	exit 0
 fi
 
-httpnodes="`cat $nodes0 | shuf | xargs` "
+httpnodes="$(cat $nodes0 | shuf | xargs) "
 echo "httpnodes=$httpnodes"
 file="/tmp/nodes_${US}"
 echo "" > $file
 while [[ true ]]; do
-    httpnode=`echo $httpnodes | tr ' ' '\n' | head -n1`
-    httpnodes=`echo "$httpnodes" | sed "s#$httpnode ##"`
+    httpnode=$(echo $httpnodes | tr ' ' '\n' | head -n1)
+    httpnodes=$(echo "$httpnodes" | sed "s#$httpnode ##")
     echo "httpnode=$httpnode"
     if [ "_$httpnode" == "_" ]; then
         break
@@ -92,7 +92,7 @@ while [[ true ]]; do
         echo "${httpnode} hasn't ${US}"
         continue;
     fi
-    curhash=`cat curhash`
+    curhash=$(cat curhash)
     rm curhash
     echo "======================================${httpnode} has ${US}"
     echo "$httpnode" >> $file
@@ -100,7 +100,7 @@ done
 rm -f curhash
 echo "${US} nodes:"
 echo -n "str67=\""
-v=`cat $file | sort | xargs`
+v=$(cat $file | sort | xargs)
 echo -n $v
 echo "\" #Seeds; Use bin/gen_http_nodes"
 

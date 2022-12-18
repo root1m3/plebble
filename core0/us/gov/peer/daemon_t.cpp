@@ -20,12 +20,15 @@
 //===-
 //===----------------------------------------------------------------------------
 //===-
-#include "daemon_t.h"
-#include "protocol.h"
-#include "peer_t.h"
 #include <chrono>
 #include <random>
+
 #include <us/gov/io/cfg.h>
+#include <us/gov/config.h>
+
+#include "protocol.h"
+#include "peer_t.h"
+#include "daemon_t.h"
 
 #define loglevel "gov/peer"
 #define logclass "daemon_t"
@@ -275,6 +278,9 @@ void c::test_connectivity() {
 }
 
 void c::watch(ostream& os) const {
+    os << "Running swver " << CFG_MONOTONIC_VERSION_FINGERPRINT << '\n';
+    os << "api_v gov: " << CFG_API_V__GOV << '\n';
+    os << "api_v wallet: " << CFG_API_V__WALLET << '\n';
     os << "peers\n";
     clique.watch(os);
     faillog.dump(os);

@@ -20,14 +20,13 @@
 //===-
 //===----------------------------------------------------------------------------
 //===-
-#include "local_deltas_t.h"
-
 #include <us/gov/io/seriable.h>
 #include <us/gov/engine/protocol.h>
 #include <us/gov/engine/db_t.h>
 
 #include "types.h"
 #include "diff.h"
+#include "local_deltas_t.h"
 
 #define loglevel "gov/engine"
 #define logclass "local_deltas"
