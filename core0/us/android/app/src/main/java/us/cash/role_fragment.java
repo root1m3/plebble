@@ -110,6 +110,7 @@ public abstract class role_fragment extends Fragment implements datagram_dispatc
                     log("on_send " + docname); //--strip
                     a.hmi().command_trade(tr.tid, "send " + docname);
                 }
+
                 @Override public void on_show(workflow_item_view v) {
                     String docname = v.local.name;
                     log("on_show " + docname); //--strip

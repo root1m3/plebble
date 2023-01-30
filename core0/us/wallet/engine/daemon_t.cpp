@@ -114,9 +114,9 @@ c::daemon_t(channel_t channel, const keys_t& k, port_t port, pport_t pport, cons
     io::cfg0::ensure_dir(downloads_dir);
 
     users.init();
-//    api_v = CFG_API_V__WALLET;
-//    assert(api_v != 0);
-//    log("set api_v", +api_v);
+    api_v = CFG_API_V__WALLET;
+    assert(api_v != 0);
+    log("set api_v", +api_v);
 
     //root_wallet = users.root_wallet;
 }

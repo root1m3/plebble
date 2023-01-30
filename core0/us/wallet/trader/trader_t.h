@@ -154,6 +154,7 @@ namespace us::wallet::trader {
             push_chat,
             push_bookmarks,
             push_help,
+            push_cert,
             //push_local_functions,
             //push_remote_functions,
 
@@ -186,6 +187,7 @@ namespace us::wallet::trader {
             svc_chat_msg,
             svc_functions_request,
             svc_functions,
+            svc_cert,
 
             svc_end
         };

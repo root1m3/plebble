@@ -39,8 +39,10 @@ public class trader_t {
         public static final int push_chat = push_begin + 10;
         public static final int push_bookmarks = push_begin + 11;
         public static final int push_help = push_begin + 12;
-        public static final int push_local_functions = push_begin + 13;
-        public static final int push_remote_functions = push_begin + 14;
+        public static final int push_cert = push_begin + 13;
+
+//        public static final int push_local_functions = push_begin + 13;
+//        public static final int push_remote_functions = push_begin + 14;
 
         public static final int push_end = push_begin + 15;
 

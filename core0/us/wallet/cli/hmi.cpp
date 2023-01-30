@@ -1526,8 +1526,11 @@ void c::help(const params& p, ostream& os) { //moved
         fmt::twocol(ind____, "decode_protocol_list [-f <filename> | <blob_b58>]", "Decode protocols_t blob (from file or encoded) and shows its content on screen.", os);
         fmt::twocol(ind____, "r2r_index [-f <file>] [-e]", "Obtain interesting bookmarks. Optionally save it to file or print encoded.", os);
         fmt::twocol(ind____, "r2r_index_hdr ", "Print protocol_selections available in the r2r_index.", os);
-
-
+        fmt::twocol(ind____, "cert <cmd> ", "Certificate/NFT functions.", os);
+        fmt::twocol(ind____, " \"   create [-f msg_file] [-m b58]", "Create certificate/NFT from payload (file or b58 encoded string).", os);
+        fmt::twocol(ind____, " \"   import [-f cert] [-enc cert_b58]", "Import certificate/NFT from cert (file or b58 encoded string).", os);
+        fmt::twocol(ind____, " \"   list <0|1>", "Lists certificates/NFTs. 0-all; 1-issued.", os);
+        fmt::twocol(ind____, " \"   get <id> [-o file] [-enc]", "Retrieve certificate/NFT by its id. Out put goes to file or screen, either encoded or human readable.", os);
         os << '\n';
         fmt::twocol(ind, "Daemon control/monitoring:", "----------", os);
         fmt::twocol(ind____, "s", "Show socket connections", os);
@@ -2090,6 +2093,111 @@ ko c::exec_online1(const string& cmd, shell_args& args) {
         screen::lock_t lock(scr, interactive);
         protocols.dump(lock.os);
         return ok;
+    }
+    if (command == "cert") {
+        auto cmd = args.next<string>();
+        if (cmd == "create") {
+            auto src = args.next<string>();
+            string msg;
+            if (src == "-f") {
+                string fname = args.next<string>();
+                auto r = us::gov::io::read_text_file_(fname, msg);
+                if (is_ko(r)) {
+                    return r;
+                }
+            }
+            if (src == "-m") {
+                string b58 = args.next<string>();
+                msg = us::gov::crypto::b58::decode_string(b58);
+            }
+            hash_t id;
+            ko r = rpc_daemon->get_peer().call_cert_create(msg, id);
+            if (is_ko(r)) {
+                return r;
+            }
+            screen::lock_t lock(scr, interactive);
+            lock.os << "cert created with id " << id << '\n';
+            return ok;
+        }
+        if (cmd == "import") {
+            using cert_t = us::wallet::trader::cert::cert_t;
+            auto src = args.next<string>();
+            cert_t cert;
+            if (src == "-f") {
+                string fname = args.next<string>();
+                auto r = cert.load(fname);
+                if (is_ko(r)) {
+                    return r;
+                }
+            }
+            if (src == "-enc") {
+                string b58 = args.next<string>();
+                auto r = cert.read(b58);
+                if (is_ko(r)) {
+                    return r;
+                }
+            }
+            hash_t id;
+            ko r = rpc_daemon->get_peer().call_cert_import(cert, id);
+            if (is_ko(r)) {
+                return r;
+            }
+            screen::lock_t lock(scr, interactive);
+            lock.os << "cert imported with id " << id << '\n';
+            return ok;
+        }
+        if (cmd == "list") {
+            using cert_index_t = us::wallet::trader::cert::cert_index_t;
+            int mode = args.next<int>(0);
+            cert_index_t cert_index;
+            ko r = rpc_daemon->get_peer().call_cert_list(move(mode), cert_index);
+            if (is_ko(r)) {
+                return r;
+            }
+            screen::lock_t lock(scr, interactive);
+            cert_index.dump(lock.os);
+            return ok;
+        }
+        if (cmd == "get") {
+            using cert_t = us::wallet::trader::cert::cert_t;
+            hash_t id = args.next<hash_t>();
+            auto flag = args.next<string>();
+            string fname;
+            bool encoded{false};
+            if (flag == "-o") {
+                fname = args.next<string>();
+            }
+            else if (flag == "-enc") {
+                encoded = true;
+            }
+            cert_t cert;
+            {
+                ko r = rpc_daemon->get_peer().call_cert_get(id, cert);
+                if (is_ko(r)) {
+                    return r;
+                }
+            }
+            if (fname.empty()) {
+                screen::lock_t lock(scr, interactive);
+                if (encoded) {
+                    lock.os << cert.encode() << '\n';
+                }
+                else {
+                    cert.write_pretty(lock.os);
+                }
+                return ok;
+            }
+            auto r = cert.save(fname);
+            if (is_ko(r)) {
+                return r;
+            }
+            screen::lock_t lock(scr, interactive);
+            lock.os << "cert saved as " << fname << '\n';
+            return ok;
+        }
+        auto r = "KO 66859 Invalid cert subcommand.";
+        log(r);
+        return r;
     }
     if (command == "timeseries") {
         auto cmd = args.next<string>();

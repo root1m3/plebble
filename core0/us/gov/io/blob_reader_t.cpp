@@ -161,7 +161,7 @@ template<> ko c::read(time_point& o) {
     }
     uint64_t x; //Use memcpy and not reinterpret_cast. ARM processors will fail when parsing packed structures (blob) if variables are not aligned in memory
     memcpy(&x, cur, sizeof(uint64_t));
-    o = time_point(chrono::nanoseconds(x));
+    o = time_point(chrono::duration_cast<chrono::system_clock::duration>(chrono::nanoseconds(x)));
     cur += sizeof(uint64_t);
     return ok;
 }

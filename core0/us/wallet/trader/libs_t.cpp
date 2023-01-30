@@ -148,9 +148,8 @@ namespace us::wallet::trader {
         ~lib_t() override;
 
         void cleanup() override;
-    public:
-//        static protocol_selection_t extract_protocol_selection(const string& filename);
 
+    public:
         pair<ko, business_t*> create_business() override;
         ko delete_business(business_t*) override;
 

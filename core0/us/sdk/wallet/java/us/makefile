@@ -20,16 +20,16 @@
 #===-
 #===----------------------------------------------------------------------------
 #===-
-us := us
-javac := $(JAVA_HOME)/bin/javac
-suffix := bc
-build := build_${suffix}
-javafiles := $(wildcard */*/*/*/*.java) $(wildcard */*/*/*.java) $(wildcard */*/*.java) $(wildcard */*.java) $(wildcard *.java)
-classfiles := $(patsubst %.java, ${build}/us/%.class, $(javafiles))
+us:=us
+javac:=$(JAVA_HOME)/bin/javac
+suffix:=bc
+build:=build_${suffix}
+javafiles:=$(wildcard */*/*/*/*.java) $(wildcard */*/*/*.java) $(wildcard */*/*.java) $(wildcard */*.java) $(wildcard *.java)
+classfiles:=$(patsubst %.java, ${build}/us/%.class, $(javafiles))
 
-flags := -g
-libspath := ..:../libs_bouncy/bcprov-jdk15on-164.jar:../libs_bouncy/bcpkix-jdk15on-164.jar:../libs_bouncy/bcpg-jdk15on-164.jar:../libs_bouncy/bctls-jdk15on-164.jar:../libs_bouncy/bcmail-jdk15on-164.jar
-jarfile := ${us}-sdk_${suffix}.jar
+flags:=-g
+libspath:=..:../libs_bouncy/bcprov-jdk15on-164.jar:../libs_bouncy/bcpkix-jdk15on-164.jar:../libs_bouncy/bcpg-jdk15on-164.jar:../libs_bouncy/bctls-jdk15on-164.jar:../libs_bouncy/bcmail-jdk15on-164.jar
+jarfile:=${us}-sdk_${suffix}.jar
 
 all: jar
 
@@ -46,8 +46,8 @@ ${build}/us/%.class: %.java
 	${javac} -Xlint -Xdiags:verbose ${flags} -d ${build} -cp ${libspath} $^
 
 clean:
-	rm build_* -rf
-	rm -f *.jar
+	$(RM) -rf build_*
+	$(RM) -f *.jar
 
 info:
 	echo "build: ${build}"
@@ -56,4 +56,3 @@ info:
 	echo "classfiles ${classfiles}"
 
 .PHONY: clean all jar info
-

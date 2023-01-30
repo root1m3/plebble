@@ -656,6 +656,11 @@ public class blob_reader_t {
         return reader.read(o);
     }
 
+    public static ko parse(final blob_t blob, hash_t o) {
+        blob_reader_t reader = new blob_reader_t(blob);
+        return reader.read(o);
+    }
+
     public static ko parse(final blob_t blob, readable_if o) {
         blob_reader_t reader = new blob_reader_t(blob);
         return reader.read(o);

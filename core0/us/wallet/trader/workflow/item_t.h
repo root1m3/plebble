@@ -29,8 +29,7 @@
 #include <us/wallet/engine/peer_t.h>
 #include <us/wallet/trader/ch_t.h>
 #include <us/wallet/trader/params_t.h>
-
-#include "doc0_t.h"
+#include <us/wallet/trader/cert/doc0_t.h>
 
 namespace us::wallet::trader::workflow {
 
@@ -39,6 +38,7 @@ namespace us::wallet::trader::workflow {
     struct item_t: us::gov::io::seriable { //virtual
         using b = us::gov::io::seriable;
         using peer_t = us::wallet::engine::peer_t;
+        using doc0_t = us::wallet::trader::cert::doc0_t;
         using magic_t = doc0_t::magic_t;
         using ch_t = trader::ch_t;
 

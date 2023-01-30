@@ -179,8 +179,10 @@ software version: <b><?=$swver?></b> [<a class="hdl" href="pub/release_notes.txt
   <img src="pi4.png" alt="pi4" width="200"/>
   <p>A practical and stable option, meeting the highest standards on privacy and network distribution.</p>
   <p>hardware <a href="shopping_list.txt">shopping_list</a></p>
-  <p>Install <a href="https://www.raspberrypi.com/software/" target="_blank">raspberry pi OS</a> (formerly known as raspbian) [<a href="https://www.youtube.com/watch?v=ntaXWS8Lk34" target="_blank">short video</a>]</p>
-  <p>In step 2 Choose Operating System "Raspberry PI OS (32-bits)" in Raspberry Pi Imager</p>
+  <p>Run the program rpi-imager: Follow steps at <a href="https://www.raspberrypi.com/software/" target="_blank">Raspberry Pi Imager</a> [<a href="https://www.youtube.com/watch?v=ntaXWS8Lk34" target="_blank">short video</a>]</p>
+  <p>In rpi-imager choose <b>Lite</b> version:</p>
+  <img src="rpi_imager.png"/>
+
 
 <li><b>Raspberry PI Zero</b></li>
   <img src="raspizero.jpg" alt="pi4" width="200"/>

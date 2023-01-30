@@ -62,7 +62,7 @@ jar:
 clean:
 	$(MAKE) -C us clean
 	$(MAKE) -C test clean
-	rm *.jar -f
+	$(RM) -f *.jar
 
 .PHONY: spongy bouncy clean test jar spongybouncy
 

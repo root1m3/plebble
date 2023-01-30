@@ -875,6 +875,10 @@ void test_r2r(const string& homedir, const string& logdir, const string& vardir)
 
     n.stop();
     n.join();
+    if (n.killed) {
+        signal(SIGINT, SIG_DFL);
+        kill(getpid(), SIGINT);
+    }
 }
 
 void test_l2_main(string logdir0) {
@@ -914,6 +918,8 @@ bool l2_tests = true;
 bool runsim = false;
 bool verser_info = false;
 
+bool killed{false};
+
 void sig_handler_l1(int s) {
     cout << "------------------\n";
     cout << "main: received signal " << s << endl;
@@ -922,6 +928,7 @@ void sig_handler_l1(int s) {
     signal(SIGINT, SIG_DFL);
     signal(SIGTERM, SIG_DFL);
     signal(SIGPIPE, SIG_DFL);
+    if (s == SIGINT || s == SIGTERM) killed = true;
     raise(s);
 }
 

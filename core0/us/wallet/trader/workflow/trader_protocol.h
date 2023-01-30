@@ -28,12 +28,14 @@
 namespace us::wallet::trader::workflow {
     using namespace std;
     struct item_t;
-    struct doc0_t;
+//    struct doc0_t;
 
     struct trader_protocol: us::wallet::trader::trader_protocol {
         using b = us::wallet::trader::trader_protocol;
         using workflow_item_t = workflow::item_t;
-        using workflow_doc0_t = workflow::doc0_t;
+//        using workflow_doc0_t = workflow::doc0_t;
+        using doc0_t = us::wallet::trader::cert::doc0_t;
+
 
     public:
         trader_protocol(business_t&);

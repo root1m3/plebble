@@ -27,6 +27,8 @@
 #include <us/wallet/engine/dto.h>
 #include <us/wallet/trader/bookmarks_t.h>
 #include <us/wallet/trader/endpoint_t.h>
+#include <us/wallet/trader/cert/cert_index_t.h>
+#include <us/wallet/trader/cert/cert_t.h>
 
 #include "types.h"
 
@@ -40,6 +42,8 @@ namespace us::wallet::wallet {
 
     using blob_writer_t = gov::io::blob_writer_t;
     using blob_reader_t = gov::io::blob_reader_t;
+    using cert_index_t = us::wallet::trader::cert::cert_index_t;
+    using cert_t = us::wallet::trader::cert::cert_t;
 
     struct handler_api: virtual us::wallet::engine::dto {
         #include <us/api/generated/wallet/c++/wallet/hdlr_purevir>

@@ -43,21 +43,30 @@ function help {
 }
 
 function help {
-    echo "$0 [options] <command>"
-    echo "Commands:"
-    echo "    new                Generate new upstream devjob."
-    echo "        --upload"
-    echo "        --workdir <name>"
-    echo "        --branch <branch>"
-    echo "        --brand <brand>"
-    echo -n "        Available brands: "; ls -1 $brands | xargs
-    echo "    sync <options>     Synchronize upstream devjob."
-    echo "        --id <id>      by id (ids in file .cbs/devjobs_active)"
-    echo "        --url <url>    upstream devjob git url"
-    echo "        --dryrun       Don't push neither upstream nor downstream."
-    echo "        --dsbranch <name>  Use existing/Create a new downstream feature branch."
+    cat << EOF
+$0 [options] <command>
+Commands:
+    new                Generate new upstream devjob.
+        --upload            .
+        --workdir <name>    .
+        --branch <branch>   .
+        --brand <brand>     .
+        Available brands:   { $(ls -1 $brands | xargs) }
+
+    sync <options>     Synchronize upstream devjob.
+        --id <id>           by id (ids in file .cbs/devjobs_active)
+        --url <url>         upstream devjob git url
+        --dryrun            Don't push neither upstream nor downstream.
+        --dsbranch <name>   Use existing/Create a new downstream feature branch.
+
+    --h                Print this help.
+
+EOF
+    echo "======================="
     echo "active devjobs: id url"
-    cat $djactive | grep -v "^#"
+    echo "======================="
+    cat $djactive | grep -v "^#" | column -t -s' '
+    echo "======================="
 }
 
 optid=""
@@ -104,12 +113,15 @@ while [[ true ]]; do
         workdir=$1
         shift
         continue
-    elif [[ _$opt == _-* ]]; then
-        echo "KO 60501 Invalid flag $opt"
+    elif [[ "_$opt" == "_--h" ]]; then
         help
+        exit 0
+    elif [[ _$opt == _-* ]]; then
+        >&2 help
+        >&2 echo "KO 60501 Invalid flag $opt"
         exit 1
     else
-        echo "end parsing flags"
+        #echo "end parsing flags"
         break
     fi
 done
@@ -379,6 +391,8 @@ function adaptd {
     nbranch=$2 #hqrefactor0
     timepoint=$3
     c2=$4
+    usbin=$5
+
     echo "    ##########################"
     echo "    ## adapt downstream $timepoint ##"
     echo "    ##########################"
@@ -400,6 +414,7 @@ function adaptd {
 #git checkout alpha-55
 #git checkout ${baseh} 
 #cp core2/brand_seeds/plebble/strset0 /tmp/
+#cp bin/make /tmp/
 #pwd
 #exit 1
         mv core2/brands/$brand x1
@@ -413,6 +428,8 @@ function adaptd {
         mv x1 core2/brands/$brand
         mv x2 core2/brand_seeds/$brand
 
+        rm -r bin
+        cp -r $usbin bin
 
         git add core2
         git add -u
@@ -483,26 +500,34 @@ function adapt { #create branch nbranch based on baseh. Then unlicense code, cre
         fi
         cp -r ${dsc2} core2
 
-
-
-
 #echo "*1*********************"
 #mv downstream/core2/brand_seeds/katlas /tmp/
 #exit 1
-        if [[ ! -f core1/brand_seeds/strset0 ]]; then
-            mkdir -p core1/brand_seeds/$brand
-            cp /tmp/strset0 core1/brand_seeds/$brand/
-            git add core1/brand_seeds/$brand/strset0
-        fi
-        if [[ -f /tmp/makefile_distr ]]; then
-            cp /tmp/makefile_distr core1/snippets/
+#        if [[ ! -f core1/brand_seeds/strset0 ]]; then
+#            mkdir -p core1/brand_seeds/$brand
+#            cp /tmp/strset0 core1/brand_seeds/$brand/
+#            git add core1/brand_seeds/$brand/strset0
+#        fi
+#        if [[ -f /tmp/makefile_distr ]]; then
+#            cp /tmp/makefile_distr core1/snippet/
 #echo "*1*****************************"
+#read a
 #pwd
 #exit 1
 #            mkdir -p core1/brand_seeds/$brand
 #            cp /tmp/strset0 core1/brand_seeds/$brand/
 #            git add core1/brand_seeds/$brand/strset0
-        fi
+#        fi
+#        if [[ -f /tmp/make ]]; then
+#            cp /tmp/makefile_distr core1/snippet/
+#echo "*1*****************************"
+#read a
+#pwd
+#exit 1
+#            mkdir -p core1/brand_seeds/$brand
+#            cp /tmp/strset0 core1/brand_seeds/$brand/
+#            git add core1/brand_seeds/$brand/strset0
+#        fi
 
         rm core2/brands/${brand} -r
         rm core2/brand_seeds/${brand} -r
@@ -941,8 +966,10 @@ function procurl {
         echo "## save core2...       ##"
         echo "#########################"
         echo "saving core2 on branch ${branch}"
-        cp downstream/core2 c2 -R
+        cp -r downstream/core2 c2
+        cp -r downstream/bin usbin
         dsc2=`realpath c2`
+        dsusbin=`realpath usbin`
 
 # ┌──────────┐                    ┌────────┐
 # │downstream│                    │upstream│
@@ -974,7 +1001,7 @@ function procurl {
         echo "######################"
         echo "## make_patch_downs ##"
         echo "######################"
-        adaptd ${downstream_hash} hqrefactor0 beg ${dsc2}
+        adaptd ${downstream_hash} hqrefactor0 beg ${dsc2} ${dsusbin}
         echo "prepare patch for upstream ${downstream_hash} --> ${branch}"
         pushd downstream > /dev/null
             git diff --binary hqrefactor0 ${branch} > ../patch4upstream

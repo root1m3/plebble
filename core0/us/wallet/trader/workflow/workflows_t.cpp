@@ -20,13 +20,11 @@
 //===-
 //===----------------------------------------------------------------------------
 //===-
-#include "workflows_t.h"
-
 #include <us/gov/socket/datagram.h>
 #include <us/wallet/trader/trader_t.h>
 
-#include "doc_t.h"
 #include "business.h"
+#include "workflows_t.h"
 
 #define loglevel "wallet/trader/workflow"
 #define logclass "workflows_t"
@@ -34,6 +32,7 @@
 
 using namespace us::wallet::trader::workflow;
 using c = us::wallet::trader::workflow::workflows_t;
+using us::ko;
 
 c::workflows_t(business_t& bz): business(bz) {
 }
@@ -67,7 +66,7 @@ pair<workflow_t*, item_t*> c::find(const string& name) const {
     return make_pair(nullptr, nullptr);
 }
 
-tuple<workflow_t*, item_t*, doc0_t*> c::read_item(const blob_t& blob) const {
+tuple<workflow_t*, item_t*, c::doc0_t*> c::read_item(const blob_t& blob) const {
     log("read_item. blob sz", blob.size());
     us::gov::io::blob_reader_t reader(blob);
     string name;

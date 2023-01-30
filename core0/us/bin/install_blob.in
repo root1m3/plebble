@@ -106,6 +106,7 @@ commands:
   publish                  Write a copy of the blob in downloads dir, omiting the instalation.
   resolve_blob             Finds blob asking peers.
   scan                     Poll nodes about latest blob.
+
 Blob Explore:
   decompress <dir>         Unbox the blob into given dir.
 
@@ -233,15 +234,15 @@ function cfg_vars {
         #echo "limit of $maxpeers seeds applied"
         SEEDS="$(echo "$SEEDS" | xargs -n1 | head -n$maxpeers | xargs)"
     fi
-    cat << EOF
-    CHANNEL=${CHANNEL}
-    US=${US}
-    BLOB_ADDR=${BLOB_ADDR}
-    BLOB_ID=${BLOB_ID}
-    GOVUSER=${GOVUSER}
-    UPSTREAM_URL=${UPSTREAM_URL}
-    ${ns} SEEDS (limit $maxpeers)
-EOF
+#    cat << EOF
+#    CHANNEL=${CHANNEL}
+#    US=${US}
+#    BLOB_ADDR=${BLOB_ADDR}
+#    BLOB_ID=${BLOB_ID}
+#    GOVUSER=${GOVUSER}
+#    UPSTREAM_URL=${UPSTREAM_URL}
+#    ${ns} SEEDS (limit $maxpeers)
+#EOF
 
 }
 
@@ -394,16 +395,52 @@ function do_fetch_local {
     echo "do fetch_local"
 }
 
-debs=""          #debian
-freebsd_pkgs=""  #freeBSD
-function debs_base {
-    debs="libc-dev make g++ spawn-fcgi nginx libcrypto++-dev automake libtool psmisc pipexec libjsoncpp-dev libunwind-dev libtool automake bc coreutils unzip cmake git quilt links nmap ack-grep tree miniupnpc libmicrohttpd-dev sudo tor ntp curl librsvg2-bin libb64-dev pkg-config libncurses-dev rsync zstd php-fpm nginx-common certbot python3-certbot-nginx"
+##embed-shenv##
+
+#debian
+debs="libc-dev make g++ spawn-fcgi nginx libcrypto++-dev automake libtool psmisc pipexec libjsoncpp-dev libunwind-dev libtool automake bc coreutils unzip cmake git quilt links nmap ack-grep tree miniupnpc libmicrohttpd-dev sudo tor ntp curl librsvg2-bin libb64-dev pkg-config libncurses-dev rsync zstd php-fpm nginx-common certbot python3-certbot-nginx emscripten"
+
+#freeBSD
+freebsd_pkgs="autotools gmake llvm-base gdb-cheri devel/pkgconf rsync python libb64 git"
+cheribsd_pkgs="${freebsd_pkgs} gdb-cheri"
+
+function inst_cryptopp_freebsd {
+    tmp="tmp_work875664"
+    rm -rf "./${tmp}"
+    mkdir ${tmp}
+    pushd ${tmp} > /dev/null
+        git clone https://github.com/weidai11/cryptopp.git
+        #clang-13: error: ABI 'purecap' is not supported without feature 'morello'
+        pushd cryptopp > /dev/null
+            make
+            if [[ $? -ne 0 ]]; then
+                >&2 echo "KO 99785"
+                exit 1
+            fi
+            make install
+            if [[ $? -ne 0 ]]; then
+                >&2 echo "KO 99785"
+                exit 1
+            fi
+            echo "Convenience link /usr/local/include/crypto++ -> cryptopp"
+            pushd /usr/local/include > /dev/null
+                ln -s cryptopp crypto++
+            popd > /dev/null
+        popd > /dev/null
+    popd > /dev/null
+    rm -rf "./${tmp}"
 }
 
-
 function do_print_deps {
-    debs_base
-    echo "debs=$debs"
+    if [[ $freebsd -eq 1 ]]; then
+        if [[ $cheribsd -eq 1 ]]; then
+            echo "pkgs=$cheribsd_pkgs"
+        else
+            echo "pkgs=$freebsd_pkgs"
+        fi
+    else
+        echo "debs=$debs"
+    fi
     exit 0
 }
 
@@ -422,7 +459,6 @@ set_jail0
 exec_cmd0
 
 function inst_debs {
-    debs="$1"
     if [[ "_${JAILDIR}" == "_" ]]; then
         echo "installing: $debs"
         export DEBIAN_FRONTEND=noninteractive
@@ -435,9 +471,29 @@ function inst_debs {
     fi
 }
 
-function run_apt_deps {
-    debs_base
-    inst_debs "$debs"
+function inst_pkgs {
+    if [[ $cheribsd -eq 1 ]]; then
+        tool="pkg64c"
+        pkgs="$cheribsd_pkgs"
+    else
+        tool="pkg"
+        pkgs="$freebsd_pkgs"
+    fi
+    
+    if [[ "_${JAILDIR}" == "_" ]]; then
+        echo "installing: $pkgs"
+        $tool install $pkgs
+    else
+        echo "$tool install $pkgs" >> ${JAILDIR}/pre-install_blob.sh
+    fi
+}
+
+function install_core0_distr_deps {
+    if [[ $freebsd -eq 1 ]]; then
+        inst_pkgs
+    else
+        inst_debs
+    fi
 }
 
 function run_apt {
@@ -448,17 +504,23 @@ function run_apt {
 
     israspi=0
     cat ${JAILDIR}/etc/apt/sources.list | grep "^deb .*/raspbian" > /dev/null
-    [[ $? -eq 0 ]] && israspi=1
+    if [[ $? -eq 0 ]]; then
+        israspi=1
+    fi
     echo "israspi=$israspi"
 
     isdebian=0
     cat ${JAILDIR}/etc/apt/sources.list | grep "^deb .*/debian" > /dev/null
-    [[ $? -eq 0 ]] && isdebian=1
+    if [[ $? -eq 0 ]]; then
+        isdebian=1
+    fi
     echo "isdebian=$isdebian"
 
     isubuntu=0
     cat ${JAILDIR}/etc/apt/sources.list | grep "^deb .*/ubuntu" > /dev/null
-    [[ $? -eq 0 ]] && isubuntu=1
+    if [[ $? -eq 0 ]]; then
+        isubuntu=1
+    fi
     echo "isubuntu=$isubuntu"
 
     if [[ $israspi -eq 1 ]]; then
@@ -485,7 +547,7 @@ function run_apt {
         chmod +x $cmdfile
         $cmdfile
     fi
-    run_apt_deps
+    install_core0_distr_deps
 }
 
 function exec_cmd10 {
@@ -1010,7 +1072,6 @@ function do_install_core0_deps {
 
 function do_uninstall {
     echo -n "debs no longer needed: "
-    debs_base
     echo "$debs"
     echo "run /usr/local/bin/${US}-uninstall"
     #TODO: call uninstall in subcomponents
@@ -1026,6 +1087,8 @@ function do_scan {
 function exec_cmd20 {
     if [[ "_$cmd" == "_install" ]]; then
         do_install
+    elif [[ "_$cmd" == "_install_core0_distr_deps" ]]; then
+        install_core0_distr_deps
     elif [[ "_$cmd" == "_install_core0_deps" ]]; then
         read_addr_key
         resolve_blob

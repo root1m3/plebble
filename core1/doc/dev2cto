@@ -1,0 +1,77 @@
+CASH4PATCHES
+
+Implementing MM-STUDIOS in node 
+===============================
+
+For a Software development Business:
+INPUT: Flow of software patches. 
+OUTPUT: GBP liquidity stream (e.g. flow: 1 GBP per second)
+
+
+
+Machine:
+INPUT: GBP liquidity stream (e.g. flow: 1 GBP per second)
+OUTPUT: Flow of software patches.
+
+
+Operation.
+BZ: run plebble node,
+    configure stripe account
+    configure GBP flow
+    configure Coin bzcoin
+    configure exchange bzcoin-GBP
+    configure patch pipeline
+
+
+WORKER:
+Screen Company [https://node-url]:
+     
+     work for us
+     -----------
+     
+     topics
+     ------
+     0 topic0 coin0
+     1 topic1 coin1
+     2 topic2 coin2
+     3 topic3 coin3
+     4 topic4 coin4
+
+
+ 0 topic0 coin0
+ --------------
+ 
+ git clone
+ work
+ make patch
+ git push
+ 
+
+patch settlement pipeline
+=========================
+
+INPUT: patch
+
+verification review/accept/reject
+settlement - pay coin0
+
+integration - git merge
+deployment - cbs
+
+
+sysop 
+=================
+topic maintenance
+-----------------
+
+New unmatched trade (waiting for peer)
+   new trade. bid2ask. topic: topic0 GBP/BZCoin
+
+
+
+
+
+
+
+
+

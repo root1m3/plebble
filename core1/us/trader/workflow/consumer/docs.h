@@ -21,13 +21,13 @@
 //===----------------------------------------------------------------------------
 //===-
 #pragma once
-#include <us/wallet/trader/workflow/doc_t.h>
-#include <us/wallet/trader/workflow/expiry_doc_t.h>
-#include <us/wallet/trader/workflow/signed_doc_t.h>
+#include <us/wallet/trader/cert/doc_t.h>
+#include <us/wallet/trader/cert/expiry_doc_t.h>
+#include <us/wallet/trader/cert/signed_doc_t.h>
 
 namespace us::trader::workflow::consumer {
 
-    using magic_t = us::wallet::trader::workflow::doc0_t::magic_t;
+    using magic_t = us::wallet::trader::cert::doc0_t::magic_t;
 
     struct catalogue_traits {
         static constexpr magic_t magic{288};
@@ -35,7 +35,7 @@ namespace us::trader::workflow::consumer {
         static constexpr auto long_name{"Catalogue"};
         static constexpr auto long_name_es{"Catalogo"};
     };
-    using catalogue_t = us::wallet::trader::workflow::doc_t<us::wallet::trader::workflow::expiry_doc_t, catalogue_traits>;
+    using catalogue_t = us::wallet::trader::cert::doc_t<us::wallet::trader::cert::expiry_doc_t, catalogue_traits>;
 
     struct invoice_traits {
         static constexpr magic_t magic{290};
@@ -43,7 +43,7 @@ namespace us::trader::workflow::consumer {
         static constexpr auto long_name{"Invoice"};
         static constexpr auto long_name_es{"Factura"};
     };
-    using invoice_t = us::wallet::trader::workflow::doc_t<us::wallet::trader::workflow::signed_doc_t, invoice_traits>;
+    using invoice_t = us::wallet::trader::cert::doc_t<us::wallet::trader::cert::signed_doc_t, invoice_traits>;
 
     struct payment_traits {
         static constexpr magic_t magic{291};
@@ -51,7 +51,7 @@ namespace us::trader::workflow::consumer {
         static constexpr auto long_name{"Payment"};
         static constexpr auto long_name_es{"Pago"};
     };
-    using payment_t = us::wallet::trader::workflow::doc_t<us::wallet::trader::workflow::signed_doc_t, payment_traits>;
+    using payment_t = us::wallet::trader::cert::doc_t<us::wallet::trader::cert::signed_doc_t, payment_traits>;
 
     struct receipt_traits {
         static constexpr magic_t magic{292};
@@ -59,7 +59,7 @@ namespace us::trader::workflow::consumer {
         static constexpr auto long_name{"Receipt"};
         static constexpr auto long_name_es{"Recibo"};
     };
-    using receipt_t = us::wallet::trader::workflow::doc_t<us::wallet::trader::workflow::signed_doc_t, receipt_traits>;
+    using receipt_t = us::wallet::trader::cert::doc_t<us::wallet::trader::cert::signed_doc_t, receipt_traits>;
 
 }
 

@@ -29,7 +29,7 @@ CXXFLAGS=-O0 -g -std=c++20 -DDEBUG
 CPPS:=$(wildcard *.cpp)
 OBJS:=$(patsubst %.cpp, %.o, $(CPPS))
 HS:=$(wildcard *.h)
-INC:=../../../../..
+INC:=-I../../../../.. -I/usr/local/include
 
 all: ${OBJ}.o
 
@@ -37,7 +37,7 @@ ${OBJ}.o: ${OBJS} ${CPPS} ${HS}
 	ld -r -o ${OBJ}.o ${OBJS}
 
 %.o: %.cpp
-	$(CXX) -fPIC -c ${CXXFLAGS} -I${INC} $^ -o $@
+	$(CXX) -fPIC -c ${CXXFLAGS} ${INC} $^ -o $@
 
 clean:
 	$(RM) *.o -f

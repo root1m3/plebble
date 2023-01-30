@@ -21,7 +21,7 @@
 #===----------------------------------------------------------------------------
 #===-
 OBJ:= socket_multipeer
-INC:= ../../../..
+INC:=-I../../../.. -I/usr/local/include
 CPPS:= $(wildcard *.cpp)
 OBJS:= $(patsubst %.cpp, %.o, $(CPPS))
 HS:= $(wildcard *.h)
@@ -30,7 +30,7 @@ CXXFLAGS=-O0 -g -std=c++17 -DDEBUG -Wno-psabi
 all: ${OBJ}.o
 
 %.o: %.cpp
-	$(CXX) -fPIC -Wno-psabi -c ${CXXFLAGS} $^ -pthread -I${INC} -o $@
+	$(CXX) -fPIC -Wno-psabi -c ${CXXFLAGS} $^ -pthread ${INC} -o $@
 
 ${OBJ}.o: ${OBJS}
 	ld -r -o ${OBJ}.o ${OBJS}

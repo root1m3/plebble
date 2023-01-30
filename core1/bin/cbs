@@ -88,6 +88,11 @@ function run_cbs_init {
         echo "dir distr exists."
         exit 1
     fi
+    us-wallet version
+    if [[ $? -ne 0 ]]; then
+        echo "KO 29782 need a working us-wallet program."
+        exit 1
+    fi
     if [[ "_$flags10" == "_" ]]; then
         flags10="--release --without-logs --without-counters"
     fi

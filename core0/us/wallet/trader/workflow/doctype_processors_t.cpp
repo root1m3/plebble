@@ -20,8 +20,10 @@
 //===-
 //===----------------------------------------------------------------------------
 //===-
-#include "doctype_processors_t.h"
+#include <us/gov/config.h>
 #include <us/gov/crypto/base58.h>
+
+#include "doctype_processors_t.h"
 
 #define loglevel "wallet/trader/workflow"
 #define logclass "doctype_processors"

@@ -419,15 +419,31 @@ string c::value_type::encode() const {
 }
 
 string c::value_type::encode_path() const {
-    string s = encode();
+    auto s = encode();
+    auto l = s.size() - 2;
     ostringstream os;
-    for (int i = 0; i < s.size(); ++i) {
-        if (i % 2 == 2) {
+    os << s[0];
+    for (size_t i = 1; i < l; ++i) {
+        if (i % 2 == 0) {
             os << '/';
         }
         os << s[i];
     }
     return os.str();
+}
+
+pair<string, string> c::value_type::filename() const {
+    auto s = encode();
+    auto l = s.size() - 2;
+    ostringstream os;
+    os << s[0];
+    for (size_t i = 1; i < l; ++i) {
+        if (i % 2 == 0) {
+            os << '/';
+        }
+        os << s[i];
+    }
+    return make_pair(os.str(), s);
 }
 
 c::value_type c::value_type::from_b58(const string& s) {

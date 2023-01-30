@@ -25,12 +25,12 @@ CPPS:= $(wildcard *.cpp)
 OBJS:= $(patsubst %.cpp, %.o, $(CPPS))
 HS:= $(wildcard *.h)
 CXXFLAGS=-O0 -g -std=c++20 -DDEBUG -Wno-psabi
-INC:= ../../../..
+INC:=-I../../../.. -I/usr/local/include
 
 all: ${OBJ}.o
 
 %.o: %.cpp
-	$(CXX) -fPIC -Wno-psabi -c ${CXXFLAGS} $^ -pthread -I${INC} -o $@
+	$(CXX) -fPIC -Wno-psabi -c ${CXXFLAGS} $^ -pthread ${INC} -o $@
 
 ${OBJ}.o: ${OBJS}
 	ld -r -o ${OBJ}.o ${OBJS}

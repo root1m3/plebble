@@ -31,6 +31,8 @@ import us.ko;                                                                   
 import us.pair;                                                                                // pair
 import static us.gov.io.types.blob_t.serid_t;                                                  // serid_t
 import us.string;                                                                              // string
+import us.wallet.trader.cert.doc0_t;
+import us.wallet.trader.cert.expiry_doc_t;
 
 public abstract class item_t implements us.gov.io.seriable {
 

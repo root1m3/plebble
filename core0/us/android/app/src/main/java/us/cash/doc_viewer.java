@@ -55,12 +55,12 @@ import androidx.annotation.RequiresApi;                                         
 import us.string;                                                                              // string
 import androidx.core.app.TaskStackBuilder;                                                     // TaskStackBuilder
 import android.widget.TextView;                                                                // TextView
+import android.widget.EditText;                                                                // TextView
 import android.widget.Toast;                                                                   // Toast
 import androidx.appcompat.widget.Toolbar;                                                      // Toolbar
 import android.net.Uri;                                                                        // Uri
 import android.view.View;                                                                      // View
-
-//import com.google.firebase.crashlytics.FirebaseCrashlytics;                                    // FirebaseCrashlytics
+import android.view.inputmethod.InputMethodManager;
 
 public final class doc_viewer extends activity implements datagram_dispatcher_t.handler_t {
 
@@ -75,8 +75,9 @@ public final class doc_viewer extends activity implements datagram_dispatcher_t.
     @RequiresApi(api = Build.VERSION_CODES.O)
     @Override protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        set_content_layout(R.layout.activity_tx);
+        set_content_layout(R.layout.doc_viewer);
         content = findViewById(R.id.content2);
+        content_edit = findViewById(R.id.content_edit);
         action = findViewById(R.id.action);
         refresh = findViewById(R.id.refresh);
         save_btn = findViewById(R.id.save_btn);
@@ -86,24 +87,44 @@ public final class doc_viewer extends activity implements datagram_dispatcher_t.
             return;
         }
         tid = (hash_t) getIntent().getSerializableExtra("tid");
-        toolbar.setTitle(bundle.getString("title"));
+        //toolbar.setTitle(bundle.getString("title"));
+        setTitle(bundle.getString("title"));
         actioncommand = bundle.getString("action_cmd");
         contentcommand = bundle.getString("fetch_content_cmd");
         fname = bundle.getString("fname");
+        String action_caption = bundle.getString("action_caption", "Send");
         int icon = bundle.getInt("icon");
+        int mode = bundle.getInt("mode", 0); //0 viewer; 1 input
+
+        if (contentcommand == null || contentcommand.isEmpty()) {
+            nft = (hash_t) getIntent().getSerializableExtra("nft");
+        }
+
         if (actioncommand == null || actioncommand.isEmpty()) {
             action.setVisibility(View.GONE);
         }
         else {
+            action.set_stock_image(icon);
+            action.button_text.setText(action_caption);
+            action.setOnClickListener(new View.OnClickListener() {
+                @Override public void onClick(View view) {
+                    doaction();
+                }
+            });
+
             action.setVisibility(View.VISIBLE);
         }
-        save_btn.setVisibility(View.VISIBLE);
-        action.set_stock_image(icon);
-        action.setOnClickListener(new View.OnClickListener() {
-            @Override public void onClick(View view) {
-                doaction();
-            }
-        });
+        if (mode == 0) {
+            save_btn.setVisibility(View.VISIBLE);
+            content_edit.setVisibility(View.GONE);
+            content.setVisibility(View.VISIBLE);
+        }
+        else {
+            save_btn.setVisibility(View.GONE);
+            refresh.setVisibility(View.GONE);
+            content_edit.setVisibility(View.VISIBLE);
+            content.setVisibility(View.GONE);
+        }
         refresh.setOnClickListener(new View.OnClickListener() {
             @Override public void onClick(View view) {
                 fetch_content();
@@ -116,7 +137,17 @@ public final class doc_viewer extends activity implements datagram_dispatcher_t.
         });
         log("connect network-datagram hose");//--strip
         dispatchid = a.hmi().dispatcher.connect_sink(this);
-        fetch_content();
+        if (mode == 0) {
+            fetch_content();
+        }
+        if (mode == 1) {
+            content_edit.requestFocus();
+            InputMethodManager inputMethodManager = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+                if (inputMethodManager != null) {
+                    inputMethodManager.toggleSoftInput(InputMethodManager.SHOW_FORCED, 0);
+                }
+
+        }
     }
 
     @Override public void onDestroy() {
@@ -154,8 +185,7 @@ public final class doc_viewer extends activity implements datagram_dispatcher_t.
                 }
                 final String content = s.value;
                 runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
+                    @Override public void run() {
                         on_doc(content);
                     }
                 });
@@ -182,9 +212,11 @@ public final class doc_viewer extends activity implements datagram_dispatcher_t.
     void doaction() {
         app.assert_ui_thread(); //--strip
         log("doaction"); //--strip
-        final app a = (app) getApplication();
+        //final app a = (app) getApplication();
         Intent data = new Intent();
         data.putExtra("actioncommand", actioncommand);
+        String s = content_edit.getText().toString();
+        data.putExtra("msg", "" + s.trim());
         setResult(RESULT_OK, data);
         finish();
     }
@@ -192,14 +224,28 @@ public final class doc_viewer extends activity implements datagram_dispatcher_t.
     void fetch_content() {
         app.assert_ui_thread(); //--strip
         //progressbarcontainer.setVisibility(View.VISIBLE);
-        final app a = (app) getApplication();
-        log("contentcommand="+contentcommand); //--strip
-        a.hmi().command_trade(tid, contentcommand);
+//        final app a = (app) getApplication();
+        log("contentcommand=" + contentcommand); //--strip
+        if (tid == null  || tid.is_zero()) {
+            if (contentcommand == null || contentcommand.isEmpty()) {
+                string content = new string();
+                ko r = a.hmi().rpc_peer.call_cert_show(nft, content);
+                if (is_ko(r)) {
+                    log(r.msg); //--strip
+                    toast(r.msg);
+                    return;
+                }
+                set_content(content.value);
+            }
+        }
+        else {
+            a.hmi().command_trade(tid, contentcommand);
+        }
     }
 
     public static class actions_helper {
 
-        public static enum attachment_type { IMAGE, AUDIO, VIDEO, WORD, EXCEL, POWERPOINT, TXT}
+        public static enum attachment_type { IMAGE, AUDIO, VIDEO, WORD, EXCEL, POWERPOINT, TXT }
 
         public static Intent open_file(Context context, File file) {
             String fileName = file.getName();
@@ -324,10 +370,11 @@ public final class doc_viewer extends activity implements datagram_dispatcher_t.
     String contentcommand;
     String fname;
     private TextView content;
+    private EditText content_edit;
     private toolbar_button action;
     private toolbar_button refresh;
     private toolbar_button save_btn;
-    //RelativeLayout progressbarcontainer;
+    hash_t nft;
     String command;
     uint16_t doccode = new uint16_t(0);
     int dispatchid;

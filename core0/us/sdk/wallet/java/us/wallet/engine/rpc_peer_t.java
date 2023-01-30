@@ -46,6 +46,8 @@ import us.wallet.trader.qr_t;                                                   
 import java.net.Socket;                                                                        // Socket
 import us.string;                                                                              // string
 import us.wallet.trader.bootstrap.protocols_t;
+import us.wallet.trader.cert.cert_index_t;                                                                              // string
+import us.wallet.trader.cert.cert_t;                                                                              // string
 
 public abstract class rpc_peer_t extends us.gov.relay.rpc_peer_t implements caller_api {
 
@@ -2420,6 +2422,146 @@ public abstract class rpc_peer_t extends us.gov.relay.rpc_peer_t implements call
             return r;
         }
         ko r = blob_reader_t.readD(d_in, bookmark_index);
+        return r;
+    }
+
+    @Override public ko call_cert_create(final string msg, hash_t nft) {
+        log("cert_create "); //--strip
+        datagram d_in;
+        {
+            string lasterr = new string();
+            pair<ko, datagram> r = sendrecv(blob_writer_t.get_datagram(daemon.channel, new svc_t(protocol.wallet_cert_create), new seq_t(0), msg), lasterr);
+            if (ko.is_ko(r.first)) {
+                assert r.second == null;
+                if (lasterr.value != null) {
+                    lasterror.set(lasterr.value);
+                }
+                else {
+                    lasterror.set("");
+                }
+                return r.first;
+            }
+            assert r.second != null;
+            d_in = r.second;
+        }
+        if (d_in.service.value != protocol.wallet_cert_create_response) {
+            ko r = KO_50143;
+            log(r.msg + "expected " + protocol.wallet_cert_create_response + " got " + d_in.service.value); //--strip
+            return r;
+        }
+        ko r = blob_reader_t.readD(d_in, nft);
+        return r;
+    }
+
+    @Override public ko call_cert_import(final cert_t cert, hash_t nft) {
+        log("cert_import "); //--strip
+        datagram d_in;
+        {
+            string lasterr = new string();
+            pair<ko, datagram> r = sendrecv(blob_writer_t.get_datagram(daemon.channel, new svc_t(protocol.wallet_cert_import), new seq_t(0), cert), lasterr);
+            if (ko.is_ko(r.first)) {
+                assert r.second == null;
+                if (lasterr.value != null) {
+                    lasterror.set(lasterr.value);
+                }
+                else {
+                    lasterror.set("");
+                }
+                return r.first;
+            }
+            assert r.second != null;
+            d_in = r.second;
+        }
+        if (d_in.service.value != protocol.wallet_cert_import_response) {
+            ko r = KO_50143;
+            log(r.msg + "expected " + protocol.wallet_cert_import_response + " got " + d_in.service.value); //--strip
+            return r;
+        }
+        ko r = blob_reader_t.readD(d_in, nft);
+        return r;
+    }
+
+    @Override public ko call_cert_list(final uint8_t id, cert_index_t certs) {
+        log("cert_list "); //--strip
+        datagram d_in;
+        {
+            string lasterr = new string();
+            pair<ko, datagram> r = sendrecv(blob_writer_t.get_datagram(daemon.channel, new svc_t(protocol.wallet_cert_list), new seq_t(0), id), lasterr);
+            if (ko.is_ko(r.first)) {
+                assert r.second == null;
+                if (lasterr.value != null) {
+                    lasterror.set(lasterr.value);
+                }
+                else {
+                    lasterror.set("");
+                }
+                return r.first;
+            }
+            assert r.second != null;
+            d_in = r.second;
+        }
+        if (d_in.service.value != protocol.wallet_cert_list_response) {
+            ko r = KO_50143;
+            log(r.msg + "expected " + protocol.wallet_cert_list_response + " got " + d_in.service.value); //--strip
+            return r;
+        }
+        ko r = blob_reader_t.readD(d_in, certs);
+        return r;
+    }
+
+    @Override public ko call_cert_get(final hash_t nft, cert_t cert) {
+        log("cert_get "); //--strip
+        datagram d_in;
+        {
+            string lasterr = new string();
+            pair<ko, datagram> r = sendrecv(blob_writer_t.get_datagram(daemon.channel, new svc_t(protocol.wallet_cert_get), new seq_t(0), nft), lasterr);
+            if (ko.is_ko(r.first)) {
+                assert r.second == null;
+                if (lasterr.value != null) {
+                    lasterror.set(lasterr.value);
+                }
+                else {
+                    lasterror.set("");
+                }
+                return r.first;
+            }
+            assert r.second != null;
+            d_in = r.second;
+        }
+        if (d_in.service.value != protocol.wallet_cert_get_response) {
+            ko r = KO_50143;
+            log(r.msg + "expected " + protocol.wallet_cert_get_response + " got " + d_in.service.value); //--strip
+            return r;
+        }
+        ko r = blob_reader_t.readD(d_in, cert);
+        return r;
+    }
+
+    @Override public ko call_cert_show(final hash_t nft, string cert) {
+        log("cert_show "); //--strip
+        datagram d_in;
+        {
+            string lasterr = new string();
+            pair<ko, datagram> r = sendrecv(blob_writer_t.get_datagram(daemon.channel, new svc_t(protocol.wallet_cert_show), new seq_t(0), nft), lasterr);
+            if (ko.is_ko(r.first)) {
+                assert r.second == null;
+                if (lasterr.value != null) {
+                    lasterror.set(lasterr.value);
+                }
+                else {
+                    lasterror.set("");
+                }
+                return r.first;
+            }
+            assert r.second != null;
+            d_in = r.second;
+        }
+        if (d_in.service.value != protocol.wallet_cert_show_response) {
+            ko r = KO_50143;
+            log(r.msg + "expected " + protocol.wallet_cert_show_response + " got " + d_in.service.value); //--strip
+            return r;
+        }
+        ko r = blob_reader_t.readD(d_in, cert);
         return r;
     }
     //-/----------------------------------------------------------___end___------generated by configure, do not edit.

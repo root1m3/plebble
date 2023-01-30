@@ -25,7 +25,7 @@ CXXFLAGS = -O0 -g -std=c++20 -DDEBUG
 CPPS:=$(wildcard *.cpp)
 OBJS:=$(patsubst %.cpp, %.o, $(CPPS))
 HS:=$(wildcard *.h)
-INC:=-I../../..
+INC:=-I../../.. -I/usr/local/include
 
 all: ${OBJ}.o
 

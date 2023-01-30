@@ -33,6 +33,7 @@
 
 #include <us/trader/r2r/bid2ask/types.h>
 #include <us/wallet/trader/trader_t.h>
+#include <us/wallet/trader/cert/doc0_t.h>
 #include <us/wallet/wallet/local_api.h>
 
 #include <us/trader/r2r/bid2ask/protocol.h>
@@ -45,6 +46,7 @@ namespace us::trader::r2r::bid2ask::ask {
         using b = bid2ask::protocol;
         using business_t = us::trader::r2r::bid2ask::ask::business_t;
         using tx_t = us::gov::cash::tx_t;
+        using workflow_doc0_t = us::wallet::trader::cert::doc0_t;
 
     public:
         protocol(business_t&);

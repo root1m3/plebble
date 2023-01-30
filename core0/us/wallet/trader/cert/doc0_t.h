@@ -31,7 +31,7 @@
 #include <us/wallet/trader/ch_t.h>
 #include <us/wallet/trader/kv.h>
 
-namespace us::wallet::trader::workflow {
+namespace us::wallet::trader::cert {
 
     using namespace us::gov;
 
@@ -48,7 +48,7 @@ namespace us::wallet::trader::workflow {
         doc0_t();
         virtual ~doc0_t();
 
-        enum type_t {
+        enum type_t: uint8_t{
             type_string,
             type_image,
             type_bookmarks,

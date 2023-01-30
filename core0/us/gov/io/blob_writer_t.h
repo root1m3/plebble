@@ -115,6 +115,7 @@ namespace us::gov::io {
         }
 */
         static blob_t make_blob(const string& payload);
+        static blob_t make_blob(const hash_t& payload);
 
         //-------------------------
 

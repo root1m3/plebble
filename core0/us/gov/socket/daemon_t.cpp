@@ -21,6 +21,10 @@
 //===----------------------------------------------------------------------------
 //===-
 #include <fcntl.h>
+#ifdef __FreeBSD__
+#include <sys/types.h>
+#include <sys/socket.h>
+#endif
 
 #include "outbound/caller_daemon_t.h"
 #include "types.h"

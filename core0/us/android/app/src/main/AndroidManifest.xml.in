@@ -182,6 +182,15 @@ xmlns:tools="http://schemas.android.com/tools"
         </activity>
 
         <activity
+            android:name=".certs"
+            android:label="Certs"            
+            android:theme="@style/AppTheme.NoActionBar">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="##str28##.main_activity" />
+        </activity>
+
+        <activity
             android:name=".chat"
             android:label="@string/title_activity_chat"
 			android:windowSoftInputMode="adjustPan"            

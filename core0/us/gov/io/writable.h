@@ -51,6 +51,7 @@ namespace us::gov::io {
         [[nodiscard]] datagram* get_datagram(channel_t, svc_t svc, seq_t seq) const;
         void write(string& encoded) const;
         string encode() const;
+        hash_t nft() const;
         ko save(const string& filename) const;
     };
 

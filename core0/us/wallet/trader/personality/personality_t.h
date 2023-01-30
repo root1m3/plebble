@@ -66,6 +66,7 @@ namespace us::wallet::trader::personality {
         inline const priv_t& private_key() const { return k.priv; }
         inline const pub_t& public_key() const { return k.pub; }
         proof_t gen_proof(const challenge_t&) const;
+        inline const hash_t& nft() const { return id; }
 
     public:
         size_t blob_size() const override;

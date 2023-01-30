@@ -76,6 +76,9 @@ namespace us::test {
         void print_pointers(ostream&) const;
         void sleep_for(uint64_t secs) const;
         void wait(uint64_t secs) const;
+        virtual bool load_data(const string& r2rhome);
+        void update_plugins();
+        virtual void update_plugins(const string& destdir) {}
 
     public:
         void abort_tests();

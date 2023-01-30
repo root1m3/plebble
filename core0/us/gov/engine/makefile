@@ -27,7 +27,7 @@ CPPS+=$(wildcard auth/*.cpp)
 OBJS:=$(patsubst %.cpp, %.o, $(CPPS))
 HS:=$(wildcard *.h)
 HS+=$(wildcard auth/*.h)
-INC:=-I../../..
+INC:=-I../../.. -I/usr/local/include
 
 all: ${OBJ}.o
 

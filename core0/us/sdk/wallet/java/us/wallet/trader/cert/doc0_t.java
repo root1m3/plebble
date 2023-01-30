@@ -20,7 +20,7 @@
 //===-
 //===----------------------------------------------------------------------------
 //===-
-package us.wallet.trader.workflow;
+package us.wallet.trader.cert;
 import us.gov.io.blob_reader_t;                                                                // blob_reader_t
 import us.gov.io.blob_writer_t;                                                                // blob_writer_t
 import us.CFG;                                                                                 // CFG
@@ -37,7 +37,7 @@ import us.string;                                                               
 public abstract class doc0_t implements us.gov.io.seriable {
 
     static void log(final String line) {                    //--strip
-       CFG.log_wallet_trader("workflow/doc0_t: " + line);   //--strip
+       CFG.log_wallet_trader("cert/doc0_t: " + line);       //--strip
     }                                                       //--strip
 
     public enum type_t {

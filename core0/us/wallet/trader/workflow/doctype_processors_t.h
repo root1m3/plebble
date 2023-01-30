@@ -27,13 +27,13 @@
 #include <vector>
 #include <iostream>
 
-#include "doc_t.h"
-#include "doc0_t.h"
+#include <us/wallet/trader/cert/doc0_t.h>
+//#include "doc0_t.h"
 
 namespace us::wallet::trader::workflow {
 
     using namespace std;
-    using magic_t = us::wallet::trader::workflow::doc0_t::magic_t;
+    using magic_t = us::wallet::trader::cert::doc0_t::magic_t;
 
     struct doctype_processor_t: pair<string, string> {
         using b = pair<string, string>;

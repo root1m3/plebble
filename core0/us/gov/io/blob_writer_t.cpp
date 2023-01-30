@@ -260,6 +260,14 @@ blob_t c::make_blob(const string& payload) {
     return move(blob);
 }
 
+blob_t c::make_blob(const hash_t& payload) {
+    log("blob from hash");
+    blob_t blob;
+    blob_writer_t w(blob, blob_size(payload));
+    w.write(payload);
+    return move(blob);
+}
+
 string c::add_header(blob_header_t&& h, const string& blob0) {
     return crypto::b58::encode(add_header(move(h), crypto::b58::decode(blob0)));
 }

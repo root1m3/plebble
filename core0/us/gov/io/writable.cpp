@@ -23,6 +23,7 @@
 #include <cstring>
 
 #include <us/gov/crypto/base58.h>
+#include <us/gov/crypto/ripemd160.h>
 #include <us/gov/socket/types.h>
 #include <us/gov/io/cfg0.h>
 
@@ -61,6 +62,17 @@ void c::write(string& b58) const {
     blob_t blob;
     write(blob);
     b58 = crypto::b58::encode(blob);
+}
+
+hash_t c::nft() const {
+    log("nft");
+    blob_t blob;
+    write(blob);
+    us::gov::crypto::ripemd160 hasher;
+    hasher.write(blob);
+    hash_t h;
+    hasher.finalize(h);
+    return h;
 }
 
 string c::encode() const {

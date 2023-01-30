@@ -50,12 +50,14 @@ struct hmi_t: us::wallet::cli::hmi {
 };
 
 hmi_t* hmi{nullptr};
+bool killed{false};
 
 void sig_handler(int s) {
     cout << "main: received signal " << s << endl;
     cout << "stopping ..." << endl;
     hmi->stop();
     hmi->setup_signals(false);
+    killed = true;
 }
 
 void hmi_t::setup_signals(bool on) {
@@ -89,6 +91,10 @@ int main(int argc, char** argv) {
     delete hmi;
     hmi = nullptr;
     hmi_t::process_cleanup();
+    if (killed) { //https://people.freebsd.org/~cracauer/homepage-mirror/sigint.html
+        kill(getpid(), SIGINT);
+        return 3;
+    }
     return r.empty() ? 0 : 1;
 }
 

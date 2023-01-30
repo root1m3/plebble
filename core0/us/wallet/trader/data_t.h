@@ -23,6 +23,7 @@
 #pragma once
 #include <map>
 #include <string>
+#include <sstream>
 #include <iostream>
 #include <mutex>
 #include <vector>
@@ -33,6 +34,7 @@
 #include <us/gov/io/seriable_map.h>
 
 namespace us::wallet::trader {
+    using namespace std;
 
     struct trader_t;
 

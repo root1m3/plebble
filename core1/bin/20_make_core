@@ -153,9 +153,13 @@ function wait_done {
             #echo "querying $arch host $host"
             s=$($ssh -p$port $host "cat foo.err | grep -v \"^distcc\" | head -n1")
             if [[ "_$s" != "_" ]]; then
-                $ssh -p$port $host "killall make; killall make.sh; killall cc1plus"
                 echo "Complete cerr file: $ssh -p$port $host \"cat foo.err\""
                 echo "1st Error: $s"
+                echo -n "kill remote process? [y/n]: "
+                read a
+                if [[ "_$a" == "_y" ]]; then
+                    $ssh -p$port $host "killall make; killall make.sh; killall cc1plus"
+                fi
                 exit 1
                 break
             fi
@@ -309,7 +313,6 @@ function move_to_distr {
             echo $v > version
         popd
     done
-
 }
 
 function move_to_distr_r2r {

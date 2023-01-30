@@ -28,7 +28,7 @@ OBJS:=$(patsubst %.cpp, %.o, $(CPPS))
 DOBJS:=single/socket_single.o
 DOBJS+=multipeer/socket_multipeer.o
 DOBJS+=outbound/socket_outbound.o
-INC:=-I../../..
+INC:=-I../../.. -I/usr/local/include
 
 all: ${OBJ}.o
 

@@ -340,7 +340,9 @@ function make_build_job {
         set -a
         . $brand/core0/us/res/strings/$strset
         set +a
-        cp core1 $brand/ -R
+        mkdir -p $brand/core1
+        cp -r core1/us $brand/core1/
+#        cp core1 $brand/ -R
         pushd "$brand/core1/us/trader" > /dev/null
             echo "configuring r2r"
             fgs=""
@@ -358,7 +360,8 @@ function make_build_job {
                     exit 1
                 fi
             popd > /dev/null
-            cp core2 $brand/ -R
+            mkdir -p $brand/core2
+            cp -r core2/us $brand/core2/
             pushd "$brand/core2/us/trader" > /dev/null
                 echo "configuring core2 r2r"
                 fgs=""

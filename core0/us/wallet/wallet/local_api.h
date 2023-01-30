@@ -43,7 +43,6 @@ namespace us::wallet::engine {
 
 namespace us::wallet::trader {
         struct traders_t;
-//        struct businesses_t;
         struct bookmark_info_t;
 }
 

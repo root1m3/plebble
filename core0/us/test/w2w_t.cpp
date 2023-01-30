@@ -20,13 +20,13 @@
 //===-
 //===----------------------------------------------------------------------------
 //===-
-#include "w2w_t.h"
-
 #include <us/wallet/engine/daemon_t.h>
+#include <us/wallet/wallet/local_api.h>
 
 #include "node.h"
 #include "dispatcher_t.h"
 #include "network.h"
+#include "w2w_t.h"
 
 #define loglevel "test"
 #define logclass "w2w_t"

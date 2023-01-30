@@ -22,10 +22,14 @@
 //===-
 #pragma once
 #include <string>
+#include <sstream>
+
 #include <us/gov/crypto/types.h>
+
 #include "types.h"
 
 namespace us::gov::io {
+    using namespace std;
 
     template<typename T>
     T convert(const string& s) {
@@ -40,4 +44,3 @@ namespace us::gov::io {
     template<> pub_t convert(const string&);
 
 }
-

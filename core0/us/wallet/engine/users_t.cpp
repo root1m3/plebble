@@ -44,9 +44,9 @@ c::~users_t() {
     {
         lock_guard<mutex> lock(mx);
         for (auto i: *this) {
-            auto r = "KO 78869 wallet wasn't released before.";
+            auto r = "KO 78869 wallet wasn't released before. LEAK";
             log(r, i.second->subhome);
-            delete i.second;
+            //delete i.second;
         }
     }
     release_wallet(root_wallet);
@@ -107,10 +107,11 @@ void c::release_wallet(wallet::local_api* w) {
         log(r);
         return;
     }
-    i->second->stop();
-    i->second->join();
-    delete i->second;
+    assert(w == i->second);
     erase(i);
+    w->stop();
+    w->join();
+    delete w;
 }
 
 void c::dump(ostream& os) const {

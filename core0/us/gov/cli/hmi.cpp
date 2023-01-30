@@ -396,7 +396,6 @@ void c::banner(const params& p, ostream& os) {
     os << ind << "monotonic versions: \n";
     os << ind << "    deploy: " << CFG_MONOTONIC_VERSION_FINGERPRINT << '\n';
     os << ind << "    api_v gov: " << CFG_API_V__GOV << '\n';
-    os << ind << "    api_v wallet: " << CFG_API_V__WALLET << '\n';
     os << ind << "    binary serialization: " << CFG_BLOB_VERSION << '\n';
     os << ind << "component brandcodes:\n";
     os << ind << "    deployment blobs:" << CFG_BLOB_VERSION << '\n';

@@ -65,7 +65,7 @@ namespace us::wallet::engine {
             string logdir;
         #endif
 
-        wallet::local_api* root_wallet;
+        wallet::local_api* root_wallet{nullptr};
 
     private:
         mutable mutex mx;

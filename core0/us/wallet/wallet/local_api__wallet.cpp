@@ -22,6 +22,7 @@
 //===-
 #include "local_api.h"
 #include <sstream>
+#include <limits>
 
 #include <us/gov/socket/datagram.h>
 #include <us/gov/socket/outbound/rendezvous_t.h>
@@ -34,6 +35,7 @@
 #include <us/wallet/trader/bookmarks_t.h>
 #include <us/wallet/trader/traders_t.h>
 #include <us/wallet/trader/businesses_t.h>
+#include <us/wallet/trader/cert/cert_index_t.h>
 
 #include "types.h"
 
@@ -1205,6 +1207,34 @@ ko c::handle_r2r_index(bookmark_index_t& bookmark_index) {
     log("r2r_index");
     return businesses.handle_r2r_index(bookmark_index);
 }
+
+ko c::handle_cert_create(string&& msg, hash_t& nft) {
+    log("cert_create");
+    cert_t::options o;
+    o.xhours = 300000;
+    return traders.ca.cert_create(move(msg), move(o), nft);
+}
+
+ko c::handle_cert_import(cert_t&& cert, hash_t& nft) {
+    log("cert_import");
+    return traders.ca.cert_import(move(cert), nft);
+}
+
+ko c::handle_cert_list(uint8_t&& id, cert_index_t& certs) {
+    log("cert_list");
+    return traders.ca.cert_list(move(id), certs);
+}
+
+ko c::handle_cert_get(hash_t&& nft, cert_t& cert) {
+    log("cert_get");
+    return traders.ca.cert_get(nft, cert);
+}
+
+ko c::handle_cert_show(hash_t&& nft, string& cert) {
+    log("cert_show");
+    return traders.ca.cert_show(nft, cert);
+}
+
 
 //-/----------------apitool - End of API implementation.
 

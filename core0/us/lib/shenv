@@ -24,9 +24,11 @@
 
 #---------------------------- OS detection
 let freebsd=0
-unm=`uname`
+let cheribsd=0
+unm=$(uname)
 if [[ "_$unm" == "_FreeBSD" ]]; then
     let freebsd=1
+    let cheribsd=1
     #echo "running on FreeBSD"
 else
     if [[ "_$unm" != "_Linux" ]]; then
@@ -42,11 +44,11 @@ let jobs=0
 arch=""
 if [[ $freebsd -eq 1 ]]; then
     sysctl hw.model hw.machine hw.ncpu
-    let jobs=`sysctl hw.ncpu | awk '{ print $2 }'`
-    arch=`uname -p`
+    let jobs=$(sysctl hw.ncpu | awk '{ print $2 }')
+    arch=$(uname -p)
 else
-    let jobs=`cat /proc/cpuinfo | grep "^processor" | wc -l`
-    arch=`uname -m`
+    let jobs=$(cat /proc/cpuinfo | grep "^processor" | wc -l)
+    arch=$(uname -m)
 fi
 if [[ $jobs -gt 1 ]]; then
     let jobs=`echo "$jobs-1" | bc`

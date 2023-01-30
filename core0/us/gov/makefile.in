@@ -38,7 +38,7 @@ ifeq (${OS},Linux)
 else
     ifeq (${OS},FreeBSD)
         EC:=$(shell PKG_CONFIG_PATH=/usr/local/lib/pkgconfig pkg-config --libs libsecp256k1)
-        LIBCRYPTO:=$(shell pkg-config --libs libcryptopp)
+        LIBCRYPTO:=-L/usr/local/lib -lcryptopp
     endif
 endif
 
@@ -58,10 +58,14 @@ DOBJS+=sys/sys.o
 DOBJS+=traders/traders.o
 DOBJS+=log/log.o
 
-INC:=-I../..
+INC:=-I../.. -I/usr/local/include
 
 LIB+=${EC} ${LIBCRYPTO} -lb64
-LIB+=-lstdc++fs -pthread
+#ifeq (${CXX},g++)
+#    LIB+=-lstdc++fs
+#endif
+LIB+=-pthread
+
 ifeq (${ARCH},armv7l)
     LIB+=-latomic
 endif
@@ -75,7 +79,7 @@ all: ${LIBUSGOV}.so
 
 subojs:
 	@for a in $$(ls); do \
-	if [ -d $$a ]; then \
+	if [ -f $$a/makefile ]; then \
 	echo "==============directory gov/$$a"; \
 	$(MAKE) -C $$a; \
 	fi; \

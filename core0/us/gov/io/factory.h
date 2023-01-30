@@ -52,7 +52,9 @@ namespace us::gov::io {
         }
 
         ~factories_t() {
+//cout << "LEAK XXSZ " << this << ' ' << b::size() << endl;
             for (auto& i: *this) {
+//cout << "LEAK XXXX " << i.second << endl;
                 delete i.second;
             }
         }
@@ -60,10 +62,13 @@ namespace us::gov::io {
         ko register_factory(const typename t::factory_id_t& id, factory_t<t>* f) {
             auto i = b::find(id);
             if (i != b::end()) {
-                cerr << "factory_id_t " << id << " already created" << endl;
+                auto r = "KO 40193 Factory already registered.";
+                //log(r, id);
+                cerr << "factory_id_t " << id << " " << r << endl;
                 assert(false);
-                return "KO 40193 Factory already registered.";
+                return r;
             }
+//cout << "LEAK REG " << this << ' ' << f << endl;
             b::emplace(id, f);
             return ok;
         }

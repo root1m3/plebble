@@ -25,12 +25,12 @@
 #include <us/wallet/trader/params_t.h>
 #include <chrono>
 
-#define loglevel "wallet/trader/workflow"
+#define loglevel "wallet/trader/cert"
 #define logclass "expiry_doc"
 #include <us/gov/logs.inc>
 
-using c = us::wallet::trader::workflow::expiry_doc_t;
-using namespace us::wallet::trader::workflow;
+using c = us::wallet::trader::cert::expiry_doc_t;
+using namespace us::wallet::trader::cert;
 using us::ko;
 
 c::expiry_doc_t() {

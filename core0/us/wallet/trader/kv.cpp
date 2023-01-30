@@ -20,12 +20,20 @@
 //===-
 //===----------------------------------------------------------------------------
 //===-
-#include "kv.h"
+// ------------base64 decoder - https://github.com/GobySoft/dccl/issues/43
+#ifdef __FreeBSD__
+    #include <cstdio>
+    #define BUFFERSIZE BUFSIZ
+#endif
+#include <b64/decode.h>
+// -/----------base64 decoder
+
 #include <set>
 #include <fstream>
-#include <b64/decode.h>
 
 #include <us/gov/crypto/base64.h>
+
+#include "kv.h"
 
 #define loglevel "wallet/trader"
 #define logclass "kv"

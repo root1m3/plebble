@@ -62,16 +62,15 @@ using namespace us::wallet::trader;
 using c = us::wallet::trader::traders_t;
 
 const char* c::KO_39010 = "KO 39010 Command not processed here.";
+const char* c::cert_authority_t::KO_77965 = "KO 77965 Personality didn't change.";
 
 //home: .us/chan/wallet/trader"
 c::traders_t(wallet::local_api& parent): parent(parent), home(parent.home + "/trader") {
     log("traders_t constructor", home);
     //us::gov::io::cfg0::ensure_dir(home);
-    {
-        log("load_personality");
-        personality.load(home + "/personality_sk");
-//        load_set_personality(home + "/personality_sk");
-    }
+
+    ca.init(home + "/ca");
+
 //    log("loading lf");
 //    load_lf();
     load_state();
@@ -87,6 +86,226 @@ c::~traders_t() {
     }
     clear();
 }
+
+c::cert_authority_t::cert_authority_t() {
+}
+
+ko c::cert_authority_t::init(const string& home0) {
+    log("cert_authority_t::init");
+    home = home0;
+    us::gov::io::cfg0::ensure_dir(home);
+    {
+        string oldf = home + "/personality_sk";
+        log("todo: remove >= alpha-56 ", oldf); //TODO
+        if (us::gov::io::cfg0::file_exists(oldf)) {
+            log("delete old file ", oldf);
+            ::remove(oldf.c_str());
+        }
+    }
+    auto personality_file = home + "/personality";
+    if (!us::gov::io::cfg0::file_exists(personality_file)) {
+        log("generating new personality");
+        auto p = personality_t::generate("Anonymous CA");
+        auto r = p.save(personality_file);
+        if (is_ko(r)) {
+            return r;
+        }
+    }
+    if (!us::gov::io::cfg0::file_exists(personality_file)) {
+        auto r = "KO 40118 personality file not found.";
+        log(r, personality_file);
+        return r;
+    }
+    log("load_personality");
+    return personality.load(personality_file);
+}
+
+ko c::cert_authority_t::reset_personality(const string& sk, const string& moniker) {
+    auto r = personality.reset_if_distinct(sk, moniker);
+    if (r == 0) {
+        log(KO_77965);
+        return KO_77965; 
+    }
+    auto personality_file = home + "/personality";
+    {
+        auto r = personality.save(personality_file);
+        if (is_ko(r)) {
+            return r;
+        }
+    }
+    init(home);
+    use_in_new_trades = true;
+    return ok;
+}
+
+ko c::cert_authority_t::store_(const cert_t& o) {
+    auto nft = o.nft();
+    auto f = nft.filename();
+    ostringstream certfile;
+    certfile << home << "/cert/" << f.first;
+    us::gov::io::cfg0::ensure_dir(certfile.str());
+    certfile << '/' << f.second;
+    auto r = o.save(certfile.str());
+    if (is_ko(r)) {
+        log("failed to save cert in", certfile.str());
+        return r;
+    }
+    log("saved cert in", certfile.str());
+    return ok;
+}
+
+ko c::cert_authority_t::cert_create(string&& msg, cert_t::options&& o, hash_t& nft) {
+    log("new cert");
+    lock_guard<mutex> lock(mx);
+    o.sk = personality.k_sign_docs();
+    bool is_root_ca{true};
+    o.kv.set("version", "1");
+    o.kv.set("CA", "SOA Start of Authority");
+    o.kv.set("lang", "en");
+    //o.kv.set("CA_types", "SOA [Start of Authority]; PA [Parent Authority] );
+    o.text = msg;
+    cert_t* doc;
+    {
+        auto r = cert_t::create(o);
+        if (is_ko(r.first)) {
+            log(r.first);
+            assert(r.second == nullptr);
+            return r.first;
+        }
+        doc = r.second;
+        assert(doc != nullptr);
+    }
+    #ifdef DEBUG
+    {
+        log("verifying cert");
+        ostringstream os;
+        auto v = doc->verify(os);
+        log("verify cert", v, os.str());
+        if (!v) {
+            doc->write_pretty(cerr);
+            cerr << os.str() << '\n';
+            delete doc;
+            auto r = "KO 40399 cert does not verify";
+            log(r);
+            assert(false);
+            return r;
+        }
+    }
+    #endif
+    auto r = store_(*doc);
+    if (is_ko(r)) {
+        delete doc;
+        return r;
+    }
+
+    nft = doc->nft();
+    { //registry
+        ostringstream regfile;
+        regfile << home << '/' << personality.nft();
+        us::gov::io::cfg0::ensure_dir(regfile.str());
+        regfile << "/certs";
+        ofstream os(regfile.str(), ios::app);
+        os << nft << '\n';
+    }
+    return ok;
+}
+
+ko c::cert_authority_t::cert_import(cert_t&& cert, hash_t& nft) {
+    log("import cert");
+    lock_guard<mutex> lock(mx);
+    ostringstream os;
+    auto v = cert.verify(os);
+    log("verify cert", v, os.str());
+    assert(v);
+    if (!v) {
+        auto r = "KO 42399 cert didn't verify";
+        log(r);
+        //todo: if cert expired -> remove file if exists
+        return r;
+    }
+    log("cert signature is valid.");
+    auto r = store_(cert);
+    if (is_ko(r)) {
+        return r;
+    }
+    nft = cert.nft();
+    return ok;
+}
+
+ko c::cert_authority_t::cert_list(uint8_t&& id, cert_index_t& index) {
+    if (id == 0) {
+        us::gov::io::cfg0::ensure_dir(home + "/cert");
+        ostringstream cmd;
+        cmd << "find " << home << "/cert -type f -exec basename {} \\;";
+        string ans;
+        auto r = us::gov::io::system_command(cmd.str(), ans);
+        if (is_ko(r)) {
+            return r;
+        }
+        istringstream is(ans);
+        index.clear();
+        while (is.good()) {
+            string line;
+            getline(is, line);
+            hash_t nft(line);
+            if (nft.is_zero()) {
+                break;
+            }
+            index.emplace(move(nft), "cert");
+        }
+        return ok;
+    }
+    if (id == 1) {
+        log("listing certs issued by me");
+        ostringstream regfile;
+        regfile << home << '/' << personality.nft() << "/certs";
+        ifstream is(regfile.str());
+        while (is.good()) {
+            string line;
+            getline(is, line);
+            hash_t nft(line);
+            if (nft.is_zero()) {
+                break;
+            }
+            index.emplace(move(nft), "cert");
+        }
+        return ok;
+    }
+    auto r = "KO 66739 invalid list id.";
+    log(r);
+    return r;
+}
+
+ko c::cert_authority_t::cert_get(const hash_t& nft, cert_t& cert) {
+    lock_guard<mutex> lock(mx);
+    auto f = nft.filename();
+    ostringstream certfile;
+    certfile << home << "/cert/" << f.first << '/' << f.second;
+    auto r = cert.load(certfile.str());
+    if (is_ko(r)) {
+        log(r, "unable to load cert ", certfile.str());
+        return r;
+    }
+    return ok;
+}
+
+ko c::cert_authority_t::cert_show(const hash_t& nft, string& s) {
+    lock_guard<mutex> lock(mx);
+    auto f = nft.filename();
+    ostringstream certfile;
+    certfile << home << "/cert/" << f.first << '/' << f.second;
+    cert_t cert;
+    auto r = cert.load(certfile.str());
+    if (is_ko(r)) {
+        log(r, "unable to load cert ", certfile.str());
+        return r;
+    }
+    ostringstream os;
+    cert.write_pretty(os);
+    s = os.str();
+    return ok;
+}
+
 /*
 void c::load_lf() {
     namespace fs = std::filesystem;
@@ -209,19 +428,6 @@ pair<ko, hash_t> c::initiate(const hash_t parent_tid, const string& datadir, inv
     assert(e.second);
     return r;
 }
-
-/*
-size_t c::get_utid(const hash_t& tid, const us::wallet::wallet::local_api& w) {
-    size_t x = *reinterpret_cast<const size_t*>(&tid[0]);
-    if (w.subhomeh.is_zero()) return x;
-    size_t y = *reinterpret_cast<const size_t*>(&w.subhomeh[0]);
-    return x ^ y;
-}
-
-//size_t c::get_utid_rootwallet(const hash_t& tid) {
-//    return *reinterpret_cast<const size_t*>(&tid[0]);
-//}
-*/
 
 void c::erase_trader_(const hash_t& tid) {
     log("Erase trade.", tid);
@@ -469,7 +675,7 @@ void c::exec_help(const string& prefix, ostream& os) const {
     log("exec_help");
     os << prefix << " personality set <secret_key> <moniker>     Set initial personality for starting new trades.";
     os << "  * Current personality used: ";
-    personality.one_liner(os);
+    ca.personality.one_liner(os);
     os << '\n';
 }
 
@@ -499,14 +705,16 @@ ko c::exec(istream& is) {
                 log(r);
                 return r;
             }
-            auto r = personality.reset_if_distinct(sk, moniker);
-            if (r == 0) {
-                return parent.push_OK(hash_t(0), "Personality didn't change.");
+            auto r = ca.reset_personality(sk, moniker);
+            if (is_ko(r)) {
+                if (r == cert_authority_t::KO_77965) {
+                    return parent.push_OK(hash_t(0), "Personality didn't change.");
+                }
+                return r;
             }
-            personality.save(home + "/personality_sk");
             ostringstream os;
             os << "New trades will be initiated using personality ";
-            personality.one_liner(os);
+            ca.personality.one_liner(os);
             os << '.';
             return parent.push_OK(hash_t(0), os.str());
         }

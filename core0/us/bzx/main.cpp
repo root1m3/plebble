@@ -289,7 +289,7 @@ cout << line << endl;
         ln >> d;
         if (ln.fail()) {
             cerr << "fail 1" << endl;
-            abort;
+            abort();
         }
         vl.value=(cash_t)(d*100.0);
         ln >> d;

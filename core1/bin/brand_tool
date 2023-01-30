@@ -26,6 +26,7 @@ function help {
     cat << EOF
 New/update:
     $0 update <brand_seed_dir>      Update an existing brand or create a New brand. If the brand is not new it will ask before rewriting parts.
+    Input for new: copy existing brand_seeds/* dir
 
 strtset:
     $0 gen_strset <brand_seed_dir>
@@ -340,6 +341,7 @@ function gen_govk {
             >&2 echo "KO 45926 cannot create node_gov_k. empty. wallet working ok?"
             exit 1
         fi
+        mkdir -p ${brandkeyroot}
         echo "${node_gov_k}" > ${brandkeyroot}/govk
     fi
     govaddr
@@ -397,6 +399,7 @@ function gen_walletk {
             >&2 echo "KO 45826 cannot create node_wallet_k. empty. wallet working ok?"
             exit 1
         fi
+        mkdir -p ${brandkeyroot}
         echo "${node_wallet_k}" > ${brandkeyroot}/walletk
     fi
     walletaddr
@@ -749,6 +752,10 @@ function gen_android_keys {
     keytool="keytool"
     if [[ "_$JAVA_HOME" != "_" ]]; then
         keytool=$JAVA_HOME/bin/keytool
+        if [[ ! -x $keytool ]]; then
+            >&2 echo "KO 88199 $keytool not found."
+            exit 1
+        fi
     fi
     if [[ ! -f ${brandkeyroot}/keystore.jks ]]; then
         echo -n "gen android keys (${brandkeyroot}/keystore.jks)" #? [y/n]: "
@@ -910,7 +917,7 @@ function ssh_passwordless {
         exit 1
     fi
     idrsapub=$(cat /root/.ssh/id_rsa.pub)
-    echo "Access to BDE:"
+    echo "Access to BDE port 22:"
     ssh $unixname "if [[ ! -d /root/.ssh ]]; then ssh-keygen; fi; echo \"$idrsapub #brand_tool\" >> /root/.ssh/authorized_keys; cat /root/.ssh/authorized_keys"
     if [[ $? -ne 0 ]]; then
         >&2 echo "KO 87984 smthing went wrong"
@@ -951,14 +958,20 @@ function bde_bootstrap {
 }
 
 function docheck {
+    echo "check"
     a=$(cat ${brandkeyroot}/govk)
+    echo "check a"
     b=$(su ${GOVUSER} -c "${us}-wallet priv_key $a" | grep "^addr " | awk '{ print $2 }')
+    echo "check b"
     c=$(cat ${brand_dir}/en-uk | grep "^str66=" | sed "s~^str66=\"\(.*\)\" #distr_node_pkh~\1~")
+    echo "check c"
     if [[ "_$b" != "_$c" ]]; then
         >&2 echo "KO 76895 Inconsistency 1. ${brand_dir}/en-uk"
         exit 1
     fi
-    d=$(ssh $unixname "cat /home/${GOVUSER}/.${brand}/gov/k")
+    ssh="ssh -p16671"
+    echo "============>$ssh $unixname "cat /home/${GOVUSER}/.${brand}/gov/k""
+    d=$($ssh $unixname "cat /home/${GOVUSER}/.${brand}/gov/k")
     if [[ "_$a" != "_$d" ]]; then
         echo "KO 76895 Inconsistency 2. remote govk"
         exit 1

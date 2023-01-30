@@ -21,9 +21,12 @@
 //===----------------------------------------------------------------------------
 //===-
 #pragma once
+
 #include <us/gov/relay/peer_t.h>
 #include <us/gov/relay/pushman.h>
+
 #include <us/wallet/wallet/algorithm.h>
+
 #include "api.h"
 
 namespace us::wallet::wallet {
@@ -43,8 +46,6 @@ namespace us::wallet::engine {
         using b = gov::relay::peer_t;
         using w = wallet::algorithm;
 
-        //static const char* KO_10428;
-
         peer_t(daemon_t&, sock_t);
         ~peer_t() override;
 
@@ -60,15 +61,6 @@ namespace us::wallet::engine {
         void disconnect_hilarious(datagram*);
         svc_t translate_svc(svc_t svc0, bool inbound) const override;
         void verification_result(request_data_t&&) override {}
-
-/*
-    public:
-        void schedule_push(socket::datagram*);
-        ko push_KO(ko msg);
-        ko push_KO(const hash_t& tid, ko msg);
-        ko push_OK(const string& msg);
-        ko push_OK(const hash_t& tid, const string& msg);
-*/
 
     public: //engine
         #include <us/api/generated/wallet/c++/engine/cllr_override>

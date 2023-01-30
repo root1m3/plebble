@@ -29,7 +29,6 @@
 
 namespace us::gov::engine {
 
-//    using namespace std;
     using blob_writer_t = us::gov::io::blob_writer_t;
     using blob_reader_t = us::gov::io::blob_reader_t;
     using seriable = us::gov::io::seriable;

@@ -52,7 +52,7 @@ if [[ -d $gitdir ]]; then
     echo "git environment"
     branch=$(git branch | grep '*' | awk '{print $NF}')
     revhash=$(git log | head -n1 | awk '{print $2}')
-    let nl=$(git diff --name-only | grep -v us/sdk/wallet/java/us/vcs.java | wc -l)
+    let nl=$(git diff --name-only | grep -v us/sdk/wallet/java/us/vcs.java | wc -l | awk '{ print $1 }')
     echo -n "Local modifications: "
     if [[ $nl -gt 0 ]]; then
         echo "Yes."

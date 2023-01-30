@@ -38,9 +38,10 @@ using c0 = us::wallet::engine::bookmark_index_t;
 using c = us::wallet::engine::bookmark_index2_t;
 
 void c0::dump(ostream& os) const {
+    string pfx = "    ";
     for (auto& i: *this) {
         os << i.first.to_string2() << ":\n";
-        i.second.dump("    ", os);
+        i.second.dump(pfx, os);
     }
 }
 

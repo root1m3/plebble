@@ -24,18 +24,18 @@ package us.cash;
 import us.gov.io.blob_reader_t;                                                                // blob_reader_t
 import us.gov.io.blob_writer_t;                                                                // blob_writer_t
 import us.CFG;                                                                                 // CFG
-import us.wallet.trader.workflow.doc0_t;                                                       // doc0_t
-import us.wallet.trader.workflow.expiry_doc_t;                                                 // expiry_doc_t
+import us.wallet.trader.cert.doc0_t;                                                       // doc0_t
+import us.wallet.trader.cert.expiry_doc_t;                                                 // expiry_doc_t
 import java.util.HashMap;                                                                      // HashMap
 import static us.gov.io.types.*;                                                               // *
 import static us.gov.socket.types.*;                                                           // *
 import static us.ko.*;                                                                         // *
 import static us.stdint.*;                                                                     // *
-import static us.wallet.trader.workflow.doc0_t.*;                                              // *
+import static us.wallet.trader.cert.doc0_t.*;                                              // *
 import us.ko;                                                                                  // ko
 import us.pair;                                                                                // pair
 import static us.gov.io.types.blob_t.serid_t;                                                  // serid_t
-import us.string;                                                                              // string
+import us.string;         
 
 class catalogue_t extends expiry_doc_t {
 

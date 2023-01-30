@@ -5,7 +5,12 @@
 // Original file bitcoin-core:crypto/common.h
 
 #include <stdint.h>
-#include <endian.h>
+
+#ifdef __FreeBSD__
+    #include <machine/endian.h>
+#else
+    #include <endian.h>
+#endif
 
 namespace us::gov::crypto {
 

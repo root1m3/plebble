@@ -25,7 +25,7 @@
 #include <string>
 #include <us/gov/socket/types.h>
 
-namespace us::wallet::trader::workflow {
+namespace us::wallet::trader::cert {
 
     using namespace us::gov;
 

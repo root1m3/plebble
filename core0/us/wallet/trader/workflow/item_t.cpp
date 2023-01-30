@@ -20,8 +20,6 @@
 //===-
 //===----------------------------------------------------------------------------
 //===-
-#include "item_t.h"
-
 #include <fstream>
 
 #include <us/gov/socket/datagram.h>
@@ -31,6 +29,7 @@
 #include "workflow_t.h"
 #include "trader_protocol.h"
 #include "workflows_t.h"
+#include "item_t.h"
 
 #define loglevel "wallet/trader/workflow"
 #define logclass "item_t"
@@ -38,6 +37,7 @@
 
 using namespace us::wallet::trader::workflow;
 using c = us::wallet::trader::workflow::item_t;
+using us::ko;
 
 c::factory_id_t c::null_instance{0};
 
@@ -376,7 +376,7 @@ ko c::api_exec(const string& scope, const string& fn, const string& args, ostrea
     return business_t::KO_50100;
 }
 
-pair<ko, doc0_t*> c::doc_from_blob(blob_reader_t& reader) const {
+pair<ko, c::doc0_t*> c::doc_from_blob(blob_reader_t& reader) const {
     doc0_t* d{nullptr};
     auto r = reader.read(d, doc0_factory);
     if (is_ko(r)) {

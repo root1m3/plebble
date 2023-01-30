@@ -111,6 +111,7 @@ print_stacktrace(cout);
         #define print_stacktrace (void)sizeof
     #endif
 #else
+    #define print_stacktrace_release (void)sizeof
     #define print_stacktrace (void)sizeof
 #endif
 

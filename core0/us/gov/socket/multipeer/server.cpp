@@ -28,6 +28,10 @@
 #include <ctime>
 #include <iostream>
 
+#ifdef __FreeBSD__
+#include <sys/socket.h>
+#endif
+
 #include <us/gov/likely.h>
 #include <us/gov/socket/client.h>
 #include <us/gov/socket/daemon_t.h>

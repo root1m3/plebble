@@ -26,18 +26,18 @@ CPPS:= $(wildcard *.cpp)
 OBJS:= $(patsubst %.cpp, %.o, $(CPPS))
 HS:= $(wildcard *.h)
 
-INC:= ../../../..
+INC:=-I../../../.. -I/usr/local/include
 
 all: ${OBJ}.o
 
 %.o: %.cpp
-	$(CXX) -fPIC -Wno-psabi -c ${CXXFLAGS} $^ -pthread -I${INC} -o $@
+	$(CXX) -fPIC -Wno-psabi -c ${CXXFLAGS} $^ -pthread ${INC} -o $@
 
 ${OBJ}.o: ${OBJS}
-	ld -r -o ${OBJ}.o ${OBJS}
+	$(LD) -r -o ${OBJ}.o ${OBJS}
 
 clean:
-	$(RM) -f *.o
+	$(RM) *.o
 
 .PHONY: all clean
 

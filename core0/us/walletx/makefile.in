@@ -30,8 +30,7 @@ CPPS:=$(wildcard *.cpp)
 OBJS:=$(patsubst %.cpp, %.o, ${CPPS})
 HS:=$(wildcard *.h)
 FCGILIBS:=-lfastcgipp
-EC:=$(shell pkg-config --libs libsecp256k1)
-INC:=-I../..
+INC:=-I../.. -I/usr/local/include
 OS:=$(shell uname)
 ifeq (${OS},Linux)
     ARCH:=$(shell uname -m)
@@ -46,7 +45,7 @@ LIB+=-L../gov -l${USGOV}
 ifeq ($(ARCH),armv7l)
     LIB+=-latomic
 endif
-LIB+=-lstdc++fs -pthread
+LIB+=-pthread
 
 ifneq (,$(findstring -g,${CXXFLAGS}))
     RPATH:=-Wl,-rpath,../wallet
@@ -59,7 +58,7 @@ all: ${USWALLETX}
 
 ${USWALLETX}: ${OBJS}
 #ifeq ($(WASM),1)
-#	em++ ${CXXFLAGS} ${OBJS} -L../gov -L../wallet ${LIBS} ${EC} ${NC} ${LIBCRYPTO} -I../.. -pthread -lstdc++fs -o ${USHWALLET}_wasm
+#	em++ ${CXXFLAGS} ${OBJS} -L../gov -L../wallet ${LIBS} ${NC} ${LIBCRYPTO} -I../.. -pthread -lstdc++fs -o ${USHWALLET}_wasm
 #else
 	@echo ""
 	@echo "[--->Link executable: ${USWALLETX}]"

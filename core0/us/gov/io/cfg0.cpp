@@ -326,14 +326,15 @@ void c::to_identifier(string& s) {
 #include "command.h"
 
 ko us::gov::io::system_command(const string& command, string& result) {
+    log("system_command", command);
 //cout << "system_command " << command << endl;
     raymii::CommandResult ans = raymii::Command::exec(command);
     if (ans.exitstatus != 0) {
 //cout << "Exitstatus: " << ans.exitstatus << endl;
 //cout << "Result: " << ans.output << endl;
-        auto r = "KO 80795 Command finished with error.";
+        auto r = "KO 82795 Command finished with error.";
 //cout << r << endl;
-        log(r);
+        log(r, ans.output);
         return r;
     }
 //cout << "Exitstatus: " << ans.exitstatus << endl;

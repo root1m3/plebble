@@ -38,12 +38,26 @@ string c::desc() const {
     return "Impact Shopping";
 }
 
-bool c::load_data(const string& r2rhome) {
+void c::update_plugins(const string& destdir) {
+    b::update_plugins(destdir);
+    tee("update_plugins", destdir);
     {
         ostringstream cmd;
-        cmd << "cp ../libtrader-bid2ask-ask.so " << homedir << "/123/wallet/trader/lib/";
-        system(cmd.str().c_str());
+        cmd << "cp ../../../../core1/us/trader/libworkflow-consumer.so " << destdir;
+        assert(system(cmd.str().c_str()) == 0);
     }
+    {
+        ostringstream cmd;
+        cmd << "cp ../../../../core1/us/trader/libtrader-bid2ask-ask.so " << destdir;
+        assert(system(cmd.str().c_str()) == 0);
+    }
+}
+
+bool c::load_data(const string& r2rhome) {
+    if (!b::load_data(r2rhome)) {
+        return false;
+    }
+    tee("load_data");
     {
         ostringstream fname;
         fname << homedir << "/123/wallet/trader/" << r2rhome << "/data";

@@ -87,6 +87,8 @@ namespace us::test {
         void sleep_for(uint64_t secs) const;
         void abort_tests();
         void abort_tests0();
+        void build_stage1dir();
+        void update_plugins();
 
     public:
         static string OFAddress;
@@ -99,6 +101,7 @@ namespace us::test {
         string stage1dir;
         ostream& out;
         r2r_t* r2r_tests{nullptr};
+        bool killed{false};
     };
 
 }

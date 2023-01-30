@@ -22,8 +22,11 @@
 //===-
 #pragma once
 #include <tuple>
+
 #include <us/gov/io/seriable.h>
 #include <us/wallet/trader/params_t.h>
+#include <us/wallet/trader/cert/doc0_t.h>
+
 #include "workflow_t.h"
 
 namespace us::wallet::trader::workflow {
@@ -37,6 +40,7 @@ namespace us::wallet::trader::workflow {
         using doctypes_t = workflow_t::doctypes_t;
         using peer_t = workflow_t::peer_t;
         using ch_t = trader::ch_t;
+        using doc0_t = us::wallet::trader::cert::doc0_t;
 
     public:
         workflows_t(business_t&);

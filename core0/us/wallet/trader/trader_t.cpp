@@ -20,7 +20,6 @@
 //===-
 //===----------------------------------------------------------------------------
 //===-
-#include "trader_t.h"
 #include <sstream>
 #include <chrono>
 
@@ -38,12 +37,14 @@
 #include <us/wallet/engine/peer_t.h>
 #include <us/wallet/engine/daemon_t.h>
 #include <us/wallet/wallet/local_api.h>
+#include <us/wallet/trader/cert/cert_t.h>
 #include <us/wallet/trader/businesses_t.h>
 
 #include "traders_t.h"
 #include "chat_t.h"
 #include "business.h"
 #include "types.h"
+#include "trader_t.h"
 
 #define loglevel "wallet/trader"
 #define logclass "trader_t"
@@ -76,7 +77,14 @@ c::trader_t(traders_t& parent, engine::daemon_t& demon, const hash_t& parent_tid
     log("constructor", "TRACE 8c");
     ts_creation = duration_cast<nanoseconds>(system_clock::now().time_since_epoch()).count();
     ts_activity.store(ts_creation);
-    my_personality = parent.personality;
+
+    if (parent.ca.use_in_new_trades) {
+        my_personality = parent.ca.personality;
+    }
+    else {
+        my_personality.load(parent.home + "/personality_sk");
+    }
+
     my_challenge = personality_t::gen_challenge();
     log("my_challenge", my_challenge);
     fill_random(route); //serves to the other end to identify this trader (to solve the potential dicotomy of finding two traders working the same trade-id (e.g. trade between 2 custodial wallets managed by the same engine)
@@ -271,7 +279,7 @@ ko c::set_protocol_(trader_protocol* p_, ch_t& ch) { //sh params changed (local,
         }
     }
     else {
-        my_personality = parent.personality; //TODO: personality shouldn't be reseted when changing protocol
+        my_personality = parent.ca.personality; //TODO: personality shouldn't be reseted when changing protocol
         ch.shared_params_changed = true;
     }
     p = p_;
@@ -693,6 +701,24 @@ ko c::trading_msg_trader(peer_t& peer, svc_t svc, blob_t&& blob) {
             }
             return ok;
         }
+        case svc_cert: {
+            log("Received cert");
+            cert::cert_t cert;
+            {
+                auto r = cert.read(blob);
+                if (is_ko(r)) {
+                    return r;
+                }
+            }
+            hash_t nft;
+            auto r = parent.ca.cert_import(move(cert), nft);
+            if (is_ko(r)) {
+                return r;
+            }
+            auto blob = blob_writer_t::make_blob(nft);
+            schedule_push(peer_t::push_in_t(id, push_cert, blob).get_datagram(daemon.channel, 0));
+            return ok;
+        }
         case svc_functions_request: {
             log("Received functions request. - DISABLED");
             return ok;
@@ -781,6 +807,11 @@ blob_t c::push_payload(uint16_t pc, const string& lang) const {
         break;
         case push_chat: {
             log("pushing chat");
+            chat.write(blob);
+        }
+        break;
+        case push_cert: {
+            log("pushing cert");
             chat.write(blob);
         }
         break;
@@ -1356,6 +1387,24 @@ ko c::exec_online(peer_t& peer, const string& cmd0, ch_t& ch) {
             }
             return push_OK("Sent personality");
         }
+        if (cmd == "cert") {
+            hash_t nft;
+            is >> nft;
+            cert::cert_t cert;
+            auto r = parent.ca.cert_get(nft, cert);
+            if (is_ko(r)) {
+                return r;
+            }
+            {
+                blob_t blob;
+                cert.write(blob);
+                auto r = call_trading_msg(peer, svc_cert, blob);
+                if (is_ko(r)) {
+                    return r;
+                }
+            }
+            return push_OK("Sent cert.");
+        }
     }
     if (cmd == "change") {
         string cmd;
@@ -1550,6 +1599,7 @@ void c::help(const string& ind, ostream& os) const {
     fmt::twocol(ind2, "change personality <key> <moniker>", "Change my personality.", my_personality.moniker, os);
     fmt::twocol(ind2, "change moniker <moniker>", "Change moniker of current personality.", my_personality.moniker, os);
     fmt::twocol(ind2, "send personality [mute]", "Send over personality proof [without feedback].", my_personality.moniker, os);
+    fmt::twocol(ind2, "send cert <nft>", "Send cert (aka nft) using its id.", os);
     fmt::twocol(ind2, "start <protocol> <role>", "Start protocol playing the specified role", os);
     fmt::twocol(ind2, "reset", "Send RESET signal", os);
     fmt::twocol(ind2, "reload", "Send RELOAD signal", os);
@@ -1783,7 +1833,7 @@ void c::save_state() const {
     }
 }
 
-ko c::call_trading_msg(peer_t& peer, const uint16_t& svc, const blob_t& payload) const {
+ko c::call_trading_msg(peer_t& peer, const svc_t& svc, const blob_t& payload) const {
     log("call_trading_msg. route", route, "svc", svc);
     assert(route > 0);
     return peer.call_trading_msg2(peer_t::trading_msg2_in_t(route, id, svc, payload));

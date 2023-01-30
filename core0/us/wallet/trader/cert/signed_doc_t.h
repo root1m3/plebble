@@ -23,7 +23,7 @@
 #pragma once
 #include "expiry_doc_t.h"
 
-namespace us::wallet::trader::workflow {
+namespace us::wallet::trader::cert {
 
     using namespace std;
 

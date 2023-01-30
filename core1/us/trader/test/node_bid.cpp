@@ -35,12 +35,26 @@ using c = us::test::node_bid;
 c::node_bid(const string& id, const string& homedir, const string& logdir, const string& vardir, uint16_t gport, uint16_t wport): b(id, homedir, logdir, vardir, gport, wport) {
 }
 
-bool c::load_data(const string& r2rhome) {
+void c::update_plugins(const string& destdir) {
+    b::update_plugins(destdir);
+    tee("update_plugins");
     {
         ostringstream cmd;
-        cmd << "cp ../libtrader-bid2ask-bid.so " << homedir << "/123/wallet/trader/lib/";
+        cmd << "cp ../../../../core1/us/trader/libworkflow-consumer.so " << destdir;
         system(cmd.str().c_str());
     }
+    {
+        ostringstream cmd;
+        cmd << "cp ../../../../core1/us/trader/libtrader-bid2ask-bid.so " << destdir;
+        system(cmd.str().c_str());
+    }
+}
+
+bool c::load_data(const string& r2rhome) {
+    if (!b::load_data(r2rhome)) {
+        return false;
+    }
+    tee("load_data");
     return true;
 }
 

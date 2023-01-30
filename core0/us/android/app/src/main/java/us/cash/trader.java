@@ -68,8 +68,6 @@ import android.media.ToneGenerator;                                             
 import androidx.appcompat.widget.Toolbar;                                                      // Toolbar
 import android.view.View;                                                                      // View
 
-//import com.google.firebase.crashlytics.FirebaseCrashlytics;                                    // FirebaseCrashlytics
-
 public class trader extends activity implements datagram_dispatcher_t.handler_t  {
 
     private static void log(final String line) {           //--strip
@@ -224,6 +222,17 @@ public class trader extends activity implements datagram_dispatcher_t.handler_t 
                 openchat__worker(payload);
             }
             break;
+            case us.wallet.trader.trader_t.push_cert: {
+                log("recv cert "); //--strip
+                hash_t nft = new hash_t();
+                ko r = us.gov.io.blob_reader_t.parse(new blob_t(payload), nft);
+                if (is_ko(r)) {
+                    log(r.msg); //--strip
+                    return;
+                }
+                recv_cert__worker(nft);
+            }
+            break;
             case us.wallet.trader.trader_t.push_killed: {
                 log("killed "); //--strip
                 archive();
@@ -273,6 +282,11 @@ public class trader extends activity implements datagram_dispatcher_t.handler_t 
 
             @Override public void onSlide(@NonNull View view, float v) {}
         });
+    }
+
+    void recv_cert__worker(final hash_t nft) {
+        app.assert_worker_thread(); //--strip
+        toast__worker("A certificate has been received!: " + nft.encode());
     }
 
     void openchat__worker(final byte[] chatpayload) {
@@ -721,32 +735,47 @@ public class trader extends activity implements datagram_dispatcher_t.handler_t 
         a.start_protocol(tid, selected_protocol);
     }
 
-    public void onActivityResult(int requestCode, int resultCode, final Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        log("onActivityResult " + requestCode + " " + resultCode); //--strip
-        if (resultCode == AppCompatActivity.RESULT_CANCELED) {
+    public void onActivityResult(int request_code, int result_code, final Intent data) {
+        super.onActivityResult(request_code, result_code, data);
+        log("onActivityResult " + request_code + " " + result_code); //--strip
+        if (result_code == AppCompatActivity.RESULT_CANCELED) {
             return;
         }
-        if (requestCode == PROTOCOLROLE_RESULT) {
-            if (resultCode == AppCompatActivity.RESULT_OK) {
+        if (request_code == PROTOCOLROLE_RESULT) {
+            if (result_code == AppCompatActivity.RESULT_OK) {
                 String prtocol = data.getDataString();
                 log("prtocol=" + prtocol); //--strip
                 start_protocol(prtocol);
             }
-            else if (resultCode == 111) {
+            else if (result_code == 111) {
                 String KOreason = data.getDataString();
-                Toast.makeText(this, KOreason, 6000).show();
+                toast(KOreason);
             }
-            else if (resultCode == 112) {
+            else if (result_code == 112) {
                 String KOreason = data.getDataString();
-                Toast.makeText(this, getResources().getString(R.string.noptrotocolsavailable) + KOreason, 6000).show();
+                toast(getResources().getString(R.string.noptrotocolsavailable) + KOreason);
             }
             else {
-                Toast.makeText(this, getResources().getString(R.string.sorryselectionunsuccesful), 1000).show();
+                toast(getResources().getString(R.string.sorryselectionunsuccesful));
             }
             return;
         }
-        specialized_fragment.onActivityResult(requestCode, resultCode, data);
+        if (request_code == CERT_VIEWER_RESULT) {
+            if (result_code != doc_viewer.RESULT_OK) {
+                log("doc_viewer was cancelled"); //--strip
+                return;
+            }
+            hash_t nft = (hash_t) data.getSerializableExtra("nft");
+            if (nft == null) {
+                toast("Null nft");
+                return;
+            }
+            a.hmi().command_trade(tid, "send cert " + nft.encode());
+            toast("Send certificate " + nft.encode());
+            //a.hmi().command_trade(new hash_t(0), cmd);
+            return;
+        }
+        specialized_fragment.onActivityResult(request_code, result_code, data);
     }
 
     boolean require_request(String key) {
@@ -880,6 +909,17 @@ public class trader extends activity implements datagram_dispatcher_t.handler_t 
             return;
         }
         finish();
+    }
+
+    static final int CERT_VIEWER_RESULT = 385;
+
+    public void do_certs() {
+        a.assert_ui_thread(); //--strip
+        log("launching certs..."); //--strip
+        Intent intent = new Intent(this, certs.class);
+        //intent.putExtra("tid", tid.value);
+        intent.putExtra("mode", 1);
+        startActivityForResult(intent, CERT_VIEWER_RESULT);
     }
 
     static final int PROTOCOLROLE_RESULT = 902;

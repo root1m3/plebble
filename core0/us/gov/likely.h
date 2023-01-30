@@ -31,7 +31,12 @@
 #  define unlikely(x)   (x)
 # endif
 #else
-# define likely(x)      (x)
-# define unlikely(x)    (x)
+# ifdef __clang__
+#  define likely(x)     __builtin_unpredictable((x), 1)
+#  define unlikely(x)   __builtin_unpredictable((x), 0)
+# else
+#  define likely(x)      (x)
+#  define unlikely(x)    (x)
+# endif
 #endif
 

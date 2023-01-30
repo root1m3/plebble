@@ -27,7 +27,7 @@
 #include <us/gov/engine/signed_data.h>
 
 #include <us/wallet/trader/workflow/workflow_t.h>
-#include <us/wallet/trader/workflow/doc0_t.h>
+#include <us/wallet/trader/cert/doc0_t.h>
 #include <us/wallet/trader/trader_t.h>
 #include <us/wallet/wallet/local_api.h>
 #include <us/wallet/trader/workflow/item_t.h>
@@ -43,7 +43,7 @@ namespace us::trader::workflow::organization {
 
         void init(us::wallet::trader::workflow::workflow_t* parent) { b::init(parent, doc_type::name, doc_type::long_name); }
 
-        using doc0_t = us::wallet::trader::workflow::doc0_t;
+        using doc0_t = us::wallet::trader::cert::doc0_t;
         using doc_type = t;
         doc0_t* create_doc() const override { return new doc_type(); }
         doc_type* get_doc() { return static_cast<doc_type*>(doc); }

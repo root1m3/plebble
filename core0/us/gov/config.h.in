@@ -23,6 +23,7 @@
 #pragma once
 #include <string>
 #include "ko.h"
+
 //---- LOGS component patching panel
 #define CFG_LOGS__GOV_CONCUR 1
 #define CFG_LOGS__GOV_CRYPTO 1
@@ -115,7 +116,6 @@
     #define CFG_PERMISSIONED_NETWORK
     #define CFG_TOPOLOGY_RING
 #endif
-
 
 #ifdef CFG_PUBLIC_NETWORK
 #ifdef CFG_PRIVATE_NETWORK

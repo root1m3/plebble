@@ -20,6 +20,11 @@
 //===-
 //===----------------------------------------------------------------------------
 //===-
+#ifdef __FreeBSD__
+#include <sys/types.h>
+#include <sys/socket.h>
+#endif
+
 #include "rpc_daemon_t.h"
 
 #define loglevel "gov/socket"

@@ -50,6 +50,8 @@ struct hmi_t: us::gov::cli::hmi {
 
 hmi_t* hmi{nullptr};
 
+bool killed{false};
+
 void sig_handler(int s) {
     {
         screen::lock_t lock(hmi->scr, true);
@@ -58,6 +60,7 @@ void sig_handler(int s) {
     }
     hmi->stop();
     hmi->setup_signals(false);
+    killed = true;
 }
 
 void hmi_t::setup_signals(bool on) {
@@ -67,8 +70,8 @@ void hmi_t::setup_signals(bool on) {
         signal(SIGTERM, sig_handler);
     }
     else {
-        signal(SIGINT,SIG_DFL);
-        signal(SIGTERM,SIG_DFL);
+        signal(SIGINT, SIG_DFL);
+        signal(SIGTERM, SIG_DFL);
     }
 }
 
@@ -91,6 +94,10 @@ int main(int argc, char** argv) {
     delete hmi;
     hmi = nullptr;
     hmi_t::process_cleanup();
+    if (killed) { //https://people.freebsd.org/~cracauer/homepage-mirror/sigint.html
+        kill(getpid(), SIGINT);
+        return 3;
+    }
     return r.empty() ? 0 : 1;
 }
 

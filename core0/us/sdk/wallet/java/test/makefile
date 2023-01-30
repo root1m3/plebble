@@ -20,17 +20,17 @@
 #===-
 #===----------------------------------------------------------------------------
 #===-
-us := us
-javac := $(JAVA_HOME)/bin/javac
-suffix := bc
-build := build_${suffix}
-javafiles := $(wildcard */*/*/*/*.java) $(wildcard */*/*/*.java) $(wildcard */*/*.java) $(wildcard */*.java) $(wildcard *.java)
-classfiles := $(patsubst %.java, ${build}/%.class, $(javafiles))
+us:=us
+javac:=$(JAVA_HOME)/bin/javac
+suffix:=bc
+build:=build_${suffix}
+javafiles:=$(wildcard */*/*/*/*.java) $(wildcard */*/*/*.java) $(wildcard */*/*.java) $(wildcard */*.java) $(wildcard *.java)
+classfiles:=$(patsubst %.java, ${build}/%.class, $(javafiles))
 
-flags := -g
-libspath := ..:../libs_bouncy/bcprov-jdk15on-164.jar:../libs_bouncy/bcpkix-jdk15on-164.jar:../libs_bouncy/bcpg-jdk15on-164.jar:../libs_bouncy/bctls-jdk15on-164.jar:../libs_bouncy/bcmail-jdk15on-164.jar
-depjar := ../${us}-sdk_${suffix}.jar
-jarfile := ${us}-sdk-test_${suffix}.jar
+flags:=-g
+libspath:=..:../libs_bouncy/bcprov-jdk15on-164.jar:../libs_bouncy/bcpkix-jdk15on-164.jar:../libs_bouncy/bcpg-jdk15on-164.jar:../libs_bouncy/bctls-jdk15on-164.jar:../libs_bouncy/bcmail-jdk15on-164.jar
+depjar:=../${us}-sdk_${suffix}.jar
+jarfile:=${us}-sdk-test_${suffix}.jar
 
 all: jar
 
@@ -54,8 +54,7 @@ ${build}/main_t.class: ${build}/us/gov/crypto/test/symmetric_encryption.class ${
 	${javac} -Xlint ${flags} -d ${build} -cp ${depjar}:${libspath}:${build} main_t.java
 
 clean:
-	rm build_* -rf
-	rm -f ${jarfile}
+	$(RM) -rf build_*
+	$(RM) -f ${jarfile}
 
 .PHONY: clean jar info
-

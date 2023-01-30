@@ -27,6 +27,8 @@
 #include <us/wallet/trader/bookmarks_t.h>
 #include <us/wallet/trader/bootstrap/protocols_t.h>
 #include <us/wallet/engine/bookmark_index_t.h>
+#include <us/wallet/trader/cert/cert_index_t.h>
+#include <us/wallet/trader/cert/cert_t.h>
 
 #include "types.h"
 #include "protocol.h"
@@ -46,8 +48,6 @@ namespace us::wallet::engine {
 
     struct peer_t;
     struct track_status_t;
-    //struct guest_index_hdr_t;
-    //struct guest_index_t;
     struct bookmark_index_t;
 
     using blob_writer_t = gov::io::blob_writer_t;
@@ -63,6 +63,8 @@ namespace us::wallet::engine {
         using protocol_selection_t = us::wallet::trader::protocol_selection_t;
         using protocols_t = us::wallet::trader::bootstrap::protocols_t;
         using bookmark_index_t = us::wallet::engine::bookmark_index_t;
+        using cert_t = us::wallet::trader::cert::cert_t;
+        using cert_index_t = us::wallet::trader::cert::cert_index_t;
 
         #include <us/api/generated/wallet/c++/engine/cllr_dto-hdr>
         #include <us/api/generated/wallet/c++/engine/hdlr_dto-hdr>

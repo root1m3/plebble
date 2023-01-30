@@ -29,7 +29,6 @@
 #include <us/gov/config.h>
 #include <us/gov/likely.h>
 
-#include "double_sha256.h"
 #include "ripemd160.h"
 #include "sha256.h"
 

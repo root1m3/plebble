@@ -86,7 +86,7 @@ public class sel_catalogue extends activity {
         _basket_view = (basket_view) inflater.inflate(R.layout.basket, null);
         content.addView(_basket_view);
 
-        us.wallet.trader.workflow.doc0_t doc = item.doc;
+        us.wallet.trader.cert.doc0_t doc = item.doc;
         if (doc == null) {
             log("KO 57643"); //--strip
             finish();

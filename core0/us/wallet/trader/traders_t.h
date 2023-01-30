@@ -35,10 +35,12 @@
 
 #include "trader_t.h"
 #include "bookmarks_t.h"
-#include "business.h"
+//#include "business.h"
 #include "protocol_selection_t.h"
 #include "bootstrap/protocols_t.h"
 #include "personality/personality_t.h"
+#include "cert/cert_t.h"
+#include "cert/cert_index_t.h"
 
 namespace us::wallet::wallet {
     struct local_api;
@@ -52,6 +54,7 @@ namespace us::wallet::trader {
 
     struct business_t;
     struct trades_t;
+    struct trader_t;
 
     struct traders_t final: unordered_map<hash_t, trader_t*>, us::gov::io::seriable {
         using hash_t = gov::crypto::ripemd160::value_type;
@@ -121,6 +124,38 @@ namespace us::wallet::trader {
         //pair<string, string> load_personality(const string& file) const;
         void reload_file(const string& fqn);
 
+    public:
+        struct cert_authority_t {
+            using cert_t = us::wallet::trader::cert::cert_t;
+            using cert_index_t = us::wallet::trader::cert::cert_index_t;
+
+            static const char* KO_77965;
+
+        public:
+            cert_authority_t();
+            ko init(const string& home);
+
+        public:
+            ko reset_personality(const string& sk, const string& moniker);
+        
+        public:
+            ko cert_create(string&& msg, cert_t::options&&, hash_t& nft);
+            ko cert_import(cert_t&&, hash_t& nft);
+            ko cert_list(uint8_t&& id, cert_index_t&);
+            ko cert_get(const hash_t& nft, cert_t&);
+            ko cert_show(const hash_t& nft, string&);
+
+            bool use_in_new_trades{false};
+
+        private:
+            ko store_(const cert_t&);
+            string home;
+            mutex mx;
+
+        public:
+            personality_t personality;
+        };
+
     public: /// user < -- > traders. Trusted communication. Trusted peer. Secure. Encrypted communication
         /// Functions invoked by authorized users via API.
         ko exec(const hash_t& tid, const string& cmd); /// API command_trade
@@ -146,7 +181,7 @@ namespace us::wallet::trader {
         //using funs_t = trader_t::funs_t;
         //funs_t lf; /// local functions
 
-        personality_t personality;
+        cert_authority_t ca;
 
         #if CFG_LOGS == 1
             string logdir;

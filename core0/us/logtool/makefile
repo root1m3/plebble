@@ -25,7 +25,7 @@ CXXFLAGS=-O3 -std=c++20 -Wno-psabi
 all: logtool
 
 logtool: main.cpp
-	$(CXX) ${CXXFLAGS} main.cpp -lstdc++fs -o logtool
+	$(CXX) ${CXXFLAGS} main.cpp -o logtool
 
 clean:
 	$(RM) -f logtool

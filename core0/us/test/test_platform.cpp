@@ -22,7 +22,7 @@
 //===-
 #include "test_platform.h"
 #if defined(__GLIBC__)
- #include <execinfo.h>
+    #include <execinfo.h>
 #endif
 
 #include <cxxabi.h>
@@ -47,13 +47,15 @@ c::test_platform(ostream& os): os(os) {
 c::~test_platform() {
 }
 
+#if defined(__GLIBC__)
+
 void c::print_stacktrace(ostream&out, unsigned int max_frames) {
     out << "stack trace" << endl;
     void* addrlist[max_frames+1];
     int addrlen = backtrace(addrlist, sizeof(addrlist) / sizeof(void*));
     if (addrlen == 0) {
-    out << "  <empty, possibly corrupt>" << endl;
-    return;
+        out << "  <empty, possibly corrupt>" << endl;
+        return;
     }
     char** symbollist = backtrace_symbols(addrlist, addrlen);
     size_t funcnamesize = 256;
@@ -91,6 +93,10 @@ void c::print_stacktrace(ostream&out, unsigned int max_frames) {
     free(funcname);
     free(symbollist);
 }
+#else
+void c::print_stacktrace(ostream&out, unsigned int max_frames) {
+}
+#endif
 
 void c::abort() {
     print_stacktrace(os);

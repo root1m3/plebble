@@ -25,6 +25,7 @@
 #include <fstream>
 #include <sstream>
 #include <map>
+#include <vector>
 #include <iomanip>
 #include <chrono>
 
@@ -61,9 +62,9 @@ void trim(tt t0, tt t1, string srcfile) {
     }
 }
 
-#include <experimental/filesystem>
+#include <filesystem>
 
-namespace fs = std::experimental::filesystem;
+namespace fs = std::filesystem;
 
 void files(vector<string>& r, const string& home) {
     for(auto& p: fs::directory_iterator(home)) {

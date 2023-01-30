@@ -29,9 +29,8 @@ DEBUGFLAGS:=-g -O0 ${STDFLAGS} -DDEBUG
 RELEASEFLAGS:=-O3 ${STDFLAGS} -DNDEBUG
 CXXFLAGS:=${DEBUGFLAGS}
 
-INC:=-I../..
+INC:=-I../.. -I/usr/local/include
 LIB+=-L../gov -l${USGOV} -pthread
-LIB+=-lstdc++fs
 
 ifneq (,$(findstring -g,${CXXFLAGS}))
     RPATH:=-Wl,-rpath,../wallet

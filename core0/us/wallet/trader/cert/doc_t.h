@@ -24,15 +24,23 @@
 
 #include <us/gov/crypto/types.h>
 
-#include <us/wallet/trader/traders_t.h>
-#include <us/wallet/wallet/local_api.h>
+//#include <us/wallet/trader/traders_t.h>
+//#include <us/wallet/wallet/local_api.h>
 
 #include "doc0_t.h"
 
-namespace us::wallet::trader::workflow {
+namespace us::wallet::wallet {
+    struct local_api;
+}
+
+namespace us::wallet::trader::cert {
 
     ///b one of {workflow_signed_expiry_doc_t, workflow_signed_doc_t, workflow_expiry_doc_t, workflow_doc0_t }
     ///traits. Must publish t:: values
+
+    ko wallet_push_OK__(wallet::local_api&, const string&);
+    
+
     template<typename b, typename t>
     struct doc_t: b, t {
         using traits = t;
@@ -115,7 +123,7 @@ namespace us::wallet::trader::workflow {
                     os << "file saved as " << o.output_file << '\n';
                 }
                 delete doc;
-                return w.push_OK(hash_t(0), os.str());
+                return wallet_push_OK__(w, os.str());
             }
             if (cmd == "read") {
                 string filename;
@@ -133,10 +141,11 @@ namespace us::wallet::trader::workflow {
                 ostringstream os;
                 doc->write_pretty(os);
                 delete doc;
-                return w.push_OK(hash_t(0), os.str());
+                return wallet_push_OK__(w, os.str());
             }
             return "KO 66952 Invalid command";
         }
+
     };
 
 }

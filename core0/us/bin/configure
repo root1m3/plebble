@@ -35,6 +35,22 @@ $str4
 EOF
 }
 
+function dump_conf {
+    cat << EOF
+    OS $str100 ($(osStr))
+    strset $strset
+    channel $channel
+    with-logs $logs
+    debug $dbg
+    counters $counters
+    connlog $connlog
+    fcgi $fcgi
+    instrumentation $instr
+    tests $test
+    android_google_appstore $appstore
+EOF
+}
+
 strset="en-uk"
 if [[ ! -f res/strings/$strset ]]; then
     echo "unknown set $strset"
@@ -228,6 +244,7 @@ sedi "s/^str42=.*//" res/strings/${strset}.ovr
 sedi "s/^str45=.*//" res/strings/${strset}.ovr
 sedi "s/^str62=.*//" res/strings/${strset}.ovr
 sedi "s/^str83=.*//" res/strings/${strset}.ovr
+sedi "s/^str100=.*//" res/strings/${strset}.ovr
 
 echo "str29=$str29 #dbg" >> res/strings/${strset}.ovr
 echo "str33=$str33 #logs" >> res/strings/${strset}.ovr
@@ -236,6 +253,7 @@ echo "str42=$str42 #connlog" >> res/strings/${strset}.ovr
 echo "str45=$str45 #fcgi" >> res/strings/${strset}.ovr
 echo "str62=$str62 #test" >> res/strings/${strset}.ovr
 echo "str83=$str83 #appstore" >> res/strings/${strset}.ovr
+echo "str100=$str100 #OS 0-linux 1-freeBSD" >> res/strings/${strset}.ovr
 
 cat res/strings/${strset}.ovr | grep -v "^$" > res/strings/${strset}.ovr_
 mv res/strings/${strset}.ovr_ res/strings/${strset}.ovr
@@ -252,7 +270,7 @@ checkbin
 
 let warngit=0
 function gen_api {
-    echo "generating RPC-API code snippets "
+    echo "generating RPC-API stubs with ${jobs} jobs."
     pushd api > /dev/null
         ${make} clean
         ${make} -j${jobs}
@@ -407,8 +425,7 @@ function progress {
 function patch {
     ifile="${1}.in"
     ofile=$1
-#echo "patch $ifile $ofile"
-
+    #echo "patch $ifile $ofile"
     if [[ "_$2" != "_" ]]; then
         #echo "$1 -> $2"
         ofile=$2
@@ -436,16 +453,35 @@ function reroot {
     progress
 }
 
+function embed_shenv {
+  file=$1
+  cat $file | grep "##embed-shenv##" -B10000000 > ${file}_0
+  echo "# ----------------------lib/shenv---------------"  >> ${file}_0
+  cat lib/shenv | grep -v "^#\!/bin/bash" >> ${file}_0
+  echo "# -/--------------------lib/shenv---------------"  >> ${file}_0
+  cat $file | grep "##embed-shenv##" -A10000000 >> ${file}_0
+  mv ${file}_0 ${file}
+}
+
+let str100=0 #0-debian; 1-freeBSD
+if [[ $freebsd -eq 1 ]]; then
+    let str100=1
+fi
+
+function osStr {
+    if [[ $str100 -eq 0 ]]; then
+        echo "Linux"
+        return
+    fi
+    if [[ $str100 -eq 1 ]]; then
+        echo "freeBSD"
+        return
+    fi
+    echo "unknown"
+}
+
 banner
-echo "CONF:"
-echo " channel: $channel"
-echo " with-logs $logs"
-echo " debug $dbg"
-echo " counters $counters"
-echo " connlog $connlog"
-echo " fcgi $fcgi"
-echo " tests $test"
-echo " android: google appstore $appstore"
+#dump_conf
 
 progress_reset
 javapkgdir=`echo $str28 | sed "s#\.#/#g"`
@@ -462,6 +498,8 @@ patch etc/999999999_rclocal etc/999999999_${str3}_rclocal
 patch doc/HOWTOFAQ
 patch doc/user_manual
 patch bin/install_blob
+embed_shenv bin/install_blob
+chmod +x bin/install_blob
 patch bin/apply_blob
 patch bin/ush
 patch bin/upload_blob bin/${str3}-upload_blob
@@ -515,6 +553,7 @@ patch walletj/make.sh
 patch etc/bind/zones/db.bind_domain
 patch etc/bind/named.conf.local
 patch etc/home_skel/rest/timeseries/index.php
+
 #---------------------------------------------------------------
 
 echo ""
@@ -593,34 +632,28 @@ function pdots {
    echo "$l2 $2"
 }
 
-echo ""
-echo "SUMMARY"
-banner
+#echo ""
+#echo "SUMMARY"
 . vcs_git_env
-echo "version $core0_version_name $core0_build_date"
-echo "channel $str6"
+
 cat << EOF
+$(banner)
+
+version $core0_version_name $core0_build_date
 
 $brand successfully configured with flags: (see bin/configure --help)
-  strset $strset
-  with-logs $logs
-  debug $dbg
-  counters $counters
-  connlog $connlog
-  fcgi $fcgi
-  instrumentation $instr
-  tests $test
-  android: google appstore $appstore
+$(dump_conf)
+
 Sources are ready.
 
 Build:
 EOF
 
-pdots "  C++:  core programs ($str3-gov, $str3-wallet):" "make"
-pdots "  java: ${androidname} (SDK+android app):" "make android"
-pdots "        SDK for console apps:" "cd sdk/wallet/java; make bouncy"
-pdots "        SDK for android apps:" "cd sdk/wallet/java; make spongy"
-#pdots "        wallet java console client ($str3-walletj):" "cd walletj; make"
+pdots "  C++:  core programs ($str3-gov, $str3-wallet):" "${make}"
+pdots "  java: ${androidname} (SDK+android app):" "${make} android"
+pdots "        SDK for console apps:" "cd sdk/wallet/java; ${make} bouncy"
+pdots "        SDK for android apps:" "cd sdk/wallet/java; ${make} spongy"
+#pdots "        wallet java console client ($str3-walletj):" "cd walletj; ${make}"
 echo ""
 
 if [[ $warngit -eq 1 ]]; then

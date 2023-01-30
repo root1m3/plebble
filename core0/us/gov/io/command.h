@@ -1,6 +1,5 @@
 // Copied from https://github.com/RaymiiOrg/cpp-command-output.git  9a9edca13f15182b0c405902747f86c4a19638ec
-#ifndef COMMAND_H
-#define COMMAND_H
+#pragma once
 // Copyright (C) 2021 Remy van Elst
 //
 //     This program is free software: you can redistribute it and/or modify
@@ -20,22 +19,28 @@
 #include <string>
 #include <cstdio>
 
+#ifdef __FreeBSD__
+#include <sys/wait.h>
+#endif
+
 namespace raymii {
 
     struct CommandResult {
-        std::string output;
-        int exitstatus;
-        friend std::ostream &operator<<(std::ostream &os, const CommandResult &result) {
+        friend std::ostream& operator << (std::ostream& os, const CommandResult& result) {
             os << "command exitstatus: " << result.exitstatus << " output: " << result.output;
             return os;
         }
-        bool operator==(const CommandResult &rhs) const {
-            return output == rhs.output &&
-                   exitstatus == rhs.exitstatus;
+
+        bool operator == (const CommandResult& rhs) const {
+            return output == rhs.output && exitstatus == rhs.exitstatus;
         }
-        bool operator!=(const CommandResult &rhs) const {
+
+        bool operator != (const CommandResult& rhs) const {
             return !(rhs == *this);
         }
+
+        std::string output;
+        int exitstatus;
     };
 
     class Command {
@@ -107,6 +112,5 @@ namespace raymii {
         }
     };
 
-}// namespace raymii
-#endif//COMMAND_H
+}
 

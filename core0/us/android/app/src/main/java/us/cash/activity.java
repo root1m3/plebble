@@ -112,8 +112,6 @@ public class activity extends AppCompatActivity implements NavigationView.OnNavi
         navigation = findViewById(R.id.navigation_view);
         toolbar_button refresh = findViewById(R.id.refresh);
         refresh.setVisibility(View.GONE);
-        //toolbar.setTitle("");
-        log("toolbar visible");//--strip
         toolbar.setVisibility(View.VISIBLE);
         setSupportActionBar(toolbar);
         //tests to recognize new IPs
@@ -123,12 +121,7 @@ public class activity extends AppCompatActivity implements NavigationView.OnNavi
         //}
         //scanWifiNetworks();
         //set_menu(menuid());
-/*
-        navigation.getMenu().clear();
-        if (res_menu > 0) {
-            navigation.inflateMenu(res_menu);
-        }
-*/  
+ 
         navigation.setNavigationItemSelectedListener(this);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(this, drawer_layout, toolbar, R.string.bookmarks, R.string.bookmarks);
         drawer_layout.addDrawerListener(toggle);
@@ -226,10 +219,15 @@ public class activity extends AppCompatActivity implements NavigationView.OnNavi
         }
     }
 
+    public String acid() {
+        return "activity";
+    }
+
     public void refresh() {
         log("refresh"); //--strip
         a.assert_ui_thread(); //--strip
         set_menu(menuid());
+        log("end refresh " + acid()); //--strip
     }
 
     public void refresh__worker() {
@@ -270,6 +268,13 @@ public class activity extends AppCompatActivity implements NavigationView.OnNavi
         log("menu world"); //--strip
         Intent intent = new Intent(this, nodes.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NO_HISTORY);
+        startActivity(intent);
+    }
+
+    public void go_certs() {
+        log("menu certs"); //--strip
+        Intent intent = new Intent(this, certs.class);
+        //intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NO_HISTORY);
         startActivity(intent);
     }
 
@@ -335,27 +340,6 @@ public class activity extends AppCompatActivity implements NavigationView.OnNavi
 
         if (!a.has_hmi()) {
             switch (item_id) {
-/*
-                case R.id.starthmi:
-                    app.progress_t progress = new app.progress_t() {
-                        @Override public void on_progress(final String report) {
-                            runOnUiThread(new Runnable() {
-                                @Override public void run() {
-                                    log("Toast hmi startup progress:" + report); //--strip
-                                    Toast.makeText(main_activity.this, "XX33: " + report, 6000).show();
-                                }
-                            });
-                        }
-                    };
-                    a.HMI_power_on(new pin_t(0), progress);
-                    break;
-*/
-/*
-                case R.id.nav_newconnection:
-                    new_connection();
-                    break;
-*/
-
                 case R.id.nav_language:
                     log("nav_language"); //--strip
                     launch_language();
@@ -382,6 +366,10 @@ public class activity extends AppCompatActivity implements NavigationView.OnNavi
 
                 case R.id.nav_world:
                     world();
+                    break;
+
+                case R.id.nav_certs:
+                    go_certs();
                     break;
 
                 case R.id.nav_scanendpoint:
@@ -465,75 +453,6 @@ public class activity extends AppCompatActivity implements NavigationView.OnNavi
         });
     }
 
-/*
-    public static void wait_main_() {
-        log("waiting for main activity"); //--strip
-        lock.lock();
-        try {
-            while (main == null) {
-                cv.await();
-            }
-        }
-        catch (Exception e) {
-            log("KO 40398"); //--strip
-        }
-        finally {
-            lock.unlock();
-        }
-        log("end waiting for main activity"); //--strip
-    }
-*/
-/*
-    public void main_ready(main_activity m) {
-        log("received signal from main activity"); //--strip
-        lock.lock();
-        try {
-            assert main == null;
-            main = m;
-            cv.signalAll();
-        }
-        finally {
-            lock.unlock();
-        }
-        log("main activity is ready"); //--strip
-    }
-*/
-
-/*
-    public void power_on(final pin_t pin) {
-        a.assert_ui_thread();  //--strip
-        log("power_on"); //--strip
-        app.progress_t progress = new app.progress_t() {
-            @Override public void on_progress(final String report) {
-                runOnUiThread(new Runnable() {
-                    @Override public void run() {
-                        log("Toast hmi startup progress:" + report); //--strip
-                        Toast.makeText(activity.this, report, 6000).show();
-                    }
-                });
-            }
-        };
-        a.HMI_power_on(pin, progress);
-    }
-
-    public void power_off() {
-        a.assert_ui_thread();  //--strip
-        log("power_off"); //--strip
-        app.progress_t progress = new app.progress_t() {
-            @Override public void on_progress(final String report) {
-                runOnUiThread(new Runnable() {
-                    @Override public void run() {
-                        log("Toast hmi startup progress:" + report); //--strip
-                        Toast.makeText(activity.a.main, report, 6000).show();
-                    }
-                });
-            }
-        };
-        a.HMI_power_off(progress);
-        if (this != activity.a.main) finish();
-    }
-*/
-
     View.OnClickListener get_on_click_listener() {
         activity ac = this;
         return new View.OnClickListener() {
@@ -593,18 +512,33 @@ public class activity extends AppCompatActivity implements NavigationView.OnNavi
         }
     }
 
-    public void report_ko(final ko r) {
-        log("report_ko " + r.msg); //--strip
-        Toast.makeText(this, a.has_hmi() ? a.hmi().rewrite(r) : r.msg, Toast.LENGTH_LONG).show();
+    public void report_ko(final String msg) {
+        log("report_ko " + msg); //--strip
+        app.assert_ui_thread(); //--strip
+        Toast.makeText(this, msg, Toast.LENGTH_LONG).show();
     }
 
-    public void report_ko__worker(final ko r) {
+    public void report_ko__worker(final String msg) {
+        app.assert_worker_thread(); //--strip
         runOnUiThread(new Runnable() {
             @Override public void run() {
-                report_ko(r);
+                report_ko(msg);
             }
         });
     }
+
+    public void report_ko(final ko r) {
+        app.assert_ui_thread(); //--strip
+        final String msg = a.has_hmi() ? a.hmi().rewrite(r) : r.msg;
+        report_ko(msg);
+    }
+
+    public void report_ko__worker(final ko r) {
+        app.assert_worker_thread(); //--strip
+        final String msg = a.has_hmi() ? a.hmi().rewrite(r) : r.msg;
+        report_ko__worker(msg);
+    }
+
 
     void resume_leds() {
         app.assert_ui_thread(); //--strip
@@ -685,9 +619,6 @@ public class activity extends AppCompatActivity implements NavigationView.OnNavi
             go_qr.from_string(data.getStringExtra("go_qr"));
             a.new_trade(new hash_t(0), "", go_qr);
             toast("A new trade has been added to active_trades.");  //--strip
-//          Menu nav_menu = navigation.getMenu();
-//          MenuItem menu_item = nav_menu.findItem(R.id.nav_activetrades);
-//          onNavigationItemSelected(menu_item);
         }
     }
 
@@ -730,8 +661,7 @@ public class activity extends AppCompatActivity implements NavigationView.OnNavi
     public static boolean leds_visible = true;
     public static boolean leds_visible_gov = false;
     public static boolean leds_visible_wallet = true;
-    //static Lock lock = new ReentrantLock();
-    //static Condition cv = lock.newCondition();
+
     leds_t walletd_leds = null;
     leds_t govd_leds = null;
     Toolbar toolbar;

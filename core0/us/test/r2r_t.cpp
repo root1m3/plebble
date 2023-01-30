@@ -20,12 +20,15 @@
 //===-
 //===----------------------------------------------------------------------------
 //===-
-#include "r2r_t.h"
-#include "node.h"
-#include "dispatcher_t.h"
+#include <iostream>
+
 #include <us/gov/stacktrace.h>
 #include <us/wallet/engine/daemon_t.h>
-#include <iostream>
+#include <us/wallet/wallet/local_api.h>
+
+#include "node.h"
+#include "dispatcher_t.h"
+#include "r2r_t.h"
 
 #define loglevel "test"
 #define logclass "r2r_t"
@@ -406,6 +409,7 @@ void c::test_trade_start_dialog_a(node& bid, node& ask, hash_t& trade_id, int n1
                 }
             }
             if (seq == 1) {
+                cout << "Expecting: '" << peer_prots << "'\n";
                 Check_s_contains(payload, peer_prots);
                 Check_s_contains(payload, "protocol not set");
                 seq = -1;

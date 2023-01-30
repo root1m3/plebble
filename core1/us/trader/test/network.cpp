@@ -20,7 +20,6 @@
 //===-
 //===----------------------------------------------------------------------------
 //===-
-#include "network.h"
 #include <stdio.h>
 #include <unistd.h>
 #include <stdlib.h>
@@ -37,6 +36,7 @@
 #include "node_ask.h"
 #include "node_bid.h"
 #include "main.h"
+#include "network.h"
 
 #define loglevel "trader/test"
 #define logclass "network"

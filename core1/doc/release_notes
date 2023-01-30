@@ -127,6 +127,14 @@ Shortlisted features/fixes:
 
     * About custodial wallets. Procedure for upgrading to privacy wallet. Button Run your privacy wallet
 
+    *Bitcoin. Install bitcoin-core node.
+    *Bitcoin. gov/engine. Open TCP port, capture and transform BTC-TX into evidences.
+    *Bitcoin. gov/engine. Sync Bitcoin blockchain into plebble (tx, order). 
+
+    *cli/android: Users are be able to create certificates from a text.
+
+    *doc explain how QR's work
+    
 In progress/testing:
     * Continuous build System. Produces final assets or error report for every git commit.
 
@@ -183,10 +191,18 @@ Production releases. alpha
 alpha-55 -
     * aarch64c new architecture integrated in the network deployment pipeline.
     * FreeBSD, cheriBSD adaptation. First Node based on the new ARM processor:
-          UK Research & Innovation
-          DSbD DigitalSecurebyDesign 
-          Digital Catapult - Tech Prototype: ARM Morello board. SoC IntegratING CHERI spec (Cambridge University)
-          Campartimentalization: Fat Pointers encoding capabilities can be leveraged by this new arch: aarch64c
+          UK Research & Innovation - DSbD DigitalSecurebyDesign Programme
+          Digital Catapult - ARM. Tech Prototype: ARM Morello board. SoC IntegratING CHERI spec (Cambridge University)
+          Campartmentalization: Fat Pointers, or pointers-with-metadata encoding capabilities, can be efficiently enforced by hardware aarch64c
+    
+    * Anonymizer mezzanine Antier sit just under send_queue (gov/socket). Deliver to DarkNet(via Tor), or to clear Internet(Anonymity is slightly compromised in the sense that your IPv4 can be associated with your node activity, but is limited to the extend that said activity, either good or bad, can be produced by any node in the network not neccesarily yours, since nodes work relaying information blindly, without care about message content, which goes encrypted if it happens to be a secret en-route.
+    * Enabled 'likely/unlikely' macros for compiler built-ins, for both GNU and LLVM clang compilers. Thanks for it!, openai chat-gpt!.
+    * Add "Create Certificate/NFT" Function.
+    * Android: During a trade, certificates can be sent using the trader cockpit.
+    * certificate authority. Start of Authority/linked certificates.
+    * cert management, import cert.
+    * android. fixed bug connections. meta info wasn't being shown.
+    * renamed the root crypto as OIL, (BLOOD also considered) meaning the lubricant function it has the system (hence representing the value of keeping the 'plebble machine' operative)
 
 alpha-54 - plebble-alpha-54_8-40a865 2022-12-16_20-13-53 vhash 8-40a865 <- R 9ca859d4839190e8bf52a44378d21d2ac3fbe2e7 alpha-54 dbg-0 logs-0 counters-0 connlog-0 fcgi-0
     * sysops can do sudo commands using 'gov cmd sudo'

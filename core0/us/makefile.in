@@ -234,8 +234,8 @@ android-install: android
 	bin/sign_apk --install
 
 clean_crypto:
-	rm -f gov/crypto/*.o
-	rm -f gov/libusgov.so
+	$(RM) -f gov/crypto/*.o
+	$(RM) -f gov/libusgov.so
 
 clean_gov:
 	$(MAKE) -C gov clean;
@@ -270,5 +270,5 @@ clean_conf: clean clean_java
 	$(RM) res/strings/*.ovr
 	$(RM) vcs_git_*
 
-.PHONY: all wallet gov debug release sdk image res clean distr-common warndistr android sdk-spongy clean_gov clean_wallet clean_bz clean_crypto clean_java clean_test clean_api clean_conf clean_sdk
+.PHONY: all gov wallet debug release sdk image res clean distr-common warndistr android sdk-spongy clean_gov clean_wallet clean_bz clean_crypto clean_java clean_test clean_api clean_conf clean_sdk
 

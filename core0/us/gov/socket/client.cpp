@@ -287,7 +287,7 @@ hostport_t c::raddress() const {
     if (unlikely(a != 0)) return make_pair(0, 0);
     if (likely(addr.ss_family == AF_INET)) {
         struct sockaddr_in *s = (struct sockaddr_in*) &addr;
-        auto o = ::ntohs(s->sin_port);
+        auto o = ntohs(s->sin_port);
         return make_pair(s->sin_addr.s_addr, o);
     }
     return make_pair(0, 0);

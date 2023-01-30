@@ -59,6 +59,7 @@
 #include "track_status_t.h"
 #include "auth/app.h"
 #include "svcfish_t.h"
+#include "dbsync.h"
 
 namespace us::gov::io {
     struct cfg;
@@ -268,6 +269,9 @@ namespace us::gov::engine {
         #if CFG_LOGS == 1
             string logdir;
         #endif
+
+        dbsync dbs;
+
     };
 
 }

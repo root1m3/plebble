@@ -41,7 +41,7 @@ using namespace std;
 using hash_t = us::gov::crypto::ripemd160::value_type;
 
 //desktop
-string c::localip("192.168.0.38"); //dont use 127.0.0.1 , unreachable from mobile when using advertised IPs (IP lookup)
+string c::localip("192.168.0.96"); //dont use 127.0.0.1 , unreachable from mobile when using advertised IPs (IP lookup)
 
 //laptop
 //string c::localip("192.168.0.106"); //dont use 127.0.0.1 , unreachable from mobile when using advertised IPs (IP lookup)
@@ -60,6 +60,10 @@ c::node(const string& id, const string& root_homedir, const string& root_logdir,
     logdir = l.str();
     vardir = v.str();
     tee("constructor node", id, "home:", homedir, "log:", logdir, "var:", vardir);
+}
+
+bool c::load_data(const string& r2rhome) {
+    return true;
 }
 
 string c::ep() const {
@@ -166,19 +170,22 @@ void c::create_walletd() {
     wallet = new walletx_t(p, cout);
 }
 
+
 vector<string> c::r2r_libs(bool filter_not_active) {
     vector<string> r;
     return r;
 }
 
+
 void c::install_r2r_libs() {
     tee("install_r2r_libs");
+/*
     vector<string> libs = r2r_libs(false);
     ostringstream so;
     for (auto& l: libs) {
         if (l == "w2w-w") continue;
         ostringstream file;
-        file << "../libustrader-" << l << ".so";
+        file << "../libtrader-" << l << ".so";
         ostringstream dir;
         dir << homedir << "/" << 123 << "/wallet/trader/lib";
         system((string("mkdir -p ") + dir.str()).c_str());
@@ -187,6 +194,7 @@ void c::install_r2r_libs() {
         cmd << "cp " << file.str() << " " << dir.str() << "/";
         system(cmd.str().c_str());
     }
+*/
 }
 
 void c::gov_cli_start() {
@@ -372,6 +380,13 @@ void c::wait(uint64_t secs) const {
 void c::sleep_for(uint64_t secs) const {
     //this_thread::sleep_for(chrono::seconds(secs));
     wait(secs);
+}
+
+void c::update_plugins() {
+    ostringstream os;
+    os << homedir << "/123/wallet/trader/lib/";
+    us::gov::io::cfg0::ensure_dir(os.str());
+    update_plugins(os.str());
 }
 
 hash_t c::create_coin(int64_t supply) {

@@ -404,3 +404,38 @@ bookmark_index_t bookmark_index
 -
 -
 
+cert_create
+s msg
+sync
+h nft
+-
+-
+
+cert_import
+cert_t cert
+sync
+h nft
+-
+-
+
+cert_list
+u1 id
+sync
+cert_index_t certs
+-
+-
+
+cert_get
+h nft
+sync
+cert_t cert
+-
+-
+
+cert_show
+h nft
+sync
+s cert
+-
+-
+

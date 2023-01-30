@@ -33,7 +33,8 @@ namespace us::test {
 
         node_ask(const string& id, const string& homedir, const string& logdir, const string& vardir, uint16_t gport, uint16_t wport);
         string desc() const override;
-        virtual bool load_data(const string& r2rhome);
+        void update_plugins(const string& destdir) override;
+        bool load_data(const string& r2rhome) override;
         vector<string> r2r_libs(bool filter_not_active) override;
         virtual void vol_file(ostream& os);
         void create_shop(const string& r2rhome);

@@ -64,17 +64,19 @@ namespace {
             tee("stopping instance", i);
             i->abort_tests0();
         }
-        signal(SIGINT, SIG_DFL);
-        signal(SIGTERM, SIG_DFL);
-        signal(SIGPIPE, SIG_DFL);
+        //signal(SIGINT, SIG_DFL);
+        //signal(SIGTERM, SIG_DFL);
+        //signal(SIGPIPE, SIG_DFL);
+
     }
 
     void setup_signals(c* inst, bool on) { //on: catches the lock; off:assumes lock is taken (at abort_tests0)
-        log("setup signals", inst, "network #", instances.size());
-        cout << "setup signals " << inst << " network #" << instances.size() << '\n';
+        log("setup signals", inst, "network sz=", instances.size());
         if (on) {
+            cout << "setup signals " << inst << " network sz=" << instances.size() << '\n';
             lock_guard<mutex> lock(mx);
             if (instances.empty()) {
+                cout << "Capturing system signals.\n";
                 signal(SIGINT, sig_handler);
                 signal(SIGTERM, sig_handler);
                 signal(SIGPIPE, SIG_IGN);
@@ -82,6 +84,7 @@ namespace {
             instances.emplace(inst);
         }
         else {
+            cout << "setup default signals " << inst << " (network sz=" << instances.size() << '\n';
             auto i = instances.find(inst);
             assert(i != instances.end());
             instances.erase(i);
@@ -89,6 +92,7 @@ namespace {
                 signal(SIGINT, SIG_DFL);
                 signal(SIGTERM, SIG_DFL);
                 signal(SIGPIPE, SIG_DFL);
+                cout << "Not capturing system signals.\n";
             }
         }
     }
@@ -111,35 +115,42 @@ void c::add_node(const string& name, node* n) {
     assert(emplace(name, n).second);
 }
 
+void c::build_stage1dir() {
+    tee("build_stage1dir", stage1dir);
+    setup_signals(this, true);
+    update_plugins();
+//assert(false);
+
+    cout << "start_govs" << endl;
+    start_govs(true);
+    cout << "start_wallets" << endl;
+    start_wallets();
+    stage1_create();
+    stop();
+    join();
+    {
+        ostringstream os;
+        os << "mkdir " << stage1dir;
+        system(os.str().c_str());
+    }
+    //backup home dir from at point. it will resume from here on next executions.
+    {
+        ostringstream os;
+        os << "mv " << homedir << "/" << "* " << stage1dir << "/"; // -R";
+        system(os.str().c_str());
+    }
+    {
+        ostringstream os;
+        os << "find " << stage1dir << "/ -name \"*.so\" -delete";
+        system(os.str().c_str());
+    }
+
+}
+
 void c::start() {
     tee("start");
     if (!us::gov::io::cfg0::dir_exists(stage1dir)) {
-        tee("building", stage1dir);
-        setup_signals(this, true);
-        cout << "start_govs" << endl;
-        start_govs(true);
-        cout << "start_wallets" << endl;
-        start_wallets();
-        stage1_create();
-        stop();
-        join();
-        {
-            ostringstream os;
-            os << "mkdir " << stage1dir;
-            system(os.str().c_str());
-        }
-        //backup home dir from at point. it will resume from here on next executions.
-        {
-            ostringstream os;
-            os << "mv " << homedir << "/" << "* " << stage1dir << "/"; // -R";
-            system(os.str().c_str());
-        }
-        {
-            ostringstream os;
-            os << "find " << stage1dir << "/ -name \"*.so\" -delete";
-            system(os.str().c_str());
-        }
-
+        build_stage1dir();
     }
     tee("Resuming state from", stage1dir);
     stage1_ff();
@@ -158,6 +169,7 @@ void c::stop() {
 
 void c::abort_tests0() {
     cerr << "network::abort tests" << endl;
+    killed = true;
     if (r2r_tests != nullptr) {
         r2r_tests->abort_tests();
         return;
@@ -475,6 +487,15 @@ void c::sleep_for(uint64_t secs) const {
     r2r_tests->wait(secs);
 }
 
+void c::update_plugins() {
+    tee("update_plugins");
+    for (auto& i: *this) {
+        i.second->update_plugins();
+        cout << "plugin dir has been populated" << endl;
+    }
+    cout << "all plugin dirs have been populated" << endl;
+}
+
 void c::start_govs(bool make_stage) {
     cout << "starting govs" << endl;
     genesis_node->start_gov(make_stage);
@@ -541,6 +562,7 @@ void c::stage1_ff() {
         cout << "xec: " << os.str() << endl;
         system(os.str().c_str());
     }
+    update_plugins();
     stage1_ff_configure();
 }
 
@@ -805,7 +827,7 @@ void c::test() {
 }
 
 void c::menu() {
-    setup_signals(this, false);
+    //setup_signals(this, false);
     while(true) {
         out << "RPC Devices Menu" << endl;
         out << "====" << endl;
@@ -833,7 +855,7 @@ void c::menu() {
             break;
         }
     }
-    setup_signals(this, true);
+    //setup_signals(this, true);
 }
 
 c::bookmarks_t c::bookmarks() const {

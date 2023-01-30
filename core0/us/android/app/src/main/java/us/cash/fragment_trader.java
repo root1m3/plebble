@@ -95,6 +95,7 @@ public class fragment_trader extends Fragment implements datagram_dispatcher_t.h
         personality_exchange_btn = view.findViewById(R.id.personality_exchange_btn);
         reset = view.findViewById(R.id.button_reset);
         reload = view.findViewById(R.id.button_reload);
+        certs = view.findViewById(R.id.button_certs);
         data_btn = view.findViewById(R.id.data_btn);
         set_handlers();
         if (getActivity().getIntent().hasExtra("tid")) {
@@ -220,6 +221,12 @@ public class fragment_trader extends Fragment implements datagram_dispatcher_t.h
             }
         });
 
+        certs.setOnClickListener(new View.OnClickListener() {
+            @Override public void onClick(View view) {
+                do_certs();
+            }
+        });
+
         closetrade_btn.setOnClickListener(new View.OnClickListener() {
             @Override public void onClick(View view) {
                 close_trade();
@@ -281,6 +288,10 @@ public class fragment_trader extends Fragment implements datagram_dispatcher_t.h
                 return;
             }
         }
+    }
+
+    public void do_certs() {
+        tr.do_certs();
     }
 
     public void set_qr_peer(final byte[] payload) {
@@ -530,6 +541,7 @@ public class fragment_trader extends Fragment implements datagram_dispatcher_t.h
     private MaterialButton data_btn;
     private MaterialButton reset;
     private MaterialButton reload;
+    private MaterialButton certs;
     private LayoutInflater inflater;
     private View view;
     public Bitmap r_peer_ico = null;

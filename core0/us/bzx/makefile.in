@@ -31,7 +31,6 @@ CXXFLAGS=-g -O0 -std=c++20 -DDEBUG
 CPPS:=$(wildcard *.cpp)
 OBJS:=$(patsubst %.cpp, %.o, ${CPPS})
 HS:=$(wildcard *.h)
-EC:=$(shell pkg-config --libs libsecp256k1)
 OS:=$(shell uname)
 ifeq (${OS},Linux)
     ARCH:=$(shell uname -m)
@@ -41,33 +40,31 @@ else
     endif
 endif
 
-INC:=-I../..
+INC:=-I../.. -I/usr/local/include
 
 LIB:=-L../bz -l${USBZ}
 LIB+=-L../wallet -l${USWALLET}
 LIB+=-L../gov -l${USGOV}
-
-LIB+=${EC}
 
 ARCH:=$(shell uname -m)
 ifeq ($(ARCH),armv7l)
     LIB+=-latomic
 endif
 
-LIB+=-lstdc++fs -pthread
+LIB+=-pthread
 
 RPATH:=-Wl,-rpath,../wallet
 RPATH+=-Wl,-rpath,../gov
 
 %.o: %.cpp
-	g++ -fPIC -c ${CXXFLAGS} ${INC} $^ -o $@
+	$(CXX) -fPIC -c ${CXXFLAGS} ${INC} $^ -o $@
 
 ${USHBZ}: ${OBJS}
 #ifeq ($(WASM),1)
-#	em++ ${CXXFLAGS} ${OBJS} -L../gov -L../wallet ${LIBS} ${EC} ${NC} ${LIBCRYPTO} -I../.. -pthread -lstdc++fs -o ${USHWALLET}_wasm
+#	em++ ${CXXFLAGS} ${OBJS} -L../gov -L../wallet ${LIBS} ${NC} ${LIBCRYPTO} -I../.. -pthread -lstdc++fs -o ${USHWALLET}_wasm
 #else
-#	g++ ${CXXFLAGS} ${OBJS} -L../gov -L../wallet ${LIBS} ${EC} ${NC} ${LIBCRYPTO} -Wl,-rpath,../wallet -Wl,-rpath,../gov -I../.. -pthread -lstdc++fs -o ${USHWALLET}
-#	g++ ${CXXFLAGS} ${OBJS} ${INC} ${LIBS} ${EC} ${LIBCRYPTO} -Wl,-rpath,../wallet -Wl,-rpath,../gov -pthread -lstdc++fs -o ${USHBZ}
+#	g++ ${CXXFLAGS} ${OBJS} -L../gov -L../wallet ${LIBS} ${NC} ${LIBCRYPTO} -Wl,-rpath,../wallet -Wl,-rpath,../gov -I../.. -pthread -lstdc++fs -o ${USHWALLET}
+#	g++ ${CXXFLAGS} ${OBJS} ${INC} ${LIBS} ${LIBCRYPTO} -Wl,-rpath,../wallet -Wl,-rpath,../gov -pthread -lstdc++fs -o ${USHBZ}
 	@echo ""
 	@echo "[--->Link executable: ${USHBZ}]"
 	$(CXX) ${CXXFLAGS} ${RPATH} ${OBJS} ${LIB} -o ${USHBZ}

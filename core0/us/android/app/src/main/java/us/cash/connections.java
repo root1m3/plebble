@@ -206,7 +206,7 @@ public final class connections extends activity {
                 ssid.setVisibility(View.VISIBLE);
             }
             else {
-                address.setVisibility(View.GONE);
+                ssid.setVisibility(View.GONE);
             }
             View.OnClickListener lner = new View.OnClickListener() {
                 @Override public void onClick(View v) {

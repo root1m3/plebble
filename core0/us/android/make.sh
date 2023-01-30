@@ -93,11 +93,11 @@ else
 fi
 
 if [[ "_$cmd" == "_clean" ]]; then
-    rm build -rf
-    rm app/build -rf
-    rm wearable_JClife/build -rf
-    rm blesdk_2025/build -rf
-    ANDROID_HOME="`pwd`/android_sdk" ANDROID_SDK_ROOT="$asdk" ./gradlew $flags clean
+    rm -rf build
+    rm -rf app/build
+    rm -rf wearable_JClife/build
+    rm -rf blesdk_2025/build
+    ANDROID_HOME="$(pwd)/android_sdk" ANDROID_SDK_ROOT="$asdk" ./gradlew $flags clean
     exit 0
 fi
 

@@ -26,9 +26,10 @@ CPPS:=$(wildcard *.cpp)
 OBJS:=$(patsubst %.cpp, %.o, $(CPPS))
 HS:=$(wildcard *.h)
 
-INC:= ../../..
+INC:=-I../../.. -I/usr/local/include
 
-LIBS:=workflow/libtrader-workflow.o
+LIBS:=cert/libtrader-cert.o
+LIBS+=workflow/libtrader-workflow.o
 LIBS+=personality/libtrader-personality.o
 LIBS+=bootstrap/libtrader-bootstrap.o
 LIBS+=r2r/w2w/w2w-w.o
@@ -47,8 +48,11 @@ workflow/libtrader-workflow.o:
 r2r/w2w/w2w-w.o:
 	$(MAKE) -C r2r
 
+cert/libtrader-cert.o:
+	$(MAKE) -C cert
+
 %.o: %.cpp
-	$(CXX) -fPIC -c ${CXXFLAGS} -I${INC} $^ -o $@
+	$(CXX) -fPIC -c ${CXXFLAGS} ${INC} $^ -o $@
 
 ${OBJ}.o: ${OBJS} ${LIBS}
 	ld -r ${OBJS} ${LIBS} -o ${OBJ}.o
@@ -58,6 +62,7 @@ clean:
 	$(MAKE) -C workflow clean
 	$(MAKE) -C personality clean
 	$(MAKE) -C bootstrap clean
+	$(MAKE) -C cert clean
 	$(RM) -f *.o
 
 .PHONY: all clean

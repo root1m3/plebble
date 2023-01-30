@@ -21,13 +21,13 @@
 //===----------------------------------------------------------------------------
 //===-
 #pragma once
-#include <us/wallet/trader/workflow/doc_t.h>
-#include <us/wallet/trader/workflow/signed_doc_t.h>
-#include <us/wallet/trader/workflow/expiry_doc_t.h>
+#include <us/wallet/trader/cert/doc_t.h>
+#include <us/wallet/trader/cert/signed_doc_t.h>
+#include <us/wallet/trader/cert/expiry_doc_t.h>
 
 namespace us::trader::workflow::organization {
 
-    using magic_t = us::wallet::trader::workflow::doc0_t::magic_t;
+    using magic_t = us::wallet::trader::cert::doc0_t::magic_t;
 
     struct appointment_traits {
         static constexpr magic_t magic{400};
@@ -35,7 +35,7 @@ namespace us::trader::workflow::organization {
         static constexpr auto long_name{"Appointment"};
         static constexpr auto long_name_es{"Cita"};
     };
-    using appointment_t = us::wallet::trader::workflow::doc_t<us::wallet::trader::workflow::signed_expiry_doc_t, appointment_traits>;
+    using appointment_t = us::wallet::trader::cert::doc_t<us::wallet::trader::cert::signed_expiry_doc_t, appointment_traits>;
 
     struct reference_traits {
         static constexpr magic_t magic{401};
@@ -43,7 +43,7 @@ namespace us::trader::workflow::organization {
         static constexpr auto long_name{"Reference"};
         static constexpr auto long_name_es{"Referencia"};
     };
-    using reference_t = us::wallet::trader::workflow::doc_t<us::wallet::trader::workflow::doc0_t, reference_traits>;
+    using reference_t = us::wallet::trader::cert::doc_t<us::wallet::trader::cert::doc0_t, reference_traits>;
 
 }
 

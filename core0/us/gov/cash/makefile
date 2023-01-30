@@ -26,7 +26,7 @@ CPPS:=$(wildcard *.cpp)
 CPPS+=$(wildcard tx/*.cpp)
 OBJS:=$(patsubst %.cpp, %.o, $(CPPS))
 HS:=$(wildcard *.h)
-INC:=-I../../..
+INC:=-I../../.. -I/usr/local/include
 
 all: ${OBJ}.o
 

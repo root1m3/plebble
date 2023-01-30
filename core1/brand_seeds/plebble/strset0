@@ -36,4 +36,4 @@ discord_invite="https://discord.gg/jBwqcg8P67"
 linkedin=""
 short_description=""
 full_description=""
-devjob_sync_nextsteps="pushd /home/root1m3/downstream; chown root1m3:root1m3 devjob_9486ca5e -R; chown root1m3:root1m3 devjob_9486ca5e.git -R; popd; su root1m3 -c 'cd; pushd /home/root1m3/downstream/devjob_9486ca5e; git pull; git push github; popd'
+devjob_sync_nextsteps="pushd /home/root1m3/downstream; chown root1m3:root1m3 devjob_9486ca5e -R; chown root1m3:root1m3 devjob_9486ca5e.git -R; popd; su root1m3 -c 'cd; pushd /home/root1m3/downstream/devjob_9486ca5e; git pull; git push github; popd'"

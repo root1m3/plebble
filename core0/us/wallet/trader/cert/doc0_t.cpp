@@ -25,12 +25,12 @@
 #include <us/wallet/trader/params_t.h>
 #include <chrono>
 
-#define loglevel "wallet/trader/workflow"
+#define loglevel "wallet/trader/cert"
 #define logclass "doc0"
 #include <us/gov/logs.inc>
 
-using namespace us::wallet::trader::workflow;
-using c = us::wallet::trader::workflow::doc0_t;
+using namespace us::wallet::trader::cert;
+using c = us::wallet::trader::cert::doc0_t;
 
 c::doc0_t() {
 }
@@ -55,7 +55,7 @@ string c::lang() const {
 }
 
 bool c::verify(ostream&) const {
-    log("workflow_doc0_t verify ok");
+    log("doc0_t verify ok");
     return true;
 }
 
@@ -334,5 +334,4 @@ ko c::from_blob(blob_reader_t& reader) {
     }
     return ok;
 }
-
 

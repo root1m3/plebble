@@ -222,6 +222,8 @@
     <string name="nextsubmitairesults">Tip: Envie los resultados de la I.A.</string>
     <string name="upgrade2noncustodial">Actualizar a modo no custodiado</string>
     <string name="publisher">Origen</string>
+    <string name="certificates">Certificados</string>
+
 
 </resources>
 

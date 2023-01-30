@@ -20,7 +20,16 @@
 //===-
 //===----------------------------------------------------------------------------
 //===-
+
+#include <us/gov/config.h>
+
+// ------------base64 decoder - https://github.com/GobySoft/dccl/issues/43
+#ifdef __FreeBSD__
+    #include <cstdio>
+    #define BUFFERSIZE BUFSIZ
+#endif
 #include <b64/decode.h>
+// -/----------base64 decoder
 
 #include "m_t.h"
 #include "f_t.h"

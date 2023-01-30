@@ -517,6 +517,13 @@ public class blob_writer_t {
         return d;
     }
 
+    public static datagram get_datagram(final channel_t channel, final svc_t svc, final seq_t seq, final uint8_t o) {
+        datagram d = new datagram(channel, svc, seq, blob_size(o));
+        blob_writer_t w = new blob_writer_t(d);
+        w.write(o);
+        return d;
+    }
+
     public static datagram get_datagram(final channel_t channel, final svc_t svc, final seq_t seq, final uint16_t o) {
         datagram d = new datagram(channel, svc, seq, blob_size(o));
         blob_writer_t w = new blob_writer_t(d);

@@ -42,6 +42,9 @@
 #include <us/wallet/trader/bookmarks_t.h>
 #include <us/wallet/trader/personality/proof_t.h>
 #include <us/wallet/trader/libs_t.h>
+#include <us/wallet/trader/traders_t.h>
+#include <us/wallet/trader/cert/cert_t.h>
+#include <us/wallet/trader/cert/cert_index_t.h>
 
 #include "test_platform.h"
 
@@ -63,7 +66,7 @@ struct things_t: us::test::test_platform {
 
 
     void test_split_fqn(const string& sin, const pair<ko, pair<string, string>>& xpected) {
-        auto r =us::gov::io::cfg0::split_fqn(sin);
+        auto r = us::gov::io::cfg0::split_fqn(sin);
         cout << "\nsplit_fqn '" << sin << "'\n";
         cout << "expected: " << (is_ko(xpected.first)?"KO":"OK") << " path='" << xpected.second.first << "' file='" << xpected.second.second << "'" << endl;
         cout << "got: " << (is_ko(r.first)?"KO":"OK") << " path='" << r.second.first << "' file='" << r.second.second << "'" << endl;
@@ -284,11 +287,11 @@ struct things_t: us::test::test_platform {
     void test_endpoint(const string&s, us::ko eko, const string& eh, uint16_t ep) {
         using us::gov::socket::client;
         cout << "checking '" << s << "'" << endl;
-        pair<us::ko, pair<string, uint16_t>> r=client::parse_endpoint(s);
-        cout << "got " << (r.first==us::ok?"ok":r.first) << " '" << r.second.first << "' " << r.second.second << "'" << endl;
-        assert(r.first==eko);
-        assert(r.second.first==eh);
-        assert(r.second.second==ep);
+        pair<us::ko, pair<string, uint16_t>> r = client::parse_endpoint(s);
+        cout << "got " << (r.first==us::ok ? "ok" : r.first) << " '" << r.second.first << "' " << r.second.second << "'" << endl;
+        assert(r.first == eko);
+        assert(r.second.first == eh);
+        assert(r.second.second == ep);
     }
 
     void test_endpoint() {
@@ -1532,6 +1535,23 @@ struct things_t: us::test::test_platform {
         os << z << ' ' << one;
         cout << os.str() << endl;
         assert(os.str() == "11111111111111111111 11111111111111112UzHM");
+
+        {
+        string s="3gKH3Nud7k2wGz3PXEtBPyPuCgjZ";
+        hash_t x(s);
+        ostringstream os;
+        os << x;
+        cout << s << endl;
+        assert(os.str() == s);
+        auto p = x.encode_path();
+        cout << "* encode path: " << p << endl;
+        assert(p == "3g/KH/3N/ud/7k/2w/Gz/3P/XE/tB/Py/Pu/Cg");
+        auto f = x.filename();
+        cout << "filename: " << f.first << "/" << f.second << endl;
+        assert(f.first == "3g/KH/3N/ud/7k/2w/Gz/3P/XE/tB/Py/Pu/Cg");
+        assert(f.second == s);
+        }
+
     }
 
     void test_ec() {
@@ -1595,6 +1615,109 @@ struct things_t: us::test::test_platform {
 //assert(false);
     }
 
+    void test_cert() {
+        using cert_t = us::wallet::trader::cert::cert_t;
+        using cert_index_t = us::wallet::trader::cert::cert_index_t;
+        using cert_authority_t = us::wallet::trader::traders_t::cert_authority_t;
+
+        cert_authority_t ca;
+        string homedir = log_dir() + "/ca";
+        assert(ok == ca.init(homedir));
+
+        cout << "created cert using new personality\n";
+        hash_t nft1;
+        {
+            cert_t::options o;
+            o.xhours = 300000;
+            string msg = "I certify this.";
+            auto r = ca.cert_create(move(msg), move(o), nft1);
+            assert(is_ok(r));
+        }
+        cout << "nft1: " << nft1 << endl;
+        assert(nft1.is_not_zero());
+
+        hash_t nft2;
+        {
+            auto r = ca.reset_personality("ARhkcvqQDrzx1vR4iHQoqdaV4h2qUDVLBHoxwVpWfE1D", "testCA");
+            assert(r == ok);
+            {
+                cert_t::options o;
+                o.xhours = 300000;
+                string msg = "I certify this (2).";
+                auto r = ca.cert_create(move(msg), move(o), nft2);
+                assert(is_ok(r));
+            }
+            cout << "nft2: " << nft2 << endl;
+            assert(nft2.is_not_zero());
+            cout << "ca.personality.nft() " << ca.personality.nft() << endl;
+            assert(ca.personality.nft() == hash_t("3Y9mQN4ep33VfSm37dWoUt232qg2"));
+        }
+
+        hash_t nft3;
+        {
+            {
+                cert_t::options o;
+                o.xhours = 300000;
+                string msg = "I certify this (3).";
+                auto r = ca.cert_create(move(msg), move(o), nft3);
+                assert(is_ok(r));
+            }
+            cout << "nft3: " << nft3 << endl;
+            assert(nft3.is_not_zero());
+        }
+
+        cout << "cert index" << endl;
+        {
+            cert_index_t o;
+            auto r = ca.cert_list(0, o);
+            assert(r == ok);
+            cout << o.size() << endl;
+            o.dump(cout);
+            assert(o.size() == 3);
+            auto i = o.find(nft3);
+            assert(i != o.end());
+        }
+        cout << "cert index" << endl;
+        {
+            cert_index_t o;
+            auto r = ca.cert_list(1, o);
+            assert(r == ok);
+            cout << o.size() << endl;
+            o.dump(cout);
+            assert(o.size() == 2);
+        }
+        {
+            cert_authority_t ca2;
+            string homedir = log_dir() + "/ca2";
+            assert(ok == ca2.init(homedir));
+            cert_t o;
+            assert(ok == ca.cert_get(nft3, o));
+            hash_t nft4;
+            assert(ok == ca2.cert_import(move(o), nft4));
+            cout << "nft3 " << nft3 << endl;
+            cout << "nft4 " << nft4 << endl;
+            assert(nft4 == nft3);
+
+            {
+                cert_index_t o;
+                auto r = ca2.cert_list(0, o);
+                assert(r == ok);
+                cout << o.size() << endl;
+                o.dump(cout);
+                assert(o.size() == 1);
+            }
+            {
+                cert_index_t o;
+                auto r = ca2.cert_list(1, o);
+                assert(r == ok);
+                cout << o.size() << endl;
+                o.dump(cout);
+                assert(o.size() == 0);
+            }
+        }
+
+    }
+
     void self_test() {
         cout << "pointers (classic/fat)" << endl;
         test_pointers();
@@ -1628,7 +1751,8 @@ struct things_t: us::test::test_platform {
         test_chat();
         cout << "extract_protocol_selection" << endl;
         test_extract_protocol_selection();
-        
+        cout << "certs" << endl;
+        test_cert();        
     }
 
 };

@@ -21,6 +21,7 @@
 //===----------------------------------------------------------------------------
 //===-
 #include <fcntl.h>
+#include <sys/socket.h>
 
 #include <us/gov/config.h>
 #include <us/gov/socket/peer_t.h>

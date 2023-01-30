@@ -20,13 +20,13 @@
 //===-
 //===----------------------------------------------------------------------------
 //===-
-#include "trader_protocol.h"
-
 #include <us/gov/io/cfg0.h>
 #include <us/gov/socket/datagram.h>
 #include <us/wallet/trader/trader_t.h>
+#include <us/wallet/trader/cert/doc0_t.h>
 
-#include "doc_t.h"
+//#include "doc_t.h"
+#include "trader_protocol.h"
 
 #define loglevel "wallet/trader/workflow"
 #define logclass "trader_protocol"
@@ -37,6 +37,7 @@ using namespace us::wallet;
 using namespace us::wallet::trader::workflow;
 using c = us::wallet::trader::workflow::trader_protocol;
 using us::ko;
+using us::gov::io::blob_t;
 
 c::trader_protocol(business_t& bz): b(bz), _workflows(get_business()) {
 }

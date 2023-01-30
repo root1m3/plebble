@@ -351,8 +351,16 @@
                     android:drawableLeft="@drawable/ic_reset"
                     android:drawablePadding="20dp"
                     android:textAlignment="textStart"
+                    android:textColor="@android:color/white"/>
 
-
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/button_certs"
+                    android:text="Send Cert..."
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:drawableLeft="@raw/cert"
+                    android:drawablePadding="20dp"
+                    android:textAlignment="textStart"
                     android:textColor="@android:color/white"/>
 
                 <com.google.android.material.button.MaterialButton

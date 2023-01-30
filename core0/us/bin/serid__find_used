@@ -1,0 +1,64 @@
+#!/bin/bash
+#===-                           P L E B B L E
+#===-                         https://plebble.us
+#===-
+#===-              Copyright (C) 2017-2022 root1m3@plebble.us
+#===-
+#===-                      GNU GENERAL PUBLIC LICENSE
+#===-                       Version 3, 29 June 2007
+#===-
+#===-    This program is free software: you can redistribute it and/or modify
+#===-    it under the terms of the GPLv3 License as published by the Free
+#===-    Software Foundation.
+#===-
+#===-    This program is distributed in the hope that it will be useful,
+#===-    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#===-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+#===-
+#===-    You should have received a copy of the General Public License
+#===-    along with this program, see LICENCE file.
+#===-    see https://www.gnu.org/licenses
+#===-
+#===----------------------------------------------------------------------------
+#===-
+
+function find_serid {
+	ack "serial_id\(\)" | grep "'.'" | sed "s/.*'\(.\)'.*/\1/"
+        ack "serid\{"  | grep "'.'" | sed "s/.*'\(.\)'.*/\1/"
+}
+
+function find_defs {
+	char=$1
+	ack "serial_id\(\)" | grep "'$char'"
+        ack "serid\{"  | grep "'$char'"
+}
+
+function output {
+	pushd gov > /dev/null
+		find_serid
+	popd > /dev/null
+	pushd wallet > /dev/null
+		find_serid
+	popd > /dev/null
+}
+
+function defs {
+	pushd gov > /dev/null
+		find_defs $1
+	popd > /dev/null
+	pushd wallet > /dev/null
+		find_defs $1
+	popd > /dev/null
+
+}
+output | sort | uniq -c
+
+
+dups=$(output | sort | uniq -c | awk '{print $1" "$2}' | sort -r | grep -v "^1 .*" | awk '{print $2}')
+for d in $dups; do
+	defs $d
+done
+
+
+exit 0
+
