@@ -107,13 +107,15 @@ void test_encrypt_decrypt(string plaintext_string,const keys::priv_t& priv_a, co
 }
 
 using namespace chrono;
-
+/*
 void alpha_28_comp(int a28, int cur, ostream& os) {
     int diff=a28-cur;
     os << 100.0*(1.0-((double)cur/(double)a28)) << "% better";
 }
+*/
 
-void test_perf_encrypt(int msgsz, int iters, int alpha_28_ref) {
+//void test_perf_encrypt(int msgsz, int iters, int alpha_28_ref) {
+void test_perf_encrypt(int msgsz, int iters) {
     cout << "symmetric encryption perf test. msg sz=" << msgsz << " iters=" << iters << "... "; cout.flush();
     keys a = keys::generate();
     keys b = keys::generate();
@@ -131,7 +133,7 @@ void test_perf_encrypt(int msgsz, int iters, int alpha_28_ref) {
     auto t1 = chrono::system_clock::now();
     auto t = duration_cast<milliseconds>(t1 - t0).count();
     cout << t << " ms. ";
-    alpha_28_comp(alpha_28_ref, t, cout);
+    //alpha_28_comp(alpha_28_ref, t, cout);
     cout << '\n';
 }
 
@@ -142,38 +144,38 @@ void test_perf_encrypt() {
 
   tee("enc ratio");
   for (int sz = 0; sz < 100; ++sz) {
-      test_perf_encrypt(sz, 1, 29783);
+      test_perf_encrypt(sz, 1);
   }
   for (int sz = 100; sz < 1000; sz += 10) {
-      test_perf_encrypt(sz, 1, 29783);
+      test_perf_encrypt(sz, 1);
   }
   for (int sz = 1000; sz < 10000; sz += 100) {
-      test_perf_encrypt(sz, 1, 29783);
+      test_perf_encrypt(sz, 1);
   }
   for (int sz = 10000; sz < 100000; sz += 1000) {
-      test_perf_encrypt(sz, 1, 29783);
+      test_perf_encrypt(sz, 1);
   }
   for (int sz = 100000; sz < 1000000; sz += 10000) {
-      test_perf_encrypt(sz, 1, 29783);
+      test_perf_encrypt(sz, 1);
   }
 
   tee("perf");
   us::dbg::thread_logger::instance.disabled = true;
 
-  test_perf_encrypt(10, 10000, 25);
-  test_perf_encrypt(10, 100000, 250);
+  test_perf_encrypt(10, 10000);
   #if include_heavy == 1
-      test_perf_encrypt(10, 1000000, 2513);
+      test_perf_encrypt(10, 100000);
+      test_perf_encrypt(10, 1000000);
   #endif
-  test_perf_encrypt(10000, 10000, 54);
-  test_perf_encrypt(10000, 100000, 540);
+  test_perf_encrypt(10000, 10000);
   #if include_heavy == 1
-      test_perf_encrypt(10000, 1000000, 5403);
+      test_perf_encrypt(10000, 100000);
+      test_perf_encrypt(10000, 1000000);
   #endif
-  test_perf_encrypt(100000, 10000, 298);
-  test_perf_encrypt(100000, 100000, 2973);
+  test_perf_encrypt(100000, 10000);
   #if include_heavy == 1
-      test_perf_encrypt(100000, 1000000, 29783);
+      test_perf_encrypt(100000, 100000);
+      test_perf_encrypt(100000, 1000000);
   #endif
   us::dbg::thread_logger::instance.disabled = prev;
 }

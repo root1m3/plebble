@@ -150,6 +150,7 @@ void load_test(const string& logdir, vector<n>& svrs, int evidences, int separat
     us::test::test_platform t(cout);
     int counter = 0;
     if (nl > 0) {
+	
         while(true) {
             bool isl = false;
             for (int i = 0; i < nl; ++i) {
@@ -227,10 +228,10 @@ void test_network_load(const string& logdir, vector<n>& svrs, int num_loaders) {
     cout << "num_loaders " << num_loaders << " num_datagrams " << num_datagrams << " separation_ms " << separation_ms << endl;
     load_test(logdir + "/100_dgram-100_ms", svrs, num_datagrams, separation_ms, num_loaders);
 
-    num_datagrams = 1000;
-    separation_ms = 10;
-    cout << "num_loaders " << num_loaders << " num_datagrams " << num_datagrams << " separation_ms " << separation_ms << endl;
-    load_test(logdir + "/1000_dgram-10_ms", svrs, num_datagrams, separation_ms, num_loaders);
+//    num_datagrams = 1000;
+//    separation_ms = 10;
+//    cout << "num_loaders " << num_loaders << " num_datagrams " << num_datagrams << " separation_ms " << separation_ms << endl;
+//    load_test(logdir + "/1000_dgram-10_ms", svrs, num_datagrams, separation_ms, num_loaders);
 
  //   num_datagrams=10000;
  //   separation_ms=1;

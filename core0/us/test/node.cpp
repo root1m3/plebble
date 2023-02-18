@@ -40,8 +40,11 @@ using c = us::test::node;
 using namespace std;
 using hash_t = us::gov::crypto::ripemd160::value_type;
 
+//morello
+string c::localip("192.168.42.75"); //dont use 127.0.0.1 , unreachable from mobile when using advertised IPs (IP lookup)
+
 //desktop
-string c::localip("192.168.0.96"); //dont use 127.0.0.1 , unreachable from mobile when using advertised IPs (IP lookup)
+//string c::localip("192.168.0.96"); //dont use 127.0.0.1 , unreachable from mobile when using advertised IPs (IP lookup)
 
 //laptop
 //string c::localip("192.168.0.106"); //dont use 127.0.0.1 , unreachable from mobile when using advertised IPs (IP lookup)

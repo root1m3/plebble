@@ -967,11 +967,18 @@ void test_l1() {
 //    test_engine_daemon(string(argv[1]));
     test_engine_daemon("../test");
 
+#if __CHERI__ == 1
+#else
+//Disabled for Morello/CHERI: 
+//Some tests trigger “In-address space security exception” because pointers are sent over via IPC, failing the CHERI pointer provenance check. As in https://ctsrd-cheri.github.io/cheri-exercises/exercises/pointer-injection/
+//Passing pointers via IPC is a quick setup that can be replaced by object serialization. It is only done in unit tests. CHERI helped to spot this ‘design’ issue although it doesn’t qualify as vulnerability.
+
     cout << "peerd..." << endl;
     test_peerd();
 
     cout << "node0..." << endl;
     test_node0();
+#endif
 
     cout << "syncd..." << endl;
     test_syncd();
@@ -1010,7 +1017,7 @@ void help(ostream& os) {
 }
 
 int core0_main(int argc, char** argv) {
-us::test::r2r_t::test_restart_wallet = false;
+    us::test::r2r_t::test_restart_wallet = false;
 
 
     us::gov::io::shell_args args(argc, argv);
